@@ -21,7 +21,7 @@ Bun-only repo (no pnpm/npm). Run `bun install` from `web/`. Requires **Bun >= 1.
 
 - **No `svelte.config.ts`** — kit 3 rejects it (`kit/config_file_unsupported`). Config is inline in `vite.config.ts` via `sveltekit({ compilerOptions, adapter, paths })`. `paths.origin` is taken from the optional `ORIGIN` env var at build time; leave it empty behind TLS so adapter-bun can derive the host.
 - **`tsconfig.json` extends `"$app/tsconfig"`** (kit 3's preset: `paths: {}`, `types`, `noEmit`, `allowImportingTsExtensions`). Do not set `paths` for aliases. `compilerOptions.types` **replaces** the inherited array, so it must list both: `["$app/types", "bun"]` (the `bun` entry gives `bun:sqlite` / `Bun` global types to `src/lib/backend`).
-- **Env vars live in `src/env.ts`** (`defineEnvVars` from `@sveltejs/kit/env`) and are read as `$app/env/private` — kit 3 removed `$env/dynamic/private`, and `$env/static/private` is deprecated. Bun auto-loads `.env` for both `vite dev` and `bun --bun vite build`; `drizzle.config.ts` is the exception (drizzle-kit loads `.env` itself). `ORIGIN` is read from `process.env` in `vite.config.ts` at build time.
+- **Env vars live in `src/env.ts`** (`defineEnvVars` from `@sveltejs/kit/env`) and are read as `$app/env/private` — kit 3 removed `$env/dynamic/private`, and `$env/static/private` is deprecated. `TURSO_*`, `BETTER_AUTH_*`, and `SUPABASE_*` are required (no `schema`); `GOOGLE_*` are optional (`{ schema: (value) => value }`) so the app boots without them. Bun auto-loads `.env` for both `vite dev` and `bun --bun vite build`; `drizzle.config.ts` is the exception (drizzle-kit loads `.env` itself). `ORIGIN` is read from `process.env` in `vite.config.ts` at build time.
 - **Path aliases live in `package.json` `imports`** (Node subpath imports, no `kit.alias`):
   - `#lib` → `./src/lib/index.ts`; `#lib/*` → `./src/lib/*`
   - `#backend/modules/*` → `./src/lib/backend/modules/*`
@@ -41,6 +41,8 @@ Bun-only repo (no pnpm/npm). Run `bun install` from `web/`. Requires **Bun >= 1.
 - `src/lib/frontend/modules/landing/` — landing-page sections (`HeroSection`, `BrandsSection`, …)
 - `src/lib/backend/` — better-auth config + hand-rolled `bun:sqlite` app tables (type-checked by `bun run check`)
 - `src/lib/server/db/` — Drizzle + Turso/libsql client and schema (better-auth tables; env comes from `src/env.ts` via `$app/env/private`); `bun run db:push` syncs it
+- `src/lib/server/modules/storage/` — `@supabase/storage-js` client for the public Supabase Storage bucket. Server-only (it sits under `src/lib/server/`, and `$app/env/private` is guarded anyway) because `SUPABASE_SERVICE_ROLE_KEY` bypasses Storage RLS. Uploads are limited to `image/jpeg|png|webp|avif|gif` and 5 MiB; the extension comes from the MIME map, never from the client filename.
+- `src/routes/api/upload/+server.ts` — the only custom endpoint besides `/api/auth/*`. `POST` (multipart `file`, optional single-segment `folder`) returns `201 { path, url, contentType, size }`; `401` without a session, `400`/`413`/`415` on bad input, `502` when Storage rejects the write. Use `Response.json`, not kit 3's deprecated `json()`/`error()`.
 - `tools/convert.mjs` — JSX → Svelte converter (full-page and `--snippet` modes); strips `data-node-id`, keeps `data-name`, strips embedded `Header`/`Footer` sections
 - `tools/rewire.mjs` — CLI to wire real handlers: `button` / `buttonall` (div → `<button onclick={() => goto(path)}>`), `span`, `p`, `row` (nav rows → `<a>`), `tab` (`data-name="Tab item|0N"` → `<a>`)
 - `static/assets/` — 406 SVGs (+ PNG paths referenced as in the original, some intentionally missing/broken like the React app)
@@ -59,8 +61,12 @@ Bun-only repo (no pnpm/npm). Run `bun install` from `web/`. Requires **Bun >= 1.
 
 Auth endpoints (`/api/auth/*`, served by better-auth through `src/hooks.server.ts`) exist under `bun run dev` and the built Bun server. Verify with `GET /api/auth/ok` and `GET /api/auth/get-session`. Production needs the `TURSO_*`, `BETTER_AUTH_*` vars (see `.env.example`) and the auth tables (`bun run db:push`).
 
+Storage: `POST /api/upload` without a session returns `401`; `GET` returns `405`; a cross-origin POST returns `403` (SvelteKit CSRF). `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, and `SUPABASE_STORAGE_BUCKET` are declared **required** in `src/env.ts`, so `bun run --bun build` and the server both fail with `env_invalid` until they are set — `bun run check` and `bun run dev`'s UI need them too. The bucket must already exist (dashboard: Storage → New bucket, public access, restrict uploads to the MIME types in `src/lib/server/modules/storage/index.ts`). Local HTTP testing needs `ORIGIN=http://localhost:<port>` at build time _and_ `BETTER_AUTH_URL` at runtime with the same origin, otherwise `/api/auth/*` 404s and same-origin form POSTs get 403 CSRF.
+
 ## Deployment
 
 Ship `build/`, `package.json`, and `bun.lock`; runtime dependencies (`better-auth`, `drizzle-orm`, `@libsql/client`) are externalised, so run `bun install --production --frozen-lockfile` on the server. Start with `bun ./build` (default `PORT=3000`; see `.env.example` for `HOST`, `PORT`, proxy headers, and limits).
+
+`BODY_SIZE_LIMIT` defaults to `512K` in the built Bun server, which is below the upload endpoint's 5 MiB limit, so set `BODY_SIZE_LIMIT=10M` (or `Infinity`) or large uploads die at the server before the endpoint can return its own `413` JSON. `vite dev` has no body limit.
 
 `BETTER_AUTH_URL` must match the public origin. Behind TLS the adapter's default `https` assumption is correct; when serving plain HTTP directly, build with `ORIGIN=http://localhost:3000 bun run --bun build` (or configure the proxy headers at runtime). `ORIGIN` is intentionally ignored during `vite dev` so it cannot break the 5173 dev server.

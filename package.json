@@ -26,7 +26,7 @@
 	},
 	"dependencies": {
 		"@libsql/client": "^0.18.0",
-		"@vercel/blob": "^2.8.2",
+		"@supabase/storage-js": "^2.118.0",
 		"better-auth": "^1.7.13",
 		"drizzle-orm": "^0.45.4"
 	},
