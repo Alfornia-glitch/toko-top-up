@@ -10,9 +10,9 @@ export const variables = defineEnvVars({
 	SUPABASE_URL: {
 		description: 'Project URL of the Supabase instance, e.g. https://<project-ref>.supabase.co'
 	},
-	SUPABASE_SERVICE_ROLE_KEY: {
+	SUPABASE_SECRET_KEY: {
 		description:
-			'Server-only secret key (sb_secret_… or the legacy service_role JWT) used to write to Storage'
+			'Server-only secret key (sb_secret_…) used to write to Storage; bypasses Storage RLS'
 	},
 	SUPABASE_STORAGE_BUCKET: {
 		description: 'Name of the public Storage bucket that receives uploaded media'

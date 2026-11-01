@@ -1,5 +1,5 @@
 import { StorageClient, isStorageError } from '@supabase/storage-js';
-import { SUPABASE_SERVICE_ROLE_KEY, SUPABASE_STORAGE_BUCKET, SUPABASE_URL } from '$app/env/private';
+import { SUPABASE_SECRET_KEY, SUPABASE_STORAGE_BUCKET, SUPABASE_URL } from '$app/env/private';
 
 export const DEFAULT_FOLDER = 'media';
 
@@ -27,8 +27,8 @@ let client: StorageClient | undefined;
  */
 function storage(): StorageClient {
 	client ??= new StorageClient(`${SUPABASE_URL}/storage/v1`, {
-		apikey: SUPABASE_SERVICE_ROLE_KEY,
-		Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`
+		apikey: SUPABASE_SECRET_KEY,
+		Authorization: `Bearer ${SUPABASE_SECRET_KEY}`
 	});
 
 	return client;
