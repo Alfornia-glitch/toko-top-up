@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
-	import { goto } from '$app/navigation';
 	import { LoaderCircle, Minus, Plus, RotateCcw, Star, Truck } from '@lucide/svelte';
 	import SiteHeader from '#lib/frontend/components/SiteHeader.svelte';
 	import SiteFooter from '#lib/frontend/components/SiteFooter.svelte';
 	import ImagePlaceholder from '#lib/frontend/components/ui/ImagePlaceholder.svelte';
+	import { cart } from '#lib/frontend/modules/commerce/cart.svelte.ts';
 	import { Badge } from '#lib/frontend/components/ui/badge/index.ts';
 	import { Button } from '#lib/frontend/components/ui/button/index.ts';
 	import * as Card from '#lib/frontend/components/ui/card/index.ts';
@@ -139,9 +139,9 @@
 		return Math.min(5, value > 5 ? value / 100 : value);
 	}
 
-	function addToCart() {
-		if (displayStock <= 0) return;
-		goto('/cart');
+	async function addToCart() {
+		if (!selectedVariant || displayStock <= 0) return;
+		await cart.add(selectedVariant.id, quantity);
 	}
 
 	const rating = $derived(product ? ratingValue(product.ratingAvg) : 0);

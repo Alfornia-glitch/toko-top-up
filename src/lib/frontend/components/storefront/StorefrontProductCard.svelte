@@ -28,6 +28,8 @@
 
 	let { product }: { product: StorefrontProduct } = $props();
 
+	let failedUrl = $state<string | null>(null);
+
 	function formatMoney(cents: number, currency: string) {
 		return new Intl.NumberFormat('en-US', {
 			style: 'currency',
@@ -57,11 +59,12 @@
 	class="group flex h-full flex-col overflow-hidden rounded-[14px] border border-[#e5e5e5] bg-white transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(10,10,10,0.12)]"
 >
 	<div class="relative aspect-square w-full overflow-hidden bg-[#f5f5f5]">
-		{#if product.imageUrl}
+		{#if product.imageUrl && failedUrl !== product.imageUrl}
 			<img
 				src={product.imageUrl}
 				alt={product.name}
 				loading="lazy"
+				onerror={() => (failedUrl = product.imageUrl)}
 				class="size-full object-cover transition duration-300 group-hover:scale-105"
 			/>
 		{:else}

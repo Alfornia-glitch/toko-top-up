@@ -1,76 +1,217 @@
 <script lang="ts">
+	import { onMount, untrack } from 'svelte';
 	import { goto } from '$app/navigation';
+	import { page as appPage } from '$app/state';
 	import Pagination from '#lib/frontend/components/ui/Pagination.svelte';
 	import SiteHeader from '#lib/frontend/components/SiteHeader.svelte';
 	import SiteFooter from '#lib/frontend/components/SiteFooter.svelte';
-	const imgLeftIcon = '/assets/ca51b.svg';
-	const imgEllipsis = '/assets/5c61b.svg';
-	const imgLeftIcon1 = '/assets/6b5ef.svg';
-	const imgEllipse1 = '/assets/9c996.svg';
-	const imgPic = '/assets/d94d6.png';
-	const imgCardHeader = '/assets/453b0.png';
-	const imgCardHeader2 = '/assets/21932.png';
-	const imgCardHeader3 = '/assets/58239.png';
-	const imgCardHeader4 = '/assets/f3584.png';
-	const imgCardHeader5 = '/assets/786c1.png';
-	const imgCardHeader6 = '/assets/b1105.png';
-	const imgCardHeader7 = '/assets/c746f.png';
-	const imgCardHeader8 = '/assets/32daa.png';
-	const imgCardHeader9 = '/assets/c88b3.png';
-	const imgCardHeader10 = '/assets/d4e6e.png';
-	const imgCardHeader11 = '/assets/8cd4d.png';
-	const imgCardHeader12 = '/assets/deba9.png';
-	const imgImage19 = '/assets/3cc20.png';
-	const imgImage13 = '/assets/ad1bf.png';
-	const imgImage11 = '/assets/c2747.png';
-	const imgImage12 = '/assets/d5a5f.png';
-	const imgOrnament54 = '/assets/c7bb1.svg';
-	const imgOrnament51 = '/assets/ddcaa.svg';
-	const imgOrnament52 = '/assets/658ce.svg';
-	const imgOrnament53 = '/assets/0d8d6.svg';
-	const imgLeftIcon2 = '/assets/a05bd.svg';
-	const imgIcon = '/assets/fd9fe.svg';
-	const imgIcon1 = '/assets/d2675.svg';
-	const imgEllipse90 = '/assets/7af52.svg';
-	const imgGroup = '/assets/9c2d9.svg';
-	const imgGroup1 = '/assets/f2165.svg';
-	const imgLeftIcon3 = '/assets/525ae.svg';
-	const imgLeftIcon4 = '/assets/51c3a.svg';
-	const imgLeftIcon5 = '/assets/a3682.svg';
-	const imgLeftIcon6 = '/assets/dad92.svg';
-	const imgIcon2 = '/assets/303ae.svg';
-	const imgIcon3 = '/assets/bf68c.svg';
-	const imgItems = '/assets/20e59.svg';
-	const imgCardBody = '/assets/f38db.svg';
-	const imgCardBody1 = '/assets/f64b2.svg';
-	const imgCardBody2 = '/assets/402db.svg';
-	const imgCardBody3 = '/assets/a668c.svg';
-	const imgCardBody4 = '/assets/babef.svg';
-	const imgCardBody5 = '/assets/82e9f.svg';
-	const imgCardBody6 = '/assets/3d7f3.svg';
-	const imgCardBody7 = '/assets/39b1e.svg';
-	const imgCardBody8 = '/assets/026f8.svg';
-	const imgCardBody9 = '/assets/b9113.svg';
-	const imgCardBody10 = '/assets/4b11f.svg';
-	const imgCardBody11 = '/assets/a23dc.svg';
-	const imgCardBody12 = '/assets/70098.svg';
-	const imgCardBody13 = '/assets/728b9.svg';
-	const imgItems1 = '/assets/1b829.svg';
-	const imgItems2 = '/assets/0d4d6.svg';
-	const imgSelectValue = '/assets/2ea59.svg';
+	import StorefrontProductCard from '#lib/frontend/components/storefront/StorefrontProductCard.svelte';
+	import { listProducts } from '#lib/frontend/modules/commerce/products.ts';
+	import type { ProductQuery } from '#lib/frontend/modules/commerce/products.ts';
+	import type { ProductListResult } from '#lib/frontend/modules/commerce/models.ts';
+	import { formatMoney } from '#lib/frontend/modules/commerce/format.ts';
+	import { home } from '#lib/frontend/modules/commerce/home.svelte.ts';
+
+	let { query = {} }: { query?: ProductQuery } = $props();
+
+	type SortValue = NonNullable<ProductQuery['sort']>;
+
+	interface Filters {
+		categoryId?: string;
+		brandId?: string;
+		minPrice?: number;
+		maxPrice?: number;
+		color?: string;
+		sort?: SortValue;
+	}
+
+	let result = $state<ProductListResult | null>(null);
+	let loading = $state(true);
+	let error = $state('');
+	let filters = $state<Filters>(
+		untrack(() => ({
+			categoryId: query.categoryId,
+			brandId: query.brandId,
+			minPrice: query.minPrice,
+			maxPrice: query.maxPrice,
+			color: query.color,
+			sort: query.sort
+		}))
+	);
+	let page = $state(untrack(() => query.page ?? 1));
+	let minInput = $state(
+		untrack(() => (query.minPrice != null ? String(query.minPrice / 100) : ''))
+	);
+	let maxInput = $state(
+		untrack(() => (query.maxPrice != null ? String(query.maxPrice / 100) : ''))
+	);
+
+	let requestId = 0;
+
+	onMount(() => {
+		void home.ensure();
+	});
+
+	const selectedCategory = $derived(
+		result?.facets.categories.find((category) => category.id === filters.categoryId)?.name ??
+			home.categories.find((category) => category.id === filters.categoryId)?.name ??
+			'Products'
+	);
+	const selectedBrand = $derived(
+		result?.facets.brands.find((brand) => brand.id === filters.brandId)?.name ??
+			home.brands.find((brand) => brand.id === filters.brandId)?.name ??
+			''
+	);
+	const totalPages = $derived(
+		result ? Math.max(1, Math.ceil(result.total / Math.max(1, result.pageSize))) : 1
+	);
+	const pageNumbers = $derived(buildPageNumbers(page, totalPages));
+	const priceRanges = $derived.by(() => {
+		const bounds = result?.facets.price;
+		if (!bounds || bounds.maxCents <= bounds.minCents) return [];
+		const step = (bounds.maxCents - bounds.minCents) / 4;
+		return Array.from({ length: 4 }, (_, index) => ({
+			min: Math.round(bounds.minCents + step * index),
+			max: index === 3 ? bounds.maxCents : Math.round(bounds.minCents + step * (index + 1))
+		}));
+	});
+
+	function buildPageNumbers(current: number, total: number): number[] {
+		if (total <= 7) return Array.from({ length: total }, (_, index) => index + 1);
+		const start = Math.min(Math.max(current - 3, 1), total - 6);
+		return Array.from({ length: 7 }, (_, index) => start + index);
+	}
+
+	function currentSearch(overrides: Record<string, string | number | null | undefined> = {}) {
+		const params = new URLSearchParams(appPage.url.search);
+		const values: Record<string, string | number | null | undefined> = {
+			categoryId: filters.categoryId,
+			brandId: filters.brandId,
+			minPrice: filters.minPrice,
+			maxPrice: filters.maxPrice,
+			color: filters.color,
+			sort: filters.sort && filters.sort !== 'recommended' ? filters.sort : null,
+			page: page > 1 ? page : null,
+			...overrides
+		};
+
+		for (const [key, value] of Object.entries(values)) {
+			if (value === null || value === undefined || value === '') params.delete(key);
+			else params.set(key, String(value));
+		}
+
+		return params.toString();
+	}
+
+	function syncUrl(overrides: Record<string, string | number | null | undefined> = {}) {
+		const search = currentSearch(overrides);
+		void goto(`/products${search ? `?${search}` : ''}`, { replace: true, reset: false });
+	}
+
+	function viewHref(list: boolean) {
+		const search = currentSearch({ view: list ? 'list' : null });
+		return `/products${search ? `?${search}` : ''}`;
+	}
+
+	function selectCategory(id: string) {
+		filters.categoryId = filters.categoryId === id ? undefined : id;
+		page = 1;
+		syncUrl({ categoryId: filters.categoryId ?? null, page: null });
+	}
+
+	function selectBrand(id: string) {
+		filters.brandId = filters.brandId === id ? undefined : id;
+		page = 1;
+		syncUrl({ brandId: filters.brandId ?? null, page: null });
+	}
+
+	function selectColor(color: string) {
+		filters.color = filters.color === color ? undefined : color;
+		page = 1;
+		syncUrl({ color: filters.color ?? null, page: null });
+	}
+
+	function changeSort(next: SortValue) {
+		filters.sort = next;
+		page = 1;
+		syncUrl({ sort: next === 'recommended' ? null : next, page: null });
+	}
+
+	function applyPrice() {
+		const min = minInput.trim() === '' ? undefined : Math.round(Number(minInput) * 100);
+		const max = maxInput.trim() === '' ? undefined : Math.round(Number(maxInput) * 100);
+		filters.minPrice = min != null && Number.isFinite(min) ? min : undefined;
+		filters.maxPrice = max != null && Number.isFinite(max) ? max : undefined;
+		page = 1;
+		syncUrl({ minPrice: filters.minPrice ?? null, maxPrice: filters.maxPrice ?? null, page: null });
+	}
+
+	function applyRange(min: number, max: number) {
+		minInput = String(min / 100);
+		maxInput = String(max / 100);
+		filters.minPrice = min;
+		filters.maxPrice = max;
+		page = 1;
+		syncUrl({ minPrice: min, maxPrice: max, page: null });
+	}
+
+	function clearAll() {
+		filters.categoryId = undefined;
+		filters.brandId = undefined;
+		filters.minPrice = undefined;
+		filters.maxPrice = undefined;
+		filters.color = undefined;
+		minInput = '';
+		maxInput = '';
+		page = 1;
+		syncUrl({
+			categoryId: null,
+			brandId: null,
+			minPrice: null,
+			maxPrice: null,
+			color: null,
+			page: null
+		});
+	}
+
+	function selectPage(next: number) {
+		if (next < 1 || next > totalPages || next === page) return;
+		page = next;
+		syncUrl({ page: next > 1 ? next : null });
+	}
+
+	async function loadProducts() {
+		const request = ++requestId;
+		loading = true;
+		error = '';
+
+		try {
+			const response = await listProducts({ ...query, page, ...filters });
+			if (request !== requestId) return;
+			result = response;
+		} catch (cause) {
+			if (request !== requestId) return;
+			result = null;
+			error = cause instanceof Error ? cause.message : 'Could not load products';
+		} finally {
+			if (request === requestId) loading = false;
+		}
+	}
+
+	$effect(() => {
+		void loadProducts();
+	});
+
+	const imgBreadcrumb = '/assets/20e59.svg';
+	const imgMenuIcon = '/assets/a05bd.svg';
+	const imgGridIcon = '/assets/1b829.svg';
+	const imgListIcon = '/assets/0d4d6.svg';
+	const imgSelectIcon = '/assets/2ea59.svg';
 	const imgX = '/assets/21a32.svg';
-	const imgCardHeader1 = '/assets/e5b95.svg';
-	const imgCardBody14 = '/assets/078ee.svg';
-	const imgGroup2 = '/assets/f5a29.svg';
-	const imgIcon4 = '/assets/f7856.svg';
-	const imgIcon5 = '/assets/008f3.svg';
-	const imgIcon6 = '/assets/48e75.svg';
-	const imgAppleIcon = '/assets/256e4.svg';
-	const imgGroup3 = '/assets/f943f.svg';
-	const imgShield = '/assets/557e7.svg';
-	const imgIcon7 = '/assets/18d4b.svg';
-	const imgIcon8 = '/assets/dc7e2.svg';
-	const imgIcon9 = '/assets/dc1ab.svg';
+	const imgCheck = '/assets/82e9f.svg';
+	const imgLeftIcon = '/assets/ca51b.svg';
+	const imgLeftIcon1 = '/assets/6b5ef.svg';
+	const imgSeparator = '/assets/402db.svg';
 </script>
 
 <div
@@ -90,7 +231,8 @@
 				class="relative flex max-h-[28px] shrink-0 content-stretch items-center gap-[6px]"
 				data-name="Items"
 			>
-				<div
+				<a
+					href="/"
 					class="relative flex shrink-0 content-stretch items-center justify-center"
 					data-name="Breadcrumb item"
 				>
@@ -99,33 +241,37 @@
 					>
 						Home
 					</p>
-				</div>
+				</a>
 				<div class="relative size-[14px] shrink-0" data-name="Breadcrumb icon placeholder">
-					<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgItems} />
+					<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgBreadcrumb} />
 				</div>
 				<div
 					class="relative flex shrink-0 content-stretch items-center justify-center"
 					data-name="Breadcrumb item"
 				>
 					<p
-						class="relative shrink-0 font-['Geist:Regular'] text-[14px] leading-[20px] font-normal [word-break:break-word] whitespace-nowrap text-[#737373]"
+						class={`relative shrink-0 font-['Geist:Regular'] text-[14px] leading-[20px] font-normal [word-break:break-word] whitespace-nowrap ${
+							selectedBrand ? 'text-[#737373]' : 'text-[#0a0a0a]'
+						}`}
 					>
-						Accessories
+						{selectedCategory}
 					</p>
 				</div>
-				<div class="relative size-[14px] shrink-0" data-name="Breadcrumb icon placeholder">
-					<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgItems} />
-				</div>
-				<div
-					class="relative flex h-[20px] shrink-0 content-stretch items-center justify-center"
-					data-name="Breadcrumb item"
-				>
-					<p
-						class="relative shrink-0 font-['Geist:Regular'] text-[14px] leading-[20px] font-normal [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
+				{#if selectedBrand}
+					<div class="relative size-[14px] shrink-0" data-name="Breadcrumb icon placeholder">
+						<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgBreadcrumb} />
+					</div>
+					<div
+						class="relative flex h-[20px] shrink-0 content-stretch items-center justify-center"
+						data-name="Breadcrumb item"
 					>
-						Watches
-					</p>
-				</div>
+						<p
+							class="relative shrink-0 font-['Geist:Regular'] text-[14px] leading-[20px] font-normal [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
+						>
+							{selectedBrand}
+						</p>
+					</div>
+				{/if}
 			</div>
 		</div>
 		<div
@@ -149,11 +295,13 @@
 						>
 							Filter
 						</p>
-						<p
-							class="relative min-w-px flex-[1_0_0] text-right font-['Geist:Regular'] text-[16px] leading-[24px] font-normal text-[#dc2626]"
+						<button
+							type="button"
+							class="relative min-w-px flex-[1_0_0] cursor-pointer text-right font-['Geist:Regular'] text-[16px] leading-[24px] font-normal text-[#dc2626]"
+							onclick={clearAll}
 						>
 							Clear All
-						</p>
+						</button>
 					</div>
 				</div>
 				<div
@@ -162,105 +310,7 @@
 				>
 					<div class="relative h-0 w-full shrink-0" data-name="Separator">
 						<div class="absolute inset-[-1px_0_0_0]">
-							<img alt="" class="block size-full max-w-none" src={imgCardBody} />
-						</div>
-					</div>
-					<div
-						class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[10px]"
-						data-name="Flex Vertical"
-					>
-						<div
-							class="relative flex w-full shrink-0 content-stretch items-start gap-[10px]"
-							data-name="Radio"
-						>
-							<div class="relative size-[24px] shrink-0" data-name="Radio">
-								<img
-									alt=""
-									class="absolute inset-0 block size-full max-w-none"
-									src={imgCardBody1}
-								/>
-							</div>
-							<div
-								class="relative flex shrink-0 flex-col content-stretch items-start justify-center gap-[2px] self-stretch"
-								data-name="radio-container"
-							>
-								<div
-									class="relative flex w-full shrink-0 flex-col justify-center font-['Geist:Regular'] text-[14px] leading-[0] font-normal [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
-								>
-									<p class="leading-[20px]">Men</p>
-								</div>
-							</div>
-						</div>
-						<div
-							class="relative flex w-full shrink-0 content-stretch items-start gap-[10px]"
-							data-name="Radio"
-						>
-							<div class="relative size-[24px] shrink-0" data-name="Radio">
-								<img
-									alt=""
-									class="absolute inset-0 block size-full max-w-none"
-									src={imgCardBody2}
-								/>
-							</div>
-							<div
-								class="relative flex shrink-0 flex-col content-stretch items-start justify-center gap-[2px] self-stretch"
-								data-name="radio-container"
-							>
-								<div
-									class="relative flex w-full shrink-0 flex-col justify-center font-['Geist:Regular'] text-[14px] leading-[0] font-normal [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
-								>
-									<p class="leading-[20px]">Women</p>
-								</div>
-							</div>
-						</div>
-						<div
-							class="relative flex w-full shrink-0 content-stretch items-start gap-[10px]"
-							data-name="Radio"
-						>
-							<div class="relative size-[24px] shrink-0" data-name="Radio">
-								<img
-									alt=""
-									class="absolute inset-0 block size-full max-w-none"
-									src={imgCardBody1}
-								/>
-							</div>
-							<div
-								class="relative flex shrink-0 flex-col content-stretch items-start justify-center gap-[2px] self-stretch"
-								data-name="radio-container"
-							>
-								<div
-									class="relative flex h-[24px] w-full shrink-0 flex-col justify-center font-['Geist:Regular'] text-[14px] leading-[0] font-normal [word-break:break-word] text-[#0a0a0a]"
-								>
-									<p class="leading-[20px]">Girls</p>
-								</div>
-							</div>
-						</div>
-						<div
-							class="relative flex w-full shrink-0 content-stretch items-start gap-[10px]"
-							data-name="Radio"
-						>
-							<div class="relative size-[24px] shrink-0" data-name="Radio">
-								<img
-									alt=""
-									class="absolute inset-0 block size-full max-w-none"
-									src={imgCardBody1}
-								/>
-							</div>
-							<div
-								class="relative flex shrink-0 flex-col content-stretch items-start justify-center gap-[2px] self-stretch"
-								data-name="radio-container"
-							>
-								<div
-									class="relative flex h-[24px] w-full shrink-0 flex-col justify-center font-['Geist:Regular'] text-[14px] leading-[0] font-normal [word-break:break-word] text-[#0a0a0a]"
-								>
-									<p class="leading-[20px]">Boys</p>
-								</div>
-							</div>
-						</div>
-					</div>
-					<div class="relative h-0 w-full shrink-0" data-name="Separator">
-						<div class="absolute inset-[-1px_0_0_0]">
-							<img alt="" class="block size-full max-w-none" src={imgCardBody3} />
+							<img alt="" class="block size-full max-w-none" src={imgSeparator} />
 						</div>
 					</div>
 					<div
@@ -276,406 +326,48 @@
 							>
 								Brand
 							</p>
-							<div class="relative size-[24px] shrink-0" data-name="Left-icon">
-								<img
-									alt=""
-									class="absolute inset-0 block size-full max-w-none"
-									src={imgCardBody4}
-								/>
-							</div>
 						</div>
-						<div
-							class="relative flex h-[20px] w-full shrink-0 content-stretch items-start gap-[8px]"
-							data-name="Check box"
-						>
-							<div
-								class="relative flex size-[20px] shrink-0 content-stretch items-center justify-center rounded-[4px] border border-solid border-[#171717] bg-[#171717] drop-shadow-[0px_1px_1px_rgba(0,0,0,0.05)]"
-								data-name="Checkbox"
-							>
-								<div class="relative size-[16px] shrink-0" data-name="check">
-									<img
-										alt=""
-										class="absolute inset-0 block size-full max-w-none"
-										src={imgCardBody5}
-									/>
-								</div>
-							</div>
-							<div
-								class="relative flex h-full shrink-0 flex-col content-stretch items-start justify-center gap-[8px]"
-								data-name="Text"
+						{#each result?.facets.brands ?? [] as brand (brand.id)}
+							<button
+								type="button"
+								class="relative flex h-[20px] w-full shrink-0 cursor-pointer content-stretch items-start gap-[8px]"
+								data-name="Check box"
+								onclick={() => selectBrand(brand.id)}
 							>
 								<div
-									class="relative flex shrink-0 flex-col justify-center font-['Geist:Regular'] text-[14px] leading-[0] font-normal [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
+									class={`relative flex size-[20px] shrink-0 content-stretch items-center justify-center rounded-[4px] border border-solid ${
+										filters.brandId === brand.id
+											? 'border-[#171717] bg-[#171717]'
+											: 'border-[#e5e5e5] bg-white'
+									}`}
+									data-name="Checkbox"
 								>
-									<p class="leading-[20px]">Apple</p>
+									{#if filters.brandId === brand.id}
+										<div class="relative size-[16px] shrink-0" data-name="check">
+											<img
+												alt=""
+												class="absolute inset-0 block size-full max-w-none"
+												src={imgCheck}
+											/>
+										</div>
+									{/if}
 								</div>
-							</div>
-						</div>
-						<div
-							class="relative flex w-full shrink-0 content-stretch items-center gap-[8px]"
-							data-name="Check box"
-						>
-							<div
-								class="relative flex size-[20px] shrink-0 flex-col content-stretch items-center justify-center rounded-[4px] border border-solid border-[#e5e5e5] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)]"
-								data-name="Checkbox"
-							></div>
-							<div
-								class="relative flex shrink-0 flex-col content-stretch items-start justify-center gap-[8px]"
-								data-name="Text"
-							>
 								<div
-									class="relative flex shrink-0 flex-col justify-center font-['Geist:Regular'] text-[14px] leading-[0] font-normal [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
+									class="relative flex h-full shrink-0 flex-col content-stretch items-start justify-center gap-[8px]"
+									data-name="Text"
 								>
-									<p class="leading-[20px]">Samsung</p>
+									<p
+										class="font-['Geist:Regular'] text-[14px] leading-[20px] font-normal text-[#0a0a0a]"
+									>
+										{brand.name}
+									</p>
 								</div>
-							</div>
-						</div>
-						<div
-							class="relative flex h-[20px] w-full shrink-0 content-stretch items-start gap-[8px]"
-							data-name="Check box"
-						>
-							<div
-								class="relative flex size-[20px] shrink-0 content-stretch items-center justify-center rounded-[4px] border border-solid border-[#171717] bg-[#171717] drop-shadow-[0px_1px_1px_rgba(0,0,0,0.05)]"
-								data-name="Checkbox"
-							>
-								<div class="relative size-[16px] shrink-0" data-name="check">
-									<img
-										alt=""
-										class="absolute inset-0 block size-full max-w-none"
-										src={imgCardBody5}
-									/>
-								</div>
-							</div>
-							<div
-								class="relative flex h-full shrink-0 flex-col content-stretch items-start justify-center gap-[8px]"
-								data-name="Text"
-							>
-								<div
-									class="relative flex shrink-0 flex-col justify-center font-['Geist:Regular'] text-[14px] leading-[0] font-normal [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
-								>
-									<p class="leading-[20px]">Xiaomi</p>
-								</div>
-							</div>
-						</div>
-						<p
-							class="relative w-full shrink-0 font-['Geist:Medium'] text-[16px] leading-[24px] font-medium [word-break:break-word] text-[#0a0a0a] underline decoration-solid decoration-from-font [text-decoration-skip-ink:none] [text-underline-position:from-font]"
-						>
-							6+ more
-						</p>
+							</button>
+						{/each}
 					</div>
 					<div class="relative h-0 w-full shrink-0" data-name="Separator">
 						<div class="absolute inset-[-1px_0_0_0]">
-							<img alt="" class="block size-full max-w-none" src={imgCardBody3} />
-						</div>
-					</div>
-					<div
-						class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[16px]"
-						data-name="Flex Vertical"
-					>
-						<div
-							class="relative flex w-full shrink-0 content-stretch items-center justify-between"
-							data-name="Flex Horizontal"
-						>
-							<p
-								class="relative shrink-0 font-['Geist:Medium'] text-[20px] leading-[28px] font-medium [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
-							>
-								Display type
-							</p>
-							<div class="relative size-[24px] shrink-0" data-name="Left-icon">
-								<img
-									alt=""
-									class="absolute inset-0 block size-full max-w-none"
-									src={imgCardBody4}
-								/>
-							</div>
-						</div>
-						<div
-							class="relative flex h-[20px] w-full shrink-0 content-stretch items-start gap-[8px]"
-							data-name="Check box"
-						>
-							<div
-								class="relative flex size-[20px] shrink-0 content-stretch items-center justify-center rounded-[4px] border border-solid border-[#171717] bg-[#171717] drop-shadow-[0px_1px_1px_rgba(0,0,0,0.05)]"
-								data-name="Checkbox"
-							>
-								<div class="relative size-[16px] shrink-0" data-name="check">
-									<img
-										alt=""
-										class="absolute inset-0 block size-full max-w-none"
-										src={imgCardBody5}
-									/>
-								</div>
-							</div>
-							<div
-								class="relative flex h-full shrink-0 flex-col content-stretch items-start justify-center gap-[8px]"
-								data-name="Text"
-							>
-								<div
-									class="relative flex shrink-0 flex-col justify-center font-['Geist:Regular'] text-[14px] leading-[0] font-normal [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
-								>
-									<p class="leading-[20px]">AMOLED</p>
-								</div>
-							</div>
-						</div>
-						<div
-							class="relative flex w-full shrink-0 content-stretch items-center gap-[8px]"
-							data-name="Check box"
-						>
-							<div
-								class="relative flex size-[20px] shrink-0 flex-col content-stretch items-center justify-center rounded-[4px] border border-solid border-[#e5e5e5] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)]"
-								data-name="Checkbox"
-							></div>
-							<div
-								class="relative flex shrink-0 flex-col content-stretch items-start justify-center gap-[8px]"
-								data-name="Text"
-							>
-								<div
-									class="relative flex shrink-0 flex-col justify-center font-['Geist:Regular'] text-[14px] leading-[0] font-normal [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
-								>
-									<p class="leading-[20px]">Analog</p>
-								</div>
-							</div>
-						</div>
-						<div
-							class="relative flex h-[20px] w-full shrink-0 content-stretch items-start gap-[8px]"
-							data-name="Check box"
-						>
-							<div
-								class="relative flex size-[20px] shrink-0 content-stretch items-center justify-center rounded-[4px] border border-solid border-[#171717] bg-[#171717] drop-shadow-[0px_1px_1px_rgba(0,0,0,0.05)]"
-								data-name="Checkbox"
-							>
-								<div class="relative size-[16px] shrink-0" data-name="check">
-									<img
-										alt=""
-										class="absolute inset-0 block size-full max-w-none"
-										src={imgCardBody5}
-									/>
-								</div>
-							</div>
-							<div
-								class="relative flex h-full shrink-0 flex-col content-stretch items-start justify-center gap-[8px]"
-								data-name="Text"
-							>
-								<div
-									class="relative flex shrink-0 flex-col justify-center font-['Geist:Regular'] text-[14px] leading-[0] font-normal [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
-								>
-									<p class="leading-[20px]">Analog-Digital</p>
-								</div>
-							</div>
-						</div>
-						<p
-							class="relative w-full shrink-0 font-['Geist:Medium'] text-[16px] leading-[24px] font-medium [word-break:break-word] text-[#0a0a0a] underline decoration-solid decoration-from-font [text-decoration-skip-ink:none] [text-underline-position:from-font]"
-						>
-							6+ more
-						</p>
-					</div>
-					<div
-						class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[16px]"
-						data-name="Flex Vertical"
-					>
-						<div
-							class="relative flex w-full shrink-0 content-stretch items-center justify-between"
-							data-name="Flex Horizontal"
-						>
-							<p
-								class="relative shrink-0 font-['Geist:Medium'] text-[20px] leading-[28px] font-medium [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
-							>
-								Screen size
-							</p>
-							<div class="relative size-[24px] shrink-0" data-name="Left-icon">
-								<img
-									alt=""
-									class="absolute inset-0 block size-full max-w-none"
-									src={imgCardBody4}
-								/>
-							</div>
-						</div>
-						<div
-							class="relative flex h-[20px] w-full shrink-0 content-stretch items-start gap-[8px]"
-							data-name="Check box"
-						>
-							<div
-								class="relative flex size-[20px] shrink-0 content-stretch items-center justify-center rounded-[4px] border border-solid border-[#171717] bg-[#171717] drop-shadow-[0px_1px_1px_rgba(0,0,0,0.05)]"
-								data-name="Checkbox"
-							>
-								<div class="relative size-[16px] shrink-0" data-name="check">
-									<img
-										alt=""
-										class="absolute inset-0 block size-full max-w-none"
-										src={imgCardBody5}
-									/>
-								</div>
-							</div>
-							<div
-								class="relative flex h-full shrink-0 flex-col content-stretch items-start justify-center gap-[8px]"
-								data-name="Text"
-							>
-								<div
-									class="relative flex shrink-0 flex-col justify-center font-['Geist:Regular'] text-[14px] leading-[0] font-normal [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
-								>
-									<p class="leading-[20px]">Up to 32.9 mm</p>
-								</div>
-							</div>
-						</div>
-						<div
-							class="relative flex w-full shrink-0 content-stretch items-center gap-[8px]"
-							data-name="Check box"
-						>
-							<div
-								class="relative flex size-[20px] shrink-0 flex-col content-stretch items-center justify-center rounded-[4px] border border-solid border-[#e5e5e5] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)]"
-								data-name="Checkbox"
-							></div>
-							<div
-								class="relative flex shrink-0 flex-col content-stretch items-start justify-center gap-[8px]"
-								data-name="Text"
-							>
-								<div
-									class="relative flex shrink-0 flex-col justify-center font-['Geist:Regular'] text-[14px] leading-[0] font-normal [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
-								>
-									<p class="leading-[20px]">33.0 to 34.9 mm</p>
-								</div>
-							</div>
-						</div>
-						<div
-							class="relative flex h-[20px] w-full shrink-0 content-stretch items-start gap-[8px]"
-							data-name="Check box"
-						>
-							<div
-								class="relative flex size-[20px] shrink-0 content-stretch items-center justify-center rounded-[4px] border border-solid border-[#171717] bg-[#171717] drop-shadow-[0px_1px_1px_rgba(0,0,0,0.05)]"
-								data-name="Checkbox"
-							>
-								<div class="relative size-[16px] shrink-0" data-name="check">
-									<img
-										alt=""
-										class="absolute inset-0 block size-full max-w-none"
-										src={imgCardBody5}
-									/>
-								</div>
-							</div>
-							<div
-								class="relative flex h-full shrink-0 flex-col content-stretch items-start justify-center gap-[8px]"
-								data-name="Text"
-							>
-								<div
-									class="relative flex shrink-0 flex-col justify-center font-['Geist:Regular'] text-[14px] leading-[0] font-normal [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
-								>
-									<p class="leading-[20px]">35.0 to 36.9 mm</p>
-								</div>
-							</div>
-						</div>
-						<p
-							class="relative w-full shrink-0 font-['Geist:Medium'] text-[16px] leading-[24px] font-medium [word-break:break-word] text-[#0a0a0a] underline decoration-solid decoration-from-font [text-decoration-skip-ink:none] [text-underline-position:from-font]"
-						>
-							6+ more
-						</p>
-					</div>
-					<div class="relative h-0 w-full shrink-0" data-name="Separator">
-						<div class="absolute inset-[-1px_0_0_0]">
-							<img alt="" class="block size-full max-w-none" src={imgCardBody3} />
-						</div>
-					</div>
-					<div
-						class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[16px]"
-						data-name="Flex Vertical"
-					>
-						<div
-							class="relative flex w-full shrink-0 content-stretch items-center justify-between"
-							data-name="Flex Horizontal"
-						>
-							<p
-								class="relative shrink-0 font-['Geist:Medium'] text-[20px] leading-[28px] font-medium [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
-							>
-								Item shape
-							</p>
-							<div class="relative size-[24px] shrink-0" data-name="Left-icon">
-								<img
-									alt=""
-									class="absolute inset-0 block size-full max-w-none"
-									src={imgCardBody4}
-								/>
-							</div>
-						</div>
-						<div
-							class="relative flex h-[20px] w-full shrink-0 content-stretch items-start gap-[8px]"
-							data-name="Check box"
-						>
-							<div
-								class="relative flex size-[20px] shrink-0 content-stretch items-center justify-center rounded-[4px] border border-solid border-[#171717] bg-[#171717] drop-shadow-[0px_1px_1px_rgba(0,0,0,0.05)]"
-								data-name="Checkbox"
-							>
-								<div class="relative size-[16px] shrink-0" data-name="check">
-									<img
-										alt=""
-										class="absolute inset-0 block size-full max-w-none"
-										src={imgCardBody5}
-									/>
-								</div>
-							</div>
-							<div
-								class="relative flex h-full shrink-0 flex-col content-stretch items-start justify-center gap-[8px]"
-								data-name="Text"
-							>
-								<div
-									class="relative flex shrink-0 flex-col justify-center font-['Geist:Regular'] text-[14px] leading-[0] font-normal [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
-								>
-									<p class="leading-[20px]">Rectangular</p>
-								</div>
-							</div>
-						</div>
-						<div
-							class="relative flex w-full shrink-0 content-stretch items-center gap-[8px]"
-							data-name="Check box"
-						>
-							<div
-								class="relative flex size-[20px] shrink-0 flex-col content-stretch items-center justify-center rounded-[4px] border border-solid border-[#e5e5e5] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)]"
-								data-name="Checkbox"
-							></div>
-							<div
-								class="relative flex shrink-0 flex-col content-stretch items-start justify-center gap-[8px]"
-								data-name="Text"
-							>
-								<div
-									class="relative flex shrink-0 flex-col justify-center font-['Geist:Regular'] text-[14px] leading-[0] font-normal [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
-								>
-									<p class="leading-[20px]">Square</p>
-								</div>
-							</div>
-						</div>
-						<div
-							class="relative flex h-[20px] w-full shrink-0 content-stretch items-start gap-[8px]"
-							data-name="Check box"
-						>
-							<div
-								class="relative flex size-[20px] shrink-0 content-stretch items-center justify-center rounded-[4px] border border-solid border-[#171717] bg-[#171717] drop-shadow-[0px_1px_1px_rgba(0,0,0,0.05)]"
-								data-name="Checkbox"
-							>
-								<div class="relative size-[16px] shrink-0" data-name="check">
-									<img
-										alt=""
-										class="absolute inset-0 block size-full max-w-none"
-										src={imgCardBody5}
-									/>
-								</div>
-							</div>
-							<div
-								class="relative flex h-full shrink-0 flex-col content-stretch items-start justify-center gap-[8px]"
-								data-name="Text"
-							>
-								<div
-									class="relative flex shrink-0 flex-col justify-center font-['Geist:Regular'] text-[14px] leading-[0] font-normal [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
-								>
-									<p class="leading-[20px]">Oval</p>
-								</div>
-							</div>
-						</div>
-						<p
-							class="relative w-full shrink-0 font-['Geist:Medium'] text-[16px] leading-[24px] font-medium [word-break:break-word] text-[#0a0a0a] underline decoration-solid decoration-from-font [text-decoration-skip-ink:none] [text-underline-position:from-font]"
-						>
-							6+ more
-						</p>
-					</div>
-					<div class="relative h-0 w-full shrink-0" data-name="Separator">
-						<div class="absolute inset-[-1px_0_0_0]">
-							<img alt="" class="block size-full max-w-none" src={imgCardBody3} />
+							<img alt="" class="block size-full max-w-none" src={imgSeparator} />
 						</div>
 					</div>
 					<div
@@ -688,76 +380,39 @@
 							Price
 						</p>
 						<div
-							class="relative flex w-full shrink-0 content-stretch items-center gap-[12px]"
+							class="relative flex w-full shrink-0 content-stretch items-center gap-[8px]"
 							data-name="slider content"
 						>
-							<p
-								class="relative shrink-0 text-center font-['Geist:Medium'] text-[14px] leading-[20px] font-medium [word-break:break-word] whitespace-nowrap text-[#737373]"
-							>
-								$500
-							</p>
-							<div
-								class="relative isolate flex min-w-px flex-[1_0_0] content-stretch items-center"
-								data-name="Slider/Half-Full/Primary/Default/sm/Default"
-							>
-								<div
-									class="relative z-[2] mr-[-8px] flex min-w-px flex-[1_0_0] content-stretch items-center"
-									data-name="Slider Basic"
-								>
-									<div
-										class="relative mr-[-6px] h-[6px] min-w-px flex-[1_0_0] rounded-tl-[9999px] rounded-bl-[9999px] border border-solid border-[#171717] bg-[#171717]"
-										data-name="drag"
-									></div>
-									<div class="relative size-[16px] shrink-0">
-										<div class="absolute inset-[-12.5%_-18.75%_-25%_-18.75%]">
-											<img alt="" class="block size-full max-w-none" src={imgEllipse1} />
-										</div>
-									</div>
-								</div>
-								<div
-									class="relative z-[1] h-[6px] min-w-px flex-[1_0_0] rounded-tr-[9999px] rounded-br-[9999px] bg-[#f5f5f5]"
-								></div>
-							</div>
-							<p
-								class="relative shrink-0 text-center font-['Geist:Medium'] text-[14px] leading-[20px] font-medium [word-break:break-word] whitespace-nowrap text-[#737373]"
-							>
-								$2000
-							</p>
+							<input
+								type="number"
+								min="0"
+								placeholder="Min"
+								value={minInput}
+								onchange={applyPrice}
+								class="min-w-0 flex-1 rounded-[10px] border border-solid border-[#e5e5e5] bg-white px-[10px] py-[6px] font-['Geist:Regular'] text-[14px] text-[#0a0a0a] outline-none"
+							/>
+							<input
+								type="number"
+								min="0"
+								placeholder="Max"
+								value={maxInput}
+								onchange={applyPrice}
+								class="min-w-0 flex-1 rounded-[10px] border border-solid border-[#e5e5e5] bg-white px-[10px] py-[6px] font-['Geist:Regular'] text-[14px] text-[#0a0a0a] outline-none"
+							/>
 						</div>
-						<div
-							class="absolute top-0 left-[calc(50%-11.5px)] flex -translate-x-1/2 content-stretch items-start rounded-[8px] bg-[#0a0a0a] px-[12px] py-[6px]"
-							data-name="Tooltip"
-						>
-							<div
-								class="relative flex shrink-0 content-stretch items-center gap-[6px]"
-								data-name="Container"
+						{#each priceRanges as range, index (index)}
+							<button
+								type="button"
+								class="w-full cursor-pointer text-left font-['Geist:Regular'] text-[14px] leading-[20px] font-normal text-[#737373] hover:text-[#0a0a0a]"
+								onclick={() => applyRange(range.min, range.max)}
 							>
-								<div
-									class="relative flex shrink-0 flex-col content-stretch items-start gap-[4px]"
-									data-name="Text Container"
-								>
-									<div
-										class="relative flex w-full shrink-0 flex-col justify-center font-['Geist:Regular'] text-[12px] leading-[0] font-normal [word-break:break-word] text-white"
-									>
-										<p class="leading-[16px]">$1000</p>
-									</div>
-								</div>
-							</div>
-							<div
-								class="absolute bottom-[-4px] left-[calc(50%+0.5px)] h-[4px] w-[8px] -translate-x-1/2"
-								data-name="Bottom"
-							>
-								<img
-									alt=""
-									class="absolute inset-0 block size-full max-w-none"
-									src={imgCardBody6}
-								/>
-							</div>
-						</div>
+								{formatMoney(range.min)} – {formatMoney(range.max)}
+							</button>
+						{/each}
 					</div>
 					<div class="relative h-0 w-full shrink-0" data-name="Separator">
 						<div class="absolute inset-[-1px_0_0_0]">
-							<img alt="" class="block size-full max-w-none" src={imgCardBody3} />
+							<img alt="" class="block size-full max-w-none" src={imgSeparator} />
 						</div>
 					</div>
 					<div
@@ -773,131 +428,26 @@
 							>
 								Color
 							</p>
-							<div class="relative size-[24px] shrink-0" data-name="Left-icon">
-								<img
-									alt=""
-									class="absolute inset-0 block size-full max-w-none"
-									src={imgCardBody4}
-								/>
-							</div>
 						</div>
 						<div
-							class="relative flex shrink-0 content-stretch items-center gap-[6.913px]"
+							class="relative flex shrink-0 flex-wrap content-start items-center gap-[6.913px]"
 							data-name="Flex Horizontal"
 						>
-							<div class="relative size-[30px] shrink-0" data-name="Color">
-								<img
-									alt=""
-									class="absolute inset-0 block size-full max-w-none"
-									src={imgCardBody7}
-								/>
-							</div>
-							<div class="relative size-[24px] shrink-0" data-name="Color">
-								<img
-									alt=""
-									class="absolute inset-0 block size-full max-w-none"
-									src={imgCardBody8}
-								/>
-							</div>
-							<div class="relative size-[24px] shrink-0" data-name="Color">
-								<img
-									alt=""
-									class="absolute inset-0 block size-full max-w-none"
-									src={imgCardBody9}
-								/>
-							</div>
-							<div class="relative size-[24px] shrink-0" data-name="Color">
-								<img
-									alt=""
-									class="absolute inset-0 block size-full max-w-none"
-									src={imgCardBody10}
-								/>
-							</div>
-							<div class="relative size-[24px] shrink-0" data-name="Color">
-								<img
-									alt=""
-									class="absolute inset-0 block size-full max-w-none"
-									src={imgCardBody11}
-								/>
-							</div>
-							<div class="relative size-[24px] shrink-0" data-name="Color">
-								<img
-									alt=""
-									class="absolute inset-0 block size-full max-w-none"
-									src={imgCardBody12}
-								/>
-							</div>
-							<div class="relative size-[24px] shrink-0" data-name="Color">
-								<img
-									alt=""
-									class="absolute inset-0 block size-full max-w-none"
-									src={imgCardBody13}
-								/>
-							</div>
-						</div>
-						<p
-							class="relative w-[min-content] min-w-full shrink-0 font-['Geist:Medium'] text-[16px] leading-[24px] font-medium [word-break:break-word] text-[#0a0a0a] underline decoration-solid decoration-from-font [text-decoration-skip-ink:none] [text-underline-position:from-font]"
-						>
-							6+ more
-						</p>
-					</div>
-					<div class="relative h-0 w-full shrink-0" data-name="Separator">
-						<div class="absolute inset-[-1px_0_0_0]">
-							<img alt="" class="block size-full max-w-none" src={imgCardBody3} />
-						</div>
-					</div>
-					<div
-						class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[10px]"
-						data-name="Flex Vertical"
-					>
-						<p
-							class="relative h-[28px] w-[256px] shrink-0 font-['Geist:Medium'] text-[20px] leading-[28px] font-medium [word-break:break-word] text-[#0a0a0a]"
-						>
-							Discount Range
-						</p>
-						<div
-							class="relative flex w-full shrink-0 content-stretch items-start gap-[10px]"
-							data-name="Radio"
-						>
-							<div class="relative size-[24px] shrink-0" data-name="Radio">
-								<img
-									alt=""
-									class="absolute inset-0 block size-full max-w-none"
-									src={imgCardBody1}
-								/>
-							</div>
-							<div
-								class="relative flex shrink-0 flex-col content-stretch items-start justify-center gap-[2px] self-stretch"
-								data-name="radio-container"
-							>
-								<div
-									class="relative flex w-full shrink-0 flex-col justify-center font-['Geist:Regular'] text-[14px] leading-[0] font-normal [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
+							{#each result?.facets.colors ?? [] as color (color)}
+								<button
+									type="button"
+									class={`relative flex size-[30px] shrink-0 cursor-pointer items-center justify-center rounded-full border border-solid text-[10px] ${
+										filters.color === color
+											? 'border-[#171717] bg-[#171717] text-white'
+											: 'border-[#e5e5e5] bg-white text-[#0a0a0a]'
+									}`}
+									data-name="Color"
+									title={color}
+									onclick={() => selectColor(color)}
 								>
-									<p class="leading-[20px]">60% more</p>
-								</div>
-							</div>
-						</div>
-						<div
-							class="relative flex w-full shrink-0 content-stretch items-start gap-[10px]"
-							data-name="Radio"
-						>
-							<div class="relative size-[24px] shrink-0" data-name="Radio">
-								<img
-									alt=""
-									class="absolute inset-0 block size-full max-w-none"
-									src={imgCardBody2}
-								/>
-							</div>
-							<div
-								class="relative flex shrink-0 flex-col content-stretch items-start justify-center gap-[2px] self-stretch"
-								data-name="radio-container"
-							>
-								<div
-									class="relative flex w-full shrink-0 flex-col justify-center font-['Geist:Regular'] text-[14px] leading-[0] font-normal [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
-								>
-									<p class="leading-[20px]">50% more</p>
-								</div>
-							</div>
+									{color.slice(0, 1)}
+								</button>
+							{/each}
 						</div>
 					</div>
 				</div>
@@ -918,62 +468,31 @@
 							class="relative flex w-[468px] shrink-0 content-stretch items-center gap-[12px]"
 							data-name="Flex Horizontal"
 						>
-							<div
-								class="relative flex shrink-0 content-stretch items-center justify-center gap-[10px]"
-								data-name="Menu Item"
-							>
-								<p
-									class="relative shrink-0 font-['Geist:Medium'] text-[16px] leading-[24px] font-medium [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
+							{#each result?.facets.categories ?? [] as category (category.id)}
+								<button
+									type="button"
+									class="relative flex shrink-0 cursor-pointer content-stretch items-center justify-center gap-[10px]"
+									data-name="Menu Item"
+									onclick={() => selectCategory(category.id)}
 								>
-									Active Tracking
-								</p>
-								<div class="relative size-[16px] shrink-0" data-name="Left-icon">
-									<img
-										alt=""
-										class="absolute inset-0 block size-full max-w-none"
-										src={imgLeftIcon2}
-									/>
-								</div>
-							</div>
-							<div
-								class="relative flex shrink-0 content-stretch items-center justify-center gap-[10px]"
-								data-name="Menu Item"
-							>
-								<p
-									class="relative shrink-0 font-['Geist:Medium'] text-[16px] leading-[24px] font-medium [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
-								>
-									Battery Life
-								</p>
-								<div class="relative size-[16px] shrink-0" data-name="Left-icon">
-									<img
-										alt=""
-										class="absolute inset-0 block size-full max-w-none"
-										src={imgLeftIcon2}
-									/>
-								</div>
-							</div>
-							<div
-								class="relative flex shrink-0 content-stretch items-center justify-center gap-[10px]"
-								data-name="Menu Item"
-							>
-								<p
-									class="relative shrink-0 font-['Geist:Medium'] text-[16px] leading-[24px] font-medium [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
-								>
-									Bluetooth
-								</p>
-								<div class="relative size-[16px] shrink-0" data-name="Left-icon">
-									<img
-										alt=""
-										class="absolute inset-0 block size-full max-w-none"
-										src={imgLeftIcon2}
-									/>
-								</div>
-							</div>
-							<p
-								class="relative shrink-0 font-['Geist:Medium'] text-[16px] leading-[24px] font-medium [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
-							>
-								+13 more
-							</p>
+									<p
+										class={`relative shrink-0 font-['Geist:Medium'] text-[16px] leading-[24px] font-medium [word-break:break-word] whitespace-nowrap ${
+											filters.categoryId === category.id
+												? 'text-[#171717]'
+												: 'text-[#0a0a0a] opacity-60'
+										}`}
+									>
+										{category.name}
+									</p>
+									<div class="relative size-[16px] shrink-0" data-name="Left-icon">
+										<img
+											alt=""
+											class="absolute inset-0 block size-full max-w-none"
+											src={imgMenuIcon}
+										/>
+									</div>
+								</button>
+							{/each}
 						</div>
 						<div
 							class="relative flex min-w-px flex-[1_0_0] content-stretch items-center justify-end gap-[16px]"
@@ -992,7 +511,7 @@
 										data-name="Items"
 									>
 										<a
-											href="/products?sidebar=1"
+											href={viewHref(false)}
 											class="relative flex shrink-0 content-stretch items-center justify-center gap-[4px] overflow-clip rounded-[10px] border border-solid border-[#e5e5e5] bg-white px-[8px] py-[4px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.1),0px_1px_2px_-1px_rgba(0,0,0,0.1)]"
 											data-name="Tab 01"
 										>
@@ -1000,7 +519,7 @@
 												<img
 													alt=""
 													class="absolute inset-0 block size-full max-w-none"
-													src={imgItems1}
+													src={imgGridIcon}
 												/>
 											</div>
 											<p
@@ -1010,7 +529,7 @@
 											</p>
 										</a>
 										<a
-											href="/products?view=list&sidebar=1"
+											href={viewHref(true)}
 											class="relative flex shrink-0 content-stretch items-center justify-center gap-[4px] rounded-[10px] px-[8px] py-[4px]"
 											data-name="Tab 02"
 										>
@@ -1018,7 +537,7 @@
 												<img
 													alt=""
 													class="absolute inset-0 block size-full max-w-none"
-													src={imgItems2}
+													src={imgListIcon}
 												/>
 											</div>
 											<p
@@ -1039,16 +558,22 @@
 										class="relative flex min-h-px w-full flex-[1_0_0] content-stretch items-center gap-[6px] rounded-[10px] border border-solid border-[#e5e5e5] bg-white px-[10px] py-[6px]"
 										data-name="SelectValue"
 									>
-										<p
-											class="relative shrink-0 overflow-hidden font-['Geist:Regular'] text-[12px] leading-[16px] font-normal [word-break:break-word] text-ellipsis whitespace-nowrap text-[#737373]"
+										<select
+											class="w-full cursor-pointer appearance-none bg-transparent font-['Geist:Regular'] text-[12px] leading-[16px] font-normal text-[#737373] outline-none"
+											value={filters.sort ?? 'recommended'}
+											onchange={(event) => changeSort(event.currentTarget.value as SortValue)}
 										>
-											Sort : Recommended
-										</p>
+											<option value="recommended">Sort : Recommended</option>
+											<option value="popular">Sort : Popular</option>
+											<option value="price_asc">Sort : Price: Low to High</option>
+											<option value="price_desc">Sort : Price: High to Low</option>
+											<option value="newest">Sort : Newest</option>
+										</select>
 										<div class="relative size-[16px] shrink-0" data-name="chevron-down">
 											<img
 												alt=""
 												class="absolute inset-0 block size-full max-w-none"
-												src={imgSelectValue}
+												src={imgSelectIcon}
 											/>
 										</div>
 									</div>
@@ -1057,1441 +582,193 @@
 						</div>
 					</div>
 					<div
-						class="relative flex shrink-0 content-stretch items-start gap-[12px]"
+						class="relative flex shrink-0 flex-wrap content-stretch items-start gap-[12px]"
 						data-name="Flex Horizontal"
 					>
-						<div
-							class="relative flex h-[26px] shrink-0 content-stretch items-center justify-center gap-[4px] rounded-[9999px] px-[12px] py-[4px]"
-							style="background-image: linear-gradient(90deg, rgba(23, 23, 23, 0.1) 0%, rgba(23, 23, 23, 0.1) 100%), linear-gradient(90deg, rgb(255, 255, 255) 0%, rgb(255, 255, 255) 100%)"
-							data-name="Soft Badge"
-						>
-							<div
-								class="relative flex shrink-0 flex-col justify-center text-center font-['Geist:Medium'] text-[12px] leading-[0] font-medium [word-break:break-word] whitespace-nowrap text-[#171717]"
+						{#if filters.categoryId}
+							<button
+								type="button"
+								class="relative flex h-[26px] shrink-0 cursor-pointer content-stretch items-center justify-center gap-[4px] rounded-[9999px] px-[12px] py-[4px]"
+								style="background-image: linear-gradient(90deg, rgba(23, 23, 23, 0.1) 0%, rgba(23, 23, 23, 0.1) 100%), linear-gradient(90deg, rgb(255, 255, 255) 0%, rgb(255, 255, 255) 100%)"
+								data-name="Soft Badge"
+								onclick={() => selectCategory(filters.categoryId ?? '')}
 							>
-								<p class="leading-[16px]">Noise</p>
-							</div>
-							<div class="relative size-[12px] shrink-0" data-name="x">
-								<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgX} />
-							</div>
-						</div>
-						<div
-							class="relative flex h-[26px] shrink-0 content-stretch items-center justify-center gap-[4px] rounded-[9999px] px-[12px] py-[4px]"
-							style="background-image: linear-gradient(90deg, rgba(23, 23, 23, 0.1) 0%, rgba(23, 23, 23, 0.1) 100%), linear-gradient(90deg, rgb(255, 255, 255) 0%, rgb(255, 255, 255) 100%)"
-							data-name="Soft Badge"
-						>
-							<div
-								class="relative flex shrink-0 flex-col justify-center text-center font-['Geist:Medium'] text-[12px] leading-[0] font-medium [word-break:break-word] whitespace-nowrap text-[#171717]"
+								<p
+									class="font-['Geist:Medium'] text-[12px] leading-[16px] font-medium text-[#171717]"
+								>
+									{selectedCategory}
+								</p>
+								<div class="relative size-[12px] shrink-0" data-name="x">
+									<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgX} />
+								</div>
+							</button>
+						{/if}
+						{#if filters.brandId && selectedBrand}
+							<button
+								type="button"
+								class="relative flex h-[26px] shrink-0 cursor-pointer content-stretch items-center justify-center gap-[4px] rounded-[9999px] px-[12px] py-[4px]"
+								style="background-image: linear-gradient(90deg, rgba(23, 23, 23, 0.1) 0%, rgba(23, 23, 23, 0.1) 100%), linear-gradient(90deg, rgb(255, 255, 255) 0%, rgb(255, 255, 255) 100%)"
+								data-name="Soft Badge"
+								onclick={() => selectBrand(filters.brandId ?? '')}
 							>
-								<p class="leading-[16px]">$0 to $500</p>
-							</div>
-							<div class="relative size-[12px] shrink-0" data-name="x">
-								<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgX} />
-							</div>
-						</div>
+								<p
+									class="font-['Geist:Medium'] text-[12px] leading-[16px] font-medium text-[#171717]"
+								>
+									{selectedBrand}
+								</p>
+								<div class="relative size-[12px] shrink-0" data-name="x">
+									<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgX} />
+								</div>
+							</button>
+						{/if}
+						{#if filters.minPrice != null || filters.maxPrice != null}
+							<button
+								type="button"
+								class="relative flex h-[26px] shrink-0 cursor-pointer content-stretch items-center justify-center gap-[4px] rounded-[9999px] px-[12px] py-[4px]"
+								style="background-image: linear-gradient(90deg, rgba(23, 23, 23, 0.1) 0%, rgba(23, 23, 23, 0.1) 100%), linear-gradient(90deg, rgb(255, 255, 255) 0%, rgb(255, 255, 255) 100%)"
+								data-name="Soft Badge"
+								onclick={() => {
+									minInput = '';
+									maxInput = '';
+									filters.minPrice = undefined;
+									filters.maxPrice = undefined;
+									page = 1;
+									syncUrl({ minPrice: null, maxPrice: null, page: null });
+								}}
+							>
+								<p
+									class="font-['Geist:Medium'] text-[12px] leading-[16px] font-medium text-[#171717]"
+								>
+									{filters.minPrice != null && filters.maxPrice != null
+										? `${formatMoney(filters.minPrice)} – ${formatMoney(filters.maxPrice)}`
+										: filters.minPrice != null
+											? `From ${formatMoney(filters.minPrice)}`
+											: `Up to ${formatMoney(filters.maxPrice ?? 0)}`}
+								</p>
+								<div class="relative size-[12px] shrink-0" data-name="x">
+									<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgX} />
+								</div>
+							</button>
+						{/if}
+						{#if filters.color}
+							<button
+								type="button"
+								class="relative flex h-[26px] shrink-0 cursor-pointer content-stretch items-center justify-center gap-[4px] rounded-[9999px] px-[12px] py-[4px]"
+								style="background-image: linear-gradient(90deg, rgba(23, 23, 23, 0.1) 0%, rgba(23, 23, 23, 0.1) 100%), linear-gradient(90deg, rgb(255, 255, 255) 0%, rgb(255, 255, 255) 100%)"
+								data-name="Soft Badge"
+								onclick={() => selectColor(filters.color ?? '')}
+							>
+								<p
+									class="font-['Geist:Medium'] text-[12px] leading-[16px] font-medium text-[#171717]"
+								>
+									{filters.color}
+								</p>
+								<div class="relative size-[12px] shrink-0" data-name="x">
+									<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgX} />
+								</div>
+							</button>
+						{/if}
 					</div>
 				</div>
-				<div
-					class="relative flex w-full shrink-0 flex-wrap content-start items-start gap-[16px]"
-					data-name="Flex Horizontal"
-				>
-					<div
-						class="relative flex min-w-[280px] flex-[1_0_0] flex-col content-stretch items-start"
-						data-name="Product Card"
-					>
-						<div
-							class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-white pb-[16px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)]"
-							data-name="Card"
-						>
-							<div
-								class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[10px]"
-								data-name="card-header"
-							>
-								<div class="relative h-[280px] w-full shrink-0 bg-[#f5f5f5]" data-name="bg"></div>
-								<div
-									class="absolute top-[calc(50%+0.5px)] left-1/2 h-[253px] w-[246px] -translate-x-1/2 -translate-y-1/2"
-									data-name="Product Image"
-								>
-									<div class="pointer-events-none absolute inset-0 overflow-hidden">
-										<img
-											alt=""
-											class="absolute top-[-4.87%] left-[4.86%] h-[104.73%] w-[90.46%] max-w-none"
-											src={imgCardHeader}
-										/>
-									</div>
-								</div>
-								<div
-									class="absolute top-[14px] left-[249px] flex content-stretch items-center justify-center rounded-[9999px] bg-white p-[4px]"
-									data-name="Icon"
-								>
-									<div class="relative flex shrink-0 items-center justify-center">
-										<div class="flex-none -scale-y-100 rotate-180">
-											<div class="relative size-[21px]" data-name="ICON">
-												<img
-													alt=""
-													class="absolute inset-0 block size-full max-w-none"
-													src={imgCardHeader1}
-												/>
-											</div>
-										</div>
-									</div>
-								</div>
-							</div>
-							<div
-								class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[12px] px-[16px]"
-								data-name="card-body"
-							>
-								<div
-									class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[6px] [word-break:break-word]"
-									data-name="Flex Vertical"
-								>
-									<div
-										class="relative flex w-[244px] shrink-0 flex-col content-stretch items-start gap-[2px]"
-										data-name="Product details"
-									>
-										<p
-											class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[18px] leading-[28px] font-semibold text-[#0a0a0a]"
-										>
-											Noise
-										</p>
-										<p
-											class="relative w-full shrink-0 font-['Geist:Regular'] text-[14px] leading-[20px] font-normal text-[#737373]"
-										>
-											{`Layer'r Wottagirl Vanilla twist...`}
-										</p>
-									</div>
-									<div
-										class="relative flex w-full shrink-0 content-stretch items-center gap-[6px] whitespace-nowrap"
-										data-name="price"
-									>
-										<p
-											class="relative shrink-0 font-['Geist:SemiBold'] text-[14px] leading-[20px] font-semibold text-[#0a0a0a]"
-										>
-											$225.00
-										</p>
-										<div
-											class="relative flex shrink-0 flex-col justify-end font-['Geist:Regular'] text-[0px] leading-[0] font-normal text-[#737373]"
-										>
-											<p
-												class="text-[14px] leading-[20px] line-through decoration-solid decoration-from-font [text-decoration-skip-ink:none] [text-underline-position:from-font]"
-											>
-												$249.00
-											</p>
-										</div>
-									</div>
-								</div>
-								<div
-									class="relative flex w-full shrink-0 flex-col content-stretch items-start"
-									data-name="Action"
-								>
-									<button
-										type="button"
-										class="relative flex w-full shrink-0 cursor-pointer content-stretch items-center justify-center gap-[6px] overflow-clip rounded-[10px] bg-[#171717] px-[12px] py-[6px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.1),0px_1px_2px_-1px_rgba(0,0,0,0.1)]"
-										data-name="Solid Button"
-										onclick={() => goto('/products/phone')}
-									>
-										<div
-											class="relative flex shrink-0 flex-col justify-center font-['Geist:Medium'] text-[14px] leading-[0] font-medium [word-break:break-word] whitespace-nowrap text-[#fafafa]"
-										>
-											<p class="leading-[20px]">Add to Cart</p>
-										</div>
-										<div class="relative size-[16px] shrink-0" data-name="Right-icon">
-											<img
-												alt=""
-												class="absolute inset-0 block size-full max-w-none"
-												src={imgCardBody14}
-											/>
-										</div>
-									</button>
-								</div>
-							</div>
-						</div>
-					</div>
-					<div
-						class="relative flex min-w-[280px] flex-[1_0_0] flex-col content-stretch items-start"
-						data-name="Product Card"
-					>
-						<div
-							class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-white pb-[16px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)]"
-							data-name="Card"
-						>
-							<div
-								class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[10px]"
-								data-name="card-header"
-							>
-								<div class="relative h-[280px] w-full shrink-0 bg-[#f5f5f5]" data-name="bg"></div>
-								<div
-									class="absolute top-[calc(50%+0.5px)] left-[calc(50%-0.67px)] h-[253px] w-[246px] -translate-x-1/2 -translate-y-1/2"
-									data-name="Product Image"
-								>
-									<div class="pointer-events-none absolute inset-0 overflow-hidden">
-										<img
-											alt=""
-											class="absolute top-[-1.84%] left-[5.96%] h-[101.96%] w-[88.07%] max-w-none"
-											src={imgCardHeader2}
-										/>
-									</div>
-								</div>
-								<div
-									class="absolute top-[14px] left-[249px] flex content-stretch items-center justify-center rounded-[9999px] bg-white p-[4px]"
-									data-name="Icon"
-								>
-									<div class="relative flex shrink-0 items-center justify-center">
-										<div class="flex-none -scale-y-100 rotate-180">
-											<div class="relative size-[21px]" data-name="ICON">
-												<img
-													alt=""
-													class="absolute inset-0 block size-full max-w-none"
-													src={imgCardHeader1}
-												/>
-											</div>
-										</div>
-									</div>
-								</div>
-							</div>
-							<div
-								class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[12px] px-[16px]"
-								data-name="card-body"
-							>
-								<div
-									class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[6px] [word-break:break-word]"
-									data-name="Flex Vertical"
-								>
-									<div
-										class="relative flex w-[244px] shrink-0 flex-col content-stretch items-start gap-[2px]"
-										data-name="Product details"
-									>
-										<p
-											class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[18px] leading-[28px] font-semibold text-[#0a0a0a]"
-										>
-											Noise
-										</p>
-										<p
-											class="relative w-full shrink-0 font-['Geist:Regular'] text-[14px] leading-[20px] font-normal text-[#737373]"
-										>
-											{`Layer'r Wottagirl Vanilla twist...`}
-										</p>
-									</div>
-									<div
-										class="relative flex w-full shrink-0 content-stretch items-center gap-[6px] whitespace-nowrap"
-										data-name="price"
-									>
-										<p
-											class="relative shrink-0 font-['Geist:SemiBold'] text-[14px] leading-[20px] font-semibold text-[#0a0a0a]"
-										>
-											$225.00
-										</p>
-										<div
-											class="relative flex shrink-0 flex-col justify-end font-['Geist:Regular'] text-[0px] leading-[0] font-normal text-[#737373]"
-										>
-											<p
-												class="text-[14px] leading-[20px] line-through decoration-solid decoration-from-font [text-decoration-skip-ink:none] [text-underline-position:from-font]"
-											>
-												$249.00
-											</p>
-										</div>
-									</div>
-								</div>
-								<div
-									class="relative flex w-full shrink-0 flex-col content-stretch items-start"
-									data-name="Action"
-								>
-									<button
-										type="button"
-										class="relative flex w-full shrink-0 cursor-pointer content-stretch items-center justify-center gap-[6px] overflow-clip rounded-[10px] bg-[#171717] px-[12px] py-[6px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.1),0px_1px_2px_-1px_rgba(0,0,0,0.1)]"
-										data-name="Solid Button"
-										onclick={() => goto('/products/phone')}
-									>
-										<div
-											class="relative flex shrink-0 flex-col justify-center font-['Geist:Medium'] text-[14px] leading-[0] font-medium [word-break:break-word] whitespace-nowrap text-[#fafafa]"
-										>
-											<p class="leading-[20px]">Add to Cart</p>
-										</div>
-										<div class="relative size-[16px] shrink-0" data-name="Right-icon">
-											<img
-												alt=""
-												class="absolute inset-0 block size-full max-w-none"
-												src={imgCardBody14}
-											/>
-										</div>
-									</button>
-								</div>
-							</div>
-						</div>
-					</div>
-					<div
-						class="relative flex min-w-[280px] flex-[1_0_0] flex-col content-stretch items-start"
-						data-name="Product Card"
-					>
-						<div
-							class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-white pb-[16px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)]"
-							data-name="Card"
-						>
-							<div
-								class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[10px]"
-								data-name="card-header"
-							>
-								<div class="relative h-[280px] w-full shrink-0 bg-[#f5f5f5]" data-name="bg"></div>
-								<div
-									class="absolute top-[calc(50%+0.5px)] left-[calc(50%-2.33px)] h-[253px] w-[246px] -translate-x-1/2 -translate-y-1/2"
-									data-name="Product Image"
-								>
-									<div class="pointer-events-none absolute inset-0 overflow-hidden">
-										<img
-											alt=""
-											class="absolute top-0 left-[6.81%] h-full w-[86.37%] max-w-none"
-											src={imgCardHeader3}
-										/>
-									</div>
-								</div>
-								<div
-									class="absolute top-[14px] left-[249px] flex content-stretch items-center justify-center rounded-[9999px] bg-white p-[4px]"
-									data-name="Icon"
-								>
-									<div class="relative flex shrink-0 items-center justify-center">
-										<div class="flex-none -scale-y-100 rotate-180">
-											<div class="relative size-[21px]" data-name="ICON">
-												<img
-													alt=""
-													class="absolute inset-0 block size-full max-w-none"
-													src={imgCardHeader1}
-												/>
-											</div>
-										</div>
-									</div>
-								</div>
-								<div
-									class="absolute top-[19px] left-[14px] flex content-stretch items-start"
-									data-name="Solid Badge"
-								>
-									<div
-										class="relative flex shrink-0 content-stretch items-center justify-center gap-[4px] rounded-[9999px] bg-[#dc2626] px-[8px] py-[2px]"
-										data-name="Solid Badge"
-									>
-										<div
-											class="relative flex shrink-0 flex-col justify-center text-center font-['Geist:Medium'] text-[12px] leading-[0] font-medium [word-break:break-word] whitespace-nowrap text-white"
-										>
-											<p class="leading-[16px]">20% off</p>
-										</div>
-									</div>
-								</div>
-							</div>
-							<div
-								class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[12px] px-[16px]"
-								data-name="card-body"
-							>
-								<div
-									class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[6px] [word-break:break-word]"
-									data-name="Flex Vertical"
-								>
-									<div
-										class="relative flex w-[244px] shrink-0 flex-col content-stretch items-start gap-[2px]"
-										data-name="Product details"
-									>
-										<p
-											class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[18px] leading-[28px] font-semibold text-[#0a0a0a]"
-										>
-											Noise
-										</p>
-										<p
-											class="relative w-full shrink-0 font-['Geist:Regular'] text-[14px] leading-[20px] font-normal text-[#737373]"
-										>
-											{`Layer'r Wottagirl Vanilla twist...`}
-										</p>
-									</div>
-									<div
-										class="relative flex w-full shrink-0 content-stretch items-center gap-[6px] whitespace-nowrap"
-										data-name="price"
-									>
-										<p
-											class="relative shrink-0 font-['Geist:SemiBold'] text-[14px] leading-[20px] font-semibold text-[#0a0a0a]"
-										>
-											$225.00
-										</p>
-										<div
-											class="relative flex shrink-0 flex-col justify-end font-['Geist:Regular'] text-[0px] leading-[0] font-normal text-[#737373]"
-										>
-											<p
-												class="text-[14px] leading-[20px] line-through decoration-solid decoration-from-font [text-decoration-skip-ink:none] [text-underline-position:from-font]"
-											>
-												$249.00
-											</p>
-										</div>
-									</div>
-								</div>
-								<div
-									class="relative flex w-full shrink-0 flex-col content-stretch items-start"
-									data-name="Action"
-								>
-									<button
-										type="button"
-										class="relative flex w-full shrink-0 cursor-pointer content-stretch items-center justify-center gap-[6px] overflow-clip rounded-[10px] bg-[#171717] px-[12px] py-[6px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.1),0px_1px_2px_-1px_rgba(0,0,0,0.1)]"
-										data-name="Solid Button"
-										onclick={() => goto('/products/phone')}
-									>
-										<div
-											class="relative flex shrink-0 flex-col justify-center font-['Geist:Medium'] text-[14px] leading-[0] font-medium [word-break:break-word] whitespace-nowrap text-[#fafafa]"
-										>
-											<p class="leading-[20px]">Add to Cart</p>
-										</div>
-										<div class="relative size-[16px] shrink-0" data-name="Right-icon">
-											<img
-												alt=""
-												class="absolute inset-0 block size-full max-w-none"
-												src={imgCardBody14}
-											/>
-										</div>
-									</button>
-								</div>
-							</div>
-						</div>
-					</div>
-					<div
-						class="relative flex min-w-[280px] flex-[1_0_0] flex-col content-stretch items-start"
-						data-name="Product Card"
-					>
-						<div
-							class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-white pb-[16px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)]"
-							data-name="Card"
-						>
-							<div
-								class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[10px]"
-								data-name="card-header"
-							>
-								<div class="relative h-[280px] w-full shrink-0 bg-[#f5f5f5]" data-name="bg"></div>
-								<div
-									class="absolute top-[calc(50%+0.5px)] left-1/2 h-[253px] w-[246px] -translate-x-1/2 -translate-y-1/2"
-									data-name="Product Image"
-								>
-									<div class="pointer-events-none absolute inset-0 overflow-hidden">
-										<img
-											alt=""
-											class="absolute top-[0.03%] left-[8.55%] h-[96.82%] w-[83.63%] max-w-none"
-											src={imgCardHeader4}
-										/>
-									</div>
-								</div>
-								<div
-									class="absolute top-[14px] left-[249px] flex content-stretch items-center justify-center rounded-[9999px] bg-white p-[4px]"
-									data-name="Icon"
-								>
-									<div class="relative flex shrink-0 items-center justify-center">
-										<div class="flex-none -scale-y-100 rotate-180">
-											<div class="relative size-[21px]" data-name="ICON">
-												<img
-													alt=""
-													class="absolute inset-0 block size-full max-w-none"
-													src={imgCardHeader1}
-												/>
-											</div>
-										</div>
-									</div>
-								</div>
-							</div>
-							<div
-								class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[12px] px-[16px]"
-								data-name="card-body"
-							>
-								<div
-									class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[6px] [word-break:break-word]"
-									data-name="Flex Vertical"
-								>
-									<div
-										class="relative flex w-[244px] shrink-0 flex-col content-stretch items-start gap-[2px]"
-										data-name="Product details"
-									>
-										<p
-											class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[18px] leading-[28px] font-semibold text-[#0a0a0a]"
-										>
-											Noise
-										</p>
-										<p
-											class="relative w-full shrink-0 font-['Geist:Regular'] text-[14px] leading-[20px] font-normal text-[#737373]"
-										>
-											{`Layer'r Wottagirl Vanilla twist...`}
-										</p>
-									</div>
-									<div
-										class="relative flex w-full shrink-0 content-stretch items-center gap-[6px] whitespace-nowrap"
-										data-name="price"
-									>
-										<p
-											class="relative shrink-0 font-['Geist:SemiBold'] text-[14px] leading-[20px] font-semibold text-[#0a0a0a]"
-										>
-											$225.00
-										</p>
-										<div
-											class="relative flex shrink-0 flex-col justify-end font-['Geist:Regular'] text-[0px] leading-[0] font-normal text-[#737373]"
-										>
-											<p
-												class="text-[14px] leading-[20px] line-through decoration-solid decoration-from-font [text-decoration-skip-ink:none] [text-underline-position:from-font]"
-											>
-												$249.00
-											</p>
-										</div>
-									</div>
-								</div>
-								<div
-									class="relative flex w-full shrink-0 flex-col content-stretch items-start"
-									data-name="Action"
-								>
-									<button
-										type="button"
-										class="relative flex w-full shrink-0 cursor-pointer content-stretch items-center justify-center gap-[6px] overflow-clip rounded-[10px] bg-[#171717] px-[12px] py-[6px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.1),0px_1px_2px_-1px_rgba(0,0,0,0.1)]"
-										data-name="Solid Button"
-										onclick={() => goto('/products/phone')}
-									>
-										<div
-											class="relative flex shrink-0 flex-col justify-center font-['Geist:Medium'] text-[14px] leading-[0] font-medium [word-break:break-word] whitespace-nowrap text-[#fafafa]"
-										>
-											<p class="leading-[20px]">Add to Cart</p>
-										</div>
-										<div class="relative size-[16px] shrink-0" data-name="Right-icon">
-											<img
-												alt=""
-												class="absolute inset-0 block size-full max-w-none"
-												src={imgCardBody14}
-											/>
-										</div>
-									</button>
-								</div>
-							</div>
-						</div>
-					</div>
-					<div
-						class="relative flex min-w-[280px] flex-[1_0_0] flex-col content-stretch items-start"
-						data-name="Product Card"
-					>
-						<div
-							class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-white pb-[16px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)]"
-							data-name="Card"
-						>
-							<div
-								class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[10px]"
-								data-name="card-header"
-							>
-								<div class="relative h-[280px] w-full shrink-0 bg-[#f5f5f5]" data-name="bg"></div>
-								<div
-									class="absolute top-[calc(50%+0.5px)] left-[calc(50%-0.67px)] h-[253px] w-[246px] -translate-x-1/2 -translate-y-1/2"
-									data-name="Product Image"
-								>
-									<div class="pointer-events-none absolute inset-0 overflow-hidden">
-										<img
-											alt=""
-											class="absolute top-[-0.49%] left-[3.85%] h-[100.38%] w-[86.7%] max-w-none"
-											src={imgCardHeader5}
-										/>
-									</div>
-								</div>
-								<div
-									class="absolute top-[14px] left-[249px] flex content-stretch items-center justify-center rounded-[9999px] bg-white p-[4px]"
-									data-name="Icon"
-								>
-									<div class="relative flex shrink-0 items-center justify-center">
-										<div class="flex-none -scale-y-100 rotate-180">
-											<div class="relative size-[21px]" data-name="ICON">
-												<img
-													alt=""
-													class="absolute inset-0 block size-full max-w-none"
-													src={imgCardHeader1}
-												/>
-											</div>
-										</div>
-									</div>
-								</div>
-								<div
-									class="absolute top-[19px] left-[14px] flex content-stretch items-start"
-									data-name="Solid Badge"
-								>
-									<div
-										class="relative flex shrink-0 content-stretch items-center justify-center gap-[4px] rounded-[9999px] bg-[#16a34a] px-[8px] py-[2px]"
-										data-name="Solid Badge"
-									>
-										<div
-											class="relative flex shrink-0 flex-col justify-center text-center font-['Geist:Medium'] text-[12px] leading-[0] font-medium [word-break:break-word] whitespace-nowrap text-white"
-										>
-											<p class="leading-[16px]">New</p>
-										</div>
-									</div>
-								</div>
-							</div>
-							<div
-								class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[12px] px-[16px]"
-								data-name="card-body"
-							>
-								<div
-									class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[6px] [word-break:break-word]"
-									data-name="Flex Vertical"
-								>
-									<div
-										class="relative flex w-[244px] shrink-0 flex-col content-stretch items-start gap-[2px]"
-										data-name="Product details"
-									>
-										<p
-											class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[18px] leading-[28px] font-semibold text-[#0a0a0a]"
-										>
-											Noise
-										</p>
-										<p
-											class="relative w-full shrink-0 font-['Geist:Regular'] text-[14px] leading-[20px] font-normal text-[#737373]"
-										>
-											{`Layer'r Wottagirl Vanilla twist...`}
-										</p>
-									</div>
-									<div
-										class="relative flex w-full shrink-0 content-stretch items-center gap-[6px] whitespace-nowrap"
-										data-name="price"
-									>
-										<p
-											class="relative shrink-0 font-['Geist:SemiBold'] text-[14px] leading-[20px] font-semibold text-[#0a0a0a]"
-										>
-											$225.00
-										</p>
-										<div
-											class="relative flex shrink-0 flex-col justify-end font-['Geist:Regular'] text-[0px] leading-[0] font-normal text-[#737373]"
-										>
-											<p
-												class="text-[14px] leading-[20px] line-through decoration-solid decoration-from-font [text-decoration-skip-ink:none] [text-underline-position:from-font]"
-											>
-												$249.00
-											</p>
-										</div>
-									</div>
-								</div>
-								<div
-									class="relative flex w-full shrink-0 flex-col content-stretch items-start"
-									data-name="Action"
-								>
-									<button
-										type="button"
-										class="relative flex w-full shrink-0 cursor-pointer content-stretch items-center justify-center gap-[6px] overflow-clip rounded-[10px] bg-[#171717] px-[12px] py-[6px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.1),0px_1px_2px_-1px_rgba(0,0,0,0.1)]"
-										data-name="Solid Button"
-										onclick={() => goto('/products/phone')}
-									>
-										<div
-											class="relative flex shrink-0 flex-col justify-center font-['Geist:Medium'] text-[14px] leading-[0] font-medium [word-break:break-word] whitespace-nowrap text-[#fafafa]"
-										>
-											<p class="leading-[20px]">Add to Cart</p>
-										</div>
-										<div class="relative size-[16px] shrink-0" data-name="Right-icon">
-											<img
-												alt=""
-												class="absolute inset-0 block size-full max-w-none"
-												src={imgCardBody14}
-											/>
-										</div>
-									</button>
-								</div>
-							</div>
-						</div>
-					</div>
-					<div
-						class="relative flex min-w-[280px] flex-[1_0_0] flex-col content-stretch items-start"
-						data-name="Product Card"
-					>
-						<div
-							class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-white pb-[16px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)]"
-							data-name="Card"
-						>
-							<div
-								class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[10px]"
-								data-name="card-header"
-							>
-								<div class="relative h-[280px] w-full shrink-0 bg-[#f5f5f5]" data-name="bg"></div>
-								<div
-									class="absolute top-[calc(50%+0.5px)] left-[calc(50%-2.33px)] h-[253px] w-[246px] -translate-x-1/2 -translate-y-1/2"
-									data-name="Product Image"
-								>
-									<div class="pointer-events-none absolute inset-0 overflow-hidden">
-										<img
-											alt=""
-											class="absolute top-[-3.62%] left-[4.81%] h-[107.89%] w-[93.19%] max-w-none"
-											src={imgCardHeader6}
-										/>
-									</div>
-								</div>
-								<div
-									class="absolute top-[14px] left-[249px] flex content-stretch items-center justify-center rounded-[9999px] bg-white p-[4px]"
-									data-name="Icon"
-								>
-									<div class="relative flex shrink-0 items-center justify-center">
-										<div class="flex-none -scale-y-100 rotate-180">
-											<div class="relative size-[21px]" data-name="ICON">
-												<img
-													alt=""
-													class="absolute inset-0 block size-full max-w-none"
-													src={imgCardHeader1}
-												/>
-											</div>
-										</div>
-									</div>
-								</div>
-							</div>
-							<div
-								class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[12px] px-[16px]"
-								data-name="card-body"
-							>
-								<div
-									class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[6px] [word-break:break-word]"
-									data-name="Flex Vertical"
-								>
-									<div
-										class="relative flex w-[244px] shrink-0 flex-col content-stretch items-start gap-[2px]"
-										data-name="Product details"
-									>
-										<p
-											class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[18px] leading-[28px] font-semibold text-[#0a0a0a]"
-										>
-											Noise
-										</p>
-										<p
-											class="relative w-full shrink-0 font-['Geist:Regular'] text-[14px] leading-[20px] font-normal text-[#737373]"
-										>
-											{`Layer'r Wottagirl Vanilla twist...`}
-										</p>
-									</div>
-									<div
-										class="relative flex w-full shrink-0 content-stretch items-center gap-[6px] whitespace-nowrap"
-										data-name="price"
-									>
-										<p
-											class="relative shrink-0 font-['Geist:SemiBold'] text-[14px] leading-[20px] font-semibold text-[#0a0a0a]"
-										>
-											$225.00
-										</p>
-										<div
-											class="relative flex shrink-0 flex-col justify-end font-['Geist:Regular'] text-[0px] leading-[0] font-normal text-[#737373]"
-										>
-											<p
-												class="text-[14px] leading-[20px] line-through decoration-solid decoration-from-font [text-decoration-skip-ink:none] [text-underline-position:from-font]"
-											>
-												$249.00
-											</p>
-										</div>
-									</div>
-								</div>
-								<div
-									class="relative flex w-full shrink-0 flex-col content-stretch items-start"
-									data-name="Action"
-								>
-									<button
-										type="button"
-										class="relative flex w-full shrink-0 cursor-pointer content-stretch items-center justify-center gap-[6px] overflow-clip rounded-[10px] bg-[#171717] px-[12px] py-[6px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.1),0px_1px_2px_-1px_rgba(0,0,0,0.1)]"
-										data-name="Solid Button"
-										onclick={() => goto('/products/phone')}
-									>
-										<div
-											class="relative flex shrink-0 flex-col justify-center font-['Geist:Medium'] text-[14px] leading-[0] font-medium [word-break:break-word] whitespace-nowrap text-[#fafafa]"
-										>
-											<p class="leading-[20px]">Add to Cart</p>
-										</div>
-										<div class="relative size-[16px] shrink-0" data-name="Right-icon">
-											<img
-												alt=""
-												class="absolute inset-0 block size-full max-w-none"
-												src={imgCardBody14}
-											/>
-										</div>
-									</button>
-								</div>
-							</div>
-						</div>
-					</div>
-					<div
-						class="relative flex min-w-[280px] flex-[1_0_0] flex-col content-stretch items-start"
-						data-name="Product Card"
-					>
-						<div
-							class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-white pb-[16px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)]"
-							data-name="Card"
-						>
-							<div
-								class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[10px]"
-								data-name="card-header"
-							>
-								<div class="relative h-[280px] w-full shrink-0 bg-[#f5f5f5]" data-name="bg"></div>
-								<div
-									class="absolute top-[calc(50%+0.5px)] left-[calc(50%-6px)] h-[253px] w-[246px] -translate-x-1/2 -translate-y-1/2"
-									data-name="Product Image"
-								>
-									<div class="pointer-events-none absolute inset-0 overflow-hidden">
-										<img
-											alt=""
-											class="absolute top-[0.1%] left-[8.09%] h-[97.22%] w-[83.97%] max-w-none"
-											src={imgCardHeader7}
-										/>
-									</div>
-								</div>
-								<div
-									class="absolute top-[14px] left-[249px] flex content-stretch items-center justify-center rounded-[9999px] bg-white p-[4px]"
-									data-name="Icon"
-								>
-									<div class="relative flex shrink-0 items-center justify-center">
-										<div class="flex-none -scale-y-100 rotate-180">
-											<div class="relative size-[21px]" data-name="ICON">
-												<img
-													alt=""
-													class="absolute inset-0 block size-full max-w-none"
-													src={imgCardHeader1}
-												/>
-											</div>
-										</div>
-									</div>
-								</div>
-							</div>
-							<div
-								class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[12px] px-[16px]"
-								data-name="card-body"
-							>
-								<div
-									class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[6px] [word-break:break-word]"
-									data-name="Flex Vertical"
-								>
-									<div
-										class="relative flex w-[244px] shrink-0 flex-col content-stretch items-start gap-[2px]"
-										data-name="Product details"
-									>
-										<p
-											class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[18px] leading-[28px] font-semibold text-[#0a0a0a]"
-										>
-											Noise
-										</p>
-										<p
-											class="relative w-full shrink-0 font-['Geist:Regular'] text-[14px] leading-[20px] font-normal text-[#737373]"
-										>
-											{`Layer'r Wottagirl Vanilla twist...`}
-										</p>
-									</div>
-									<div
-										class="relative flex w-full shrink-0 content-stretch items-center gap-[6px] whitespace-nowrap"
-										data-name="price"
-									>
-										<p
-											class="relative shrink-0 font-['Geist:SemiBold'] text-[14px] leading-[20px] font-semibold text-[#0a0a0a]"
-										>
-											$225.00
-										</p>
-										<div
-											class="relative flex shrink-0 flex-col justify-end font-['Geist:Regular'] text-[0px] leading-[0] font-normal text-[#737373]"
-										>
-											<p
-												class="text-[14px] leading-[20px] line-through decoration-solid decoration-from-font [text-decoration-skip-ink:none] [text-underline-position:from-font]"
-											>
-												$249.00
-											</p>
-										</div>
-									</div>
-								</div>
-								<div
-									class="relative flex w-full shrink-0 flex-col content-stretch items-start"
-									data-name="Action"
-								>
-									<button
-										type="button"
-										class="relative flex w-full shrink-0 cursor-pointer content-stretch items-center justify-center gap-[6px] overflow-clip rounded-[10px] bg-[#171717] px-[12px] py-[6px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.1),0px_1px_2px_-1px_rgba(0,0,0,0.1)]"
-										data-name="Solid Button"
-										onclick={() => goto('/products/phone')}
-									>
-										<div
-											class="relative flex shrink-0 flex-col justify-center font-['Geist:Medium'] text-[14px] leading-[0] font-medium [word-break:break-word] whitespace-nowrap text-[#fafafa]"
-										>
-											<p class="leading-[20px]">Add to Cart</p>
-										</div>
-										<div class="relative size-[16px] shrink-0" data-name="Right-icon">
-											<img
-												alt=""
-												class="absolute inset-0 block size-full max-w-none"
-												src={imgCardBody14}
-											/>
-										</div>
-									</button>
-								</div>
-							</div>
-						</div>
-					</div>
-					<div
-						class="relative flex min-w-[280px] flex-[1_0_0] flex-col content-stretch items-start"
-						data-name="Product Card"
-					>
-						<div
-							class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-white pb-[16px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)]"
-							data-name="Card"
-						>
-							<div
-								class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[10px]"
-								data-name="card-header"
-							>
-								<div class="relative h-[280px] w-full shrink-0 bg-[#f5f5f5]" data-name="bg"></div>
-								<div
-									class="absolute top-[calc(50%+0.5px)] left-[calc(50%-2.67px)] h-[253px] w-[246px] -translate-x-1/2 -translate-y-1/2"
-									data-name="Product Image"
-								>
-									<div class="pointer-events-none absolute inset-0 overflow-hidden">
-										<img
-											alt=""
-											class="absolute top-[0.08%] left-[7.5%] h-[98.93%] w-[85.45%] max-w-none"
-											src={imgCardHeader8}
-										/>
-									</div>
-								</div>
-								<div
-									class="absolute top-[14px] left-[249px] flex content-stretch items-center justify-center rounded-[9999px] bg-white p-[4px]"
-									data-name="Icon"
-								>
-									<div class="relative flex shrink-0 items-center justify-center">
-										<div class="flex-none -scale-y-100 rotate-180">
-											<div class="relative size-[21px]" data-name="ICON">
-												<img
-													alt=""
-													class="absolute inset-0 block size-full max-w-none"
-													src={imgCardHeader1}
-												/>
-											</div>
-										</div>
-									</div>
-								</div>
-							</div>
-							<div
-								class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[12px] px-[16px]"
-								data-name="card-body"
-							>
-								<div
-									class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[6px] [word-break:break-word]"
-									data-name="Flex Vertical"
-								>
-									<div
-										class="relative flex w-[244px] shrink-0 flex-col content-stretch items-start gap-[2px]"
-										data-name="Product details"
-									>
-										<p
-											class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[18px] leading-[28px] font-semibold text-[#0a0a0a]"
-										>
-											Noise
-										</p>
-										<p
-											class="relative w-full shrink-0 font-['Geist:Regular'] text-[14px] leading-[20px] font-normal text-[#737373]"
-										>
-											{`Layer'r Wottagirl Vanilla twist...`}
-										</p>
-									</div>
-									<div
-										class="relative flex w-full shrink-0 content-stretch items-center gap-[6px] whitespace-nowrap"
-										data-name="price"
-									>
-										<p
-											class="relative shrink-0 font-['Geist:SemiBold'] text-[14px] leading-[20px] font-semibold text-[#0a0a0a]"
-										>
-											$225.00
-										</p>
-										<div
-											class="relative flex shrink-0 flex-col justify-end font-['Geist:Regular'] text-[0px] leading-[0] font-normal text-[#737373]"
-										>
-											<p
-												class="text-[14px] leading-[20px] line-through decoration-solid decoration-from-font [text-decoration-skip-ink:none] [text-underline-position:from-font]"
-											>
-												$249.00
-											</p>
-										</div>
-									</div>
-								</div>
-								<div
-									class="relative flex w-full shrink-0 flex-col content-stretch items-start"
-									data-name="Action"
-								>
-									<button
-										type="button"
-										class="relative flex w-full shrink-0 cursor-pointer content-stretch items-center justify-center gap-[6px] overflow-clip rounded-[10px] bg-[#171717] px-[12px] py-[6px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.1),0px_1px_2px_-1px_rgba(0,0,0,0.1)]"
-										data-name="Solid Button"
-										onclick={() => goto('/products/phone')}
-									>
-										<div
-											class="relative flex shrink-0 flex-col justify-center font-['Geist:Medium'] text-[14px] leading-[0] font-medium [word-break:break-word] whitespace-nowrap text-[#fafafa]"
-										>
-											<p class="leading-[20px]">Add to Cart</p>
-										</div>
-										<div class="relative size-[16px] shrink-0" data-name="Right-icon">
-											<img
-												alt=""
-												class="absolute inset-0 block size-full max-w-none"
-												src={imgCardBody14}
-											/>
-										</div>
-									</button>
-								</div>
-							</div>
-						</div>
-					</div>
-					<div
-						class="relative flex min-w-[280px] flex-[1_0_0] flex-col content-stretch items-start"
-						data-name="Product Card"
-					>
-						<div
-							class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-white pb-[16px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)]"
-							data-name="Card"
-						>
-							<div
-								class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[10px]"
-								data-name="card-header"
-							>
-								<div class="relative h-[280px] w-full shrink-0 bg-[#f5f5f5]" data-name="bg"></div>
-								<div
-									class="absolute top-[calc(50%+0.5px)] left-[calc(50%-2.33px)] h-[253px] w-[246px] -translate-x-1/2 -translate-y-1/2"
-									data-name="Product Image"
-								>
-									<img
-										alt=""
-										class="pointer-events-none absolute inset-0 size-full max-w-none object-cover"
-										src={imgCardHeader9}
-									/>
-								</div>
-								<div
-									class="absolute top-[14px] left-[249px] flex content-stretch items-center justify-center rounded-[9999px] bg-white p-[4px]"
-									data-name="Icon"
-								>
-									<div class="relative flex shrink-0 items-center justify-center">
-										<div class="flex-none -scale-y-100 rotate-180">
-											<div class="relative size-[21px]" data-name="ICON">
-												<img
-													alt=""
-													class="absolute inset-0 block size-full max-w-none"
-													src={imgCardHeader1}
-												/>
-											</div>
-										</div>
-									</div>
-								</div>
-							</div>
-							<div
-								class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[12px] px-[16px]"
-								data-name="card-body"
-							>
-								<div
-									class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[6px] [word-break:break-word]"
-									data-name="Flex Vertical"
-								>
-									<div
-										class="relative flex w-[244px] shrink-0 flex-col content-stretch items-start gap-[2px]"
-										data-name="Product details"
-									>
-										<p
-											class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[18px] leading-[28px] font-semibold text-[#0a0a0a]"
-										>
-											Noise
-										</p>
-										<p
-											class="relative w-full shrink-0 font-['Geist:Regular'] text-[14px] leading-[20px] font-normal text-[#737373]"
-										>
-											{`Layer'r Wottagirl Vanilla twist...`}
-										</p>
-									</div>
-									<div
-										class="relative flex w-full shrink-0 content-stretch items-center gap-[6px] whitespace-nowrap"
-										data-name="price"
-									>
-										<p
-											class="relative shrink-0 font-['Geist:SemiBold'] text-[14px] leading-[20px] font-semibold text-[#0a0a0a]"
-										>
-											$225.00
-										</p>
-										<div
-											class="relative flex shrink-0 flex-col justify-end font-['Geist:Regular'] text-[0px] leading-[0] font-normal text-[#737373]"
-										>
-											<p
-												class="text-[14px] leading-[20px] line-through decoration-solid decoration-from-font [text-decoration-skip-ink:none] [text-underline-position:from-font]"
-											>
-												$249.00
-											</p>
-										</div>
-									</div>
-								</div>
-								<div
-									class="relative flex w-full shrink-0 flex-col content-stretch items-start"
-									data-name="Action"
-								>
-									<button
-										type="button"
-										class="relative flex w-full shrink-0 cursor-pointer content-stretch items-center justify-center gap-[6px] overflow-clip rounded-[10px] bg-[#171717] px-[12px] py-[6px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.1),0px_1px_2px_-1px_rgba(0,0,0,0.1)]"
-										data-name="Solid Button"
-										onclick={() => goto('/products/phone')}
-									>
-										<div
-											class="relative flex shrink-0 flex-col justify-center font-['Geist:Medium'] text-[14px] leading-[0] font-medium [word-break:break-word] whitespace-nowrap text-[#fafafa]"
-										>
-											<p class="leading-[20px]">Add to Cart</p>
-										</div>
-										<div class="relative size-[16px] shrink-0" data-name="Right-icon">
-											<img
-												alt=""
-												class="absolute inset-0 block size-full max-w-none"
-												src={imgCardBody14}
-											/>
-										</div>
-									</button>
-								</div>
-							</div>
-						</div>
-					</div>
-					<div
-						class="relative flex min-w-[280px] flex-[1_0_0] flex-col content-stretch items-start"
-						data-name="Product Card"
-					>
-						<div
-							class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-white pb-[16px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)]"
-							data-name="Card"
-						>
-							<div
-								class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[10px]"
-								data-name="card-header"
-							>
-								<div class="relative h-[280px] w-full shrink-0 bg-[#f5f5f5]" data-name="bg"></div>
-								<div
-									class="absolute top-[calc(50%+0.5px)] left-[calc(50%-2px)] h-[253px] w-[246px] -translate-x-1/2 -translate-y-1/2"
-									data-name="Product Image"
-								>
-									<img
-										alt=""
-										class="pointer-events-none absolute inset-0 size-full max-w-none object-cover"
-										src={imgCardHeader10}
-									/>
-								</div>
-								<div
-									class="absolute top-[14px] left-[249px] flex content-stretch items-center justify-center rounded-[9999px] bg-white p-[4px]"
-									data-name="Icon"
-								>
-									<div class="relative flex shrink-0 items-center justify-center">
-										<div class="flex-none -scale-y-100 rotate-180">
-											<div class="relative size-[21px]" data-name="ICON">
-												<img
-													alt=""
-													class="absolute inset-0 block size-full max-w-none"
-													src={imgCardHeader1}
-												/>
-											</div>
-										</div>
-									</div>
-								</div>
-								<div
-									class="absolute top-[19px] left-[14px] flex content-stretch items-start"
-									data-name="Solid Badge"
-								>
-									<div
-										class="relative flex shrink-0 content-stretch items-center justify-center gap-[4px] rounded-[9999px] bg-[#16a34a] px-[8px] py-[2px]"
-										data-name="Solid Badge"
-									>
-										<div
-											class="relative flex shrink-0 flex-col justify-center text-center font-['Geist:Medium'] text-[12px] leading-[0] font-medium [word-break:break-word] whitespace-nowrap text-white"
-										>
-											<p class="leading-[16px]">New</p>
-										</div>
-									</div>
-								</div>
-							</div>
-							<div
-								class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[12px] px-[16px]"
-								data-name="card-body"
-							>
-								<div
-									class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[6px] [word-break:break-word]"
-									data-name="Flex Vertical"
-								>
-									<div
-										class="relative flex w-[244px] shrink-0 flex-col content-stretch items-start gap-[2px]"
-										data-name="Product details"
-									>
-										<p
-											class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[18px] leading-[28px] font-semibold text-[#0a0a0a]"
-										>
-											Noise
-										</p>
-										<p
-											class="relative w-full shrink-0 font-['Geist:Regular'] text-[14px] leading-[20px] font-normal text-[#737373]"
-										>
-											{`Layer'r Wottagirl Vanilla twist...`}
-										</p>
-									</div>
-									<div
-										class="relative flex w-full shrink-0 content-stretch items-center gap-[6px] whitespace-nowrap"
-										data-name="price"
-									>
-										<p
-											class="relative shrink-0 font-['Geist:SemiBold'] text-[14px] leading-[20px] font-semibold text-[#0a0a0a]"
-										>
-											$225.00
-										</p>
-										<div
-											class="relative flex shrink-0 flex-col justify-end font-['Geist:Regular'] text-[0px] leading-[0] font-normal text-[#737373]"
-										>
-											<p
-												class="text-[14px] leading-[20px] line-through decoration-solid decoration-from-font [text-decoration-skip-ink:none] [text-underline-position:from-font]"
-											>
-												$249.00
-											</p>
-										</div>
-									</div>
-								</div>
-								<div
-									class="relative flex w-full shrink-0 flex-col content-stretch items-start"
-									data-name="Action"
-								>
-									<button
-										type="button"
-										class="relative flex w-full shrink-0 cursor-pointer content-stretch items-center justify-center gap-[6px] overflow-clip rounded-[10px] bg-[#171717] px-[12px] py-[6px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.1),0px_1px_2px_-1px_rgba(0,0,0,0.1)]"
-										data-name="Solid Button"
-										onclick={() => goto('/products/phone')}
-									>
-										<div
-											class="relative flex shrink-0 flex-col justify-center font-['Geist:Medium'] text-[14px] leading-[0] font-medium [word-break:break-word] whitespace-nowrap text-[#fafafa]"
-										>
-											<p class="leading-[20px]">Add to Cart</p>
-										</div>
-										<div class="relative size-[16px] shrink-0" data-name="Right-icon">
-											<img
-												alt=""
-												class="absolute inset-0 block size-full max-w-none"
-												src={imgCardBody14}
-											/>
-										</div>
-									</button>
-								</div>
-							</div>
-						</div>
-					</div>
-					<div
-						class="relative flex min-w-[280px] flex-[1_0_0] flex-col content-stretch items-start"
-						data-name="Product Card"
-					>
-						<div
-							class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-white pb-[16px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)]"
-							data-name="Card"
-						>
-							<div
-								class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[10px]"
-								data-name="card-header"
-							>
-								<div class="relative h-[280px] w-full shrink-0 bg-[#f5f5f5]" data-name="bg"></div>
-								<div
-									class="absolute top-[calc(50%+0.5px)] left-[calc(50%-2.67px)] h-[253px] w-[246px] -translate-x-1/2 -translate-y-1/2"
-									data-name="Product Image"
-								>
-									<img
-										alt=""
-										class="pointer-events-none absolute inset-0 size-full max-w-none object-cover"
-										src={imgCardHeader11}
-									/>
-								</div>
-								<div
-									class="absolute top-[14px] left-[249px] flex content-stretch items-center justify-center rounded-[9999px] bg-white p-[4px]"
-									data-name="Icon"
-								>
-									<div class="relative flex shrink-0 items-center justify-center">
-										<div class="flex-none -scale-y-100 rotate-180">
-											<div class="relative size-[21px]" data-name="ICON">
-												<img
-													alt=""
-													class="absolute inset-0 block size-full max-w-none"
-													src={imgCardHeader1}
-												/>
-											</div>
-										</div>
-									</div>
-								</div>
-							</div>
-							<div
-								class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[12px] px-[16px]"
-								data-name="card-body"
-							>
-								<div
-									class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[6px] [word-break:break-word]"
-									data-name="Flex Vertical"
-								>
-									<div
-										class="relative flex w-[244px] shrink-0 flex-col content-stretch items-start gap-[2px]"
-										data-name="Product details"
-									>
-										<p
-											class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[18px] leading-[28px] font-semibold text-[#0a0a0a]"
-										>
-											Noise
-										</p>
-										<p
-											class="relative w-full shrink-0 font-['Geist:Regular'] text-[14px] leading-[20px] font-normal text-[#737373]"
-										>
-											{`Layer'r Wottagirl Vanilla twist...`}
-										</p>
-									</div>
-									<div
-										class="relative flex w-full shrink-0 content-stretch items-center gap-[6px] whitespace-nowrap"
-										data-name="price"
-									>
-										<p
-											class="relative shrink-0 font-['Geist:SemiBold'] text-[14px] leading-[20px] font-semibold text-[#0a0a0a]"
-										>
-											$225.00
-										</p>
-										<div
-											class="relative flex shrink-0 flex-col justify-end font-['Geist:Regular'] text-[0px] leading-[0] font-normal text-[#737373]"
-										>
-											<p
-												class="text-[14px] leading-[20px] line-through decoration-solid decoration-from-font [text-decoration-skip-ink:none] [text-underline-position:from-font]"
-											>
-												$249.00
-											</p>
-										</div>
-									</div>
-								</div>
-								<div
-									class="relative flex w-full shrink-0 flex-col content-stretch items-start"
-									data-name="Action"
-								>
-									<button
-										type="button"
-										class="relative flex w-full shrink-0 cursor-pointer content-stretch items-center justify-center gap-[6px] overflow-clip rounded-[10px] bg-[#171717] px-[12px] py-[6px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.1),0px_1px_2px_-1px_rgba(0,0,0,0.1)]"
-										data-name="Solid Button"
-										onclick={() => goto('/products/phone')}
-									>
-										<div
-											class="relative flex shrink-0 flex-col justify-center font-['Geist:Medium'] text-[14px] leading-[0] font-medium [word-break:break-word] whitespace-nowrap text-[#fafafa]"
-										>
-											<p class="leading-[20px]">Add to Cart</p>
-										</div>
-										<div class="relative size-[16px] shrink-0" data-name="Right-icon">
-											<img
-												alt=""
-												class="absolute inset-0 block size-full max-w-none"
-												src={imgCardBody14}
-											/>
-										</div>
-									</button>
-								</div>
-							</div>
-						</div>
-					</div>
-					<div
-						class="relative flex min-w-[280px] flex-[1_0_0] flex-col content-stretch items-start"
-						data-name="Product Card"
-					>
-						<div
-							class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-white pb-[16px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)]"
-							data-name="Card"
-						>
-							<div
-								class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[10px]"
-								data-name="card-header"
-							>
-								<div class="relative h-[280px] w-full shrink-0 bg-[#f5f5f5]" data-name="bg"></div>
-								<div
-									class="absolute top-[calc(50%+0.5px)] left-[calc(50%-0.33px)] h-[253px] w-[246px] -translate-x-1/2 -translate-y-1/2"
-									data-name="Product Image"
-								>
-									<img
-										alt=""
-										class="pointer-events-none absolute inset-0 size-full max-w-none object-cover"
-										src={imgCardHeader12}
-									/>
-								</div>
-								<div
-									class="absolute top-[14px] left-[249px] flex content-stretch items-center justify-center rounded-[9999px] bg-white p-[4px]"
-									data-name="Icon"
-								>
-									<div class="relative flex shrink-0 items-center justify-center">
-										<div class="flex-none -scale-y-100 rotate-180">
-											<div class="relative size-[21px]" data-name="ICON">
-												<img
-													alt=""
-													class="absolute inset-0 block size-full max-w-none"
-													src={imgCardHeader1}
-												/>
-											</div>
-										</div>
-									</div>
-								</div>
-								<div
-									class="absolute top-[19px] left-[14px] flex content-stretch items-start"
-									data-name="Solid Badge"
-								>
-									<div
-										class="relative flex shrink-0 content-stretch items-center justify-center gap-[4px] rounded-[9999px] bg-[#dc2626] px-[8px] py-[2px]"
-										data-name="Solid Badge"
-									>
-										<div
-											class="relative flex shrink-0 flex-col justify-center text-center font-['Geist:Medium'] text-[12px] leading-[0] font-medium [word-break:break-word] whitespace-nowrap text-white"
-										>
-											<p class="leading-[16px]">20% off</p>
-										</div>
-									</div>
-								</div>
-							</div>
-							<div
-								class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[12px] px-[16px]"
-								data-name="card-body"
-							>
-								<div
-									class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[6px] [word-break:break-word]"
-									data-name="Flex Vertical"
-								>
-									<div
-										class="relative flex w-[244px] shrink-0 flex-col content-stretch items-start gap-[2px]"
-										data-name="Product details"
-									>
-										<p
-											class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[18px] leading-[28px] font-semibold text-[#0a0a0a]"
-										>
-											Noise
-										</p>
-										<p
-											class="relative w-full shrink-0 font-['Geist:Regular'] text-[14px] leading-[20px] font-normal text-[#737373]"
-										>
-											{`Layer'r Wottagirl Vanilla twist...`}
-										</p>
-									</div>
-									<div
-										class="relative flex w-full shrink-0 content-stretch items-center gap-[6px] whitespace-nowrap"
-										data-name="price"
-									>
-										<p
-											class="relative shrink-0 font-['Geist:SemiBold'] text-[14px] leading-[20px] font-semibold text-[#0a0a0a]"
-										>
-											$225.00
-										</p>
-										<div
-											class="relative flex shrink-0 flex-col justify-end font-['Geist:Regular'] text-[0px] leading-[0] font-normal text-[#737373]"
-										>
-											<p
-												class="text-[14px] leading-[20px] line-through decoration-solid decoration-from-font [text-decoration-skip-ink:none] [text-underline-position:from-font]"
-											>
-												$249.00
-											</p>
-										</div>
-									</div>
-								</div>
-								<div
-									class="relative flex w-full shrink-0 flex-col content-stretch items-start"
-									data-name="Action"
-								>
-									<button
-										type="button"
-										class="relative flex w-full shrink-0 cursor-pointer content-stretch items-center justify-center gap-[6px] overflow-clip rounded-[10px] bg-[#171717] px-[12px] py-[6px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.1),0px_1px_2px_-1px_rgba(0,0,0,0.1)]"
-										data-name="Solid Button"
-										onclick={() => goto('/products/phone')}
-									>
-										<div
-											class="relative flex shrink-0 flex-col justify-center font-['Geist:Medium'] text-[14px] leading-[0] font-medium [word-break:break-word] whitespace-nowrap text-[#fafafa]"
-										>
-											<p class="leading-[20px]">Add to Cart</p>
-										</div>
-										<div class="relative size-[16px] shrink-0" data-name="Right-icon">
-											<img
-												alt=""
-												class="absolute inset-0 block size-full max-w-none"
-												src={imgCardBody14}
-											/>
-										</div>
-									</button>
-								</div>
-							</div>
-						</div>
-					</div>
+				<div class="flex w-full items-center justify-between" data-name="Flex Horizontal">
+					<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]">
+						{loading ? 'Loading products…' : `${result?.total ?? 0} products`}
+					</p>
 				</div>
-				<Pagination class="relative flex shrink-0 content-stretch items-start" />
+				{#if loading}
+					<div
+						class="relative flex w-full shrink-0 flex-wrap content-start items-start gap-[16px]"
+						data-name="Flex Horizontal"
+					>
+						{#each [0, 1, 2, 3, 4, 5, 6, 7] as skeleton (skeleton)}
+							<div
+								class="relative flex min-w-[280px] flex-[1_0_0] flex-col content-stretch items-start"
+								data-name="Product Card"
+							>
+								<div
+									class="h-[360px] w-full shrink-0 animate-pulse rounded-[14px] bg-[#f5f5f5]"
+									data-name="Card"
+								></div>
+							</div>
+						{/each}
+					</div>
+				{:else if error}
+					<p class="w-full font-['Geist:Regular'] text-[16px] leading-[24px] text-[#dc2626]">
+						{error}
+					</p>
+				{:else if result && result.data.length === 0}
+					<p class="w-full font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
+						No products found for the selected filters.
+					</p>
+				{:else if result}
+					<div
+						class="relative flex w-full shrink-0 flex-wrap content-start items-start gap-[16px]"
+						data-name="Flex Horizontal"
+					>
+						{#each result.data as product (product.id)}
+							<div
+								class="relative flex min-w-[280px] flex-[1_0_0] flex-col content-stretch items-start"
+								data-name="Product Card"
+							>
+								<StorefrontProductCard {product} />
+							</div>
+						{/each}
+					</div>
+					<Pagination class="relative flex shrink-0 content-stretch items-start">
+						<button
+							type="button"
+							disabled={page <= 1}
+							onclick={() => selectPage(page - 1)}
+							class="relative flex h-[32px] shrink-0 cursor-pointer content-stretch items-center justify-center gap-[6px] rounded-[10px] pr-[10px] pl-[6px] disabled:cursor-default disabled:opacity-40"
+							data-name="Ghost Button"
+						>
+							<div class="relative size-[16px] shrink-0" data-name="Left icon">
+								<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgLeftIcon} />
+							</div>
+							<p
+								class="font-['Geist:Medium'] text-[14px] leading-[20px] font-medium text-[#0a0a0a]"
+							>
+								Previous
+							</p>
+						</button>
+						{#each pageNumbers as number (number)}
+							<button
+								type="button"
+								onclick={() => selectPage(number)}
+								class={`relative flex size-[32px] shrink-0 cursor-pointer content-stretch items-center justify-center rounded-[10px] ${
+									number === page ? 'border border-solid border-[#e5e5e5] bg-white' : ''
+								}`}
+								data-name={number === page ? 'Outline Button' : 'Ghost Button'}
+							>
+								<p
+									class="font-['Geist:Medium'] text-[14px] leading-[20px] font-medium text-[#0a0a0a]"
+								>
+									{number}
+								</p>
+							</button>
+						{/each}
+						<button
+							type="button"
+							disabled={page >= totalPages}
+							onclick={() => selectPage(page + 1)}
+							class="relative flex h-[32px] shrink-0 cursor-pointer content-stretch items-center justify-center gap-[6px] rounded-[10px] pr-[6px] pl-[10px] disabled:cursor-default disabled:opacity-40"
+							data-name="Ghost Button"
+						>
+							<p
+								class="font-['Geist:Medium'] text-[14px] leading-[20px] font-medium text-[#0a0a0a]"
+							>
+								Next
+							</p>
+							<div class="relative size-[16px] shrink-0" data-name="Left icon">
+								<img
+									alt=""
+									class="absolute inset-0 block size-full max-w-none"
+									src={imgLeftIcon1}
+								/>
+							</div>
+						</button>
+					</Pagination>
+				{/if}
 			</div>
 		</div>
 	</div>

@@ -4,22 +4,15 @@
 	import * as Sidebar from '#lib/frontend/components/ui/sidebar/index.ts';
 	import * as Breadcrumb from '#lib/frontend/components/ui/breadcrumb/index.ts';
 	import * as DropdownMenu from '#lib/frontend/components/ui/dropdown-menu/index.ts';
-	import * as Avatar from '#lib/frontend/components/ui/avatar/index.ts';
 	import { Input } from '#lib/frontend/components/ui/input/index.ts';
 	import { Separator } from '#lib/frontend/components/ui/separator/index.ts';
+	import UserAvatar from '#lib/frontend/components/UserAvatar.svelte';
 	import { authClient, signOutUser } from '#frontend/modules/auth/index.ts';
 
 	const session = authClient.useSession();
 	const user = $derived($session.data?.user);
 
 	const displayName = $derived(user?.name || user?.email || 'Admin');
-	const initials = $derived(
-		displayName
-			.split(/\s+/)
-			.slice(0, 2)
-			.map((part) => part[0]?.toUpperCase() ?? '')
-			.join('')
-	);
 
 	const labels: Record<string, string> = {
 		admin: 'Admin',
@@ -76,9 +69,13 @@
 						type="button"
 						class="flex items-center gap-2 rounded-lg p-1 hover:bg-muted"
 					>
-						<Avatar.Root class="size-8">
-							<Avatar.Fallback class="text-xs">{initials || 'A'}</Avatar.Fallback>
-						</Avatar.Root>
+						<UserAvatar
+							image={user?.image}
+							name={user?.name}
+							email={user?.email}
+							class="size-8 rounded-full"
+							labelClass="text-xs"
+						/>
 						<span class="hidden max-w-32 truncate text-sm md:inline">{displayName}</span>
 					</button>
 				{/snippet}

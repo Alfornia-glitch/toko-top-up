@@ -13,6 +13,7 @@ Bun-only repo (no pnpm/npm). Run `bun install` from `web/`. Requires **Bun >= 1.
 - `bun run start` / `bun run preview` — serve the built app with `bun ./build` (default port 3000)
 - `bun run check` — `svelte-kit sync` + `svelte-check` (must stay 0 errors / 0 warnings)
 - `bun run db:push` — `bun scripts/setup-db.ts` (creates the `auth_app` schema for Postgres, the data directory for SQLite) then `drizzle-kit push` (reads `DB_PROVIDER` and the matching credentials from `.env`)
+- `bun run storage:setup` — `bun scripts/setup-storage.ts` (creates or updates the public Supabase Storage bucket from `SUPABASE_STORAGE_BUCKET` with the 5 MiB/MIME limits; no-op when `STORAGE_PROVIDER=rustfs`)
 - `bun run lint` / `bun run format` — Prettier check / write (required before finishing)
 
 `bunfig.toml` sets `[run] bun = true`, so scripts and CLIs run under the Bun runtime instead of Node shebangs.
@@ -62,7 +63,7 @@ Bun-only repo (no pnpm/npm). Run `bun install` from `web/`. Requires **Bun >= 1.
 
 Auth endpoints (`/api/auth/*`, served by better-auth through `src/hooks.server.ts`) exist under `bun run dev` and the built Bun server. Verify with `GET /api/auth/ok` and `GET /api/auth/get-session`. Production needs the `DB_PROVIDER`, `BETTER_AUTH_*` vars (see `env.vps.example` / `env.supabase.example`) and the auth tables (`bun run db:push`).
 
-Storage: `POST /api/upload` without a session returns `401`; `GET` returns `405`; a cross-origin POST returns `403` (SvelteKit CSRF). `STORAGE_PROVIDER` selects the backend: `supabase` needs `SUPABASE_URL`, `SUPABASE_SECRET_KEY`, and `SUPABASE_STORAGE_BUCKET` (declared optional in `src/env.ts`, required by `getStorageBackend()`); `rustfs` needs `RUSTFS_ENDPOINT`, `RUSTFS_BUCKET`, `RUSTFS_ACCESS_KEY`, `RUSTFS_SECRET_KEY`, and `RUSTFS_PUBLIC_URL` (`RUSTFS_REGION` defaults to `us-east-1`). The Supabase bucket must already exist (dashboard: Storage → New bucket, public access, restrict uploads to the MIME types in `src/lib/server/modules/storage/index.ts`); the RustFS/S3 bucket must allow anonymous reads (public policy) because uploads set `acl: public-read`. Local HTTP testing needs `ORIGIN=http://localhost:<port>` at build time _and_ `BETTER_AUTH_URL` at runtime with the same origin, otherwise `/api/auth/*` 404s and same-origin form POSTs get 403 CSRF.
+Storage: `POST /api/upload` without a session returns `401`; `GET` returns `405`; a cross-origin POST returns `403` (SvelteKit CSRF). `STORAGE_PROVIDER` selects the backend: `supabase` needs `SUPABASE_URL`, `SUPABASE_SECRET_KEY`, and `SUPABASE_STORAGE_BUCKET` (declared optional in `src/env.ts`, required by `getStorageBackend()`); `rustfs` needs `RUSTFS_ENDPOINT`, `RUSTFS_BUCKET`, `RUSTFS_ACCESS_KEY`, `RUSTFS_SECRET_KEY`, and `RUSTFS_PUBLIC_URL` (`RUSTFS_REGION` defaults to `us-east-1`). Create the Supabase bucket with `bun run storage:setup` (public access, 5 MiB and the MIME types in `src/lib/server/modules/storage/rules.ts`); the RustFS/S3 bucket must allow anonymous reads (public policy) because uploads set `acl: public-read`. Local HTTP testing needs `ORIGIN=http://localhost:<port>` at build time _and_ `BETTER_AUTH_URL` at runtime with the same origin, otherwise `/api/auth/*` 404s and same-origin form POSTs get 403 CSRF.
 
 ## Deployment
 

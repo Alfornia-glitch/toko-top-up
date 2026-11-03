@@ -1,4 +1,12 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
+	import { site } from '#lib/frontend/modules/commerce/site.svelte.ts';
+	import {
+		FOOTER_EXPLORE,
+		FOOTER_FEATURES,
+		FOOTER_LEGAL,
+		FOOTER_TERMS
+	} from '#lib/frontend/content/navigation.ts';
 	import {
 		imgEllipse90,
 		imgGroup,
@@ -22,6 +30,46 @@
 	} from '#lib/frontend/shellAssets.ts';
 
 	let { features = false }: { features?: boolean } = $props();
+
+	let email = $state('');
+	let newsletterState = $state<'idle' | 'loading' | 'success' | 'error'>('idle');
+	let newsletterMessage = $state('');
+
+	const socials = $derived([
+		{ name: 'instagram', href: site.social.instagram, icon: imgIcon7 },
+		{ name: 'facebook', href: site.social.facebook, icon: imgIcon8 },
+		{ name: 'twitter', href: site.social.twitter, icon: imgIcon9 }
+	]);
+
+	onMount(() => {
+		void site.ensure();
+	});
+
+	async function subscribe(event: SubmitEvent) {
+		event.preventDefault();
+		if (newsletterState === 'loading') return;
+
+		newsletterState = 'loading';
+		newsletterMessage = '';
+
+		try {
+			const response = await fetch('/api/newsletter', {
+				method: 'POST',
+				headers: { 'content-type': 'application/json' },
+				body: JSON.stringify({ email })
+			});
+
+			if (!response.ok) throw new Error('Could not subscribe. Please try again.');
+
+			newsletterState = 'success';
+			newsletterMessage = 'Subscribed! Check your inbox for offers.';
+			email = '';
+		} catch (error) {
+			newsletterState = 'error';
+			newsletterMessage =
+				error instanceof Error ? error.message : 'Could not subscribe. Please try again.';
+		}
+	}
 </script>
 
 <div
@@ -61,12 +109,12 @@
 							<p
 								class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[20px] font-semibold text-[#0a0a0a]"
 							>
-								Free delivery
+								{FOOTER_FEATURES[0].title}
 							</p>
 							<p
 								class="relative w-full shrink-0 font-['Geist:Regular'] text-[18px] font-normal text-[#737373]"
 							>
-								{`Get your orders delivered to your doorstep for free. `}
+								{FOOTER_FEATURES[0].text}
 							</p>
 						</div>
 					</div>
@@ -100,12 +148,12 @@
 							<p
 								class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[20px] font-semibold text-[#0a0a0a]"
 							>
-								Online Payment
+								{FOOTER_FEATURES[1].title}
 							</p>
 							<p
 								class="relative w-full shrink-0 font-['Geist:Regular'] text-[18px] font-normal text-[#737373]"
 							>
-								{`Experience hassle-free online payments with secure. `}
+								{FOOTER_FEATURES[1].text}
 							</p>
 						</div>
 					</div>
@@ -143,12 +191,12 @@
 							<p
 								class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[20px] font-semibold text-[#0a0a0a]"
 							>
-								Easy Return
+								{FOOTER_FEATURES[2].title}
 							</p>
 							<p
 								class="relative w-full shrink-0 font-['Geist:Regular'] text-[18px] font-normal text-[#737373]"
 							>
-								{`Enjoy easy returns within 30 days of purchase. `}
+								{FOOTER_FEATURES[2].text}
 							</p>
 						</div>
 					</div>
@@ -203,7 +251,7 @@
 						<div
 							class="relative flex shrink-0 flex-col justify-end font-['Inter:Semi_Bold'] text-[20px] leading-[0] font-semibold [word-break:break-word] whitespace-nowrap text-[#0a0a0a] not-italic"
 						>
-							<p class="leading-[26px]">{`Shopix `}</p>
+							<p class="leading-[26px]">Shopix</p>
 						</div>
 					</div>
 				</a>
@@ -221,8 +269,8 @@
 						<div
 							class="relative w-[255px] shrink-0 font-['Geist:Regular'] text-[16px] leading-[0] font-normal [word-break:break-word] text-[#0a0a0a]"
 						>
-							<p class="mb-0 leading-[24px]">Shop 009A, Level 4, Block A</p>
-							<p class="leading-[24px]">Demo Park, Ottawa</p>
+							<p class="mb-0 leading-[24px]">{site.contact.address1}</p>
+							<p class="leading-[24px]">{site.contact.address2}</p>
 						</div>
 					</div>
 					<div
@@ -235,7 +283,7 @@
 						<p
 							class="relative min-w-px flex-[1_0_0] font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-[#0a0a0a]"
 						>
-							+1-613-598-6981
+							{site.contact.phone}
 						</p>
 					</div>
 					<div
@@ -248,7 +296,7 @@
 						<p
 							class="relative min-w-px flex-[1_0_0] font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-[#0a0a0a]"
 						>
-							shopix@gmail.com
+							{site.contact.email}
 						</p>
 					</div>
 				</div>
@@ -270,12 +318,12 @@
 				<p
 					class="relative w-full shrink-0 font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-[#737373]"
 				>
-					Product Listing
+					{FOOTER_EXPLORE[0]}
 				</p>
 				<p
 					class="relative w-full shrink-0 font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-[#737373]"
 				>
-					My Profile
+					{FOOTER_EXPLORE[1]}
 				</p>
 				<a
 					href="/account/order-tracking"
@@ -286,7 +334,7 @@
 				<p
 					class="relative w-full shrink-0 font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-[#737373]"
 				>
-					Category Lisitng
+					{FOOTER_EXPLORE[2]}
 				</p>
 			</div>
 			<div
@@ -300,28 +348,28 @@
 					<p
 						class="relative min-w-px flex-[1_0_0] font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] text-[#0a0a0a]"
 					>
-						{`Terms & Policies`}
+						Terms & Policies
 					</p>
 				</div>
 				<a
 					href="/account/returns-refunds"
 					class="relative w-full shrink-0 font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-[#737373] hover:text-[#0a0a0a] hover:underline"
-					>{`Returns & Exchanges`}</a
+					>Returns & Exchanges</a
 				>
 				<p
 					class="relative w-full shrink-0 font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-[#737373]"
 				>
-					Privacy Policy
+					{FOOTER_TERMS[0]}
 				</p>
 				<p
 					class="relative w-full shrink-0 font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-[#737373]"
 				>
-					Purchase Protection
+					{FOOTER_TERMS[1]}
 				</p>
 				<p
 					class="relative w-full shrink-0 font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-[#737373]"
 				>
-					Help
+					{FOOTER_TERMS[2]}
 				</p>
 			</div>
 			<div
@@ -335,7 +383,7 @@
 					<p
 						class="relative shrink-0 font-['Geist:SemiBold'] text-[18px] leading-[28px] font-semibold [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
 					>
-						{`Get the Latest Offers & Discounts`}
+						Get the Latest Offers & Discounts
 					</p>
 					<div
 						class="relative flex w-full shrink-0 content-stretch items-center justify-end"
@@ -345,21 +393,43 @@
 							class="relative flex min-w-px flex-[1_0_0] flex-col content-stretch items-start gap-[8px]"
 							data-name="Default Input"
 						>
-							<div
+							<form
 								class="relative flex w-full shrink-0 content-stretch items-start"
 								data-name="input-container"
+								onsubmit={subscribe}
 							>
 								<div
 									class="relative flex h-[36px] min-w-px flex-[1_0_0] content-stretch items-center gap-[8px] rounded-[10px] border border-solid border-[#e5e5e5] bg-white px-[10px] py-[4px]"
 									data-name="input"
 								>
-									<div
-										class="relative flex min-w-px flex-[1_0_0] flex-col justify-center overflow-hidden font-['Geist:Regular'] text-[14px] leading-[0] font-normal [word-break:break-word] text-ellipsis whitespace-nowrap text-[#737373]"
+									<input
+										type="email"
+										required
+										bind:value={email}
+										placeholder="Your email address"
+										aria-label="Your email address"
+										class="min-w-0 flex-[1_0_0] border-none bg-transparent font-['Geist:Regular'] text-[14px] leading-[20px] font-normal text-[#0a0a0a] outline-none placeholder:text-[#737373]"
+									/>
+									<button
+										type="submit"
+										disabled={newsletterState === 'loading'}
+										class="shrink-0 rounded-[6px] bg-[#0a0a0a] px-[10px] py-[4px] font-['Geist:Medium'] text-[12px] leading-[16px] font-medium text-white disabled:opacity-50"
 									>
-										<p class="overflow-hidden leading-[20px] text-ellipsis">Your email address</p>
-									</div>
+										{newsletterState === 'loading' ? 'Joining…' : 'Subscribe'}
+									</button>
 								</div>
-							</div>
+							</form>
+							{#if newsletterMessage}
+								<p
+									class={newsletterState === 'success'
+										? "font-['Geist:Regular'] text-[12px] leading-[16px] text-[#16a34a]"
+										: "font-['Geist:Regular'] text-[12px] leading-[16px] text-[#dc2626]"}
+									role="status"
+									aria-live="polite"
+								>
+									{newsletterMessage}
+								</p>
+							{/if}
 						</div>
 					</div>
 				</div>
@@ -373,10 +443,7 @@
 						class="relative flex shrink-0 content-stretch items-start gap-[16px]"
 						data-name="Actions"
 					>
-						<div
-							class="relative flex shrink-0 content-stretch items-center gap-[13.469px] rounded-[5.051px] bg-black px-[10.102px] py-[5.051px]"
-							data-name="Button"
-						>
+						{#snippet appStoreBadge()}
 							<div class="relative h-[23.571px] w-[19.194px] shrink-0" data-name="apple-icon">
 								<img
 									alt=""
@@ -399,11 +466,8 @@
 									App Store
 								</p>
 							</div>
-						</div>
-						<div
-							class="relative flex shrink-0 content-stretch items-center justify-center gap-[13.037px] rounded-[4.889px] bg-black px-[9.778px] py-[4.889px]"
-							data-name="Button"
-						>
+						{/snippet}
+						{#snippet googlePlayBadge()}
 							<div
 								class="relative size-[22.815px] shrink-0 overflow-clip"
 								data-name="google-play-icon"
@@ -433,7 +497,43 @@
 									Google Play
 								</p>
 							</div>
-						</div>
+						{/snippet}
+						{#if site.downloads.appStore}
+							<a
+								href={site.downloads.appStore}
+								target="_blank"
+								rel="noopener noreferrer"
+								class="relative flex shrink-0 content-stretch items-center gap-[13.469px] rounded-[5.051px] bg-black px-[10.102px] py-[5.051px]"
+								data-name="Button"
+							>
+								{@render appStoreBadge()}
+							</a>
+						{:else}
+							<div
+								class="relative flex shrink-0 content-stretch items-center gap-[13.469px] rounded-[5.051px] bg-black px-[10.102px] py-[5.051px]"
+								data-name="Button"
+							>
+								{@render appStoreBadge()}
+							</div>
+						{/if}
+						{#if site.downloads.googlePlay}
+							<a
+								href={site.downloads.googlePlay}
+								target="_blank"
+								rel="noopener noreferrer"
+								class="relative flex shrink-0 content-stretch items-center justify-center gap-[13.037px] rounded-[4.889px] bg-black px-[9.778px] py-[4.889px]"
+								data-name="Button"
+							>
+								{@render googlePlayBadge()}
+							</a>
+						{:else}
+							<div
+								class="relative flex shrink-0 content-stretch items-center justify-center gap-[13.037px] rounded-[4.889px] bg-black px-[9.778px] py-[4.889px]"
+								data-name="Button"
+							>
+								{@render googlePlayBadge()}
+							</div>
+						{/if}
 					</div>
 				</div>
 			</div>
@@ -505,25 +605,29 @@
 					<p
 						class="relative min-w-[329px] flex-[1_0_0] font-['Geist:Medium'] text-[16px] leading-[0] font-medium [word-break:break-word] text-[#0a0a0a]"
 					>
-						<span class="leading-[24px]">{`© 2026 `}</span>
-						<span class="leading-[24px]">Shopix</span>
-						<span class="leading-[24px]">{`, Made with `}</span>
-						<span class="leading-[24px]">❤</span>
-						<span class="leading-[24px]">️️️ for a better web.</span>
+						<span class="leading-[24px]">{FOOTER_LEGAL}</span>
 					</p>
 				</div>
 				<div
 					class="relative flex min-w-px flex-[1_0_0] content-stretch items-center justify-end gap-[13px]"
 				>
-					<div class="relative size-[22px] shrink-0" data-name="Icon">
-						<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgIcon7} />
-					</div>
-					<div class="relative size-[22px] shrink-0" data-name="Icon">
-						<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgIcon8} />
-					</div>
-					<div class="relative size-[22px] shrink-0" data-name="Icon">
-						<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgIcon9} />
-					</div>
+					{#each socials as social (social.name)}
+						{#if social.href}
+							<a
+								href={social.href}
+								target="_blank"
+								rel="noopener noreferrer"
+								class="relative size-[22px] shrink-0"
+								data-name="Icon"
+							>
+								<img alt="" class="absolute inset-0 block size-full max-w-none" src={social.icon} />
+							</a>
+						{:else}
+							<div class="relative size-[22px] shrink-0" data-name="Icon">
+								<img alt="" class="absolute inset-0 block size-full max-w-none" src={social.icon} />
+							</div>
+						{/if}
+					{/each}
 				</div>
 			</div>
 		</div>

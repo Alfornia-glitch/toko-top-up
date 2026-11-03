@@ -30,7 +30,7 @@
 	let loading = $state(false);
 	let uploading = $state(false);
 	let error = $state('');
-	let fileInput: HTMLInputElement | undefined = $state();
+	let fileInput = $state<HTMLInputElement | null>(null);
 
 	$effect(() => {
 		if (open) void loadAssets();

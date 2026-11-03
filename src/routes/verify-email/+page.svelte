@@ -3,15 +3,48 @@
 	import MailCheck from '@lucide/svelte/icons/mail-check';
 	import AuthShell from '#lib/frontend/components/auth/AuthShell.svelte';
 	import { Button } from '#lib/frontend/components/ui/button/index.ts';
+	import { Spinner } from '#lib/frontend/components/ui/spinner/index.ts';
+	import { authClient, authErrorMessage } from '#frontend/modules/auth/index.ts';
+
+	const session = authClient.useSession();
+	const email = $derived($session.data?.user.email);
+	const description = $derived(
+		email
+			? `An activation link has been sent to your email address: ${email}. Please check your inbox and click on the link to complete the activation process.`
+			: 'An activation link has been sent to your email address. Please check your inbox and click on the link to complete the activation process.'
+	);
 
 	let resent = $state(false);
+	let loading = $state(false);
+	let error = $state('');
+
+	async function handleResend() {
+		if (!email) return;
+
+		error = '';
+		loading = true;
+
+		try {
+			const { error: authError } = await authClient.sendVerificationEmail({
+				email,
+				callbackURL: '/'
+			});
+
+			if (authError) {
+				error = authErrorMessage(authError);
+				return;
+			}
+
+			resent = true;
+		} catch (err) {
+			error = authErrorMessage(err);
+		} finally {
+			loading = false;
+		}
+	}
 </script>
 
-<AuthShell
-	showLogo={false}
-	title="Verify your email"
-	description="An activation link has been sent to your email address: hello@example.com. Please check your inbox and click on the link to complete the activation process."
->
+<AuthShell showLogo={false} title="Verify your email" {description}>
 	{#snippet icon()}
 		<div class="flex size-12 items-center justify-center rounded-full bg-muted text-foreground">
 			<MailCheck class="size-6" />
@@ -24,11 +57,18 @@
 			Didn't get the mail?
 			<button
 				type="button"
-				class="font-medium text-foreground underline-offset-4 hover:underline"
-				onclick={() => (resent = true)}
+				class="font-medium text-foreground underline-offset-4 hover:underline disabled:opacity-50"
+				disabled={!email || loading}
+				onclick={handleResend}
 			>
+				{#if loading}
+					<Spinner class="mr-1 inline size-3" />
+				{/if}
 				{resent ? 'Sent' : 'Resend'}
 			</button>
 		</p>
+		{#if error}
+			<p class="text-center text-sm text-destructive" role="alert">{error}</p>
+		{/if}
 	</div>
 </AuthShell>

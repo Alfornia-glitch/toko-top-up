@@ -1,8 +1,19 @@
 <script lang="ts">
 	import { LogOut } from '@lucide/svelte';
+	import { onMount } from 'svelte';
+	import { goto } from '$app/navigation';
 	import MegaMenu from './MegaMenu.svelte';
 	import * as DropdownMenu from '#lib/frontend/components/ui/dropdown-menu/index.ts';
+	import UserAvatar from '#lib/frontend/components/UserAvatar.svelte';
 	import { authClient, signOutUser } from '#frontend/modules/auth/index.ts';
+	import { home } from '#lib/frontend/modules/commerce/home.svelte.ts';
+	import { site } from '#lib/frontend/modules/commerce/site.svelte.ts';
+	import { cart } from '#lib/frontend/modules/commerce/cart.svelte.ts';
+	import {
+		HEADER_MENU_LABELS,
+		HEADER_QUICK_LINKS,
+		HEADER_TOP_LINKS
+	} from '#lib/frontend/content/navigation.ts';
 	import {
 		imgPic,
 		imgOrnament54,
@@ -25,6 +36,7 @@
 
 	let menu = $state<'shops' | 'deals' | 'new' | 'pages' | null>(null);
 	let mobileMenuOpen = $state(false);
+	let query = $state('');
 
 	const ornaments = [
 		imgOrnament54,
@@ -34,15 +46,24 @@
 		imgOrnament54,
 		imgOrnament54
 	];
-	const announcements = $derived(
-		Array.from({ length: announcementCount }, (_, i) => ornaments[i % ornaments.length])
-	);
+	const announcements = $derived(home.announcements.slice(0, announcementCount));
 
 	const session = authClient.useSession();
 	const user = $derived($session.data?.user);
 
+	onMount(() => {
+		void home.ensure();
+		void site.ensure();
+		void cart.refresh();
+	});
+
 	function toggleMenu(name: 'shops' | 'deals' | 'new' | 'pages') {
 		menu = menu === name ? null : name;
+	}
+
+	function submitSearch(event: SubmitEvent) {
+		event.preventDefault();
+		void goto('/products?q=' + encodeURIComponent(query));
 	}
 </script>
 
@@ -54,7 +75,7 @@
 		class="relative flex w-full shrink-0 content-stretch items-center justify-center gap-[28px] overflow-x-auto bg-black py-[6px]"
 		data-name="Flex horizontal"
 	>
-		{#each announcements as ornament, i}
+		{#each announcements as announcement, i (announcement.id)}
 			<div
 				class={i === 0
 					? 'relative flex shrink-0 content-stretch items-center gap-[16px]'
@@ -67,13 +88,21 @@
 						? 'text-[14px] sm:text-[16px]'
 						: 'text-[16px]'} text-ellipsis whitespace-nowrap text-white"
 				>
-					Black Friday sale 22% off
+					{#if announcement.link}
+						<a href={announcement.link} class="hover:underline">{announcement.text}</a>
+					{:else}
+						{announcement.text}
+					{/if}
 				</p>
 				<div
 					class="relative shrink-0 {i === 0 ? 'size-[20px] sm:size-[24px]' : 'size-[24px]'}"
 					data-name="Ornament"
 				>
-					<img alt="" class="absolute inset-0 block size-full max-w-none" src={ornament} />
+					<img
+						alt=""
+						class="absolute inset-0 block size-full max-w-none"
+						src={ornaments[i % ornaments.length]}
+					/>
 				</div>
 			</div>
 		{/each}
@@ -91,13 +120,9 @@
 					class="relative flex h-full min-w-px flex-[1_0_0] content-stretch items-center gap-[16px] font-['Geist:Medium'] text-[14px] leading-[20px] font-medium [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
 					data-name="Flex Horizontal"
 				>
-					<a href="/account/returns-refunds" class="relative shrink-0 hover:underline"
-						>{`Shipping & Returns`}</a
-					>
-					<a href="/account/payment" class="relative shrink-0 hover:underline">Payment</a>
-					<a href="/account/order-tracking" class="relative shrink-0 hover:underline">Warranty</a>
-					<a href="/checkout/address" class="relative shrink-0 hover:underline">{`Location `}</a>
-					<a href="/account/support-tickets" class="relative shrink-0 hover:underline">Contact</a>
+					{#each HEADER_TOP_LINKS as link (link.href)}
+						<a href={link.href} class="relative shrink-0 hover:underline">{link.label}</a>
+					{/each}
 				</div>
 			</div>
 			<div
@@ -125,7 +150,7 @@
 						<p
 							class="relative shrink-0 font-['Geist:Medium'] text-[14px] leading-[20px] font-medium [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
 						>
-							USD
+							{site.currency}
 						</p>
 						<div class="relative size-[16px] shrink-0" data-name="Left-icon">
 							<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgLeftIcon} />
@@ -208,7 +233,7 @@
 							<div
 								class="relative flex shrink-0 flex-col justify-end font-['Inter:Semi_Bold'] text-[18px] leading-[0] font-semibold [word-break:break-word] whitespace-nowrap text-[#0a0a0a] not-italic sm:text-[20px]"
 							>
-								<p class="leading-[26px]">{`Shopix `}</p>
+								<p class="leading-[26px]">Shopix</p>
 							</div>
 						</div>
 					</div>
@@ -231,7 +256,7 @@
 						<p
 							class="relative shrink-0 font-['Geist:Medium'] text-[14px] leading-[20px] font-medium [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
 						>
-							Shops
+							{HEADER_MENU_LABELS[0]}
 						</p>
 						<div class="relative size-[16px] shrink-0" data-name="Left-icon">
 							<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgLeftIcon} />
@@ -248,7 +273,7 @@
 						<p
 							class="relative shrink-0 font-['Geist:Medium'] text-[14px] leading-[20px] font-medium [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
 						>
-							Today’s Deal
+							{HEADER_MENU_LABELS[1]}
 						</p>
 						<div class="relative size-[16px] shrink-0" data-name="Left-icon">
 							<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgLeftIcon} />
@@ -265,7 +290,7 @@
 						<p
 							class="relative shrink-0 font-['Geist:Medium'] text-[14px] leading-[20px] font-medium [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
 						>
-							New Arrivals
+							{HEADER_MENU_LABELS[2]}
 						</p>
 						<div class="relative size-[16px] shrink-0" data-name="Left-icon">
 							<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgLeftIcon} />
@@ -282,7 +307,7 @@
 						<p
 							class="relative shrink-0 font-['Geist:Medium'] text-[14px] leading-[20px] font-medium [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
 						>
-							Pages
+							{HEADER_MENU_LABELS[3]}
 						</p>
 						<div class="relative size-[16px] shrink-0" data-name="Left-icon">
 							<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgLeftIcon} />
@@ -299,9 +324,10 @@
 					class="relative hidden w-[220px] shrink-0 flex-col content-stretch items-start gap-[8px] lg:flex"
 					data-name="Default Input"
 				>
-					<div
+					<form
 						class="relative flex w-full shrink-0 content-stretch items-start"
 						data-name="input-container"
+						onsubmit={submitSearch}
 					>
 						<div
 							class="relative flex h-[32px] min-w-px flex-[1_0_0] content-stretch items-center gap-[6px] rounded-[10px] border border-solid border-[#e5e5e5] bg-white px-[10px] py-[4px]"
@@ -310,10 +336,12 @@
 							<input
 								type="text"
 								placeholder="Search products..."
+								aria-label="Search products"
+								bind:value={query}
 								class="w-full border-none bg-transparent font-['Geist:Regular'] text-[14px] text-[#0a0a0a] outline-none placeholder:text-[#737373]"
 							/>
 						</div>
-					</div>
+					</form>
 				</div>
 				<div
 					class="relative flex shrink-0 content-stretch items-center gap-[8px]"
@@ -334,7 +362,7 @@
 							<div
 								class="relative flex h-[12px] w-[6.857px] shrink-0 flex-col justify-center text-center font-['Geist:Medium'] text-[12px] leading-[0] font-medium [word-break:break-word] text-[#fafafa]"
 							>
-								<p class="leading-[13.714px]">8</p>
+								<p class="leading-[13.714px]">{home.categories.length}</p>
 							</div>
 						</div>
 					</a>
@@ -353,7 +381,7 @@
 							<div
 								class="relative flex h-[12px] w-[6.857px] shrink-0 flex-col justify-center text-center font-['Geist:Medium'] text-[12px] leading-[0] font-medium [word-break:break-word] text-[#fafafa]"
 							>
-								<p class="leading-[13.714px]">2</p>
+								<p class="leading-[13.714px]">{cart.count}</p>
 							</div>
 						</div>
 					</a>
@@ -364,19 +392,16 @@
 									<button
 										{...props}
 										type="button"
-										class="relative size-[32px] shrink-0 cursor-pointer overflow-clip rounded-[10px] border border-solid border-[#e5e5e5]"
-										data-name="Avatar"
+										class="relative shrink-0 cursor-pointer"
 										aria-label="Account menu"
 									>
-										<div class="absolute inset-[-1px]" data-name="pic">
-											<div class="pointer-events-none absolute inset-0 overflow-hidden">
-												<img
-													alt=""
-													class="absolute top-[6.38%] left-[-48.34%] h-[168.75%] w-[199.22%] max-w-none"
-													src={imgPic}
-												/>
-											</div>
-										</div>
+										<UserAvatar
+											image={user.image}
+											name={user.name}
+											email={user.email}
+											class="size-[32px]"
+											labelClass="text-[12px]"
+										/>
 									</button>
 								{/snippet}
 							</DropdownMenu.Trigger>
@@ -386,10 +411,7 @@
 									<div class="truncate text-xs text-muted-foreground">{user.email ?? ''}</div>
 								</DropdownMenu.Label>
 								<DropdownMenu.Separator />
-								<DropdownMenu.Item
-									variant="destructive"
-									onclick={() => void signOutUser('/login')}
-								>
+								<DropdownMenu.Item variant="destructive" onclick={() => void signOutUser('/login')}>
 									<LogOut />
 									Sign out
 								</DropdownMenu.Item>
@@ -398,17 +420,12 @@
 					{:else}
 						<a
 							href="/login"
+							aria-label="Sign in"
 							class="relative size-[32px] shrink-0 overflow-clip rounded-[10px] border border-solid border-[#e5e5e5]"
 							data-name="Avatar"
 						>
 							<div class="absolute inset-[-1px]" data-name="pic">
-								<div class="pointer-events-none absolute inset-0 overflow-hidden">
-									<img
-										alt=""
-										class="absolute top-[6.38%] left-[-48.34%] h-[168.75%] w-[199.22%] max-w-none"
-										src={imgPic}
-									/>
-								</div>
+								<div class="pointer-events-none absolute inset-0 overflow-hidden"></div>
 							</div>
 						</a>
 					{/if}
@@ -468,26 +485,13 @@
 					Quick Links
 				</p>
 				<div class="grid grid-cols-2 gap-2 text-xs">
-					<a
-						href="/products"
-						onclick={() => (mobileMenuOpen = false)}
-						class="rounded bg-gray-50 px-2 py-1.5 text-gray-700">Product Grid</a
-					>
-					<a
-						href="/products?view=list"
-						onclick={() => (mobileMenuOpen = false)}
-						class="rounded bg-gray-50 px-2 py-1.5 text-gray-700">Product List</a
-					>
-					<a
-						href="/categories"
-						onclick={() => (mobileMenuOpen = false)}
-						class="rounded bg-gray-50 px-2 py-1.5 text-gray-700">Categories</a
-					>
-					<a
-						href="/components"
-						onclick={() => (mobileMenuOpen = false)}
-						class="rounded bg-gray-50 px-2 py-1.5 text-gray-700">Prototype Pages</a
-					>
+					{#each HEADER_QUICK_LINKS as link (link.href)}
+						<a
+							href={link.href}
+							onclick={() => (mobileMenuOpen = false)}
+							class="rounded bg-gray-50 px-2 py-1.5 text-gray-700">{link.label}</a
+						>
+					{/each}
 				</div>
 				{#if user}
 					<div class="my-1 h-px bg-gray-100"></div>

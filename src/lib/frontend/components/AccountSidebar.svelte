@@ -1,7 +1,10 @@
 <script lang="ts">
-	import { signOutUser } from '#frontend/modules/auth/index.ts';
+	import UserAvatar from '#lib/frontend/components/UserAvatar.svelte';
+	import { authClient, signOutUser } from '#frontend/modules/auth/index.ts';
 
-	const imgPic = '/assets/d94d6.png';
+	const session = authClient.useSession();
+	const user = $derived($session.data?.user);
+
 	const imgSeparator = '/assets/42c25.svg';
 	const imgIcon = '/assets/f0c09.svg';
 	const imgIcon1 = '/assets/95ca5.svg';
@@ -38,20 +41,13 @@
 				data-name="Flex Vertical"
 			>
 				<div class="flex items-center gap-3">
-					<div
-						class="relative size-[48px] shrink-0 overflow-clip rounded-[10px] border border-solid border-[#e5e5e5]"
-						data-name="Avatar"
-					>
-						<div class="absolute inset-[-1px]" data-name="pic">
-							<div class="pointer-events-none absolute inset-0 overflow-hidden">
-								<img
-									alt=""
-									class="absolute top-[2.89%] left-[-39.55%] h-[152.08%] w-[179.54%] max-w-none"
-									src={imgPic}
-								/>
-							</div>
-						</div>
-					</div>
+					<UserAvatar
+						image={user?.image}
+						name={user?.name}
+						email={user?.email}
+						class="size-[48px]"
+						labelClass="text-[16px]"
+					/>
 					<div
 						class="relative flex flex-col content-stretch items-start gap-[2px] [word-break:break-word]"
 						data-name="Flex Vertical"
@@ -59,12 +55,12 @@
 						<p
 							class="relative shrink-0 font-['Geist:SemiBold'] text-[16px] leading-[24px] font-semibold text-[#0a0a0a] lg:text-[18px] lg:leading-[28px]"
 						>
-							Cristofer Torff
+							{user?.name ?? ''}
 						</p>
 						<p
 							class="relative shrink-0 font-['Geist:Light'] text-[14px] leading-[20px] font-light whitespace-nowrap text-[#737373] lg:text-[16px] lg:leading-[24px]"
 						>
-							Cri@example.com
+							{user?.email ?? ''}
 						</p>
 					</div>
 				</div>

@@ -1,11 +1,11 @@
 <script lang="ts">
 	import ImagePlaceholder from '#lib/frontend/components/ui/ImagePlaceholder.svelte';
+	import { home } from '#lib/frontend/modules/commerce/home.svelte.ts';
+
 	const imgIcon4 = '/assets/b9233.svg';
 	const imgIcon5 = '/assets/785e8.svg';
-	const imgEllipse4 = '/assets/a52be.svg';
-	const imgEllipse5 = '/assets/1fbf5.svg';
-	const imgEllipse6 = '/assets/1a7b7.svg';
-	const imgImage13 = '/assets/65755.svg';
+
+	const categories = $derived(home.categories.slice(0, 6));
 </script>
 
 <div
@@ -25,11 +25,12 @@
 			>
 				Shop by Category
 			</p>
-			<p
-				class="relative min-w-px flex-[1_0_0] text-right font-['Geist:Medium'] text-[18px] leading-[28px] font-medium"
+			<a
+				href="/categories"
+				class="relative min-w-px flex-[1_0_0] text-right font-['Geist:Medium'] text-[18px] leading-[28px] font-medium transition hover:text-[#525252]"
 			>
 				View All
-			</p>
+			</a>
 		</div>
 		<div
 			class="relative flex w-full shrink-0 content-stretch items-start gap-[16px]"
@@ -50,149 +51,47 @@
 					<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgIcon5} />
 				</div>
 			</div>
-			<div
-				class="relative flex min-w-px flex-[1_0_0] flex-col content-stretch items-center gap-[16px]"
-				data-name="Flex Vertical"
-			>
+			{#each categories as category (category.id)}
 				<div
-					class="relative inline-grid shrink-0 grid-cols-[max-content] grid-rows-[max-content] place-items-start leading-[0]"
-					data-name="Image"
+					class="relative flex min-w-px flex-[1_0_0] flex-col content-stretch items-center gap-[16px]"
+					data-name="Flex Vertical"
 				>
-					<div class="relative col-1 row-1 mt-0 ml-0 size-[124px]">
-						<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgEllipse4} />
-					</div>
-					<div
-						class="relative col-1 row-1 mt-[14px] ml-[31px] h-[95px] w-[62px]"
-						data-name="image 10"
-					>
-						<ImagePlaceholder class="absolute inset-0" variant="ghost" />
-					</div>
-				</div>
-				<p
-					class="relative w-[min-content] min-w-full shrink-0 text-center font-['Geist:Medium'] text-[18px] leading-[28px] font-medium [word-break:break-word] text-[#0a0a0a]"
-				>
-					Electronics
-				</p>
-			</div>
-			<div
-				class="relative flex min-w-px flex-[1_0_0] flex-col content-stretch items-center gap-[16px]"
-				data-name="Flex Vertical"
-			>
-				<div
-					class="relative inline-grid shrink-0 grid-cols-[max-content] grid-rows-[max-content] place-items-start leading-[0]"
-					data-name="Image"
-				>
-					<div class="relative col-1 row-1 mt-0 ml-0 size-[124px]">
-						<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgEllipse5} />
-					</div>
-					<div class="relative col-1 row-1 mt-[11px] ml-[11.5px] size-[102px]" data-name="image 11">
-						<ImagePlaceholder class="absolute inset-0" variant="ghost" />
-					</div>
-				</div>
-				<p
-					class="relative w-[min-content] min-w-full shrink-0 text-center font-['Geist:Medium'] text-[18px] leading-[28px] font-medium [word-break:break-word] text-[#0a0a0a]"
-				>
-					Beauty Products
-				</p>
-			</div>
-			<div
-				class="relative flex min-w-px flex-[1_0_0] flex-col content-stretch items-center gap-[16px]"
-				data-name="Flex Vertical"
-			>
-				<div
-					class="relative inline-grid shrink-0 grid-cols-[max-content] grid-rows-[max-content] place-items-start leading-[0]"
-					data-name="Image"
-				>
-					<div class="relative col-1 row-1 mt-0 ml-0 size-[124px]">
-						<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgEllipse5} />
-					</div>
-					<div class="relative col-1 row-1 mt-[11px] ml-[11px] size-[102px]" data-name="image 12">
-						<ImagePlaceholder class="absolute inset-0" variant="ghost" />
-					</div>
-				</div>
-				<p
-					class="relative w-[min-content] min-w-full shrink-0 text-center font-['Geist:Medium'] text-[18px] leading-[28px] font-medium [word-break:break-word] text-[#0a0a0a]"
-				>
-					Smart Watches
-				</p>
-			</div>
-			<div
-				class="relative flex min-w-px flex-[1_0_0] flex-col content-stretch items-center gap-[16px]"
-				data-name="Flex Vertical"
-			>
-				<div
-					class="relative inline-grid shrink-0 grid-cols-[max-content] grid-rows-[max-content] place-items-start leading-[0]"
-					data-name="Image"
-				>
-					<div class="relative col-1 row-1 mt-0 ml-0 size-[124px]">
-						<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgEllipse6} />
-					</div>
-					<div
-						class="relative col-1 row-1 mt-[5px] ml-[2.33px] inline-grid grid-cols-[max-content] grid-rows-[max-content] place-items-start"
-						data-name="Mask group"
+					<a
+						href={`/products?categoryId=${category.id}`}
+						class="flex flex-col items-center gap-[16px]"
 					>
 						<div
-							class="relative col-1 row-1 mt-[11px] ml-[4px] h-[116px] w-[109px] mask-intersect mask-alpha mask-size-[119px_119px] mask-no-clip mask-position-[-4px_-11px] mask-no-repeat"
-							style="mask-image: url('{imgImage13}')"
-							data-name="image 13"
+							class="relative size-[124px] shrink-0 overflow-hidden rounded-full bg-[#f5f5f5]"
+							data-name="Image"
 						>
-							<ImagePlaceholder class="absolute inset-0" variant="ghost" />
+							{#if category.imageUrl}
+								<img
+									src={category.imageUrl}
+									alt={category.name}
+									loading="lazy"
+									class="absolute inset-0 size-full object-cover"
+								/>
+							{:else}
+								<ImagePlaceholder
+									class="absolute inset-0 rounded-full"
+									variant="ghost"
+									label={category.name}
+								/>
+							{/if}
 						</div>
-					</div>
+						<p
+							class="relative w-[min-content] min-w-full shrink-0 text-center font-['Geist:Medium'] text-[18px] leading-[28px] font-medium [word-break:break-word] text-[#0a0a0a]"
+						>
+							{category.name}
+						</p>
+						<p
+							class="relative w-full shrink-0 text-center font-['Geist:Regular'] text-[14px] leading-[20px] font-normal text-[#737373]"
+						>
+							{category.productCount} products
+						</p>
+					</a>
 				</div>
-				<p
-					class="relative w-[min-content] min-w-full shrink-0 text-center font-['Geist:Medium'] text-[18px] leading-[28px] font-medium [word-break:break-word] text-[#0a0a0a]"
-				>
-					{` Home Decor`}
-				</p>
-			</div>
-			<div
-				class="relative flex min-w-px flex-[1_0_0] flex-col content-stretch items-center gap-[16px]"
-				data-name="Flex Vertical"
-			>
-				<div
-					class="relative inline-grid shrink-0 grid-cols-[max-content] grid-rows-[max-content] place-items-start leading-[0]"
-					data-name="Image"
-				>
-					<div class="relative col-1 row-1 mt-0 ml-0 size-[124px]">
-						<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgEllipse5} />
-					</div>
-					<div
-						class="relative col-1 row-1 mt-[8px] ml-[35px] h-[108px] w-[53px]"
-						data-name="image 14"
-					>
-						<div class="pointer-events-none absolute inset-0 overflow-hidden">
-							<ImagePlaceholder class="absolute inset-0" variant="ghost" />
-						</div>
-					</div>
-				</div>
-				<p
-					class="relative w-[min-content] min-w-full shrink-0 text-center font-['Geist:Medium'] text-[18px] leading-[28px] font-medium [word-break:break-word] text-[#0a0a0a]"
-				>
-					Kitchen Appliances
-				</p>
-			</div>
-			<div
-				class="relative flex min-w-px flex-[1_0_0] flex-col content-stretch items-center gap-[16px]"
-				data-name="Flex Vertical"
-			>
-				<div
-					class="relative inline-grid shrink-0 grid-cols-[max-content] grid-rows-[max-content] place-items-start leading-[0]"
-					data-name="Image"
-				>
-					<div class="relative col-1 row-1 mt-0 ml-0 size-[124px]">
-						<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgEllipse6} />
-					</div>
-					<div class="relative col-1 row-1 mt-[19px] ml-[19px] size-[85px]" data-name="image 15">
-						<ImagePlaceholder class="absolute inset-0" variant="ghost" />
-					</div>
-				</div>
-				<p
-					class="relative w-[min-content] min-w-full shrink-0 text-center font-['Geist:Medium'] text-[18px] leading-[28px] font-medium [word-break:break-word] text-[#0a0a0a]"
-				>
-					{`Toys & Games`}
-				</p>
-			</div>
+			{/each}
 		</div>
 	</div>
 </div>

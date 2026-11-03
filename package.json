@@ -19,6 +19,7 @@
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"db:push": "bun scripts/setup-db.ts && drizzle-kit push",
+		"storage:setup": "bun scripts/setup-storage.ts",
 		"lint": "prettier --check .",
 		"format": "prettier --write .",
 		"grant-role": "bun scripts/grant-role.ts",
@@ -33,6 +34,8 @@
 	"devDependencies": {
 		"@internationalized/date": "^3.12.0",
 		"@lucide/svelte": "^1.67.0",
+		"@svelte-devtools/kit": "^0.1.4",
+		"@svelte-devtools/vite-plugin": "^0.1.7",
 		"@sveltejs/adapter-bun": "^1.0.0",
 		"@sveltejs/kit": "^3.0.0",
 		"@sveltejs/vite-plugin-svelte": "^7.1.2",

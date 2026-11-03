@@ -60,7 +60,7 @@
 
 	let uploadOpen = $state(false);
 	let uploadFolder = $state('products');
-	let fileInput: HTMLInputElement | undefined = $state();
+	let fileInput = $state<HTMLInputElement | null>(null);
 	let uploading = $state(false);
 	let uploadError = $state('');
 

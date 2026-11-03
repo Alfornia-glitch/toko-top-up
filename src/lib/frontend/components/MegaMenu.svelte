@@ -1,9 +1,17 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
+	import DealCountdown from '#lib/frontend/components/storefront/DealCountdown.svelte';
+	import { home } from '#lib/frontend/modules/commerce/home.svelte.ts';
+
 	let { menu, close }: { menu: 'shops' | 'deals' | 'new' | 'pages'; close: () => void } = $props();
+
+	onMount(() => {
+		void home.ensure();
+	});
 
 	const isPages = $derived(menu === 'pages');
 
-	const departments = [
+	const fallbackDepartments = [
 		[
 			'Topwear',
 			'Casual Shirts',
@@ -116,6 +124,38 @@
 		return '/products';
 	}
 
+	type MenuColumn = { label: string; href: string }[];
+
+	const categoryDepartments = $derived(
+		home.categories
+			.filter((category) => category.parentId === null)
+			.slice(0, 6)
+			.map((root) => [
+				{ label: root.name, href: `/products?categoryId=${encodeURIComponent(root.id)}` },
+				...home.categories
+					.filter((category) => category.parentId === root.id)
+					.slice(0, 9)
+					.map((child) => ({
+						label: child.name,
+						href: `/products?categoryId=${encodeURIComponent(child.id)}`
+					}))
+			])
+	);
+
+	const departments: MenuColumn[] = $derived(
+		categoryDepartments.length > 0
+			? categoryDepartments
+			: fallbackDepartments.map((column) =>
+					column.map((item) => ({ label: item, href: getHref(item) }))
+				)
+	);
+
+	const pages: MenuColumn[] = $derived(
+		pageColumns.map((column) => column.map((item) => ({ label: item, href: getHref(item) })))
+	);
+
+	const columns: MenuColumn[] = $derived(isPages ? pages : departments);
+
 	const highlights = ['Festive Wear', 'Gadget', 'Toys & Games'];
 	const pageHighlights = [
 		'Hero layout',
@@ -129,8 +169,6 @@
 		if (index === 0) return true;
 		return isPages ? pageHighlights.includes(item) : highlights.includes(item);
 	}
-
-	const timers = ['01 Day', '12 Hours', '45 Min', '02 Sec'];
 </script>
 
 <div
@@ -148,17 +186,17 @@
 				? 'sm:grid-cols-4'
 				: 'sm:grid-cols-3'}"
 		>
-			{#each isPages ? pageColumns : departments as column}
+			{#each columns as column, columnIndex (columnIndex)}
 				<div class="flex flex-col gap-2 text-[14px] leading-5">
-					{#each column as item, itemIndex}
+					{#each column as item, itemIndex (item.label)}
 						<a
-							href={getHref(item)}
-							class={isHighlighted(item, itemIndex)
+							href={item.href}
+							class={isHighlighted(item.label, itemIndex)
 								? "mt-2 font-['Geist:Medium'] text-[#0a0a0a]"
 								: 'text-[#737373] transition-colors hover:text-black'}
 							onclick={close}
 						>
-							{item}
+							{item.label}
 						</a>
 					{/each}
 				</div>
@@ -191,13 +229,11 @@
 				{/if}
 			</p>
 			{#if menu === 'deals'}
-				<div class="mt-3 flex gap-2 sm:gap-4">
-					{#each timers as time}
-						<span class="rounded-lg bg-white px-2 py-1.5 text-xs font-semibold sm:text-sm"
-							>{time}</span
-						>
-					{/each}
-				</div>
+				{#if home.deals.length > 0}
+					<div class="mt-3 w-full">
+						<DealCountdown endsAt={home.deals[0]?.dealEndsAt} />
+					</div>
+				{/if}
 			{:else if !isPages}
 				<button
 					class="mt-4 rounded-xl bg-[#171717] px-6 py-2.5 font-['Geist:Medium'] text-sm text-white"

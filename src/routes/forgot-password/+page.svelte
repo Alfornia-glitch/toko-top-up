@@ -4,12 +4,37 @@
 	import * as Field from '#lib/frontend/components/ui/field/index.ts';
 	import { Input } from '#lib/frontend/components/ui/input/index.ts';
 	import { Button } from '#lib/frontend/components/ui/button/index.ts';
+	import { Spinner } from '#lib/frontend/components/ui/spinner/index.ts';
+	import { authClient, authErrorMessage } from '#frontend/modules/auth/index.ts';
 
 	let email = $state('');
+	let loading = $state(false);
+	let sent = $state(false);
+	let error = $state('');
 
-	function handleSubmit(event: SubmitEvent) {
+	async function handleSubmit(event: SubmitEvent) {
 		event.preventDefault();
-		goto('/reset-password');
+		error = '';
+		sent = false;
+		loading = true;
+
+		try {
+			const { error: authError } = await authClient.requestPasswordReset({
+				email,
+				redirectTo: `${window.location.origin}/reset-password`
+			});
+
+			if (authError) {
+				error = authErrorMessage(authError);
+				return;
+			}
+
+			sent = true;
+		} catch (err) {
+			error = authErrorMessage(err);
+		} finally {
+			loading = false;
+		}
 	}
 </script>
 
@@ -31,8 +56,22 @@
 				/>
 			</Field.Field>
 		</Field.Group>
+		{#if sent}
+			<p class="text-sm text-muted-foreground" role="status">
+				If an account exists for that email, a reset link is on its way. Check your inbox and follow
+				the instructions.
+			</p>
+		{/if}
+		{#if error}
+			<Field.Error>{error}</Field.Error>
+		{/if}
 		<div class="grid gap-2">
-			<Button type="submit" class="w-full">Reset password</Button>
+			<Button type="submit" class="w-full" disabled={loading}>
+				{#if loading}
+					<Spinner />
+				{/if}
+				Reset password
+			</Button>
 			<Button type="button" variant="outline" class="w-full" onclick={() => goto('/login')}>
 				Back to login
 			</Button>

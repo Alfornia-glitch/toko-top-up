@@ -1,45 +1,137 @@
 <script lang="ts">
-	import SiteHeader from '#lib/frontend/components/SiteHeader.svelte';
+	import { onMount } from 'svelte';
+	import { afterNavigate, goto } from '$app/navigation';
+	import { page } from '$app/state';
+	import AccountSidebar from '#lib/frontend/components/AccountSidebar.svelte';
 	import SiteFooter from '#lib/frontend/components/SiteFooter.svelte';
-	const imgPic = '/assets/d94d6.png';
-	const imgImage19 = '/assets/3cc20.png';
-	const imgImage13 = '/assets/ad1bf.png';
-	const imgImage11 = '/assets/c2747.png';
-	const imgImage12 = '/assets/d5a5f.png';
-	const imgOrnament54 = '/assets/c7bb1.svg';
-	const imgOrnament51 = '/assets/ddcaa.svg';
-	const imgOrnament52 = '/assets/658ce.svg';
-	const imgOrnament53 = '/assets/0d8d6.svg';
-	const imgLeftIcon = '/assets/a05bd.svg';
-	const imgIcon = '/assets/aac55.svg';
-	const imgIcon1 = '/assets/3fa6a.svg';
-	const imgEllipse90 = '/assets/7af52.svg';
-	const imgGroup = '/assets/9c2d9.svg';
-	const imgGroup1 = '/assets/58614.svg';
-	const imgLeftIcon1 = '/assets/525ae.svg';
-	const imgLeftIcon2 = '/assets/51c3a.svg';
-	const imgLeftIcon3 = '/assets/a3682.svg';
-	const imgLeftIcon4 = '/assets/dad92.svg';
-	const imgIcon2 = '/assets/303ae.svg';
-	const imgIcon3 = '/assets/bf68c.svg';
-	const imgLeftIcon5 = '/assets/4f62a.svg';
-	const imgLayoutList = '/assets/f60b9.svg';
-	const imgPackage = '/assets/e7ef5.svg';
-	const imgBus = '/assets/c9a14.svg';
-	const imgCircleCheck = '/assets/a1ccc.svg';
-	const imgTimelineDot = '/assets/da3d8.svg';
-	const imgTimelineConnector = '/assets/812df.svg';
-	const imgTimelineDot1 = '/assets/e95c1.svg';
-	const imgGroup2 = '/assets/bf7d8.svg';
-	const imgIcon4 = '/assets/f7856.svg';
-	const imgIcon5 = '/assets/008f3.svg';
-	const imgIcon6 = '/assets/48e75.svg';
-	const imgAppleIcon = '/assets/256e4.svg';
-	const imgGroup3 = '/assets/8725c.svg';
-	const imgShield = '/assets/557e7.svg';
-	const imgIcon7 = '/assets/18d4b.svg';
-	const imgIcon8 = '/assets/dc7e2.svg';
-	const imgIcon9 = '/assets/dc1ab.svg';
+	import SiteHeader from '#lib/frontend/components/SiteHeader.svelte';
+	import { Badge } from '#lib/frontend/components/ui/badge/index.ts';
+	import { Label } from '#lib/frontend/components/ui/label/index.ts';
+	import * as Select from '#lib/frontend/components/ui/select/index.ts';
+	import { Spinner } from '#lib/frontend/components/ui/spinner/index.ts';
+	import {
+		ORDER_STATUS_LABELS,
+		PAYMENT_STATUS_LABELS,
+		statusLabel
+	} from '#lib/frontend/content/status.ts';
+	import {
+		formatDate,
+		formatDateTime,
+		formatMoney
+	} from '#lib/frontend/modules/commerce/format.ts';
+	import { api, ApiError, unwrap } from '#lib/frontend/modules/commerce/http.ts';
+	import type { OrderDetail, OrderSummary } from '#lib/frontend/modules/commerce/models.ts';
+
+	interface TimelineEntry {
+		id: string;
+		label: string;
+		date: string | null;
+	}
+
+	let orders = $state<OrderSummary[]>([]);
+	let order = $state<OrderDetail | null>(null);
+	let loading = $state(true);
+	let error = $state('');
+
+	let lastRequested: string | null | undefined = undefined;
+
+	const timeline = $derived.by<TimelineEntry[]>(() => {
+		if (!order) return [];
+
+		const entries: TimelineEntry[] = [
+			...order.events.map((event) => ({
+				id: `event-${event.id}`,
+				label: event.message?.trim() || statusLabel(ORDER_STATUS_LABELS, event.type),
+				date: event.createdAt
+			})),
+			...order.shipments.map((shipment) => {
+				const label = statusLabel(ORDER_STATUS_LABELS, shipment.status);
+				const detail = [shipment.carrier, shipment.trackingNumber].filter(Boolean).join(' · ');
+
+				return {
+					id: `shipment-${shipment.id}`,
+					label: detail ? `${label} · ${detail}` : label,
+					date: shipment.deliveredAt ?? shipment.shippedAt
+				};
+			})
+		];
+
+		return entries.sort((first, second) => {
+			const firstTime = first.date ? new Date(first.date).getTime() : 0;
+			const secondTime = second.date ? new Date(second.date).getTime() : 0;
+			return firstTime - secondTime;
+		});
+	});
+
+	function redirectToLogin() {
+		const target = `${page.url.pathname}${page.url.search}`;
+		void goto(`/login?redirectTo=${encodeURIComponent(target)}`, { replaceState: true });
+	}
+
+	function handleError(cause: unknown) {
+		if (cause instanceof ApiError && cause.status === 401) {
+			redirectToLogin();
+			return;
+		}
+
+		error = cause instanceof Error ? cause.message : 'Could not load order details';
+	}
+
+	async function load(requested: string | null) {
+		loading = true;
+		error = '';
+
+		try {
+			const payload = await api.get<{ data: OrderSummary[] }>('/api/orders?page=1&pageSize=50');
+			orders = unwrap(payload);
+
+			let target = requested;
+			if (!target && orders.length > 0) target = orders[0].orderNumber;
+
+			if (!target) {
+				order = null;
+				return;
+			}
+
+			try {
+				const detail = await api.get<{ data: OrderDetail }>(
+					`/api/orders/${encodeURIComponent(target)}`
+				);
+				order = unwrap(detail);
+			} catch (cause) {
+				if (cause instanceof ApiError && cause.status === 401) throw cause;
+				if (orders.length > 0 && target !== orders[0].orderNumber) {
+					const fallback = await api.get<{ data: OrderDetail }>(
+						`/api/orders/${encodeURIComponent(orders[0].orderNumber)}`
+					);
+					order = unwrap(fallback);
+				} else {
+					order = null;
+				}
+			}
+		} catch (cause) {
+			order = null;
+			handleError(cause);
+		} finally {
+			loading = false;
+		}
+	}
+
+	function syncFromUrl() {
+		const requested = page.url.searchParams.get('order');
+		if (requested === lastRequested) return;
+
+		lastRequested = requested;
+		void load(requested);
+	}
+
+	onMount(syncFromUrl);
+	afterNavigate(syncFromUrl);
+
+	function selectOrder(value: string) {
+		if (!value || value === order?.orderNumber) return;
+		void goto(`/account/order-tracking?order=${encodeURIComponent(value)}`);
+	}
 </script>
 
 <div
@@ -51,479 +143,325 @@
 		class="relative flex w-full max-w-[1440px] shrink-0 flex-col content-stretch items-center justify-center bg-white py-[56px]"
 		data-name="Timeline"
 	>
-		<div class="relative flex shrink-0 flex-col content-stretch items-start px-[32px]">
+		<div
+			class="relative flex w-full max-w-[1280px] min-w-[328px] shrink-0 content-stretch items-start gap-[24px] px-[32px]"
+			data-name="Flex Horizontal"
+		>
+			<AccountSidebar />
+
 			<div
-				class="relative flex w-[1216px] shrink-0 flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-white py-[24px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)]"
-				data-name="Card"
+				class="relative flex min-w-px flex-[1_0_0] flex-col content-stretch items-start gap-[24px]"
+				data-name="Flex Vertical"
 			>
-				<div
-					class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[64px] px-[24px]"
-					data-name="card-body"
-				>
+				{#if loading}
 					<div
-						class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[48px]"
+						class="relative flex w-full items-center justify-center gap-3 rounded-[14px] bg-white px-[24px] py-[64px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)]"
+						data-name="Card"
+					>
+						<Spinner class="size-5" aria-label="Loading order" />
+						<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
+							Loading order
+						</p>
+					</div>
+				{:else if error}
+					<div
+						class="relative flex w-full rounded-[14px] border border-[#fecaca] bg-[#fef2f2] px-[24px] py-[16px] text-[#b91c1c]"
+						data-name="Card"
+						role="alert"
+					>
+						{error}
+					</div>
+				{:else if orders.length === 0}
+					<div
+						class="relative flex w-full flex-col items-start gap-[12px] rounded-[14px] bg-white px-[24px] py-[32px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)]"
+						data-name="Card"
+					>
+						<p
+							class="font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold text-[#0a0a0a]"
+						>
+							No orders yet
+						</p>
+						<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
+							Orders you place will show up here with their tracking details.
+						</p>
+						<a
+							href="/products"
+							class="rounded-[8px] bg-[#171717] px-[16px] py-[10px] font-['Geist:Medium'] text-[14px] leading-[20px] font-medium text-[#fafafa]"
+						>
+							Browse products
+						</a>
+					</div>
+				{:else if order}
+					<div
+						class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-white py-[24px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)]"
+						data-name="Card"
 					>
 						<div
-							class="relative flex w-full shrink-0 content-stretch items-center justify-center gap-[6px] rounded-[8px] bg-[#f5f5f5] p-[24px]"
-							data-name="user detail"
+							class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[24px] px-[24px]"
+							data-name="card-body"
 						>
+							{#if orders.length > 1}
+								<div class="flex w-full flex-col gap-[6px] sm:max-w-[280px]">
+									<Label for="order-picker">Order</Label>
+									<Select.Root type="single" value={order.orderNumber} onValueChange={selectOrder}>
+										<Select.Trigger id="order-picker" class="w-full">
+											<Select.Value placeholder="Select an order" />
+										</Select.Trigger>
+										<Select.Content>
+											{#each orders as entry (entry.id)}
+												<Select.Item value={entry.orderNumber} label={entry.orderNumber}>
+													{entry.orderNumber}
+												</Select.Item>
+											{/each}
+										</Select.Content>
+									</Select.Root>
+								</div>
+							{/if}
+
 							<div
-								class="relative flex min-w-px flex-[1_0_0] flex-col content-stretch items-start gap-[6px]"
+								class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[12px] rounded-[8px] bg-[#f5f5f5] p-[24px]"
+								data-name="user detail"
+							>
+								<div
+									class="relative flex w-full shrink-0 flex-wrap content-stretch items-center justify-between gap-[12px]"
+									data-name="Flex Horizontal"
+								>
+									<div
+										class="relative flex min-w-px flex-[1_0_0] flex-col content-stretch items-start gap-[6px]"
+										data-name="Flex Vertical"
+									>
+										<p
+											class="relative w-[min-content] min-w-full shrink-0 font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] text-[#0a0a0a]"
+										>
+											Tracking Details
+										</p>
+										<p
+											class="relative shrink-0 font-['Geist:Regular'] text-[18px] leading-[28px] font-normal whitespace-nowrap text-[#737373]"
+										>
+											#{order.orderNumber}
+										</p>
+									</div>
+									<div class="flex flex-wrap items-center gap-[8px]">
+										<Badge variant="outline">
+											{statusLabel(ORDER_STATUS_LABELS, order.status)}
+										</Badge>
+										<Badge variant="secondary">
+											{statusLabel(PAYMENT_STATUS_LABELS, order.paymentStatus)}
+										</Badge>
+										<Badge variant="secondary">
+											{statusLabel(ORDER_STATUS_LABELS, order.fulfillmentStatus)}
+										</Badge>
+									</div>
+								</div>
+
+								<div class="grid w-full gap-[12px] sm:grid-cols-2">
+									<div>
+										<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]">
+											Carrier
+										</p>
+										<p
+											class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-[#0a0a0a]"
+										>
+											{order.carrier ?? '—'}
+										</p>
+									</div>
+									<div>
+										<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]">
+											Tracking number
+										</p>
+										<p
+											class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-[#0a0a0a]"
+										>
+											{order.trackingNumber ?? '—'}
+										</p>
+									</div>
+									<div>
+										<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]">
+											Estimated delivery
+										</p>
+										<p
+											class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-[#0a0a0a]"
+										>
+											{formatDate(order.estimatedDeliveryAt) || '—'}
+										</p>
+									</div>
+									<div>
+										<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]">
+											Placed
+										</p>
+										<p
+											class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-[#0a0a0a]"
+										>
+											{formatDateTime(order.placedAt) || '—'}
+										</p>
+									</div>
+								</div>
+							</div>
+
+							<div
+								class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[12px]"
 								data-name="Flex Vertical"
 							>
 								<p
-									class="relative w-[min-content] min-w-full shrink-0 font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] text-[#0a0a0a]"
+									class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] text-[#0a0a0a]"
 								>
-									Tracking Details
+									Items
 								</p>
+								{#if order.items.length === 0}
+									<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
+										This order has no items.
+									</p>
+								{:else}
+									<div class="flex w-full flex-col">
+										{#each order.items as item (item.id)}
+											<div
+												class="flex w-full items-center gap-[16px] border-b border-[#e5e5e5] py-[12px] last:border-b-0"
+												data-name="Flex Horizontal"
+											>
+												{#if item.imageUrl}
+													<img
+														src={item.imageUrl}
+														alt={item.productName}
+														class="size-[72px] shrink-0 rounded-[8px] object-cover"
+													/>
+												{:else}
+													<div
+														class="flex size-[72px] shrink-0 items-center justify-center rounded-[8px] bg-[#f5f5f5] text-center font-['Geist:Regular'] text-[12px] leading-[16px] text-[#737373]"
+													>
+														No image
+													</div>
+												{/if}
+												<div class="min-w-0 flex-1">
+													<p
+														class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-[#0a0a0a]"
+													>
+														{item.productName}
+													</p>
+													<p
+														class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]"
+													>
+														SKU: {item.sku}
+													</p>
+													<p
+														class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]"
+													>
+														Qty: {item.quantity} · {formatMoney(
+															item.unitPriceCents,
+															order.currency
+														)}
+													</p>
+												</div>
+												<p
+													class="shrink-0 font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-[#0a0a0a]"
+												>
+													{formatMoney(item.totalCents, order.currency)}
+												</p>
+											</div>
+										{/each}
+									</div>
+								{/if}
+							</div>
+
+							<div
+								class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[8px] rounded-[8px] bg-[#f5f5f5] p-[16px]"
+								data-name="Pricing Details"
+							>
+								<div class="flex w-full items-center justify-between gap-[12px]">
+									<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
+										Subtotal
+									</p>
+									<p
+										class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-[#0a0a0a]"
+									>
+										{formatMoney(order.subtotalCents, order.currency)}
+									</p>
+								</div>
+								<div class="flex w-full items-center justify-between gap-[12px]">
+									<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
+										Discount
+									</p>
+									<p
+										class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-[#0a0a0a]"
+									>
+										-{formatMoney(order.discountCents, order.currency)}
+									</p>
+								</div>
+								<div class="flex w-full items-center justify-between gap-[12px]">
+									<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
+										Shipping
+									</p>
+									<p
+										class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-[#0a0a0a]"
+									>
+										{formatMoney(order.shippingCents, order.currency)}
+									</p>
+								</div>
 								<div
-									class="relative flex shrink-0 content-stretch items-center gap-[6px]"
-									data-name="Flex Horizontal"
+									class="flex w-full items-center justify-between gap-[12px] border-t border-[#e5e5e5] pt-[8px]"
 								>
 									<p
-										class="relative shrink-0 font-['Geist:Regular'] text-[18px] leading-[28px] font-normal [word-break:break-word] whitespace-nowrap text-[#737373]"
+										class="font-['Geist:SemiBold'] text-[18px] leading-[28px] font-semibold text-[#0a0a0a]"
 									>
-										#KJ00019392
+										Total
 									</p>
-									<div class="relative size-[22px] shrink-0" data-name="Left-icon">
-										<img
-											alt=""
-											class="absolute inset-0 block size-full max-w-none"
-											src={imgLeftIcon5}
-										/>
-									</div>
+									<p
+										class="font-['Geist:SemiBold'] text-[18px] leading-[28px] font-semibold text-[#0a0a0a]"
+									>
+										{formatMoney(order.grandTotalCents, order.currency)}
+									</p>
 								</div>
 							</div>
+
 							<div
-								class="absolute top-[24px] left-[879px] flex h-[26px] content-stretch items-center justify-center gap-[4px] rounded-[9999px] bg-[#16a34a] px-[12px] py-[4px]"
-								data-name="Solid Badge"
+								class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[6px]"
+								data-name="Flex Vertical"
 							>
-								<div
-									class="relative flex shrink-0 flex-col justify-center text-center font-['Geist:Medium'] text-[12px] leading-[0] font-medium [word-break:break-word] whitespace-nowrap text-white"
+								<p
+									class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] text-[#0a0a0a]"
 								>
-									<p class="leading-[16px]">Expected delivery on Monday 27 Jan, 2026</p>
-								</div>
-							</div>
-						</div>
-						<div
-							class="relative flex w-[1100px] shrink-0 content-stretch items-center justify-center px-[16px]"
-							data-name="Steps Horizontal"
-						>
-							<div
-								class="relative flex shrink-0 content-stretch items-center"
-								data-name="Steps / Step item"
-							>
-								<div
-									class="relative flex size-[38px] shrink-0 flex-col content-stretch items-start gap-[10px]"
-									data-name="step-details"
-								>
+									Order Activity
+								</p>
+								{#if timeline.length === 0}
+									<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
+										No activity has been recorded for this order yet.
+									</p>
+								{:else}
 									<div
-										class="relative flex size-[38px] shrink-0 flex-col content-stretch items-center justify-center rounded-[9999px] bg-black p-[8px] drop-shadow-[0px_1px_1.5px_rgba(0,0,0,0.1),0px_1px_1px_rgba(0,0,0,0.1)]"
-										data-name="step-icon"
+										class="relative flex w-full shrink-0 flex-col content-stretch items-start"
+										data-name="Timeline"
 									>
-										<div class="relative size-[22px] shrink-0" data-name="check">
-											<img
-												alt=""
-												class="absolute inset-0 block size-full max-w-none"
-												src={imgLayoutList}
-											/>
-										</div>
+										{#each timeline as entry (entry.id)}
+											<div
+												class="relative flex w-full shrink-0 content-stretch items-start gap-[16px]"
+												data-name="TimelineItem"
+											>
+												<div
+													class="mt-[7px] size-[10px] shrink-0 rounded-full bg-[#171717]"
+													data-name="TimelineDot"
+												></div>
+												<div
+													class="relative flex min-w-px flex-[1_0_0] flex-col content-stretch items-start gap-[4px] border-l border-[#e5e5e5] pb-[20px] pl-[16px]"
+													data-name="Data"
+												>
+													<p
+														class="font-['Geist:Medium'] text-[18px] leading-[28px] font-medium [word-break:break-word] text-[#0a0a0a]"
+													>
+														{entry.label}
+													</p>
+													<p
+														class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]"
+													>
+														{formatDateTime(entry.date) || '—'}
+													</p>
+												</div>
+											</div>
+										{/each}
 									</div>
-									<div
-										class="relative flex shrink-0 flex-col content-stretch items-center justify-center gap-[2px]"
-										data-name="Text"
-									>
-										<p
-											class="relative w-[min-content] min-w-full shrink-0 font-['Geist:Medium'] text-[16px] leading-[24px] font-medium [word-break:break-word] text-[#0a0a0a]"
-										>
-											Order Placed
-										</p>
-									</div>
-								</div>
-							</div>
-							<div
-								class="relative flex min-w-px flex-[1_0_0] content-stretch items-center"
-								data-name="Steps / Step item"
-							>
-								<div
-									class="relative flex min-w-px flex-[1_0_0] flex-col content-stretch items-center px-[8px]"
-									data-name="Divider"
-								>
-									<div class="relative h-[2px] w-full shrink-0 bg-black" data-name="progress"></div>
-								</div>
-								<div
-									class="relative flex size-[38px] shrink-0 flex-col content-stretch items-start gap-[10px]"
-									data-name="step-details"
-								>
-									<div
-										class="relative flex size-[38px] shrink-0 flex-col content-stretch items-center justify-center rounded-[9999px] bg-black p-[8px] drop-shadow-[0px_1px_1.5px_rgba(0,0,0,0.1),0px_1px_1px_rgba(0,0,0,0.1)]"
-										data-name="step-icon"
-									>
-										<div class="relative size-[22px] shrink-0" data-name="check">
-											<img
-												alt=""
-												class="absolute inset-0 block size-full max-w-none"
-												src={imgPackage}
-											/>
-										</div>
-									</div>
-									<div
-										class="relative flex shrink-0 flex-col content-stretch items-center justify-center gap-[2px]"
-										data-name="Text"
-									>
-										<p
-											class="relative w-[min-content] min-w-full shrink-0 text-center font-['Geist:Medium'] text-[16px] leading-[24px] font-medium [word-break:break-word] text-[#0a0a0a]"
-										>
-											Packaging
-										</p>
-									</div>
-								</div>
-							</div>
-							<div
-								class="relative flex min-w-px flex-[1_0_0] content-stretch items-center"
-								data-name="Steps / Step item"
-							>
-								<div
-									class="relative flex min-w-px flex-[1_0_0] flex-col content-stretch items-center px-[8px]"
-									data-name="Divider"
-								>
-									<div
-										class="relative h-[2px] w-full shrink-0 bg-[#e5e5e5]"
-										data-name="progress"
-									></div>
-								</div>
-								<div
-									class="relative flex size-[38px] shrink-0 flex-col content-stretch items-start gap-[10px]"
-									data-name="step-details"
-								>
-									<div
-										class="relative flex size-[38px] shrink-0 flex-col content-stretch items-center justify-center rounded-[9999px] bg-[rgba(23,23,23,0.1)] p-[8px]"
-										data-name="step-icon"
-									>
-										<div class="relative size-[22px] shrink-0" data-name="check">
-											<img
-												alt=""
-												class="absolute inset-0 block size-full max-w-none"
-												src={imgBus}
-											/>
-										</div>
-									</div>
-									<div
-										class="relative flex shrink-0 flex-col content-stretch items-center justify-center gap-[2px]"
-										data-name="Text"
-									>
-										<p
-											class="relative w-[min-content] min-w-full shrink-0 text-center font-['Geist:Medium'] text-[16px] leading-[24px] font-medium [word-break:break-word] text-[#0a0a0a]"
-										>
-											On The Way
-										</p>
-									</div>
-								</div>
-							</div>
-							<div
-								class="relative flex min-w-px flex-[1_0_0] content-stretch items-center"
-								data-name="Steps / Step item"
-							>
-								<div
-									class="relative flex min-w-px flex-[1_0_0] flex-col content-stretch items-center px-[8px]"
-									data-name="Divider"
-								>
-									<div
-										class="relative h-[2px] w-full shrink-0 bg-[#e5e5e5]"
-										data-name="progress"
-									></div>
-								</div>
-								<div
-									class="relative flex size-[38px] shrink-0 flex-col content-stretch items-start gap-[10px]"
-									data-name="step-details"
-								>
-									<div
-										class="relative flex size-[38px] shrink-0 flex-col content-stretch items-center justify-center rounded-[9999px] bg-[rgba(23,23,23,0.1)] p-[8px]"
-										data-name="step-icon"
-									>
-										<div class="relative size-[22px] shrink-0" data-name="check">
-											<img
-												alt=""
-												class="absolute inset-0 block size-full max-w-none"
-												src={imgCircleCheck}
-											/>
-										</div>
-									</div>
-									<div
-										class="relative flex shrink-0 flex-col content-stretch items-center justify-center gap-[2px]"
-										data-name="Text"
-									>
-										<p
-											class="relative w-[min-content] min-w-full shrink-0 text-center font-['Geist:Medium'] text-[16px] leading-[24px] font-medium [word-break:break-word] text-[#0a0a0a]"
-										>
-											Delivered
-										</p>
-									</div>
-								</div>
+								{/if}
 							</div>
 						</div>
 					</div>
-					<div
-						class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[6px]"
-						data-name="Flex Vertical"
-					>
-						<p
-							class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] text-[#0a0a0a]"
-						>
-							Order Activity
-						</p>
-						<div
-							class="relative flex w-full shrink-0 flex-col content-stretch items-start"
-							data-name="Timeline"
-						>
-							<div
-								class="relative flex w-full shrink-0 flex-col content-stretch items-start justify-center"
-								data-name="TimelineItem"
-							>
-								<div
-									class="relative flex w-full shrink-0 content-stretch items-center gap-[16px]"
-									data-name="Dot Container"
-								>
-									<div class="relative h-[42px] w-[14px] shrink-0" data-name="TimelineDot">
-										<div class="absolute inset-[0_-25%]">
-											<img alt="" class="block size-full max-w-none" src={imgTimelineDot} />
-										</div>
-									</div>
-									<div
-										class="relative flex min-w-px flex-[1_0_0] content-stretch items-center"
-										data-name="Main"
-									>
-										<p
-											class="relative h-[22px] min-w-px flex-[1_0_0] font-['Geist:Medium'] text-[18px] leading-[28px] font-medium [word-break:break-word] text-[#0a0a0a]"
-										>
-											Your order has been Placed.
-										</p>
-									</div>
-								</div>
-							</div>
-							<div
-								class="relative flex w-full shrink-0 content-stretch items-center gap-[16px]"
-								data-name="Connector Container"
-							>
-								<div class="flex flex-row items-center self-stretch">
-									<div class="relative h-full w-[12px] shrink-0" data-name="TimelineConnector">
-										<img
-											alt=""
-											class="absolute inset-0 block size-full max-w-none"
-											src={imgTimelineConnector}
-										/>
-									</div>
-								</div>
-								<div
-									class="relative flex min-w-px flex-[1_0_0] flex-col content-stretch items-start gap-[8px] pt-[4px] pb-[12px]"
-									data-name="Data"
-								>
-									<p
-										class="relative h-[22px] w-[min-content] min-w-full shrink-0 font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-[#737373]"
-									>
-										22 Jan, 2026 at 2:61 PM
-									</p>
-								</div>
-							</div>
-							<div
-								class="relative flex w-full shrink-0 flex-col content-stretch items-start justify-center"
-								data-name="TimelineItem"
-							>
-								<div
-									class="relative flex w-full shrink-0 content-stretch items-center gap-[16px]"
-									data-name="Dot Container"
-								>
-									<div class="relative h-[42px] w-[14px] shrink-0" data-name="TimelineDot">
-										<div class="absolute inset-[0_-25%]">
-											<img alt="" class="block size-full max-w-none" src={imgTimelineDot} />
-										</div>
-									</div>
-									<div
-										class="relative flex min-w-px flex-[1_0_0] content-stretch items-center"
-										data-name="Main"
-									>
-										<p
-											class="relative h-[22px] min-w-px flex-[1_0_0] font-['Geist:Medium'] text-[18px] leading-[28px] font-medium [word-break:break-word] text-[#0a0a0a]"
-										>
-											Your order is successfully verified.
-										</p>
-									</div>
-								</div>
-							</div>
-							<div
-								class="relative flex w-full shrink-0 content-stretch items-center gap-[16px]"
-								data-name="Connector Container"
-							>
-								<div class="flex flex-row items-center self-stretch">
-									<div class="relative h-full w-[12px] shrink-0" data-name="TimelineConnector">
-										<img
-											alt=""
-											class="absolute inset-0 block size-full max-w-none"
-											src={imgTimelineConnector}
-										/>
-									</div>
-								</div>
-								<div
-									class="relative flex min-w-px flex-[1_0_0] flex-col content-stretch items-start gap-[8px] pt-[4px] pb-[12px]"
-									data-name="Data"
-								>
-									<p
-										class="relative h-[22px] w-full shrink-0 font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-[#737373]"
-									>
-										23 Jan, 2026 at 7:32 PM
-									</p>
-								</div>
-							</div>
-							<div
-								class="relative flex w-full shrink-0 flex-col content-stretch items-start justify-center"
-								data-name="TimelineItem"
-							>
-								<div
-									class="relative flex w-full shrink-0 content-stretch items-center gap-[16px]"
-									data-name="Dot Container"
-								>
-									<div class="relative h-[42px] w-[14px] shrink-0" data-name="TimelineDot">
-										<div class="absolute inset-[0_-25%]">
-											<img alt="" class="block size-full max-w-none" src={imgTimelineDot1} />
-										</div>
-									</div>
-									<div
-										class="relative flex min-w-px flex-[1_0_0] content-stretch items-center"
-										data-name="Main"
-									>
-										<p
-											class="relative h-[22px] min-w-px flex-[1_0_0] font-['Geist:Medium'] text-[18px] leading-[28px] font-medium [word-break:break-word] text-[#0a0a0a]"
-										>
-											Your order is packed and ready for dispatch.
-										</p>
-									</div>
-								</div>
-							</div>
-							<div
-								class="relative flex w-full shrink-0 content-stretch items-center gap-[16px]"
-								data-name="Connector Container"
-							>
-								<div class="flex flex-row items-center self-stretch">
-									<div class="relative h-full w-[12px] shrink-0" data-name="TimelineConnector">
-										<img
-											alt=""
-											class="absolute inset-0 block size-full max-w-none"
-											src={imgTimelineConnector}
-										/>
-									</div>
-								</div>
-								<div
-									class="relative flex min-w-px flex-[1_0_0] flex-col content-stretch items-start gap-[8px] pt-[4px] pb-[12px]"
-									data-name="Data"
-								>
-									<p
-										class="relative h-[22px] w-full shrink-0 font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-[#737373]"
-									>
-										24 Jan, 2026 at 5:32 AM
-									</p>
-								</div>
-							</div>
-							<div
-								class="relative flex w-full shrink-0 flex-col content-stretch items-start justify-center"
-								data-name="TimelineItem"
-							>
-								<div
-									class="relative flex w-full shrink-0 content-stretch items-center gap-[16px]"
-									data-name="Dot Container"
-								>
-									<div class="relative h-[42px] w-[14px] shrink-0" data-name="TimelineDot">
-										<div class="absolute inset-[0_-25%]">
-											<img alt="" class="block size-full max-w-none" src={imgTimelineDot1} />
-										</div>
-									</div>
-									<div
-										class="relative flex min-w-px flex-[1_0_0] content-stretch items-center"
-										data-name="Main"
-									>
-										<p
-											class="relative h-[22px] min-w-px flex-[1_0_0] font-['Geist:Medium'] text-[18px] leading-[28px] font-medium [word-break:break-word] text-[#0a0a0a]"
-										>
-											Courier partner Alex Brown is en route with your package.
-										</p>
-									</div>
-								</div>
-							</div>
-							<div
-								class="relative flex w-full shrink-0 content-stretch items-center gap-[16px]"
-								data-name="Connector Container"
-							>
-								<div class="flex flex-row items-center self-stretch">
-									<div class="relative h-full w-[12px] shrink-0" data-name="TimelineConnector">
-										<img
-											alt=""
-											class="absolute inset-0 block size-full max-w-none"
-											src={imgTimelineConnector}
-										/>
-									</div>
-								</div>
-								<div
-									class="relative flex min-w-px flex-[1_0_0] flex-col content-stretch items-start gap-[8px] pt-[4px] pb-[12px]"
-									data-name="Data"
-								>
-									<p
-										class="relative h-[22px] w-full shrink-0 font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-[#737373]"
-									>
-										25 Jan, 2026 at 2:00 PM
-									</p>
-								</div>
-							</div>
-							<div
-								class="relative flex w-full shrink-0 flex-col content-stretch items-start justify-center"
-								data-name="TimelineItem"
-							>
-								<div
-									class="relative flex w-full shrink-0 content-stretch items-center gap-[16px]"
-									data-name="Dot Container"
-								>
-									<div class="relative h-[42px] w-[14px] shrink-0" data-name="TimelineDot">
-										<div class="absolute inset-[0_-25%]">
-											<img alt="" class="block size-full max-w-none" src={imgTimelineDot1} />
-										</div>
-									</div>
-									<div
-										class="relative flex min-w-px flex-[1_0_0] content-stretch items-center"
-										data-name="Main"
-									>
-										<p
-											class="relative h-[22px] min-w-px flex-[1_0_0] font-['Geist:Medium'] text-[18px] leading-[28px] font-medium [word-break:break-word] text-[#0a0a0a]"
-										>
-											Expected delivery to your address.
-										</p>
-									</div>
-								</div>
-							</div>
-							<div
-								class="relative flex w-full shrink-0 content-stretch items-center gap-[16px]"
-								data-name="Connector Container"
-							>
-								<div class="flex flex-row items-center self-stretch">
-									<div class="relative h-full w-[12px] shrink-0" data-name="TimelineConnector">
-										<img
-											alt=""
-											class="absolute inset-0 block size-full max-w-none"
-											src={imgTimelineConnector}
-										/>
-									</div>
-								</div>
-								<div
-									class="relative flex min-w-px flex-[1_0_0] flex-col content-stretch items-start gap-[8px] pt-[4px] pb-[12px]"
-									data-name="Data"
-								>
-									<p
-										class="relative h-[22px] w-full shrink-0 font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-[#737373]"
-									>
-										27 Jan, 2026 at 2:00 PM
-									</p>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
+				{/if}
 			</div>
 		</div>
 	</div>

@@ -1,7 +1,9 @@
 import { getStorageBackend } from './backend.ts';
+import { ALLOWED_TYPES, EXTENSION_BY_TYPE, MAX_BYTES } from './rules.ts';
 import { MediaError, type UploadedMedia } from './types.ts';
 
 export { MediaError, type UploadedMedia } from './types.ts';
+export { ALLOWED_TYPES, MAX_BYTES } from './rules.ts';
 
 export const DEFAULT_FOLDER = 'media';
 
@@ -19,18 +21,6 @@ export const ADMIN_FOLDERS = [
 ] as const;
 
 export const CUSTOMER_FOLDERS = ['avatars'] as const;
-
-export const MAX_BYTES = 5 * 1024 * 1024;
-
-const EXTENSION_BY_TYPE: Record<string, string> = {
-	'image/jpeg': 'jpg',
-	'image/png': 'png',
-	'image/webp': 'webp',
-	'image/avif': 'avif',
-	'image/gif': 'gif'
-};
-
-export const ALLOWED_TYPES = Object.keys(EXTENSION_BY_TYPE);
 
 const FOLDER_PATTERN = /^[a-z0-9][a-z0-9-]{0,31}$/;
 

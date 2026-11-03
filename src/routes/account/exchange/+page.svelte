@@ -1,56 +1,177 @@
 <script lang="ts">
-	import Plus from '#lib/frontend/components/ui/Plus.svelte';
-	import Minus from '#lib/frontend/components/ui/Minus.svelte';
-	import SiteHeader from '#lib/frontend/components/SiteHeader.svelte';
+	import { onMount } from 'svelte';
+	import { goto } from '$app/navigation';
+	import { page } from '$app/state';
+	import AccountSidebar from '#lib/frontend/components/AccountSidebar.svelte';
 	import SiteFooter from '#lib/frontend/components/SiteFooter.svelte';
-	const imgPlus = '/assets/3109d.svg';
-	const imgMinus = '/assets/a5d33.svg';
-	const imgPic = '/assets/d94d6.png';
-	const imgProductImage = '/assets/a8912.png';
-	const imgImage19 = '/assets/3cc20.png';
-	const imgImage13 = '/assets/ad1bf.png';
-	const imgImage11 = '/assets/c2747.png';
-	const imgImage12 = '/assets/d5a5f.png';
-	const imgOrnament54 = '/assets/c7bb1.svg';
-	const imgOrnament51 = '/assets/ddcaa.svg';
-	const imgOrnament52 = '/assets/658ce.svg';
-	const imgOrnament53 = '/assets/0d8d6.svg';
-	const imgLeftIcon = '/assets/a05bd.svg';
-	const imgIcon = '/assets/aac55.svg';
-	const imgIcon1 = '/assets/3fa6a.svg';
-	const imgEllipse90 = '/assets/7af52.svg';
-	const imgGroup = '/assets/9c2d9.svg';
-	const imgGroup1 = '/assets/58614.svg';
-	const imgLeftIcon1 = '/assets/525ae.svg';
-	const imgLeftIcon2 = '/assets/51c3a.svg';
-	const imgLeftIcon3 = '/assets/a3682.svg';
-	const imgLeftIcon4 = '/assets/dad92.svg';
-	const imgIcon2 = '/assets/303ae.svg';
-	const imgIcon3 = '/assets/bf68c.svg';
-	const imgIcon4 = '/assets/4d9b4.svg';
-	const imgDropdownMenuSeparator = '/assets/17909.svg';
-	const imgRadio = '/assets/402db.svg';
-	const imgRadio1 = '/assets/f64b2.svg';
-	const imgLeftIcon5 = '/assets/b4aa7.svg';
-	const imgLeftIcon6 = '/assets/54f67.svg';
-	const imgColor = '/assets/27375.svg';
-	const imgColor1 = '/assets/80ecf.svg';
-	const imgColor2 = '/assets/34007.svg';
-	const imgColor3 = '/assets/e6d5c.svg';
-	const imgColor4 = '/assets/4c323.svg';
-	const imgColor5 = '/assets/10f67.svg';
-	const imgRightIcon = '/assets/172bb.svg';
-	const imgLine1 = '/assets/f70aa.svg';
-	const imgGroup2 = '/assets/bf7d8.svg';
-	const imgIcon5 = '/assets/f7856.svg';
-	const imgIcon6 = '/assets/008f3.svg';
-	const imgIcon7 = '/assets/48e75.svg';
-	const imgAppleIcon = '/assets/256e4.svg';
-	const imgGroup3 = '/assets/8725c.svg';
-	const imgShield = '/assets/557e7.svg';
-	const imgIcon8 = '/assets/18d4b.svg';
-	const imgIcon9 = '/assets/dc7e2.svg';
-	const imgIcon10 = '/assets/dc1ab.svg';
+	import SiteHeader from '#lib/frontend/components/SiteHeader.svelte';
+	import { Badge } from '#lib/frontend/components/ui/badge/index.ts';
+	import { Button } from '#lib/frontend/components/ui/button/index.ts';
+	import { Label } from '#lib/frontend/components/ui/label/index.ts';
+	import * as RadioGroup from '#lib/frontend/components/ui/radio-group/index.ts';
+	import * as Select from '#lib/frontend/components/ui/select/index.ts';
+	import { Spinner } from '#lib/frontend/components/ui/spinner/index.ts';
+	import { Textarea } from '#lib/frontend/components/ui/textarea/index.ts';
+	import {
+		ORDER_STATUS_LABELS,
+		RETURN_STATUS_LABELS,
+		statusLabel
+	} from '#lib/frontend/content/status.ts';
+	import { formatDate, formatMoney } from '#lib/frontend/modules/commerce/format.ts';
+	import { api, ApiError, unwrap } from '#lib/frontend/modules/commerce/http.ts';
+	import type {
+		OrderDetail,
+		OrderSummary,
+		ReturnDetail
+	} from '#lib/frontend/modules/commerce/models.ts';
+
+	interface ExchangeForm {
+		orderItemId: string;
+		reason: string;
+		note: string;
+		resolution: string;
+	}
+
+	const reasonOptions = [
+		'Wrong size',
+		'Defective/damaged item',
+		'Wrong item received',
+		'Don’t like the product',
+		'Other'
+	];
+
+	const resolutionOptions = [
+		{ value: 'none', label: 'No preference' },
+		{ value: 'original_payment', label: 'Original payment method' },
+		{ value: 'gift_card', label: 'Gift card' },
+		{ value: 'card', label: 'Credit or Debit card' }
+	];
+
+	let orders = $state<OrderSummary[]>([]);
+	let selectedOrder = $state<OrderDetail | null>(null);
+	let selectedOrderNumber = $state('');
+	let created = $state<ReturnDetail | null>(null);
+	let loading = $state(true);
+	let orderLoading = $state(false);
+	let submitting = $state(false);
+	let error = $state('');
+	let formError = $state('');
+	let form = $state<ExchangeForm>({
+		orderItemId: '',
+		reason: '',
+		note: '',
+		resolution: 'none'
+	});
+
+	function redirectToLogin() {
+		const target = `${page.url.pathname}${page.url.search}`;
+		void goto(`/login?redirectTo=${encodeURIComponent(target)}`, { replaceState: true });
+	}
+
+	function isUnauthorized(cause: unknown): boolean {
+		if (cause instanceof ApiError && cause.status === 401) {
+			redirectToLogin();
+			return true;
+		}
+
+		return false;
+	}
+
+	function errorMessage(cause: unknown, fallback: string): string {
+		return cause instanceof Error ? cause.message : fallback;
+	}
+
+	async function selectOrder(value: string) {
+		selectedOrderNumber = value;
+		selectedOrder = null;
+		form.orderItemId = '';
+		formError = '';
+
+		if (!value) return;
+
+		orderLoading = true;
+
+		try {
+			const payload = await api.get<{ data: OrderDetail }>(
+				`/api/orders/${encodeURIComponent(value)}`
+			);
+			selectedOrder = unwrap(payload);
+
+			if (selectedOrder.items.length > 0) {
+				form.orderItemId = selectedOrder.items[0].id;
+			}
+		} catch (cause) {
+			if (!isUnauthorized(cause)) {
+				formError = errorMessage(cause, 'Could not load the items for this order');
+			}
+		} finally {
+			orderLoading = false;
+		}
+	}
+
+	async function initialize() {
+		loading = true;
+		error = '';
+
+		try {
+			const payload = await api.get<{ data: OrderSummary[] }>('/api/orders?page=1&pageSize=50');
+			orders = unwrap(payload);
+
+			if (orders.length > 0) await selectOrder(orders[0].orderNumber);
+		} catch (cause) {
+			if (!isUnauthorized(cause)) {
+				error = errorMessage(cause, 'Could not load your orders');
+			}
+		} finally {
+			loading = false;
+		}
+	}
+
+	async function submitExchange(event: SubmitEvent) {
+		event.preventDefault();
+		formError = '';
+
+		if (!form.orderItemId) {
+			formError = 'Select the item you want to exchange.';
+			return;
+		}
+
+		if (!form.reason.trim()) {
+			formError = 'Tell us why you want to exchange this item.';
+			return;
+		}
+
+		submitting = true;
+
+		try {
+			const payload = await api.post<{ data: ReturnDetail }>('/api/returns', {
+				orderItemId: form.orderItemId,
+				type: 'exchange',
+				reason: form.reason.trim(),
+				note: form.note.trim() || null,
+				resolution: form.resolution === 'none' ? null : form.resolution
+			});
+			created = unwrap(payload);
+		} catch (cause) {
+			if (!isUnauthorized(cause)) {
+				formError = errorMessage(cause, 'Could not submit your exchange request');
+			}
+		} finally {
+			submitting = false;
+		}
+	}
+
+	function startAnother() {
+		created = null;
+		form = { orderItemId: '', reason: '', note: '', resolution: 'none' };
+		if (selectedOrder && selectedOrder.items.length > 0) {
+			form.orderItemId = selectedOrder.items[0].id;
+		}
+	}
+
+	onMount(() => {
+		void initialize();
+	});
 </script>
 
 <div
@@ -63,900 +184,402 @@
 		data-name="Product details"
 	>
 		<div
-			class="relative flex w-full max-w-[1280px] min-w-[328px] shrink-0 flex-col content-stretch items-start gap-[24px] px-[32px]"
-			data-name="Flex Vertical"
+			class="relative flex w-full max-w-[1280px] min-w-[328px] shrink-0 content-stretch items-start gap-[24px] px-[32px]"
+			data-name="Flex Horizontal"
 		>
+			<AccountSidebar />
+
 			<div
-				class="relative flex w-full shrink-0 flex-col content-stretch items-start"
-				data-name="lisitng Product Card"
+				class="relative flex min-w-px flex-[1_0_0] flex-col content-stretch items-start gap-[24px]"
+				data-name="Flex Vertical"
 			>
-				<div
-					class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-white shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)]"
-					data-name="Card"
-				>
+				{#if loading}
 					<div
-						class="relative flex w-full shrink-0 flex-col content-stretch items-start"
-						data-name="card-body"
+						class="relative flex w-full items-center justify-center gap-3 rounded-[14px] bg-white px-[24px] py-[64px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)]"
+						data-name="Card"
 					>
-						<div class="relative flex w-full shrink-0 content-stretch items-start">
-							<div
-								class="relative flex w-[240px] shrink-0 flex-col content-stretch items-center justify-center self-stretch rounded-tl-[8px] rounded-bl-[8px] bg-[#f5f5f5] px-[16px]"
-								data-name="Product Image"
+						<Spinner class="size-5" aria-label="Loading orders" />
+						<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
+							Loading orders
+						</p>
+					</div>
+				{:else if error}
+					<div
+						class="relative flex w-full rounded-[14px] border border-[#fecaca] bg-[#fef2f2] px-[24px] py-[16px] text-[#b91c1c]"
+						data-name="Card"
+						role="alert"
+					>
+						{error}
+					</div>
+				{:else if orders.length === 0}
+					<div
+						class="relative flex w-full flex-col items-start gap-[12px] rounded-[14px] bg-white px-[24px] py-[32px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)]"
+						data-name="Card"
+					>
+						<p
+							class="font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold text-[#0a0a0a]"
+						>
+							No orders yet
+						</p>
+						<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
+							You need an order before you can request an exchange.
+						</p>
+						<a
+							href="/products"
+							class="rounded-[8px] bg-[#171717] px-[16px] py-[10px] font-['Geist:Medium'] text-[14px] leading-[20px] font-medium text-[#fafafa]"
+						>
+							Browse products
+						</a>
+					</div>
+				{:else if created}
+					<div
+						class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-white py-[24px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)]"
+						data-name="Card"
+					>
+						<div
+							class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[12px] px-[24px]"
+							data-name="card-body"
+						>
+							<p
+								class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] text-[#0a0a0a]"
 							>
-								<div
-									class="absolute top-[10px] left-[201px] flex content-stretch items-center justify-center rounded-[9999px] bg-white p-[4px]"
-									data-name="Wishlist Icon"
-								>
-									<div class="relative flex shrink-0 items-center justify-center">
-										<div class="flex-none -scale-y-100 rotate-180">
-											<div class="relative size-[21px]" data-name="ICON">
-												<img
-													alt=""
-													class="absolute inset-0 block size-full max-w-none"
-													src={imgIcon4}
-												/>
-											</div>
-										</div>
-									</div>
-								</div>
-								<div
-									class="absolute top-[calc(50%+1.5px)] left-[calc(50%+0.5px)] h-[249px] w-[221px] -translate-x-1/2 -translate-y-1/2"
-									data-name="Product Image"
-								>
-									<div class="pointer-events-none absolute inset-0 overflow-hidden">
-										<img
-											alt=""
-											class="absolute top-[-1.78%] left-[-3.44%] h-[106.11%] w-[106.89%] max-w-none"
-											src={imgProductImage}
-										/>
-									</div>
-								</div>
+								Exchange requested
+							</p>
+							<div class="flex w-full flex-wrap items-center gap-[8px]">
+								<Badge variant="outline">
+									{statusLabel(RETURN_STATUS_LABELS, created.status)}
+								</Badge>
+								<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
+									Order #{created.orderNumber}
+								</p>
 							</div>
-							<div
-								class="relative flex min-w-px flex-[1_0_0] flex-col content-stretch items-start gap-[12px] py-[16px]"
-								data-name="Flex Vertical"
-							>
-								<div
-									class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[12px]"
+							<div class="flex w-full flex-col gap-[4px]">
+								<p
+									class="font-['Geist:Medium'] text-[18px] leading-[28px] font-medium text-[#0a0a0a]"
 								>
+									{created.productName}
+								</p>
+								<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]">
+									SKU: {created.sku}
+								</p>
+								<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]">
+									{created.reason}
+								</p>
+							</div>
+							<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]">
+								We will contact you once the exchange is approved.
+							</p>
+							<div class="flex flex-wrap items-center gap-[12px]">
+								<Button href="/account/returns-refunds" data-name="Solid Button">
+									View returns &amp; refunds
+								</Button>
+								<Button variant="outline" onclick={startAnother}>Request another</Button>
+							</div>
+						</div>
+					</div>
+				{:else}
+					<form class="flex w-full flex-col gap-[24px]" onsubmit={submitExchange}>
+						<div
+							class="relative isolate flex w-full shrink-0 content-stretch items-start"
+							data-name="Advance Tabs"
+						>
+							<div
+								class="relative z-[1] flex min-w-px flex-[1_0_0] content-stretch items-center gap-[4px]"
+								data-name="Items"
+							>
+								<a
+									href="/account/exchange"
+									class="relative flex h-[34px] min-w-px flex-[1_0_0] content-stretch items-center justify-center gap-[4px] border-b-2 border-solid border-[#0a0a0a] bg-white px-[10px] pt-[6px] pb-[8px]"
+									data-name="Tab item"
+								>
+									<p
+										class="relative shrink-0 font-['Geist:Medium'] text-[14px] leading-[20px] font-medium [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
+									>
+										Exchange
+									</p>
+								</a>
+								<a
+									href="/account/return-item"
+									class="relative flex h-[34px] min-w-px flex-[1_0_0] content-stretch items-center justify-center gap-[4px] px-[10px] pt-[6px] pb-[8px]"
+									data-name="Tab item"
+								>
+									<p
+										class="relative shrink-0 font-['Geist:Medium'] text-[14px] leading-[20px] font-medium [word-break:break-word] whitespace-nowrap text-[#0a0a0a] opacity-60"
+									>
+										Return
+									</p>
+								</a>
+							</div>
+						</div>
+
+						{#if orders.length > 1}
+							<div class="flex w-full flex-col gap-[6px] sm:max-w-[320px]">
+								<Label for="exchange-order">Order</Label>
+								<Select.Root type="single" value={selectedOrderNumber} onValueChange={selectOrder}>
+									<Select.Trigger id="exchange-order" class="w-full">
+										<Select.Value placeholder="Select an order" />
+									</Select.Trigger>
+									<Select.Content>
+										{#each orders as entry (entry.id)}
+											<Select.Item value={entry.orderNumber} label={entry.orderNumber}>
+												{entry.orderNumber}
+											</Select.Item>
+										{/each}
+									</Select.Content>
+								</Select.Root>
+							</div>
+						{/if}
+
+						<div
+							class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-white shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)]"
+							data-name="Card"
+						>
+							<div
+								class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[16px] px-[16px] py-[16px]"
+								data-name="card-body"
+							>
+								{#if selectedOrder}
 									<div
-										class="relative flex w-full shrink-0 content-stretch items-center justify-between px-[16px]"
+										class="relative flex w-full shrink-0 flex-wrap content-stretch items-center justify-between gap-[12px]"
 										data-name="Flex Horizontal"
 									>
-										<div
-											class="relative flex min-w-px flex-[1_0_0] content-stretch items-center gap-[6px]"
-										>
-											<div
-												class="relative flex shrink-0 content-stretch items-center justify-center gap-[2px] rounded-[9999px] border border-solid border-[#16a34a] px-[6px] py-[2px]"
-												data-name="Outline Badge"
+										<div class="flex flex-col gap-[2px]">
+											<p
+												class="relative font-['Geist:Medium'] text-[14px] leading-[20px] font-medium [word-break:break-word] text-[#171717]"
 											>
-												<div
-													class="relative flex shrink-0 flex-col justify-center text-center font-['Geist:Medium'] text-[12px] leading-[0] font-medium [word-break:break-word] whitespace-nowrap text-[#16a34a]"
+												Order #{selectedOrder.orderNumber}
+											</p>
+											<p class="font-['Geist:Regular'] text-[12px] leading-[16px] text-[#737373]">
+												{formatDate(selectedOrder.placedAt)}
+											</p>
+										</div>
+										<Badge variant="outline">
+											{statusLabel(ORDER_STATUS_LABELS, selectedOrder.status)}
+										</Badge>
+									</div>
+
+									{#if orderLoading}
+										<div class="flex items-center gap-[12px]">
+											<Spinner class="size-5" aria-label="Loading order items" />
+											<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]">
+												Loading items
+											</p>
+										</div>
+									{:else if selectedOrder.items.length === 0}
+										<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]">
+											This order has no items to exchange.
+										</p>
+									{:else}
+										<RadioGroup.Root
+											bind:value={form.orderItemId}
+											class="flex w-full flex-col gap-[12px]"
+										>
+											{#each selectedOrder.items as item (item.id)}
+												<label
+													class="relative flex w-full cursor-pointer content-stretch items-center gap-[16px] rounded-[8px] border border-solid border-[#e5e5e5] p-[12px]"
+													data-name="Flex Horizontal"
 												>
-													<p class="leading-[16px]">Delivered</p>
-												</div>
+													<RadioGroup.Item value={item.id} aria-label={item.productName} />
+													<div
+														class="relative flex size-[72px] shrink-0 items-center justify-center overflow-hidden rounded-[8px] bg-[#f5f5f5]"
+														data-name="Product Image"
+													>
+														{#if item.imageUrl}
+															<img
+																alt={item.productName}
+																class="size-full object-cover"
+																src={item.imageUrl}
+															/>
+														{:else}
+															<span
+																class="text-center font-['Geist:Regular'] text-[12px] leading-[16px] text-[#737373]"
+															>
+																No image
+															</span>
+														{/if}
+													</div>
+													<div class="min-w-0 flex-1">
+														<p
+															class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-[#0a0a0a]"
+														>
+															{item.productName}
+														</p>
+														<p
+															class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]"
+														>
+															SKU: {item.sku}
+														</p>
+														<p
+															class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]"
+														>
+															Qty: {item.quantity} · {formatMoney(
+																item.unitPriceCents,
+																selectedOrder.currency
+															)}
+														</p>
+													</div>
+													<p
+														class="shrink-0 font-['Geist:SemiBold'] text-[14px] leading-[20px] font-semibold text-[#0a0a0a]"
+													>
+														{formatMoney(item.totalCents, selectedOrder.currency)}
+													</p>
+												</label>
+											{/each}
+										</RadioGroup.Root>
+
+										<div
+											class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[8px] rounded-[8px] bg-[#f5f5f5] p-[16px]"
+											data-name="Pricing Details"
+										>
+											<div class="flex w-full items-center justify-between gap-[12px]">
+												<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
+													Subtotal
+												</p>
+												<p
+													class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-[#0a0a0a]"
+												>
+													{formatMoney(selectedOrder.subtotalCents, selectedOrder.currency)}
+												</p>
+											</div>
+											<div class="flex w-full items-center justify-between gap-[12px]">
+												<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
+													Discount
+												</p>
+												<p
+													class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-[#0a0a0a]"
+												>
+													−{formatMoney(selectedOrder.discountCents, selectedOrder.currency)}
+												</p>
+											</div>
+											<div class="flex w-full items-center justify-between gap-[12px]">
+												<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
+													Shipment cost
+												</p>
+												<p
+													class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-[#0a0a0a]"
+												>
+													{formatMoney(selectedOrder.shippingCents, selectedOrder.currency)}
+												</p>
 											</div>
 											<div
-												class="relative h-[17px] w-0 shrink-0"
-												data-name="dropdown menu separator"
+												class="flex w-full items-center justify-between gap-[12px] border-t border-[#e5e5e5] pt-[8px]"
 											>
-												<div class="absolute inset-[0_0_0_-1px]">
-													<img
-														alt=""
-														class="block size-full max-w-none"
-														src={imgDropdownMenuSeparator}
-													/>
-												</div>
-											</div>
-											<p
-												class="relative min-w-px flex-[1_0_0] font-['Geist:Regular'] text-[12px] leading-[16px] font-normal [word-break:break-word] text-[#737373]"
-											>
-												24 January 2026
-											</p>
-										</div>
-										<div
-											class="relative flex shrink-0 content-stretch items-center justify-center gap-[6px] rounded-[9999px]"
-											data-name="Dot Badge"
-										>
-											<div
-												class="relative flex shrink-0 flex-col justify-center text-center font-['Geist:Medium'] text-[12px] leading-[0] font-medium [word-break:break-word] whitespace-nowrap text-[#737373]"
-											>
-												<p class="leading-[16px]">View Details</p>
+												<p
+													class="font-['Geist:SemiBold'] text-[18px] leading-[28px] font-semibold text-[#0a0a0a]"
+												>
+													Grand Total
+												</p>
+												<p
+													class="font-['Geist:SemiBold'] text-[18px] leading-[28px] font-semibold text-[#0a0a0a]"
+												>
+													{formatMoney(selectedOrder.grandTotalCents, selectedOrder.currency)}
+												</p>
 											</div>
 										</div>
-									</div>
-									<div
-										class="relative flex w-full shrink-0 content-stretch items-center justify-center px-[16px]"
-									>
-										<p
-											class="relative min-w-px flex-[1_0_0] font-['Geist:Medium'] text-[14px] leading-[20px] font-medium [word-break:break-word] text-[#171717]"
-										>
-											Order ID: XYZ-42324234
-										</p>
-									</div>
-								</div>
-								<div
-									class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[12px] px-[16px] [word-break:break-word]"
+									{/if}
+								{/if}
+							</div>
+						</div>
+
+						<div
+							class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-white py-[16px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)]"
+							data-name="Card"
+						>
+							<div
+								class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[16px] px-[16px]"
+								data-name="card-body"
+							>
+								<p
+									class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] text-[#0a0a0a]"
 								>
-									<div
-										class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[4px]"
-										data-name="Product details"
-									>
-										<p
-											class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[18px] leading-[28px] font-semibold text-[#0a0a0a]"
+									Why do you want to exchange this item?
+								</p>
+								<RadioGroup.Root
+									bind:value={form.reason}
+									class="flex w-full flex-wrap items-start gap-[16px]"
+								>
+									{#each reasonOptions as option (option)}
+										<label
+											class="relative flex shrink-0 cursor-pointer content-stretch items-start gap-[10px]"
+											data-name="Radio"
 										>
-											Bewkoof
-										</p>
-										<p
-											class="relative w-full shrink-0 font-['Geist:Regular'] text-[14px] leading-[20px] font-normal text-[#737373]"
-										>
-											A sleek rectangular smartwatch featuring a large 1.95″ HD display and a slim,
-											lightweight design. Ideal for everyday wear, it offers essential fitness and
-											health tracking along with smart notifications, making it a perfect blend of
-											style and functionality for daily use.
-										</p>
-									</div>
-									<div
-										class="relative flex w-full shrink-0 content-stretch items-center gap-[10px] font-['Geist:Regular'] text-[14px] font-normal whitespace-nowrap text-[#0a0a0a]"
-										data-name="Flex Horizontal"
-									>
-										<p class="relative shrink-0 leading-[0]">
-											<span class="leading-[20px]">{`Size: `}</span>
-											<span class="leading-[20px] text-[#737373]">{`M `}</span>
-										</p>
-										<p class="relative shrink-0 leading-[20px]">|</p>
-										<p class="relative shrink-0 leading-[0]">
-											<span class="leading-[20px]">{`Qty: `}</span>
-											<span class="leading-[20px] text-[#737373]">1</span>
-											<span class="leading-[20px]">{` `}</span>
-										</p>
-										<p class="relative shrink-0 leading-[20px]">|</p>
-										<p class="relative shrink-0 leading-[0]">
-											<span class="leading-[20px]">{`Color: `}</span>
-											<span class="leading-[20px] text-[#737373]">pitch</span>
-										</p>
-									</div>
-									<div
-										class="relative flex h-[24px] w-full shrink-0 content-stretch items-center gap-[6px] whitespace-nowrap"
-										data-name="Flex Horizontal"
-									>
-										<p
-											class="relative shrink-0 font-['Geist:SemiBold'] text-[14px] leading-[20px] font-semibold text-[#0a0a0a]"
-										>
-											$225.00
-										</p>
-										<div
-											class="relative flex shrink-0 flex-col justify-end font-['Geist:Regular'] text-[0px] leading-[0] font-normal text-[#737373]"
-										>
-											<p
-												class="text-[14px] leading-[20px] line-through decoration-solid decoration-from-font [text-decoration-skip-ink:none] [text-underline-position:from-font]"
+											<RadioGroup.Item value={option} />
+											<span
+												class="relative flex shrink-0 flex-col content-stretch items-start justify-center gap-[2px] self-stretch font-['Geist:Regular'] text-[14px] leading-[20px] font-normal [word-break:break-word] text-[#0a0a0a]"
+												data-name="radio-container"
 											>
-												$249.00
-											</p>
-										</div>
-									</div>
-								</div>
+												{option}
+											</span>
+										</label>
+									{/each}
+								</RadioGroup.Root>
 							</div>
 						</div>
-					</div>
-				</div>
-			</div>
-			<div
-				class="relative isolate flex w-full shrink-0 content-stretch items-start"
-				data-name="Advance Tabs"
-			>
-				<div
-					class="relative z-[1] flex min-w-px flex-[1_0_0] content-stretch items-center gap-[4px]"
-					data-name="Items"
-				>
-					<a
-						href="/account/exchange"
-						class="relative flex h-[34px] min-w-px flex-[1_0_0] content-stretch items-center justify-center gap-[4px] border-b-2 border-solid border-[#0a0a0a] bg-white px-[10px] pt-[6px] pb-[8px]"
-						data-name="Tab item"
-					>
-						<p
-							class="relative shrink-0 font-['Geist:Medium'] text-[14px] leading-[20px] font-medium [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
-						>
-							Exchange
-						</p>
-					</a>
-					<a
-						href="/account/return-item"
-						class="relative flex h-[34px] min-w-px flex-[1_0_0] content-stretch items-center justify-center gap-[4px] px-[10px] pt-[6px] pb-[8px]"
-						data-name="Tab item"
-					>
-						<p
-							class="relative shrink-0 font-['Geist:Medium'] text-[14px] leading-[20px] font-medium [word-break:break-word] whitespace-nowrap text-[#0a0a0a] opacity-60"
-						>
-							Return
-						</p>
-					</a>
-				</div>
-			</div>
-			<div
-				class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-white py-[16px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)]"
-				data-name="Card"
-			>
-				<div
-					class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[16px] px-[16px]"
-					data-name="card-body"
-				>
-					<p
-						class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] text-[#0a0a0a]"
-					>
-						Why do you want to exchange this item?
-					</p>
-					<div
-						class="relative flex w-full shrink-0 content-stretch items-start gap-[16px]"
-						data-name="Flex Horizontal"
-					>
+
 						<div
-							class="relative flex shrink-0 content-stretch items-start gap-[10px]"
-							data-name="Radio"
+							class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[6px]"
+							data-name="Message Container"
 						>
-							<div class="relative size-[24px] shrink-0" data-name="Radio">
-								<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgRadio} />
-							</div>
-							<div
-								class="relative flex shrink-0 flex-col content-stretch items-start justify-center gap-[2px] self-stretch"
-								data-name="radio-container"
-							>
-								<div
-									class="relative flex h-[24px] w-full shrink-0 flex-col justify-center font-['Geist:Regular'] text-[14px] leading-[0] font-normal [word-break:break-word] text-[#0a0a0a]"
-								>
-									<p class="leading-[20px]">Wrong size</p>
-								</div>
-							</div>
+							<Label for="exchange-note" class="text-[16px] leading-[24px] font-medium">
+								Note (optional)
+							</Label>
+							<Textarea
+								id="exchange-note"
+								bind:value={form.note}
+								placeholder="Anything else we should know about this exchange?"
+							/>
 						</div>
+
 						<div
-							class="relative flex shrink-0 content-stretch items-start gap-[10px]"
-							data-name="Radio"
-						>
-							<div class="relative size-[24px] shrink-0" data-name="Radio">
-								<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgRadio1} />
-							</div>
-							<div
-								class="relative flex shrink-0 flex-col content-stretch items-start justify-center gap-[2px] self-stretch"
-								data-name="radio-container"
-							>
-								<div
-									class="relative flex h-[24px] w-full shrink-0 flex-col justify-center font-['Geist:Regular'] text-[14px] leading-[0] font-normal [word-break:break-word] text-[#0a0a0a]"
-								>
-									<p class="leading-[20px]">Defective/damaged item</p>
-								</div>
-							</div>
-						</div>
-						<div
-							class="relative flex shrink-0 content-stretch items-start gap-[10px]"
-							data-name="Radio"
-						>
-							<div class="relative size-[24px] shrink-0" data-name="Radio">
-								<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgRadio1} />
-							</div>
-							<div
-								class="relative flex shrink-0 flex-col content-stretch items-start justify-center gap-[2px] self-stretch"
-								data-name="radio-container"
-							>
-								<div
-									class="relative flex h-[24px] w-full shrink-0 flex-col justify-center font-['Geist:Regular'] text-[14px] leading-[0] font-normal [word-break:break-word] text-[#0a0a0a]"
-								>
-									<p class="leading-[20px]">Wrong item received</p>
-								</div>
-							</div>
-						</div>
-						<div
-							class="relative flex shrink-0 content-stretch items-start gap-[10px]"
-							data-name="Radio"
-						>
-							<div class="relative size-[24px] shrink-0" data-name="Radio">
-								<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgRadio1} />
-							</div>
-							<div
-								class="relative flex shrink-0 flex-col content-stretch items-start justify-center gap-[2px] self-stretch"
-								data-name="radio-container"
-							>
-								<div
-									class="relative flex h-[24px] w-full shrink-0 flex-col justify-center font-['Geist:Regular'] text-[14px] leading-[0] font-normal [word-break:break-word] text-[#0a0a0a]"
-								>
-									<p class="leading-[20px]">Don’t like the product</p>
-								</div>
-							</div>
-						</div>
-						<div
-							class="relative flex shrink-0 content-stretch items-start gap-[10px]"
-							data-name="Radio"
-						>
-							<div class="relative size-[24px] shrink-0" data-name="Radio">
-								<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgRadio1} />
-							</div>
-							<div
-								class="relative flex shrink-0 flex-col content-stretch items-start justify-center gap-[2px] self-stretch"
-								data-name="radio-container"
-							>
-								<div
-									class="relative flex h-[24px] w-full shrink-0 flex-col justify-center font-['Geist:Regular'] text-[14px] leading-[0] font-normal [word-break:break-word] text-[#0a0a0a]"
-								>
-									<p class="leading-[20px]">Other</p>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-			<div
-				class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[6px]"
-				data-name="Message Container"
-			>
-				<p
-					class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[20px] leading-[0] font-semibold [word-break:break-word] text-[#0a0a0a]"
-				>
-					<span class="leading-[28px]">Reason for Exchange</span>
-					<span class="leading-[28px] text-[#dc2626]">*</span>
-				</p>
-				<div
-					class="relative flex h-[106px] w-full shrink-0 flex-col content-stretch items-start gap-[8px]"
-					data-name="Default Textarea"
-				>
-					<div
-						class="relative flex min-h-px w-full flex-[1_0_0] flex-col content-stretch items-start"
-						data-name="textarea-container"
-					>
-						<div
-							class="relative flex min-h-px w-full flex-[1_0_0] content-stretch items-start gap-[2px] rounded-[8px] border border-solid border-[#e5e5e5] bg-white px-[10px] py-[8px]"
-							data-name="textarea"
-						>
-							<p
-								class="relative h-full min-w-px flex-[1_0_0] overflow-hidden font-['Geist:Regular'] text-[14px] leading-[20px] font-normal [word-break:break-word] text-ellipsis whitespace-nowrap text-[#737373]"
-							>
-								briefly describe the reason for exchange
-							</p>
-							<div class="absolute right-[-1px] bottom-[-1px] size-[12px]" data-name="Left icon">
-								<img
-									alt=""
-									class="absolute inset-0 block size-full max-w-none"
-									src={imgLeftIcon5}
-								/>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-			<div
-				class="relative flex w-full shrink-0 flex-col content-stretch items-start justify-center gap-[16px]"
-				data-name="Flex Vertical"
-			>
-				<div class="relative flex w-full shrink-0 content-stretch items-start gap-[16px]">
-					<p
-						class="relative min-w-px flex-[1_0_0] font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] text-[#0a0a0a]"
-					>
-						{`Available sizes `}
-					</p>
-					<div
-						class="relative flex w-[299px] shrink-0 content-stretch items-center justify-end gap-[4px]"
-						data-name="Flex Horizontal"
-					>
-						<p
-							class="relative shrink-0 font-['Geist:Medium'] text-[16px] leading-[24px] font-medium [word-break:break-word] whitespace-nowrap text-[#0284c7]"
-						>
-							Size Guide
-						</p>
-						<div class="relative size-[20px] shrink-0" data-name="left-icon">
-							<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgLeftIcon6} />
-						</div>
-					</div>
-				</div>
-				<div
-					class="relative flex shrink-0 content-stretch items-start gap-[16px]"
-					data-name="Flex Horizontal"
-				>
-					<div
-						class="relative flex shrink-0 flex-col content-stretch items-center justify-center gap-[10px]"
-						data-name="Flex Vertical"
-					>
-						<div
-							class="relative flex w-[60px] shrink-0 content-stretch items-center justify-center gap-[6px] rounded-[10px] border border-solid border-[#e5e5e5] bg-white px-[12px] py-[6px]"
-							data-name="Outline Button"
-						>
-							<div
-								class="relative flex shrink-0 flex-col justify-center font-['Geist:Medium'] text-[14px] leading-[0] font-medium [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
-							>
-								<p class="leading-[20px]">XS</p>
-							</div>
-						</div>
-						<div
-							class="relative flex shrink-0 flex-col justify-center text-center font-['Geist:Medium'] text-[14px] leading-[0] font-medium [word-break:break-word] whitespace-nowrap text-[#dc2626]"
-						>
-							<p class="leading-[20px]">1 left</p>
-						</div>
-					</div>
-					<div
-						class="relative flex w-[60px] shrink-0 content-stretch items-center justify-center gap-[6px] rounded-[10px] border border-solid border-[#e5e5e5] bg-white px-[12px] py-[6px]"
-						data-name="Outline Button"
-					>
-						<div
-							class="relative flex shrink-0 flex-col justify-center font-['Geist:Medium'] text-[14px] leading-[0] font-medium [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
-						>
-							<p class="leading-[20px]">S</p>
-						</div>
-					</div>
-					<div
-						class="relative flex w-[60px] shrink-0 content-stretch items-center justify-center gap-[6px] overflow-clip rounded-[10px] bg-[#171717] px-[12px] py-[6px]"
-						data-name="Solid Button"
-					>
-						<div
-							class="relative flex shrink-0 flex-col justify-center font-['Geist:Medium'] text-[14px] leading-[0] font-medium [word-break:break-word] whitespace-nowrap text-[#fafafa]"
-						>
-							<p class="leading-[20px]">M</p>
-						</div>
-					</div>
-					<div
-						class="relative flex shrink-0 flex-col content-stretch items-center justify-center gap-[10px]"
-						data-name="Flex Vertical"
-					>
-						<div
-							class="relative flex w-[64px] shrink-0 content-stretch items-center justify-center gap-[6px] rounded-[10px] border border-solid border-[#e5e5e5] bg-white px-[10px] py-[6px]"
-							data-name="Outline Button"
-						>
-							<div
-								class="relative flex shrink-0 flex-col justify-center font-['Geist:Medium'] text-[14px] leading-[0] font-medium [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
-							>
-								<p class="leading-[20px]">L</p>
-							</div>
-						</div>
-						<div
-							class="relative flex shrink-0 flex-col justify-center text-center font-['Geist:Medium'] text-[14px] leading-[0] font-medium [word-break:break-word] whitespace-nowrap text-[#dc2626]"
-						>
-							<p class="leading-[20px]">2 left</p>
-						</div>
-					</div>
-					<div
-						class="relative flex w-[60px] shrink-0 content-stretch items-center justify-center gap-[6px] rounded-[10px] border border-solid border-[#e5e5e5] bg-white px-[12px] py-[6px]"
-						data-name="Outline Button"
-					>
-						<div
-							class="relative flex shrink-0 flex-col justify-center font-['Geist:Medium'] text-[0px] leading-[0] font-medium [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
-						>
-							<p
-								class="text-[14px] leading-[20px] line-through decoration-solid decoration-from-font [text-decoration-skip-ink:none] [text-underline-position:from-font]"
-							>
-								XL
-							</p>
-						</div>
-					</div>
-				</div>
-			</div>
-			<div
-				class="relative flex w-full shrink-0 content-stretch items-center gap-[24px]"
-				data-name="Flex Horizontal"
-			>
-				<div
-					class="relative flex min-w-px flex-[1_0_0] flex-col content-stretch items-start gap-[20px]"
-					data-name="Flex Vertical"
-				>
-					<p
-						class="relative w-[171px] shrink-0 font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] text-[#0a0a0a]"
-					>
-						{`Available Color `}
-					</p>
-					<div
-						class="relative flex shrink-0 content-stretch items-center gap-[6px]"
-						data-name="Flex Horizontal"
-					>
-						<div class="relative size-[28px] shrink-0" data-name="Color">
-							<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgColor} />
-						</div>
-						<div class="relative size-[28px] shrink-0" data-name="Color">
-							<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgColor1} />
-						</div>
-						<div class="relative size-[28px] shrink-0" data-name="Color">
-							<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgColor2} />
-						</div>
-						<div class="relative size-[28px] shrink-0" data-name="Color">
-							<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgColor3} />
-						</div>
-						<div class="relative size-[28px] shrink-0" data-name="Color">
-							<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgColor4} />
-						</div>
-						<div class="relative size-[28px] shrink-0" data-name="Color">
-							<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgColor5} />
-						</div>
-					</div>
-				</div>
-				<div
-					class="relative flex min-w-px flex-[1_0_0] flex-col content-stretch items-end gap-[20px]"
-					data-name="Flex Vertical"
-				>
-					<p
-						class="relative w-full shrink-0 text-right font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] text-[#0a0a0a]"
-					>
-						Choose the Quantity
-					</p>
-					<div
-						class="relative flex w-full shrink-0 flex-col content-stretch items-end justify-center"
-					>
-						<div
-							class="relative flex w-[193px] shrink-0 flex-col content-stretch items-start gap-[8px]"
-							data-name="Input Number"
-						>
-							<div
-								class="relative flex h-[32px] w-full shrink-0 content-stretch items-center gap-[6px] rounded-[8px] border border-solid border-[#e5e5e5] bg-white px-[12px] py-[8px]"
-								data-name="input number"
-							>
-								<div
-									class="relative flex size-[20px] shrink-0 content-stretch items-center justify-center rounded-[4px] bg-[#f5f5f5] p-[4px]"
-									data-name="box Icon"
-								>
-									<Minus class="relative size-[12px] shrink-0" />
-								</div>
-								<div
-									class="relative flex min-w-px flex-[1_0_0] flex-col content-stretch items-start"
-									data-name="Default Input"
-								>
-									<div
-										class="relative flex h-[28px] w-full shrink-0 content-stretch items-center rounded-[8px] bg-white px-[10px] py-[4px]"
-										data-name="input"
-									>
-										<div
-											class="relative flex min-w-px flex-[1_0_0] flex-col justify-center overflow-hidden text-center font-['Geist:Regular'] text-[14px] leading-[0] font-normal [word-break:break-word] text-ellipsis whitespace-nowrap text-[#0a0a0a]"
-										>
-											<p class="overflow-hidden leading-[20px] text-ellipsis">1</p>
-										</div>
-									</div>
-								</div>
-								<div
-									class="relative flex size-[20px] shrink-0 content-stretch items-center justify-center rounded-[4px] bg-[#f5f5f5] p-[4px]"
-									data-name="box Icon"
-								>
-									<Plus class="relative size-[12px] shrink-0" />
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-			<div
-				class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[20px]"
-				data-name="Flex Vertical"
-			>
-				<p
-					class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] text-[#0a0a0a]"
-				>
-					Pickup Details
-				</p>
-				<div class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[24px]">
-					<div
-						class="relative flex w-full shrink-0 content-stretch items-center gap-[20px]"
-						data-name="Flex Horizontal"
-					>
-						<div
-							class="relative flex min-w-[232px] flex-[1_0_0] flex-col content-stretch items-start gap-[14px]"
+							class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[16px] rounded-[8px]"
 							data-name="Flex Vertical"
 						>
 							<p
-								class="relative w-full shrink-0 font-['Geist:Medium'] text-[14px] leading-[0] font-medium [word-break:break-word] text-[#0a0a0a]"
+								class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] text-[#0a0a0a]"
 							>
-								<span class="leading-[20px]">Country</span>
-								<span class="leading-[20px] text-[#dc2626]">*</span>
+								Preferred resolution (optional)
 							</p>
-							<div
-								class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[8px]"
-								data-name="Default Input"
+							<RadioGroup.Root
+								bind:value={form.resolution}
+								class="flex w-full flex-wrap items-start gap-[16px]"
 							>
-								<div
-									class="relative flex w-full shrink-0 content-stretch items-start"
-									data-name="input-container"
-								>
-									<div
-										class="relative flex h-[36px] min-w-px flex-[1_0_0] content-stretch items-center gap-[8px] rounded-[10px] border border-solid border-[#e5e5e5] bg-white px-[10px] py-[4px]"
-										data-name="input"
+								{#each resolutionOptions as option (option.value)}
+									<label
+										class="relative flex shrink-0 cursor-pointer content-stretch items-start gap-[10px]"
+										data-name="Radio"
 									>
-										<div
-											class="relative flex min-w-px flex-[1_0_0] flex-col justify-center overflow-hidden font-['Geist:Regular'] text-[14px] leading-[0] font-normal [word-break:break-word] text-ellipsis whitespace-nowrap text-[#737373]"
+										<RadioGroup.Item value={option.value} />
+										<span
+											class="relative flex shrink-0 flex-col content-stretch items-start justify-center gap-[2px] self-stretch font-['Geist:Regular'] text-[14px] leading-[20px] font-normal [word-break:break-word] text-[#0a0a0a]"
+											data-name="radio-container"
 										>
-											<p class="overflow-hidden leading-[20px] text-ellipsis">USA</p>
-										</div>
-										<div class="relative size-[16px] shrink-0" data-name="Right-icon">
-											<img
-												alt=""
-												class="absolute inset-0 block size-full max-w-none"
-												src={imgRightIcon}
-											/>
-										</div>
-									</div>
-								</div>
-							</div>
+											{option.label}
+										</span>
+									</label>
+								{/each}
+							</RadioGroup.Root>
 						</div>
-						<div
-							class="relative flex min-w-[232px] flex-[1_0_0] flex-col content-stretch items-start gap-[14px]"
-							data-name="Flex Vertical"
-						>
-							<p
-								class="relative w-full shrink-0 font-['Geist:Medium'] text-[14px] leading-[0] font-medium [word-break:break-word] text-[#0a0a0a]"
-							>
-								<span class="leading-[20px]">Region/State</span>
-								<span class="leading-[20px] text-[#dc2626]">*</span>
-							</p>
-							<div
-								class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[8px]"
-								data-name="Default Input"
-							>
-								<div
-									class="relative flex w-full shrink-0 content-stretch items-start"
-									data-name="input-container"
-								>
-									<div
-										class="relative flex h-[36px] min-w-px flex-[1_0_0] content-stretch items-center gap-[8px] rounded-[10px] border border-solid border-[#e5e5e5] bg-white px-[10px] py-[4px]"
-										data-name="input"
-									>
-										<div
-											class="relative flex min-w-px flex-[1_0_0] flex-col justify-center overflow-hidden font-['Geist:Regular'] text-[14px] leading-[0] font-normal [word-break:break-word] text-ellipsis whitespace-nowrap text-[#737373]"
-										>
-											<p class="overflow-hidden leading-[20px] text-ellipsis">California</p>
-										</div>
-										<div class="relative size-[16px] shrink-0" data-name="Right-icon">
-											<img
-												alt=""
-												class="absolute inset-0 block size-full max-w-none"
-												src={imgRightIcon}
-											/>
-										</div>
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
-					<div
-						class="relative flex w-full shrink-0 content-stretch items-center gap-[20px]"
-						data-name="Flex Horizontal"
-					>
-						<div
-							class="relative flex min-w-[232px] flex-[1_0_0] flex-col content-stretch items-start gap-[14px]"
-							data-name="Flex Vertical"
-						>
-							<p
-								class="relative w-full shrink-0 font-['Geist:Medium'] text-[14px] leading-[0] font-medium [word-break:break-word] text-[#0a0a0a]"
-							>
-								<span class="leading-[20px]">City</span>
-								<span class="leading-[20px] text-[#dc2626]">*</span>
-							</p>
-							<div
-								class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[8px]"
-								data-name="Default Input"
-							>
-								<div
-									class="relative flex w-full shrink-0 content-stretch items-start"
-									data-name="input-container"
-								>
-									<div
-										class="relative flex h-[36px] min-w-px flex-[1_0_0] content-stretch items-center gap-[8px] rounded-[10px] border border-solid border-[#e5e5e5] bg-white px-[10px] py-[4px]"
-										data-name="input"
-									>
-										<div
-											class="relative flex min-w-px flex-[1_0_0] flex-col justify-center overflow-hidden font-['Geist:Regular'] text-[14px] leading-[0] font-normal [word-break:break-word] text-ellipsis whitespace-nowrap text-[#737373]"
-										>
-											<p class="overflow-hidden leading-[20px] text-ellipsis">Los Angeles</p>
-										</div>
-										<div class="relative size-[16px] shrink-0" data-name="Right-icon">
-											<img
-												alt=""
-												class="absolute inset-0 block size-full max-w-none"
-												src={imgRightIcon}
-											/>
-										</div>
-									</div>
-								</div>
-							</div>
-						</div>
-						<div
-							class="relative flex min-w-[232px] flex-[1_0_0] flex-col content-stretch items-start gap-[14px]"
-							data-name="Flex Vertical"
-						>
-							<p
-								class="relative w-full shrink-0 font-['Geist:Medium'] text-[14px] leading-[0] font-medium [word-break:break-word] text-[#0a0a0a]"
-							>
-								<span class="leading-[20px]">Post Code</span>
-								<span class="leading-[20px] text-[#dc2626]">*</span>
-							</p>
-							<div
-								class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[8px]"
-								data-name="Default Input"
-							>
-								<div
-									class="relative flex w-full shrink-0 content-stretch items-start"
-									data-name="input-container"
-								>
-									<div
-										class="relative flex h-[36px] min-w-px flex-[1_0_0] content-stretch items-center gap-[8px] rounded-[10px] border border-solid border-[#e5e5e5] bg-white px-[10px] py-[4px]"
-										data-name="input"
-									>
-										<div
-											class="relative flex min-w-px flex-[1_0_0] flex-col justify-center overflow-hidden font-['Geist:Regular'] text-[14px] leading-[0] font-normal [word-break:break-word] text-ellipsis whitespace-nowrap text-[#737373]"
-										>
-											<p class="overflow-hidden leading-[20px] text-ellipsis">90001</p>
-										</div>
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
-					<div
-						class="relative flex w-full shrink-0 content-stretch items-center justify-center gap-[10px]"
-					>
+
 						<p
-							class="relative min-w-px flex-[1_0_0] font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-[#16a34a]"
+							class="relative w-full shrink-0 font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-[#16a34a]"
 						>
 							Your item will be picked up within 2-3 days.
 						</p>
-						<div
-							class="relative flex shrink-0 content-stretch items-center justify-center gap-[6px] overflow-clip rounded-[10px] bg-[#171717] px-[12px] py-[6px]"
+
+						{#if formError}
+							<p class="text-sm text-[#b91c1c]" role="alert">{formError}</p>
+						{/if}
+
+						<Button
+							type="submit"
+							class="w-full rounded-[10px] bg-[#171717] px-[16px] py-[8px] text-[#fafafa] hover:bg-[#262626]"
+							disabled={submitting || !selectedOrder}
 							data-name="Solid Button"
 						>
-							<div
-								class="relative flex shrink-0 flex-col justify-center font-['Geist:Medium'] text-[14px] leading-[0] font-medium [word-break:break-word] whitespace-nowrap text-[#fafafa]"
-							>
-								<p class="leading-[20px]">Save changes</p>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-			<div
-				class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[12px] rounded-[8px] border border-solid border-[#e5e5e5] p-[24px]"
-				data-name="Flex Vertical"
-			>
-				<div
-					class="relative flex h-[100px] w-full shrink-0 flex-col content-stretch items-start gap-[8px] [word-break:break-word] whitespace-nowrap"
-				>
-					<div
-						class="relative flex w-full shrink-0 content-stretch items-start justify-between"
-						data-name="text"
-					>
-						<p
-							class="relative shrink-0 font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-[#737373]"
-						>
-							Subtotal
-						</p>
-						<p
-							class="relative shrink-0 font-['Geist:Regular'] text-[18px] leading-[28px] font-normal text-[#0a0a0a]"
-						>
-							$599.00
-						</p>
-					</div>
-					<div
-						class="relative flex w-full shrink-0 content-stretch items-start justify-between"
-						data-name="text"
-					>
-						<p
-							class="relative shrink-0 font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-[#737373]"
-						>
-							Discount
-						</p>
-						<p
-							class="relative shrink-0 font-['Geist:Regular'] text-[18px] leading-[28px] font-normal text-[#0a0a0a]"
-						>
-							-$50.00
-						</p>
-					</div>
-					<div
-						class="relative flex w-full shrink-0 content-stretch items-start justify-between"
-						data-name="text"
-					>
-						<p
-							class="relative shrink-0 font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-[#737373]"
-						>
-							Shipment cost
-						</p>
-						<p
-							class="relative shrink-0 font-['Geist:Regular'] text-[18px] leading-[28px] font-normal text-[#0a0a0a]"
-						>
-							$22.50
-						</p>
-					</div>
-				</div>
-				<div class="relative h-0 w-full shrink-0">
-					<div class="absolute inset-[-1px_0_0_0]">
-						<img alt="" class="block size-full max-w-none" src={imgLine1} />
-					</div>
-				</div>
-				<div
-					class="relative flex w-full shrink-0 content-stretch items-start justify-between [word-break:break-word] whitespace-nowrap"
-					data-name="text"
-				>
-					<p
-						class="relative shrink-0 font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-[#737373]"
-					>
-						Grand Total
-					</p>
-					<p
-						class="relative shrink-0 font-['Geist:Regular'] text-[18px] leading-[28px] font-normal text-[#0a0a0a]"
-					>
-						$571.70
-					</p>
-				</div>
-			</div>
-			<p
-				class="relative w-full shrink-0 font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-[#0a0a0a]"
-			>
-				You’ll get $200 refunded after your returned item is picked up and verified.
-			</p>
-			<div
-				class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[16px] rounded-[8px]"
-				data-name="Flex Vertical"
-			>
-				<p
-					class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] text-[#0a0a0a]"
-				>
-					How do you want to be refunded?
-				</p>
-				<div
-					class="relative flex w-full shrink-0 content-stretch items-start gap-[16px]"
-					data-name="Flex Horizontal"
-				>
-					<div
-						class="relative flex shrink-0 content-stretch items-start gap-[10px]"
-						data-name="Radio"
-					>
-						<div class="relative size-[24px] shrink-0" data-name="Radio">
-							<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgRadio} />
-						</div>
-						<div
-							class="relative flex shrink-0 flex-col content-stretch items-start justify-center gap-[2px] self-stretch"
-							data-name="radio-container"
-						>
-							<div
-								class="relative flex h-[24px] w-full shrink-0 flex-col justify-center font-['Geist:Regular'] text-[14px] leading-[0] font-normal [word-break:break-word] text-[#0a0a0a]"
-							>
-								<p class="leading-[20px]">Original payment method</p>
-							</div>
-						</div>
-					</div>
-					<div
-						class="relative flex shrink-0 content-stretch items-start gap-[10px]"
-						data-name="Radio"
-					>
-						<div class="relative size-[24px] shrink-0" data-name="Radio">
-							<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgRadio1} />
-						</div>
-						<div
-							class="relative flex shrink-0 flex-col content-stretch items-start justify-center gap-[2px] self-stretch"
-							data-name="radio-container"
-						>
-							<div
-								class="relative flex h-[24px] w-full shrink-0 flex-col justify-center font-['Geist:Regular'] text-[14px] leading-[0] font-normal [word-break:break-word] text-[#0a0a0a]"
-							>
-								<p class="leading-[20px]">Gift card</p>
-							</div>
-						</div>
-					</div>
-					<div
-						class="relative flex shrink-0 content-stretch items-start gap-[10px]"
-						data-name="Radio"
-					>
-						<div class="relative size-[24px] shrink-0" data-name="Radio">
-							<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgRadio1} />
-						</div>
-						<div
-							class="relative flex shrink-0 flex-col content-stretch items-start justify-center gap-[2px] self-stretch"
-							data-name="radio-container"
-						>
-							<div
-								class="relative flex h-[24px] w-full shrink-0 flex-col justify-center font-['Geist:Regular'] text-[14px] leading-[0] font-normal [word-break:break-word] text-[#0a0a0a]"
-							>
-								<p class="leading-[20px]">Credit or Debit card</p>
-							</div>
-						</div>
-					</div>
-				</div>
-				<div
-					class="relative flex w-full shrink-0 content-stretch items-center justify-center gap-[6px] overflow-clip rounded-[10px] bg-[#171717] px-[12px] py-[6px]"
-					data-name="Solid Button"
-				>
-					<div
-						class="relative flex shrink-0 flex-col justify-center font-['Geist:Medium'] text-[14px] leading-[0] font-medium [word-break:break-word] whitespace-nowrap text-[#fafafa]"
-					>
-						<p class="leading-[20px]">Confirm Exchange</p>
-					</div>
-				</div>
+							{submitting ? 'Submitting' : 'Confirm Exchange'}
+						</Button>
+					</form>
+				{/if}
 			</div>
 		</div>
 	</div>

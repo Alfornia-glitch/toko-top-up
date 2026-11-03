@@ -7,9 +7,17 @@
 
 	let code = $state('');
 	let resent = $state(false);
+	let error = $state('');
 
 	function handleSubmit(event: SubmitEvent) {
 		event.preventDefault();
+		error = '';
+
+		if (code.length !== 6) {
+			error = 'Enter the 6-digit security code.';
+			return;
+		}
+
 		goto('/');
 	}
 </script>
@@ -37,6 +45,9 @@
 				{/snippet}
 			</InputOTP.Root>
 		</Field.Field>
+		{#if error}
+			<Field.Error>{error}</Field.Error>
+		{/if}
 		<Button type="submit" class="w-full">Verify my account</Button>
 	</form>
 	<div class="mt-4 text-center text-sm text-muted-foreground">
@@ -44,7 +55,7 @@
 		<button
 			type="button"
 			class="font-medium text-foreground underline-offset-4 hover:underline"
-			onclick={() => (resent = true)}
+			onclick={() => (resent = !resent)}
 		>
 			{resent ? 'Code sent' : 'Resend'}
 		</button>

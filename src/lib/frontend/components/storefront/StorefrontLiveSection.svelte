@@ -1,60 +1,10 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import ImagePlaceholder from '#lib/frontend/components/ui/ImagePlaceholder.svelte';
-	import StorefrontProductCard, {
-		type StorefrontProduct
-	} from '#lib/frontend/components/storefront/StorefrontProductCard.svelte';
-
-	interface StorefrontBrand {
-		id: string;
-		name: string;
-		slug: string;
-		logoUrl: string | null;
-	}
-
-	interface StorefrontCategory {
-		id: string;
-		name: string;
-		slug: string;
-		parentId: string | null;
-		description: string | null;
-		imageUrl: string | null;
-		position: number;
-		productCount: number;
-	}
-
-	interface StorefrontHome {
-		featured: StorefrontProduct[];
-		brands: StorefrontBrand[];
-		categories: StorefrontCategory[];
-	}
-
-	let home = $state<StorefrontHome | null>(null);
-
-	onMount(() => {
-		void loadHome();
-	});
-
-	async function loadHome() {
-		try {
-			const response = await fetch('/api/storefront/home');
-			if (!response.ok) return;
-
-			const payload = await response.json();
-			if (!payload.data) return;
-
-			home = {
-				featured: Array.isArray(payload.data.featured) ? payload.data.featured : [],
-				brands: Array.isArray(payload.data.brands) ? payload.data.brands : [],
-				categories: Array.isArray(payload.data.categories) ? payload.data.categories : []
-			};
-		} catch {
-			home = null;
-		}
-	}
+	import StorefrontProductCard from '#lib/frontend/components/storefront/StorefrontProductCard.svelte';
+	import { home } from '#lib/frontend/modules/commerce/home.svelte.ts';
 </script>
 
-{#if home && home.featured.length > 0}
+{#if home.featured.length > 0}
 	<section class="w-full bg-white py-16" data-name="Storefront Live">
 		<div class="mx-auto flex w-full max-w-[1280px] flex-col gap-12 px-4 lg:px-8">
 			<div class="flex flex-col gap-6">

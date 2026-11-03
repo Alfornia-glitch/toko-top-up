@@ -1,43 +1,296 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import SiteHeader from '#lib/frontend/components/SiteHeader.svelte';
 	import SiteFooter from '#lib/frontend/components/SiteFooter.svelte';
-	const imgPic = '/assets/d94d6.png';
-	const imgOrnament54 = '/assets/c7bb1.svg';
-	const imgOrnament51 = '/assets/ddcaa.svg';
-	const imgOrnament52 = '/assets/658ce.svg';
-	const imgOrnament53 = '/assets/0d8d6.svg';
-	const imgLeftIcon = '/assets/a05bd.svg';
-	const imgIcon = '/assets/aac55.svg';
-	const imgIcon1 = '/assets/3fa6a.svg';
-	const imgEllipse90 = '/assets/7af52.svg';
-	const imgGroup = '/assets/9c2d9.svg';
-	const imgGroup1 = '/assets/58614.svg';
-	const imgLeftIcon1 = '/assets/525ae.svg';
-	const imgLeftIcon2 = '/assets/51c3a.svg';
-	const imgLeftIcon3 = '/assets/a3682.svg';
-	const imgLeftIcon4 = '/assets/dad92.svg';
-	const imgIcon2 = '/assets/303ae.svg';
-	const imgIcon3 = '/assets/bf68c.svg';
-	const imgImage110 = '/assets/a8912.png';
-	const imgImage19 = '/assets/3cc20.png';
-	const imgImage13 = '/assets/ad1bf.png';
-	const imgImage11 = '/assets/c2747.png';
-	const imgImage12 = '/assets/d5a5f.png';
+	import { api, ApiError, unwrap } from '#lib/frontend/modules/commerce/http.ts';
+	import { cart } from '#lib/frontend/modules/commerce/cart.svelte.ts';
+	import { site } from '#lib/frontend/modules/commerce/site.svelte.ts';
+	import { checkout } from '#lib/frontend/modules/commerce/checkout.svelte.ts';
+	import { formatMoney } from '#lib/frontend/modules/commerce/format.ts';
+	import type { Address, PaymentMethod } from '#lib/frontend/modules/commerce/models.ts';
+
+	type PaymentMode = 'card' | 'cod' | 'gift';
+	type CardType = 'debit' | 'credit';
+
+	interface PaymentPayload {
+		mode: PaymentMode;
+		paymentMethodId?: string;
+		brand?: string;
+		last4?: string;
+		expMonth?: number;
+		expYear?: number;
+	}
+
 	const imgShoppingCart = '/assets/64b14.svg';
 	const imgMapPin = '/assets/a58c0.svg';
 	const imgDollarSign = '/assets/43c76.svg';
 	const imgSeparator = '/assets/72948.svg';
-	const imgGroup2 = '/assets/bf7d8.svg';
-	const imgIcon4 = '/assets/f7856.svg';
-	const imgIcon5 = '/assets/008f3.svg';
-	const imgIcon6 = '/assets/48e75.svg';
-	const imgAppleIcon = '/assets/256e4.svg';
-	const imgGroup3 = '/assets/f943f.svg';
-	const imgShield = '/assets/557e7.svg';
-	const imgIcon7 = '/assets/18d4b.svg';
-	const imgIcon8 = '/assets/dc7e2.svg';
-	const imgIcon9 = '/assets/dc1ab.svg';
+
+	const activeTabClass =
+		'relative flex min-w-px flex-[1_0_0] content-stretch items-center justify-center gap-[4px] overflow-clip rounded-[10px] border border-solid border-[#e5e5e5] bg-white px-[10px] py-[6px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.1),0px_1px_2px_-1px_rgba(0,0,0,0.1)]';
+	const inactiveTabClass =
+		'relative flex min-w-px flex-[1_0_0] content-stretch items-center justify-center gap-[4px] rounded-[10px] px-[10px] py-[6px]';
+
+	let mode = $state<PaymentMode>('card');
+	let cardType = $state<CardType>('debit');
+	let cardNumber = $state('');
+	let cardName = $state('');
+	let expDate = $state('');
+	let cvv = $state('');
+	let paymentMethodId = $state('');
+	let saveCard = $state(false);
+	let addresses = $state<Address[]>([]);
+	let methods = $state<PaymentMethod[]>([]);
+	let loading = $state(false);
+	let placing = $state(false);
+	let ready = $state(false);
+	let error = $state('');
+	let notice = $state('');
+
+	const isCard = $derived(mode === 'card');
+	const selectedAddress = $derived(
+		addresses.find((address) => address.id === checkout.addressId) ?? null
+	);
+	const selectedShipping = $derived(
+		site.shipping.find((option) => option.id === checkout.shippingId) ?? null
+	);
+	const shippingCents = $derived(selectedShipping?.priceCents ?? 0);
+	const totalCents = $derived(cart.totalCents + shippingCents);
+	const selectedMethod = $derived(methods.find((method) => method.id === paymentMethodId) ?? null);
+
+	function tabClass(active: boolean) {
+		return active ? activeTabClass : inactiveTabClass;
+	}
+
+	function tabTextClass(active: boolean) {
+		return `relative shrink-0 font-['Geist:Medium'] text-[14px] leading-[20px] font-medium [word-break:break-word] whitespace-nowrap ${
+			active ? 'text-[#0a0a0a]' : 'text-[#0a0a0a] opacity-60'
+		}`;
+	}
+
+	function cardBrand(digits: string): string {
+		if (/^4/.test(digits)) return 'Visa';
+		if (/^3[47]/.test(digits)) return 'Amex';
+		if (/^(5[1-5]|2[2-7])/.test(digits)) return 'Mastercard';
+		return 'Card';
+	}
+
+	function parseExpiry(value: string): { month: number; year: number } | null {
+		const match = value.replace(/\s/g, '').match(/^(\d{1,2})\/?(\d{2}|\d{4})$/);
+		if (!match) return null;
+
+		const month = Number(match[1]);
+		const yearPart = Number(match[2]);
+		const year = match[2].length === 2 ? 2000 + yearPart : yearPart;
+
+		if (month < 1 || month > 12) return null;
+		if (year < 2000 || year > 2100) return null;
+
+		const now = new Date();
+		const currentYear = now.getFullYear();
+		const currentMonth = now.getMonth() + 1;
+
+		if (year < currentYear || (year === currentYear && month < currentMonth)) return null;
+
+		return { month, year };
+	}
+
+	function selectSavedMethod(id: string) {
+		paymentMethodId = id;
+		mode = 'card';
+		error = '';
+		notice = '';
+	}
+
+	function useNewCard() {
+		paymentMethodId = '';
+		notice = '';
+	}
+
+	function resetForm() {
+		cardNumber = '';
+		cardName = '';
+		expDate = '';
+		cvv = '';
+		saveCard = false;
+		paymentMethodId = '';
+		error = '';
+		notice = '';
+	}
+
+	function readCard(): PaymentPayload | null {
+		const digits = cardNumber.replace(/\D/g, '');
+		const last4 = digits.slice(-4);
+
+		if (digits.length < 12 || !/^\d{4}$/.test(last4)) {
+			error = 'Enter a valid card number.';
+			return null;
+		}
+
+		const expiry = parseExpiry(expDate);
+		if (!expiry) {
+			error = 'Enter a valid expiry date in MM/YY format.';
+			return null;
+		}
+
+		if (!/^\d{3,4}$/.test(cvv.trim())) {
+			error = 'Enter a valid CVV.';
+			return null;
+		}
+
+		return {
+			mode: 'card',
+			brand: cardBrand(digits),
+			last4,
+			expMonth: expiry.month,
+			expYear: expiry.year
+		};
+	}
+
+	async function saveCardToAccount() {
+		error = '';
+		notice = '';
+
+		const details = readCard();
+		if (!details) return;
+
+		try {
+			const saved = unwrap(
+				await api.post<{ data: PaymentMethod }>('/api/payment-methods', {
+					brand: details.brand,
+					last4: details.last4,
+					expMonth: details.expMonth,
+					expYear: details.expYear
+				})
+			);
+
+			methods = [saved, ...methods];
+			paymentMethodId = saved.id;
+			notice = 'Card saved to your account.';
+		} catch (cause) {
+			if (cause instanceof ApiError && cause.status === 401) {
+				await goto('/login?redirectTo=/checkout/payment');
+				return;
+			}
+
+			error = cause instanceof Error ? cause.message : 'Could not save your card';
+		}
+	}
+
+	async function placeOrder() {
+		error = '';
+		notice = '';
+
+		if (!checkout.addressId || !checkout.shippingId) {
+			await goto('/checkout/address');
+			return;
+		}
+
+		const payment: PaymentPayload = { mode };
+
+		if (mode === 'card') {
+			if (paymentMethodId) {
+				payment.paymentMethodId = paymentMethodId;
+			} else {
+				const details = readCard();
+				if (!details) return;
+
+				if (saveCard) {
+					try {
+						const saved = unwrap(
+							await api.post<{ data: PaymentMethod }>('/api/payment-methods', {
+								brand: details.brand,
+								last4: details.last4,
+								expMonth: details.expMonth,
+								expYear: details.expYear
+							})
+						);
+						payment.paymentMethodId = saved.id;
+					} catch (cause) {
+						if (cause instanceof ApiError && cause.status === 401) {
+							await goto('/login?redirectTo=/checkout/payment');
+							return;
+						}
+
+						error = cause instanceof Error ? cause.message : 'Could not save your card';
+						return;
+					}
+				} else {
+					payment.brand = details.brand;
+					payment.last4 = details.last4;
+					payment.expMonth = details.expMonth;
+					payment.expYear = details.expYear;
+				}
+			}
+		}
+
+		placing = true;
+
+		try {
+			const result = unwrap(
+				await api.post<{ data: { orderId: string; orderNumber: string } }>('/api/checkout', {
+					addressId: checkout.addressId,
+					shippingId: checkout.shippingId,
+					couponCode: cart.cart?.coupon?.code ?? null,
+					note: checkout.note || null,
+					payment
+				})
+			);
+
+			checkout.clear();
+			await cart.refresh();
+			await goto('/account/order-tracking?order=' + encodeURIComponent(result.orderNumber));
+		} catch (cause) {
+			if (cause instanceof ApiError && cause.status === 401) {
+				await goto('/login?redirectTo=/checkout/payment');
+				return;
+			}
+
+			error = cause instanceof Error ? cause.message : 'Could not place your order';
+		} finally {
+			placing = false;
+		}
+	}
+
+	async function loadData() {
+		loading = true;
+		error = '';
+
+		try {
+			const [addressPayload, methodPayload] = await Promise.all([
+				api.get<{ data: Address[] }>('/api/addresses'),
+				api.get<{ data: PaymentMethod[] }>('/api/payment-methods')
+			]);
+
+			addresses = unwrap(addressPayload);
+			methods = unwrap(methodPayload);
+		} catch (cause) {
+			if (cause instanceof ApiError && cause.status === 401) {
+				await goto('/login?redirectTo=/checkout/payment');
+				return;
+			}
+
+			error = cause instanceof Error ? cause.message : 'Could not load checkout details';
+		} finally {
+			loading = false;
+		}
+	}
+
+	async function init() {
+		checkout.load();
+		await Promise.all([cart.refresh(), site.ensure()]);
+		await loadData();
+		ready = true;
+
+		if (!checkout.addressId || !checkout.shippingId || !selectedAddress || !selectedShipping) {
+			await goto('/checkout/address');
+		}
+	}
+
+	onMount(() => {
+		void init();
+	});
 </script>
 
 <div
@@ -167,12 +420,13 @@
 					</div>
 				</div>
 			</div>
+
 			<div
 				class="relative flex w-full shrink-0 content-stretch items-start gap-[16px]"
 				data-name="Flex Horizontal"
 			>
 				<div
-					class="relative flex w-[678px] shrink-0 flex-col content-stretch items-start gap-[24px] overflow-clip rounded-[14px] bg-white py-[16px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)]"
+					class="relative flex min-w-px flex-[1_0_0] flex-col content-stretch items-start gap-[24px] overflow-clip rounded-[14px] bg-white py-[16px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)]"
 					data-name="Card"
 				>
 					<div
@@ -197,205 +451,251 @@
 								class="relative z-[1] flex min-w-px flex-[1_0_0] content-stretch items-center"
 								data-name="Items"
 							>
-								<div
-									class="relative flex min-w-px flex-[1_0_0] content-stretch items-center justify-center gap-[4px] overflow-clip rounded-[10px] border border-solid border-[#e5e5e5] bg-white px-[10px] py-[6px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.1),0px_1px_2px_-1px_rgba(0,0,0,0.1)]"
+								<button
+									type="button"
+									class={tabClass(mode === 'card' && cardType === 'debit')}
 									data-name="Tab 01"
+									onclick={() => {
+										mode = 'card';
+										cardType = 'debit';
+										error = '';
+										notice = '';
+									}}
 								>
-									<p
-										class="relative shrink-0 font-['Geist:Medium'] text-[14px] leading-[20px] font-medium [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
-									>
-										Debit Card
-									</p>
-								</div>
-								<div
-									class="relative flex min-w-px flex-[1_0_0] content-stretch items-center justify-center gap-[4px] rounded-[10px] px-[10px] py-[6px]"
+									<p class={tabTextClass(mode === 'card' && cardType === 'debit')}>Debit Card</p>
+								</button>
+								<button
+									type="button"
+									class={tabClass(mode === 'card' && cardType === 'credit')}
 									data-name="Tab 02"
+									onclick={() => {
+										mode = 'card';
+										cardType = 'credit';
+										error = '';
+										notice = '';
+									}}
 								>
-									<p
-										class="relative shrink-0 font-['Geist:Medium'] text-[14px] leading-[20px] font-medium [word-break:break-word] whitespace-nowrap text-[#0a0a0a] opacity-60"
-									>
-										Credit Card
-									</p>
-								</div>
-								<div
-									class="relative flex min-w-px flex-[1_0_0] content-stretch items-center justify-center gap-[4px] rounded-[8px] px-[10px] py-[6px]"
+									<p class={tabTextClass(mode === 'card' && cardType === 'credit')}>Credit Card</p>
+								</button>
+								<button
+									type="button"
+									class={tabClass(mode === 'cod')}
 									data-name="Tab item"
+									onclick={() => {
+										mode = 'cod';
+										error = '';
+										notice = '';
+									}}
 								>
-									<p
-										class="relative shrink-0 font-['Geist:Medium'] text-[14px] leading-[20px] font-medium [word-break:break-word] whitespace-nowrap text-[#0a0a0a] opacity-60"
-									>
-										Cash on delivery
-									</p>
-								</div>
-								<div
-									class="relative flex min-w-px flex-[1_0_0] content-stretch items-center justify-center gap-[4px] rounded-[10px] px-[10px] py-[6px]"
+									<p class={tabTextClass(mode === 'cod')}>Cash on delivery</p>
+								</button>
+								<button
+									type="button"
+									class={tabClass(mode === 'gift')}
 									data-name="Tab 04"
+									onclick={() => {
+										mode = 'gift';
+										error = '';
+										notice = '';
+									}}
 								>
-									<p
-										class="relative shrink-0 font-['Geist:Medium'] text-[14px] leading-[20px] font-medium [word-break:break-word] whitespace-nowrap text-[#171717] opacity-60"
-									>
-										Gift card
-									</p>
-								</div>
+									<p class={tabTextClass(mode === 'gift')}>Gift card</p>
+								</button>
 							</div>
 						</div>
-						<div
-							class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[24px]"
-							data-name="Flex Vertical"
-						>
-							<div
-								class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[14px]"
-								data-name="Flex Vertical"
-							>
-								<p
-									class="relative w-full shrink-0 font-['Geist:Medium'] text-[14px] leading-[20px] font-medium [word-break:break-word] text-[#0a0a0a]"
-								>
-									Card Number
-								</p>
+
+						{#if isCard}
+							{#if methods.length > 0}
 								<div
 									class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[8px]"
-									data-name="Default Input"
-								>
-									<div
-										class="relative flex w-full shrink-0 content-stretch items-start"
-										data-name="input-container"
-									>
-										<div
-											class="relative flex h-[32px] min-w-px flex-[1_0_0] content-stretch items-center gap-[6px] rounded-[10px] border border-solid border-[#e5e5e5] bg-white px-[10px] py-[4px]"
-											data-name="input"
-										>
-											<div
-												class="relative flex h-[26px] min-w-px flex-[1_0_0] flex-col justify-center overflow-hidden font-['Geist:Regular'] text-[14px] leading-[0] font-normal [word-break:break-word] text-ellipsis whitespace-nowrap text-[#0a0a0a]"
-											>
-												<p class="overflow-hidden leading-[20px] text-ellipsis">12314 4562 251</p>
-											</div>
-										</div>
-									</div>
-								</div>
-							</div>
-							<div
-								class="relative flex w-full min-w-[280px] shrink-0 flex-wrap content-start items-start gap-[24px]"
-								data-name="Flex Horizontal"
-							>
-								<div
-									class="relative flex shrink-0 flex-col content-stretch items-start gap-[14px]"
-									data-name="Flex Vertical"
-								>
-									<p
-										class="relative w-[min-content] min-w-full shrink-0 font-['Geist:Medium'] text-[14px] leading-[20px] font-medium [word-break:break-word] text-[#0a0a0a]"
-									>
-										Card Name
-									</p>
-									<div
-										class="relative flex w-[288px] shrink-0 flex-col content-stretch items-start gap-[8px]"
-										data-name="Default Input"
-									>
-										<div
-											class="relative flex w-full shrink-0 content-stretch items-start"
-											data-name="input-container"
-										>
-											<div
-												class="relative flex h-[32px] min-w-px flex-[1_0_0] content-stretch items-center gap-[6px] rounded-[10px] border border-solid border-[#e5e5e5] bg-white px-[10px] py-[4px]"
-												data-name="input"
-											>
-												<div
-													class="relative flex h-[26px] min-w-px flex-[1_0_0] flex-col justify-center overflow-hidden font-['Geist:Regular'] text-[14px] leading-[0] font-normal [word-break:break-word] text-ellipsis whitespace-nowrap text-[#0a0a0a]"
-												>
-													<p class="overflow-hidden leading-[20px] text-ellipsis">John Doe</p>
-												</div>
-											</div>
-										</div>
-									</div>
-								</div>
-								<div
-									class="relative flex min-w-[77px] flex-[1_0_0] flex-col content-stretch items-start gap-[14px]"
 									data-name="Flex Vertical"
 								>
 									<p
 										class="relative w-full shrink-0 font-['Geist:Medium'] text-[14px] leading-[20px] font-medium [word-break:break-word] text-[#0a0a0a]"
 									>
-										Exp. Date
+										Saved cards
 									</p>
-									<div
-										class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[8px]"
-										data-name="Default Input"
-									>
-										<div
-											class="relative flex w-full shrink-0 content-stretch items-start"
-											data-name="input-container"
+									{#each methods as method (method.id)}
+										<button
+											type="button"
+											class="relative flex w-full shrink-0 cursor-pointer content-stretch items-center justify-between gap-[12px] rounded-[10px] border border-solid bg-white px-[10px] py-[8px] text-left {paymentMethodId ===
+											method.id
+												? 'border-[#171717]'
+												: 'border-[#e5e5e5]'}"
+											data-name="Card Radio"
+											onclick={() => selectSavedMethod(method.id)}
 										>
-											<div
-												class="relative flex min-w-px flex-[1_0_0] content-stretch items-center gap-[6px] self-stretch rounded-[10px] border border-solid border-[#e5e5e5] bg-white px-[10px] py-[4px]"
-												data-name="input"
+											<span
+												class="relative font-['Geist:Medium'] text-[14px] leading-[20px] font-medium text-[#0a0a0a]"
 											>
-												<div
-													class="relative flex min-w-px flex-[1_0_0] flex-col justify-center overflow-hidden font-['Geist:Regular'] text-[14px] leading-[0] font-normal [word-break:break-word] text-ellipsis whitespace-nowrap text-[#737373]"
-												>
-													<p class="overflow-hidden leading-[20px] text-ellipsis">MM/YY</p>
-												</div>
-											</div>
-										</div>
-									</div>
+												{method.brand} •••• {method.last4}
+											</span>
+											<span
+												class="relative flex items-center gap-[8px] font-['Geist:Regular'] text-[12px] leading-[16px] text-[#737373]"
+											>
+												{String(method.expMonth).padStart(2, '0')}/{String(method.expYear).slice(
+													-2
+												)}
+												{#if method.isDefault}
+													<span class="rounded-[8px] bg-[#f5f5f5] px-[6px] py-[2px]">Default</span>
+												{/if}
+											</span>
+										</button>
+									{/each}
 								</div>
+							{/if}
+
+							{#if paymentMethodId && selectedMethod}
 								<div
-									class="relative flex min-w-px flex-[1_0_0] flex-col content-stretch items-start gap-[14px]"
-									data-name="Flex Vertical"
+									class="relative flex w-full shrink-0 content-stretch items-center justify-between gap-[12px] rounded-[10px] border border-solid border-[#e5e5e5] bg-[#f5f5f5] px-[10px] py-[8px]"
+									data-name="Flex Horizontal"
 								>
 									<p
-										class="relative shrink-0 font-['Geist:Medium'] text-[14px] leading-[20px] font-medium [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
+										class="relative font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]"
 									>
-										CVV Code
+										Using {selectedMethod.brand} ending in {selectedMethod.last4}
 									</p>
-									<div
-										class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[8px]"
-										data-name="Default Input"
+									<button
+										type="button"
+										class="relative shrink-0 cursor-pointer font-['Geist:Medium'] text-[14px] leading-[20px] font-medium text-[#0a0a0a] hover:underline"
+										onclick={useNewCard}
 									>
-										<div
-											class="relative flex w-full shrink-0 content-stretch items-start"
-											data-name="input-container"
+										Use a new card
+									</button>
+								</div>
+							{:else}
+								<div
+									class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[24px]"
+									data-name="Flex Vertical"
+								>
+									<div
+										class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[14px]"
+										data-name="Flex Vertical"
+									>
+										<label
+											for="card-number"
+											class="relative w-full shrink-0 font-['Geist:Medium'] text-[14px] leading-[20px] font-medium [word-break:break-word] text-[#0a0a0a]"
 										>
-											<div
-												class="relative flex h-[32px] min-w-px flex-[1_0_0] content-stretch items-center gap-[6px] rounded-[10px] border border-solid border-[#e5e5e5] bg-white px-[10px] py-[4px]"
-												data-name="input"
-											>
-												<div
-													class="relative flex shrink-0 flex-col justify-center overflow-hidden font-['Geist:Regular'] text-[14px] leading-[0] font-normal [word-break:break-word] text-ellipsis whitespace-nowrap text-[#737373]"
-												>
-													<p class="overflow-hidden leading-[20px] text-ellipsis">652</p>
-												</div>
-											</div>
+											Card Number
+										</label>
+										<div
+											class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[8px]"
+											data-name="Default Input"
+										>
+											<input
+												id="card-number"
+												class="relative flex h-[32px] w-full rounded-[10px] border border-solid border-[#e5e5e5] bg-white px-[10px] py-[4px] font-['Geist:Regular'] text-[14px] leading-[20px] text-[#0a0a0a] outline-none focus:border-[#171717]"
+												inputmode="numeric"
+												autocomplete="cc-number"
+												placeholder="Card number"
+												bind:value={cardNumber}
+											/>
 										</div>
 									</div>
+									<div
+										class="relative flex w-full min-w-[280px] shrink-0 flex-wrap content-start items-start gap-[24px]"
+										data-name="Flex Horizontal"
+									>
+										<label
+											class="relative flex min-w-[160px] shrink-0 flex-col content-stretch items-start gap-[14px]"
+											data-name="Flex Vertical"
+										>
+											<span
+												class="relative w-[min-content] min-w-full shrink-0 font-['Geist:Medium'] text-[14px] leading-[20px] font-medium [word-break:break-word] text-[#0a0a0a]"
+											>
+												Card Name
+											</span>
+											<input
+												class="relative h-[32px] w-[288px] rounded-[10px] border border-solid border-[#e5e5e5] bg-white px-[10px] py-[4px] font-['Geist:Regular'] text-[14px] leading-[20px] text-[#0a0a0a] outline-none focus:border-[#171717]"
+												autocomplete="cc-name"
+												placeholder="Name on card"
+												bind:value={cardName}
+											/>
+										</label>
+										<label
+											class="relative flex min-w-[77px] flex-[1_0_0] flex-col content-stretch items-start gap-[14px]"
+											data-name="Flex Vertical"
+										>
+											<span
+												class="relative w-full shrink-0 font-['Geist:Medium'] text-[14px] leading-[20px] font-medium [word-break:break-word] text-[#0a0a0a]"
+											>
+												Exp. Date
+											</span>
+											<input
+												class="relative h-[32px] w-full rounded-[10px] border border-solid border-[#e5e5e5] bg-white px-[10px] py-[4px] font-['Geist:Regular'] text-[14px] leading-[20px] text-[#0a0a0a] outline-none focus:border-[#171717]"
+												inputmode="numeric"
+												autocomplete="cc-exp"
+												placeholder="MM/YY"
+												bind:value={expDate}
+											/>
+										</label>
+										<label
+											class="relative flex min-w-px flex-[1_0_0] flex-col content-stretch items-start gap-[14px]"
+											data-name="Flex Vertical"
+										>
+											<span
+												class="relative shrink-0 font-['Geist:Medium'] text-[14px] leading-[20px] font-medium [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
+											>
+												CVV Code
+											</span>
+											<input
+												class="relative h-[32px] w-full rounded-[10px] border border-solid border-[#e5e5e5] bg-white px-[10px] py-[4px] font-['Geist:Regular'] text-[14px] leading-[20px] text-[#0a0a0a] outline-none focus:border-[#171717]"
+												type="password"
+												inputmode="numeric"
+												autocomplete="cc-csc"
+												placeholder="CVV"
+												bind:value={cvv}
+											/>
+										</label>
+									</div>
 								</div>
-							</div>
-						</div>
+							{/if}
+						{/if}
+
+						{#if error}
+							<p class="relative font-['Geist:Regular'] text-[14px] leading-[20px] text-red-600">
+								{error}
+							</p>
+						{/if}
+						{#if notice}
+							<p class="relative font-['Geist:Regular'] text-[14px] leading-[20px] text-[#16a34a]">
+								{notice}
+							</p>
+						{/if}
+
 						<div
 							class="relative flex w-full shrink-0 content-stretch items-start gap-[14px]"
 							data-name="Actions"
 						>
-							<div
-								class="relative flex shrink-0 content-stretch items-center justify-center gap-[6px] overflow-clip rounded-[10px] bg-[#171717] px-[16px] py-[8px]"
+							<button
+								type="button"
+								class="relative flex shrink-0 cursor-pointer content-stretch items-center justify-center gap-[6px] overflow-clip rounded-[10px] border border-solid border-[#171717] bg-[#171717] px-[16px] py-[8px] disabled:cursor-not-allowed disabled:opacity-60"
 								data-name="Solid Button"
+								disabled={placing || !isCard || Boolean(paymentMethodId)}
+								onclick={saveCardToAccount}
 							>
 								<div
 									class="relative flex shrink-0 flex-col justify-center font-['Geist:Medium'] text-[14px] leading-[0] font-medium [word-break:break-word] whitespace-nowrap text-[#fafafa]"
 								>
-									<p class="leading-[20px]">Save Changes</p>
+									<p class="leading-[20px]">Save card</p>
 								</div>
-							</div>
-							<div
-								class="relative flex shrink-0 content-stretch items-center justify-center gap-[6px] overflow-clip rounded-[10px] border border-solid border-[#f5f5f5] bg-[#f5f5f5] px-[16px] py-[8px]"
+							</button>
+							<button
+								type="button"
+								class="relative flex shrink-0 cursor-pointer content-stretch items-center justify-center gap-[6px] overflow-clip rounded-[10px] border border-solid border-[#f5f5f5] bg-[#f5f5f5] px-[16px] py-[8px]"
 								data-name="Solid Button"
+								onclick={resetForm}
 							>
 								<div
 									class="relative flex shrink-0 flex-col justify-center font-['Geist:Medium'] text-[14px] leading-[0] font-medium [word-break:break-word] whitespace-nowrap text-[#171717]"
 								>
-									<p class="leading-[20px]">Reset</p>
+									<p class="leading-[20px]">Reset form</p>
 								</div>
-							</div>
+							</button>
 						</div>
 					</div>
 				</div>
+
 				<div
 					class="relative flex max-w-[522px] min-w-px flex-[1_0_0] flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-white py-[24px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)]"
 					data-name="Card"
@@ -416,51 +716,49 @@
 							<p
 								class="relative shrink-0 text-center font-['Geist:Regular'] text-[16px] leading-[24px] font-normal whitespace-nowrap text-[#737373]"
 							>
-								You have 1 item in your cart
+								You have {cart.count}
+								{cart.count === 1 ? 'item' : 'items'} in your cart
 							</p>
 						</div>
-						<div
-							class="relative flex w-full shrink-0 content-stretch items-center gap-[16px]"
-							data-name="Flex Horizontal"
-						>
-							<div class="relative h-[86px] w-[92px] shrink-0 rounded-[8px]" data-name="image 110">
-								<div aria-hidden="true" class="pointer-events-none absolute inset-0 rounded-[8px]">
-									<div class="absolute inset-0 rounded-[8px] bg-[#f5f5f5]"></div>
-									<div class="absolute inset-0 overflow-hidden rounded-[8px]">
-										<img
-											alt=""
-											class="absolute top-[-0.33%] left-[0.34%] h-[119.01%] w-full max-w-none"
-											src={imgImage110}
-										/>
-									</div>
-								</div>
-							</div>
+
+						{#each cart.items as item (item.id)}
 							<div
-								class="relative flex h-[72px] min-w-px flex-[1_0_0] flex-col content-stretch items-start gap-[4px] [word-break:break-word]"
-								data-name="Flex Vertical"
+								class="relative flex w-full shrink-0 content-stretch items-center gap-[16px]"
+								data-name="Flex Horizontal"
 							>
 								<div
-									class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[4px]"
+									class="relative h-[86px] w-[92px] shrink-0 overflow-hidden rounded-[8px] bg-[#f5f5f5]"
+									data-name="image 110"
+								>
+									{#if item.imageUrl}
+										<img alt="" class="size-full object-cover" src={item.imageUrl} />
+									{/if}
+								</div>
+								<div
+									class="relative flex min-h-[72px] min-w-px flex-[1_0_0] flex-col content-stretch items-start gap-[4px] [word-break:break-word]"
 									data-name="Flex Vertical"
 								>
 									<p
 										class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[18px] leading-[28px] font-semibold text-[#0a0a0a]"
 									>
-										{`H&M`}
+										{item.productName}
 									</p>
 									<p
 										class="relative w-full shrink-0 font-['Geist:Regular'] text-[14px] leading-[20px] font-normal text-[#737373]"
 									>
-										Soft, breathable cotton with a comfortable...
+										{item.variantName}
 									</p>
-								</div>
-								<div
-									class="relative flex w-full shrink-0 flex-col justify-center font-['Geist:Regular'] text-[12px] leading-[0] font-normal text-[#16a34a]"
-								>
-									<p class="leading-[16px]">Estimated Delivery: 12 Jan 2026</p>
+									<div
+										class="relative flex w-full shrink-0 flex-col justify-center font-['Geist:Regular'] text-[12px] leading-[16px] font-normal text-[#16a34a]"
+									>
+										<p class="leading-[16px]">
+											{formatMoney(item.unitPriceCents, cart.currency)} × {item.quantity}
+										</p>
+									</div>
 								</div>
 							</div>
-						</div>
+						{/each}
+
 						<div
 							class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[14px] text-[18px] leading-[28px] [word-break:break-word] text-[#0a0a0a]"
 							data-name="Flex Vertical"
@@ -473,7 +771,7 @@
 									Subtotal
 								</p>
 								<p class="relative shrink-0 font-['Geist:Medium'] font-medium whitespace-nowrap">
-									$108
+									{formatMoney(cart.subtotalCents, cart.currency)}
 								</p>
 							</div>
 							<div
@@ -484,7 +782,7 @@
 									Shipping Cost (+)
 								</p>
 								<p class="relative shrink-0 font-['Geist:Medium'] font-medium whitespace-nowrap">
-									$10.66
+									{formatMoney(shippingCents, cart.currency)}
 								</p>
 							</div>
 							<div
@@ -492,10 +790,10 @@
 								data-name="Flex Horizontal"
 							>
 								<p class="relative min-w-px flex-[1_0_0] font-['Geist:Regular'] font-normal">
-									{`Discount (-) `}
+									Discount (-)
 								</p>
 								<p class="relative shrink-0 font-['Geist:Medium'] font-medium whitespace-nowrap">
-									$9.00
+									{formatMoney(cart.discountCents, cart.currency)}
 								</p>
 							</div>
 						</div>
@@ -512,7 +810,7 @@
 								Total Payable
 							</p>
 							<p class="relative shrink-0 font-['Geist:SemiBold'] font-semibold whitespace-nowrap">
-								$88.15
+								{formatMoney(totalCents, cart.currency)}
 							</p>
 						</div>
 						<div
@@ -521,14 +819,15 @@
 						>
 							<button
 								type="button"
-								class="relative flex w-full shrink-0 cursor-pointer content-stretch items-center justify-center gap-[6px] overflow-clip rounded-[10px] border border-solid border-[#171717] bg-[#171717] px-[16px] py-[8px]"
+								class="relative flex w-full shrink-0 cursor-pointer content-stretch items-center justify-center gap-[6px] overflow-clip rounded-[10px] border border-solid border-[#171717] bg-[#171717] px-[16px] py-[8px] disabled:cursor-not-allowed disabled:opacity-60"
 								data-name="Solid Button"
-								onclick={() => goto('/account/order-tracking')}
+								disabled={placing || loading || !ready}
+								onclick={placeOrder}
 							>
 								<div
 									class="relative flex shrink-0 flex-col justify-center font-['Geist:Medium'] text-[14px] leading-[0] font-medium [word-break:break-word] whitespace-nowrap text-[#fafafa]"
 								>
-									<p class="leading-[20px]">Place Order</p>
+									<p class="leading-[20px]">{placing ? 'Placing order...' : 'Place Order'}</p>
 								</div>
 							</button>
 						</div>

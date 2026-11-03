@@ -1,6 +1,7 @@
 <script lang="ts">
 	import SiteHeader from '#lib/frontend/components/SiteHeader.svelte';
 	import SiteFooter from '#lib/frontend/components/SiteFooter.svelte';
+	import { cart } from '#lib/frontend/modules/commerce/cart.svelte.ts';
 	const imgPic = '/assets/d94d6.png';
 	const imgOrnament54 = '/assets/c7bb1.svg';
 	const imgOrnament51 = '/assets/ddcaa.svg';
@@ -68,7 +69,8 @@
 					class="relative w-full shrink-0 font-['Geist:Regular'] text-[0px] leading-[0] font-normal text-[#737373]"
 				>
 					<span class="text-[14px] leading-[20px]"
-						>{`Start filling it with great finds, hot deals, and everyday essentials. We have something special waiting for you! `}</span
+						>Start filling it with great finds, hot deals, and everyday essentials. We have
+						something special waiting for you!&#32;</span
 					>
 					<a
 						href="/products"
@@ -76,6 +78,14 @@
 						>Continue Shopping</a
 					>
 				</p>
+				{#if cart.count > 0}
+					<a
+						href="/cart"
+						class="inline-flex items-center justify-center self-center rounded-[10px] border border-solid border-[#171717] bg-[#171717] px-[16px] py-[8px] font-['Geist:Medium'] text-[14px] leading-[20px] font-medium text-[#fafafa] transition hover:bg-[#262626]"
+					>
+						View cart
+					</a>
+				{/if}
 			</div>
 		</div>
 	</div>
