@@ -1,6 +1,6 @@
 // See https://svelte.dev/docs/kit/types#app.d.ts
 // for information about these interfaces
-import type { auth } from '#lib/backend/modules/auth/index.ts';
+import type { auth } from '#lib/server/modules/auth/index.ts';
 type Session = typeof auth.$Infer.Session;
 
 declare global {

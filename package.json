@@ -6,8 +6,6 @@
 	"imports": {
 		"#lib": "./src/lib/index.ts",
 		"#lib/*": "./src/lib/*",
-		"#backend/modules/*": "./src/lib/backend/modules/*",
-		"#backend/database/*": "./src/lib/backend/modules/database/*",
 		"#frontend/modules/*": "./src/lib/frontend/modules/*",
 		"#db": "./src/lib/server/db/index.ts",
 		"#db/*": "./src/lib/server/db/*"

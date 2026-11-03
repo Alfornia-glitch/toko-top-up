@@ -20,13 +20,11 @@ Bun-only repo (no pnpm/npm). Run `bun install` from `web/`. Requires **Bun >= 1.
 ## Configuration (SvelteKit 3)
 
 - **No `svelte.config.ts`** — kit 3 rejects it (`kit/config_file_unsupported`). Config is inline in `vite.config.ts` via `sveltekit({ compilerOptions, adapter, paths })`. `paths.origin` is taken from the optional `ORIGIN` env var at build time; leave it empty behind TLS so adapter-bun can derive the host.
-- **`tsconfig.json` extends `"$app/tsconfig"`** (kit 3's preset: `paths: {}`, `types`, `noEmit`, `allowImportingTsExtensions`). Do not set `paths` for aliases. `compilerOptions.types` **replaces** the inherited array, so it must list both: `["$app/types", "bun"]` (the `bun` entry gives `bun:sqlite` / `Bun` global types to `src/lib/backend`).
+- **`tsconfig.json` extends `"$app/tsconfig"`** (kit 3's preset: `paths: {}`, `types`, `noEmit`, `allowImportingTsExtensions`). Do not set `paths` for aliases. `compilerOptions.types` **replaces** the inherited array, so it must list both: `["$app/types", "bun"]` (the `bun` entry gives `bun:sqlite` / `Bun` global types to `src/lib/server`).
 - **Env vars live in `src/env.ts`** (`defineEnvVars` from `@sveltejs/kit/env`) and are read as `$app/env/private` — kit 3 removed `$env/dynamic/private`, and `$env/static/private` is deprecated. `DB_PROVIDER` (`sqlite` | `postgres`), `STORAGE_PROVIDER` (`supabase` | `rustfs`), `BETTER_AUTH_SECRET`, and `BETTER_AUTH_URL` are required; the provider values are validated by schema functions. Provider-specific vars (`SQLITE_PATH`, `DATABASE_URL`, `SUPABASE_*`, `RUSTFS_*`) are optional in `src/env.ts` and validated lazily by `createDb()` / `getStorageBackend()`, which throw a clear error when a var needed by the selected provider is missing. `GOOGLE_*` are optional. Bun auto-loads `.env` for both `vite dev` and `bun --bun vite build`; `drizzle.config.ts` is the exception (drizzle-kit loads `.env` itself). `ORIGIN` is read from `process.env` in `vite.config.ts` at build time.
 - **Two deployment profiles** (copy one to `.env`): `env.vps.example` = `DB_PROVIDER=sqlite` + `STORAGE_PROVIDER=rustfs`; `env.supabase.example` = `DB_PROVIDER=postgres` + `STORAGE_PROVIDER=supabase`. The two switches are independent, so mixed combinations work.
 - **Path aliases live in `package.json` `imports`** (Node subpath imports, no `kit.alias`):
   - `#lib` → `./src/lib/index.ts`; `#lib/*` → `./src/lib/*`
-  - `#backend/modules/*` → `./src/lib/backend/modules/*`
-  - `#backend/database/*` → `./src/lib/backend/modules/database/*` (folds the old `@database/*` alias in)
   - `#db` → `./src/lib/server/db/index.ts`; `#db/*` → `./src/lib/server/db/*` (Drizzle; better-auth reads it)
 - Import specifiers **must include the file extension** (`.ts`, `.svelte`) — TS 6 resolves subpath imports only with an explicit extension; directory imports need `/index.ts`. `rewriteRelativeImportExtensions` must stay off (it makes TS2877 an error on non-relative `.ts` imports).
 
@@ -40,7 +38,7 @@ Bun-only repo (no pnpm/npm). Run `bun install` from `web/`. Requires **Bun >= 1.
 - `src/lib/frontend/components/ui/` — `Plus`, `Minus`, `Radio`, `Rating`, `Avatar`, `InputNumber`, `Pagination`
 - `src/lib/frontend/shellAssets.ts` — header/footer asset paths
 - `src/lib/frontend/modules/landing/` — landing-page sections (`HeroSection`, `BrandsSection`, …)
-- `src/lib/backend/` — better-auth config + hand-rolled `bun:sqlite` app tables (type-checked by `bun run check`)
+- `src/lib/server/modules/auth/` — better-auth server config (`index.ts`: `betterAuth` + `drizzleAdapter` + `sveltekitCookies`; lazy-imported by `src/hooks.server.ts`, typed in `src/app.d.ts`)
 - `src/lib/server/db/` — Drizzle client and schema for both providers (`drizzle-orm/bun-sqlite` + `schema/sqlite`, `drizzle-orm/bun-sql` + `schema/postgres`; better-auth tables only; env comes from `src/env.ts` via `$app/env/private`); `scripts/setup-db.ts` creates the `auth_app` schema for Postgres, then `bun run db:push` syncs the tables. Postgres tables are declared with `pgSchema('auth_app').table(…)` (drizzle 0.45 `pgTable` has no `schema` option), so queries are schema-qualified and need no `search_path`. The schema is deliberately not in Supabase's Exposed schemas.
 - `src/lib/server/modules/storage/` — pluggable media backends selected by `STORAGE_PROVIDER`: `supabase.ts` (`@supabase/storage-js` public bucket) and `rustfs.ts` (`Bun.S3Client` against a RustFS/S3-compatible endpoint, `public-read` ACL, permanent URLs from `RUSTFS_PUBLIC_URL`); `backend.ts` validates env lazily, `index.ts` keeps the shared validation and `uploadMedia()` API. Server-only (under `src/lib/server/`, and `$app/env/private` is guarded anyway) because `SUPABASE_SECRET_KEY` (the `sb_secret_…` key from the dashboard's Publishable and secret API keys tab) bypasses Storage RLS. Uploads are limited to `image/jpeg|png|webp|avif|gif` and 5 MiB; the extension comes from the MIME map, never from the client filename.
 - `src/routes/api/upload/+server.ts` — the only custom endpoint besides `/api/auth/*`. `POST` (multipart `file`, optional single-segment `folder`) returns `201 { path, url, contentType, size }`; `401` without a session, `400`/`413`/`415` on bad input, `502` when Storage rejects the write. Use `Response.json`, not kit 3's deprecated `json()`/`error()`.
@@ -50,7 +48,9 @@ Bun-only repo (no pnpm/npm). Run `bun install` from `web/`. Requires **Bun >= 1.
 
 ## Conventions
 
-- **Imports**: use `#lib/...` for app frontend code (e.g. `#lib/frontend/components/SiteHeader.svelte`), `#backend/...` for backend code, and `#db` for the Drizzle instance. `src/lib/server/**` is SvelteKit's server-only guard. No `#lib`, `@backend`, or `@database` specifiers remain.
+- **Imports**: use `#lib/...` for app code (e.g. `#lib/frontend/components/SiteHeader.svelte`, `#lib/server/modules/auth/index.ts`) and `#db` for the Drizzle instance. `src/lib/server/**` is SvelteKit's server-only guard. No `#backend`, `@backend`, or `@database` specifiers remain.
+- UI Style: use svelte-shadcn library https://www.shadcn-svelte.com/ & avoid to manually
+  write components from scratch
 - Idiomatic interactivity: real `<a href>` / `<button onclick>` (+ `goto` from `$app/navigation` for JS navigation). No global click delegation (the React app's `handlePageClick` label table in `App.tsx:1881-1942` is the acceptance checklist for what is wired, and which accidental skips are intentional: headings, radio option labels, stepper step labels in ReturnsRefunds, "Save changes" on checkout).
 - Every page renders `<SiteHeader />` right after its root div and `<SiteFooter />` (possibly `features`) right before the root close.
 - `data-node-id` is stripped everywhere except two elements on `/products/phone` (`I1:21686;31919:11168/11169`) which `layout.css` still needs for the mobile PDP layout.
