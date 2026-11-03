@@ -1,4 +1,6 @@
 import { betterAuth } from 'better-auth';
+import { admin } from 'better-auth/plugins';
+import { adminAc, userAc } from 'better-auth/plugins/admin/access';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { sveltekitCookies } from 'better-auth/svelte-kit';
 import { getRequestEvent } from '$app/server';
@@ -21,5 +23,12 @@ export const auth = betterAuth({
 	database: drizzleAdapter(db, { provider: dbProvider === 'postgres' ? 'pg' : 'sqlite' }),
 	emailAndPassword: { enabled: true },
 	...(google ? { socialProviders: google } : {}),
-	plugins: [sveltekitCookies(getRequestEvent)]
+	plugins: [
+		admin({
+			defaultRole: 'customer',
+			adminRoles: ['admin', 'superadmin'],
+			roles: { customer: userAc, admin: adminAc, superadmin: adminAc }
+		}),
+		sveltekitCookies(getRequestEvent)
+	]
 });

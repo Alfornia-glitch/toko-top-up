@@ -19,12 +19,14 @@ export default provider === 'postgres'
 			schema,
 			out: './drizzle',
 			// drizzle-kit defaults to ["public"]; the Better Auth tables live in
-			// the private auth_app schema, so it must be included explicitly.
-			schemaFilter: ['auth_app'],
+			// the private auth_app and shop schemas, so they must be included explicitly.
+			schemaFilter: ['auth_app', 'shop'],
 			dbCredentials: {
 				url: (() => {
-					const url = process.env.DATABASE_URL;
-					if (!url) throw new Error('DATABASE_URL is required when DB_PROVIDER=postgres');
+					const url = process.env.DIRECT_URL ?? process.env.DATABASE_URL;
+					if (!url) {
+						throw new Error('DIRECT_URL or DATABASE_URL is required when DB_PROVIDER=postgres');
+					}
 					return url;
 				})()
 			}

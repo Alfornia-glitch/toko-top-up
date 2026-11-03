@@ -1,5 +1,8 @@
 <script lang="ts">
+	import { LogOut } from '@lucide/svelte';
 	import MegaMenu from './MegaMenu.svelte';
+	import * as DropdownMenu from '#lib/frontend/components/ui/dropdown-menu/index.ts';
+	import { authClient, signOutUser } from '#frontend/modules/auth/index.ts';
 	import {
 		imgPic,
 		imgOrnament54,
@@ -34,6 +37,9 @@
 	const announcements = $derived(
 		Array.from({ length: announcementCount }, (_, i) => ornaments[i % ornaments.length])
 	);
+
+	const session = authClient.useSession();
+	const user = $derived($session.data?.user);
 
 	function toggleMenu(name: 'shops' | 'deals' | 'new' | 'pages') {
 		menu = menu === name ? null : name;
@@ -351,21 +357,61 @@
 							</div>
 						</div>
 					</a>
-					<a
-						href="/account/newsletter"
-						class="relative size-[32px] shrink-0 overflow-clip rounded-[10px] border border-solid border-[#e5e5e5]"
-						data-name="Avatar"
-					>
-						<div class="absolute inset-[-1px]" data-name="pic">
-							<div class="pointer-events-none absolute inset-0 overflow-hidden">
-								<img
-									alt=""
-									class="absolute top-[6.38%] left-[-48.34%] h-[168.75%] w-[199.22%] max-w-none"
-									src={imgPic}
-								/>
+					{#if user}
+						<DropdownMenu.Root>
+							<DropdownMenu.Trigger>
+								{#snippet child({ props })}
+									<button
+										{...props}
+										type="button"
+										class="relative size-[32px] shrink-0 cursor-pointer overflow-clip rounded-[10px] border border-solid border-[#e5e5e5]"
+										data-name="Avatar"
+										aria-label="Account menu"
+									>
+										<div class="absolute inset-[-1px]" data-name="pic">
+											<div class="pointer-events-none absolute inset-0 overflow-hidden">
+												<img
+													alt=""
+													class="absolute top-[6.38%] left-[-48.34%] h-[168.75%] w-[199.22%] max-w-none"
+													src={imgPic}
+												/>
+											</div>
+										</div>
+									</button>
+								{/snippet}
+							</DropdownMenu.Trigger>
+							<DropdownMenu.Content align="end" class="w-56">
+								<DropdownMenu.Label>
+									<div class="truncate font-medium">{user.name ?? 'Account'}</div>
+									<div class="truncate text-xs text-muted-foreground">{user.email ?? ''}</div>
+								</DropdownMenu.Label>
+								<DropdownMenu.Separator />
+								<DropdownMenu.Item
+									variant="destructive"
+									onclick={() => void signOutUser('/login')}
+								>
+									<LogOut />
+									Sign out
+								</DropdownMenu.Item>
+							</DropdownMenu.Content>
+						</DropdownMenu.Root>
+					{:else}
+						<a
+							href="/login"
+							class="relative size-[32px] shrink-0 overflow-clip rounded-[10px] border border-solid border-[#e5e5e5]"
+							data-name="Avatar"
+						>
+							<div class="absolute inset-[-1px]" data-name="pic">
+								<div class="pointer-events-none absolute inset-0 overflow-hidden">
+									<img
+										alt=""
+										class="absolute top-[6.38%] left-[-48.34%] h-[168.75%] w-[199.22%] max-w-none"
+										src={imgPic}
+									/>
+								</div>
 							</div>
-						</div>
-					</a>
+						</a>
+					{/if}
 				</div>
 			</div>
 		</div>
@@ -443,6 +489,17 @@
 						class="rounded bg-gray-50 px-2 py-1.5 text-gray-700">Prototype Pages</a
 					>
 				</div>
+				{#if user}
+					<div class="my-1 h-px bg-gray-100"></div>
+					<button
+						type="button"
+						onclick={() => void signOutUser('/login')}
+						class="flex items-center gap-2 rounded-lg px-3 py-2 text-left font-['Geist:Medium'] text-sm text-red-600 hover:bg-gray-100"
+					>
+						<LogOut class="size-4" />
+						Sign out
+					</button>
+				{/if}
 			</div>
 		{/if}
 	</div>

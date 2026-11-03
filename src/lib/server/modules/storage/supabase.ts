@@ -36,20 +36,26 @@ export function createSupabaseBackend(config: {
 			if (error) throw toMediaError(error);
 
 			return bucket.getPublicUrl(path).data.publicUrl;
+		},
+
+		async delete(path) {
+			const { error } = await storage().from(config.bucket).remove([path]);
+
+			if (error) throw toMediaError(error);
 		}
 	};
 }
 
 function toMediaError(error: unknown): MediaError {
 	if (!isStorageError(error)) {
-		console.error('[storage] unexpected upload failure', error);
+		console.error('[storage] unexpected request failure', error);
 		return new MediaError(502, 'Storage request failed');
 	}
 
 	const status = error.status;
 	const code = 'code' in error ? error.code : undefined;
 
-	console.error('[storage] upload rejected', { status, code, message: error.message });
+	console.error('[storage] request rejected', { status, code, message: error.message });
 
 	if (code === 'ResourceAlreadyExists') {
 		return new MediaError(409, 'A file with that name already exists');

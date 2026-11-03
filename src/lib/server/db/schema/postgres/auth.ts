@@ -14,6 +14,10 @@ export const user = authSchema.table('user', {
 	email: text('email').notNull().unique(),
 	emailVerified: boolean('email_verified').default(false).notNull(),
 	image: text('image'),
+	role: text('role').$type<'customer' | 'admin' | 'superadmin'>().notNull().default('customer'),
+	banned: boolean('banned').notNull().default(false),
+	banReason: text('ban_reason'),
+	banExpires: timestamp('ban_expires', { withTimezone: true, mode: 'date' }),
 	createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).notNull(),
 	updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'date' })
 		.$onUpdate(() => new Date())
@@ -32,6 +36,7 @@ export const session = authSchema.table(
 			.notNull(),
 		ipAddress: text('ip_address'),
 		userAgent: text('user_agent'),
+		impersonatedBy: text('impersonated_by'),
 		userId: text('user_id')
 			.notNull()
 			.references(() => user.id, { onDelete: 'cascade' })

@@ -33,6 +33,14 @@ export function createRustfsBackend(config: {
 			}
 
 			return `${publicUrl}/${path}`;
+		},
+
+		async delete(path) {
+			try {
+				await client.file(path).delete();
+			} catch (error) {
+				throw toMediaError(error);
+			}
 		}
 	};
 }
@@ -42,7 +50,7 @@ function toMediaError(error: unknown): MediaError {
 	const code = candidate?.code;
 	const status = candidate?.status;
 
-	console.error('[storage] rustfs upload failed', {
+	console.error('[storage] rustfs request failed', {
 		code,
 		status,
 		message: candidate?.message ?? String(error)

@@ -1,7 +1,8 @@
 import { goto } from '$app/navigation';
 import { createAuthClient } from 'better-auth/svelte';
+import { adminClient } from 'better-auth/client/plugins';
 
-export const authClient = createAuthClient();
+export const authClient = createAuthClient({ plugins: [adminClient()] });
 
 const errorMessages: Record<string, string> = {
 	INVALID_EMAIL_OR_PASSWORD: 'Incorrect email or password. Please try again.',

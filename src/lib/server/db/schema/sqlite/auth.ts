@@ -7,6 +7,12 @@ export const user = sqliteTable('user', {
 	email: text('email').notNull().unique(),
 	emailVerified: integer('email_verified', { mode: 'boolean' }).default(false).notNull(),
 	image: text('image'),
+	role: text('role', { enum: ['customer', 'admin', 'superadmin'] })
+		.notNull()
+		.default('customer'),
+	banned: integer('banned', { mode: 'boolean' }).notNull().default(false),
+	banReason: text('ban_reason'),
+	banExpires: integer('ban_expires', { mode: 'timestamp_ms' }),
 	createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull(),
 	updatedAt: integer('updated_at', { mode: 'timestamp_ms' })
 		.$onUpdate(() => new Date())
@@ -25,6 +31,7 @@ export const session = sqliteTable(
 			.notNull(),
 		ipAddress: text('ip_address'),
 		userAgent: text('user_agent'),
+		impersonatedBy: text('impersonated_by'),
 		userId: text('user_id')
 			.notNull()
 			.references(() => user.id, { onDelete: 'cascade' })

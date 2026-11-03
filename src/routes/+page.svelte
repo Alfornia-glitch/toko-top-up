@@ -9,6 +9,7 @@
 	import CtaBanner from '#lib/frontend/modules/landing/components/CtaBanner.svelte';
 	import PopularProductsSection from '#lib/frontend/modules/landing/components/PopularProductsSection.svelte';
 	import TestimonialsSection from '#lib/frontend/modules/landing/components/TestimonialsSection.svelte';
+	import StorefrontLiveSection from '#lib/frontend/components/storefront/StorefrontLiveSection.svelte';
 </script>
 
 <div
@@ -18,6 +19,7 @@
 	<SiteHeader announcementCount={2} />
 	<HeroSection />
 	<CategorySection />
+	<StorefrontLiveSection />
 	<DealsSection />
 	<BrandsSection />
 	<NewArrivalsSection />

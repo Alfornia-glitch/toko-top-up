@@ -1,6 +1,7 @@
 <script lang="ts">
 	import SiteHeader from '#lib/frontend/components/SiteHeader.svelte';
 	import SiteFooter from '#lib/frontend/components/SiteFooter.svelte';
+	import StorefrontCategoryGrid from '#lib/frontend/components/storefront/StorefrontCategoryGrid.svelte';
 	const imgPic = '/assets/d94d6.png';
 	const imgImage29 = '/assets/0af77.png';
 	const imgImage30 = '/assets/7b942.png';
@@ -77,6 +78,7 @@
 	data-name="Shopix - Cateogry Lisitng"
 >
 	<SiteHeader />
+	<StorefrontCategoryGrid />
 	<div
 		class="relative flex w-full max-w-[1440px] shrink-0 content-stretch items-center justify-center overflow-clip py-[56px]"
 		data-name="Hero"

@@ -18,4 +18,5 @@ export interface UploadedMedia {
 /** A backend only has to persist the bytes and return a permanent public URL. */
 export interface StorageBackend {
 	upload(path: string, file: File): Promise<string>;
+	delete(path: string): Promise<void>;
 }

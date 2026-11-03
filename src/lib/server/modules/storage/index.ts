@@ -5,6 +5,21 @@ export { MediaError, type UploadedMedia } from './types.ts';
 
 export const DEFAULT_FOLDER = 'media';
 
+export const ADMIN_FOLDERS = [
+	'products',
+	'categories',
+	'brands',
+	'banners',
+	'testimonials',
+	'avatars',
+	'reviews',
+	'returns',
+	'support',
+	'media'
+] as const;
+
+export const CUSTOMER_FOLDERS = ['avatars'] as const;
+
 export const MAX_BYTES = 5 * 1024 * 1024;
 
 const EXTENSION_BY_TYPE: Record<string, string> = {
@@ -32,6 +47,22 @@ export function normaliseFolder(value: FormDataEntryValue | null): string {
 	}
 
 	return value;
+}
+
+export function canUploadToFolder(role: string | null | undefined, folder: string): boolean {
+	if (role === 'admin' || role === 'superadmin') {
+		return (ADMIN_FOLDERS as readonly string[]).includes(folder);
+	}
+
+	return (CUSTOMER_FOLDERS as readonly string[]).includes(folder);
+}
+
+export async function deleteMedia(path: string): Promise<void> {
+	if (!path || path.includes('..') || path.startsWith('/')) {
+		throw new MediaError(400, 'Invalid media path');
+	}
+
+	await getStorageBackend().delete(path);
 }
 
 export async function uploadMedia(file: File, folder = DEFAULT_FOLDER): Promise<UploadedMedia> {
