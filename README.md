@@ -49,6 +49,11 @@ bun install --production --frozen-lockfile
 bun ./build
 ```
 
-Set `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN`, `BETTER_AUTH_SECRET`, and `BETTER_AUTH_URL` in the environment. See `.env.example` for optional server and proxy settings. Run `bun run db:push` once to create the auth tables.
+Set the environment from one of the two profiles, then run the one-time schema sync:
+
+- **VPS** — copy `env.vps.example` to `.env` (`DB_PROVIDER=sqlite`, `STORAGE_PROVIDER=rustfs`). The database is a local SQLite file at `SQLITE_PATH`; media goes to a RustFS/S3-compatible endpoint.
+- **Supabase** — copy `env.supabase.example` to `.env` (`DB_PROVIDER=postgres`, `STORAGE_PROVIDER=supabase`). `DATABASE_URL` is the Supabase session-pooler connection string (`sslmode=require`); Better Auth tables are created in the private `auth_app` schema, which `bun run db:push` creates without opening the dashboard.
+
+Both profiles need `BETTER_AUTH_SECRET` and `BETTER_AUTH_URL`. Run `bun run db:push` once to create the database/schema and tables.
 
 When serving plain HTTP directly (for example a local preview), build with `ORIGIN=http://localhost:3000 bun run --bun build`; behind TLS, leave `ORIGIN` unset.

@@ -8,7 +8,7 @@ import {
 	GOOGLE_CLIENT_ID,
 	GOOGLE_CLIENT_SECRET
 } from '$app/env/private';
-import { db } from '#db';
+import { db, dbProvider } from '#db';
 
 const google =
 	GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET
@@ -18,7 +18,7 @@ const google =
 export const auth = betterAuth({
 	secret: BETTER_AUTH_SECRET,
 	baseURL: BETTER_AUTH_URL,
-	database: drizzleAdapter(db, { provider: 'sqlite' }),
+	database: drizzleAdapter(db, { provider: dbProvider === 'postgres' ? 'pg' : 'sqlite' }),
 	emailAndPassword: { enabled: true },
 	...(google ? { socialProviders: google } : {}),
 	plugins: [sveltekitCookies(getRequestEvent)]

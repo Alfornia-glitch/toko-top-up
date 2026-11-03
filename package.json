@@ -20,12 +20,11 @@
 		"prepare": "svelte-kit sync || echo ''",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
-		"db:push": "drizzle-kit push",
+		"db:push": "bun scripts/setup-db.ts && drizzle-kit push",
 		"lint": "prettier --check .",
 		"format": "prettier --write ."
 	},
 	"dependencies": {
-		"@libsql/client": "^0.18.0",
 		"@supabase/storage-js": "^2.118.0",
 		"better-auth": "^1.7.13",
 		"drizzle-orm": "^0.45.4"
@@ -41,6 +40,7 @@
 		"bits-ui": "^2.20.0",
 		"cn": "^0.5.0",
 		"drizzle-kit": "^0.31.11",
+		"postgres": "^4.0.0",
 		"prettier": "^3.8.3",
 		"prettier-plugin-svelte": "^4.1.0",
 		"prettier-plugin-tailwindcss": "^0.8.0",

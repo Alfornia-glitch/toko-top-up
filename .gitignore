@@ -15,8 +15,13 @@ Thumbs.db
 # Env
 .env
 .env.*
-!.env.example
 !.env.test
+
+# Local database
+/data
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
 
 # Vite
 vite.config.js.timestamp-*
