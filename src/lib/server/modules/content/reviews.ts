@@ -54,5 +54,5 @@ export async function setReviewStatus(id: string, status: 'pending' | 'approved'
 
 	await queryDb.update(t.reviews).set({ status }).where(eq(t.reviews.id, id));
 
-	return { ...before, status };
+	return { ...before, id, status };
 }

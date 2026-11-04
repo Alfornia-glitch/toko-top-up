@@ -56,6 +56,8 @@ Bun-only repo (no pnpm/npm). Run `bun install` from `web/`. Requires **Bun >= 1.
 - Every page renders `<SiteHeader />` right after its root div and `<SiteFooter />` (possibly `features`) right before the root close.
 - `data-node-id` is stripped everywhere except two elements on `/products/phone` (`I1:21686;31919:11168/11169`) which `layout.css` still needs for the mobile PDP layout.
 - Prettier formats everything; keep double quotes where the source has apostrophes.
+- Make each module both in server & client have the structure of `index.ts` (exports) + `<name>.ts` (implementation).
+  models(types or interfaces), middleware, and services.
 
 ## Verification
 

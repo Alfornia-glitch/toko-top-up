@@ -74,18 +74,7 @@ function resolveItems(
 	return { items, subtotalCents };
 }
 
-function addressSnapshot(address: {
-	id: string;
-	label: string | null;
-	recipientName: string;
-	phone: string | null;
-	line1: string;
-	line2: string | null;
-	city: string;
-	region: string | null;
-	postalCode: string | null;
-	country: string;
-}): Record<string, unknown> {
+function addressSnapshot(address: Record<string, unknown>): Record<string, unknown> {
 	return {
 		id: address.id,
 		label: address.label,

@@ -1,4 +1,4 @@
-import { api, ApiError, unwrap } from './http.ts';
+import { api, ApiError, unwrap } from '../shared/http.ts';
 import type { Cart } from './models.ts';
 
 type CartPayload = { data: Cart };

@@ -12,12 +12,12 @@ import {
 	max,
 	min,
 	or,
-	sum
+	sum,
+	type SQL
 } from 'drizzle-orm';
 import { queryDb, tables } from '#db/query.ts';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const t = tables as any;
+const t = tables;
 
 export type PublicProductSort = 'recommended' | 'popular' | 'price_asc' | 'price_desc' | 'newest';
 
@@ -61,6 +61,20 @@ const productRowSelect = {
 
 const postFilterCandidateLimit = 500;
 
+function selectProductRows(where: SQL | undefined, orderBy: SQL[], limit: number, offset = 0) {
+	return queryDb
+		.select(productRowSelect)
+		.from(t.products)
+		.leftJoin(t.brands, eq(t.products.brandId, t.brands.id))
+		.leftJoin(t.categories, eq(t.products.categoryId, t.categories.id))
+		.where(where)
+		.orderBy(...orderBy)
+		.limit(limit)
+		.offset(offset);
+}
+
+type ProductRow = Awaited<ReturnType<typeof selectProductRows>>[number];
+
 function firstUpper(value: string) {
 	const trimmed = value.trim();
 	if (!trimmed) return '';
@@ -89,8 +103,9 @@ async function loadRowExtras(ids: string[], includeColors = false) {
 	const colorMap = new Map<string, string[]>();
 	if (!ids.length) return { imageMap, stockMap, colorMap };
 
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	const variantsPromise: Promise<any[]> = includeColors
+	const variantsPromise: PromiseLike<
+		{ productId: string; optionValuesJson: Record<string, string> | null }[]
+	> = includeColors
 		? queryDb
 				.select({
 					productId: t.productVariants.productId,
@@ -131,13 +146,12 @@ async function loadRowExtras(ids: string[], includeColors = false) {
 	return { imageMap, stockMap, colorMap };
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function attachExtras(rows: any[], includeColors = false) {
-	const ids = rows.map((row: { id: string }) => row.id);
+async function attachExtras(rows: ProductRow[], includeColors = false) {
+	const ids = rows.map((row) => row.id);
 	const { imageMap, stockMap, colorMap } = await loadRowExtras(ids, includeColors);
 
 	return {
-		data: rows.map((row: (typeof rows)[number]) => ({
+		data: rows.map((row) => ({
 			...row,
 			imageUrl: imageMap.get(row.id) ?? null,
 			stock: stockMap.get(row.id) ?? 0
@@ -145,6 +159,8 @@ async function attachExtras(rows: any[], includeColors = false) {
 		colorMap
 	};
 }
+
+type ProductWithExtras = Awaited<ReturnType<typeof attachExtras>>['data'][number];
 
 async function loadFacets() {
 	const [brandRows, categoryRows, priceRows, discountRows, colorRows] = await Promise.all([
@@ -213,7 +229,7 @@ async function loadFacets() {
 	};
 }
 
-function sortOrder(sort: PublicProductSort | undefined) {
+function sortOrder(sort: PublicProductSort | undefined): SQL[] {
 	switch (sort) {
 		case 'popular':
 			return [desc(t.products.soldCount), desc(t.products.createdAt)];
@@ -232,12 +248,12 @@ function sortOrder(sort: PublicProductSort | undefined) {
 export async function listPublicProducts(query: PublicProductQuery = {}) {
 	const page = query.page ?? 1;
 	const pageSize = Math.min(query.pageSize ?? 24, 60);
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	const conditions: any[] = [eq(t.products.status, 'active')];
+	const conditions: SQL[] = [eq(t.products.status, 'active')];
 
 	if (query.q) {
 		const term = `%${query.q}%`;
-		conditions.push(or(like(t.products.name, term), like(t.products.sku, term)));
+		const search = or(like(t.products.name, term), like(t.products.sku, term));
+		if (search) conditions.push(search);
 	}
 	if (query.categoryId) conditions.push(eq(t.products.categoryId, query.categoryId));
 	if (query.brandId) conditions.push(eq(t.products.brandId, query.brandId));
@@ -256,44 +272,28 @@ export async function listPublicProducts(query: PublicProductQuery = {}) {
 	const orderBy = sortOrder(query.sort);
 	const hasPostFilter = Boolean(query.color) || query.inStock === true;
 
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	let data: any[];
+	let data: ProductWithExtras[];
 	let total: number;
 
 	if (hasPostFilter) {
-		const candidates = await queryDb
-			.select(productRowSelect)
-			.from(t.products)
-			.leftJoin(t.brands, eq(t.products.brandId, t.brands.id))
-			.leftJoin(t.categories, eq(t.products.categoryId, t.categories.id))
-			.where(where)
-			.orderBy(...orderBy)
-			.limit(postFilterCandidateLimit);
+		const candidates = await selectProductRows(where, orderBy, postFilterCandidateLimit);
 
 		const enriched = await attachExtras(candidates, true);
 		let filtered = enriched.data;
 		if (query.color) {
 			const target = query.color.trim().toLowerCase();
-			filtered = filtered.filter((row: { id: string }) =>
+			filtered = filtered.filter((row) =>
 				(enriched.colorMap.get(row.id) ?? []).some((color) => color.toLowerCase() === target)
 			);
 		}
 		if (query.inStock === true) {
-			filtered = filtered.filter((row: { stock: number }) => row.stock > 0);
+			filtered = filtered.filter((row) => row.stock > 0);
 		}
 
 		total = filtered.length;
 		data = filtered.slice(offset, offset + pageSize);
 	} else {
-		const rows = await queryDb
-			.select(productRowSelect)
-			.from(t.products)
-			.leftJoin(t.brands, eq(t.products.brandId, t.brands.id))
-			.leftJoin(t.categories, eq(t.products.categoryId, t.categories.id))
-			.where(where)
-			.orderBy(...orderBy)
-			.limit(pageSize)
-			.offset(offset);
+		const rows = await selectProductRows(where, orderBy, pageSize, offset);
 
 		const enriched = await attachExtras(rows);
 		data = enriched.data;
@@ -396,7 +396,7 @@ export async function getPublicProduct(slug: string) {
 		if (key in ratingBuckets) ratingBuckets[key] = Number(row.value ?? 0);
 	}
 
-	const optionIds = options.map((option: { id: string }) => option.id);
+	const optionIds = options.map((option) => option.id);
 	const values = optionIds.length
 		? await queryDb
 				.select()
@@ -415,13 +415,8 @@ export async function getPublicProduct(slug: string) {
 	]);
 
 	const seenRelated = new Set<string>([product.id]);
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	const related: any[] = [];
-	for (const row of [
-		...(byCategory?.data ?? []),
-		...(byBrand?.data ?? [])
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	] as any[]) {
+	const related: ProductWithExtras[] = [];
+	for (const row of [...(byCategory?.data ?? []), ...(byBrand?.data ?? [])]) {
 		if (seenRelated.has(row.id)) continue;
 		seenRelated.add(row.id);
 		related.push(row);
@@ -431,9 +426,9 @@ export async function getPublicProduct(slug: string) {
 	return {
 		...product,
 		images,
-		options: options.map((option: { id: string }) => ({
+		options: options.map((option) => ({
 			...option,
-			values: values.filter((value: { optionId: string }) => value.optionId === option.id)
+			values: values.filter((value) => value.optionId === option.id)
 		})),
 		variants,
 		reviews: reviewRows,
@@ -462,14 +457,13 @@ export async function listPublicCategories() {
 		.from(t.products)
 		.where(eq(t.products.status, 'active'))
 		.groupBy(t.products.categoryId);
-	const countMap = new Map<string, number>(
-		counts.map((row: { categoryId: string; value: unknown }) => [
-			row.categoryId,
-			Number(row.value ?? 0)
-		])
-	);
+	const countMap = new Map<string, number>();
+	for (const row of counts) {
+		if (!row.categoryId) continue;
+		countMap.set(row.categoryId, Number(row.value ?? 0));
+	}
 
-	return rows.map((row: { id: string }) => ({ ...row, productCount: countMap.get(row.id) ?? 0 }));
+	return rows.map((row) => ({ ...row, productCount: countMap.get(row.id) ?? 0 }));
 }
 
 export async function homeData() {

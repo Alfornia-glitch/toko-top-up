@@ -3,8 +3,6 @@ import type { Handle, HandleServerError } from '@sveltejs/kit/hooks';
 import { building } from '$app/env';
 import { svelteKitHandler } from 'better-auth/svelte-kit';
 import { adminScope, isAdminRole, isSuperadminRole } from '#lib/server/modules/admin/access.ts';
-import { sequence } from '@sveltejs/kit/hooks';
-import { svelteDevtoolsHandle } from '@svelte-devtools/kit';
 
 const authHandle: Handle = async ({ event, resolve }) => {
 	if (building) return resolve(event);
@@ -49,7 +47,7 @@ const authHandle: Handle = async ({ event, resolve }) => {
 	return svelteKitHandler({ event, resolve, auth, building });
 };
 
-export const handle = sequence(svelteDevtoolsHandle, authHandle);
+export const handle = authHandle;
 
 export const handleError: HandleServerError = ({ error, event }) => {
 	console.error('[hooks] request failed', { path: event.url.pathname, error });

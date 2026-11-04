@@ -1,4 +1,4 @@
-import { api, unwrap } from './http.ts';
+import { api, unwrap } from '../shared/http.ts';
 import type { Banner, HomeData } from './models.ts';
 
 class HomeStore {

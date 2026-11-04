@@ -194,7 +194,7 @@ export async function getProduct(id: string) {
 		.where(eq(t.productOptions.productId, id))
 		.orderBy(asc(t.productOptions.position));
 
-	const optionIds = options.map((option: { id: string }) => option.id);
+	const optionIds = options.map((option) => option.id);
 	const values = optionIds.length
 		? await queryDb
 				.select()
@@ -212,9 +212,9 @@ export async function getProduct(id: string) {
 	return {
 		...product,
 		images,
-		options: options.map((option: { id: string }) => ({
+		options: options.map((option) => ({
 			...option,
-			values: values.filter((value: { optionId: string }) => value.optionId === option.id)
+			values: values.filter((value) => value.optionId === option.id)
 		})),
 		variants
 	};
@@ -358,9 +358,7 @@ export async function updateProduct(id: string, input: ProductWriteInput) {
 			}
 		}
 
-		const existingVariantIds = new Set<string>(
-			existing.variants.map((variant: { id: string }) => variant.id)
-		);
+		const existingVariantIds = new Set<string>(existing.variants.map((variant) => variant.id));
 		const keptVariantIds = new Set<string>();
 
 		for (const variant of input.variants) {

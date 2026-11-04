@@ -45,5 +45,5 @@ export async function setNewsletterStatus(id: string, status: 'subscribed' | 'un
 		.set({ status, updatedAt: new Date() })
 		.where(eq(t.newsletterSubscriptions.id, id));
 
-	return { ...existing, status };
+	return { ...existing, id, status };
 }

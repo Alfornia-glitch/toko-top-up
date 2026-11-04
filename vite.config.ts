@@ -2,7 +2,6 @@ import tailwindcss from '@tailwindcss/vite';
 import adapter from '@sveltejs/adapter-bun';
 import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vite';
-import { svelteDevtools } from '@svelte-devtools/vite-plugin';
 
 export default defineConfig(({ command }) => {
 	// Only applied when building: adapter-bun assumes https at runtime, which is
@@ -19,9 +18,14 @@ export default defineConfig(({ command }) => {
 						filename.split(/[/\\]/).includes('node_modules') ? undefined : true
 				},
 				paths: origin ? { origin } : undefined,
-				adapter: adapter()
-			}),
-			svelteDevtools()
+				adapter: adapter(),
+				inspector: {
+					toggleKeyCombo: 'alt-x',
+					holdMode: false,
+					showToggleButton: 'always',
+					toggleButtonPos: 'bottom-right'
+				}
+			})
 		]
 	};
 });
