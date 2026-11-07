@@ -1,9 +1,22 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
+	import { Banknote, CreditCard, Gift, Lock, MapPin, ShoppingCart, Truck } from '@lucide/svelte';
 	import SiteHeader from '#lib/frontend/components/SiteHeader.svelte';
 	import SiteFooter from '#lib/frontend/components/SiteFooter.svelte';
-	import { api, ApiError, unwrap } from '#lib/frontend/modules/commerce/http.ts';
+	import ImagePlaceholder from '#lib/frontend/components/ui/ImagePlaceholder.svelte';
+	import { Badge } from '#lib/frontend/components/ui/badge/index.ts';
+	import { Button } from '#lib/frontend/components/ui/button/index.ts';
+	import * as Card from '#lib/frontend/components/ui/card/index.ts';
+	import { Checkbox } from '#lib/frontend/components/ui/checkbox/index.ts';
+	import * as Field from '#lib/frontend/components/ui/field/index.ts';
+	import { Input } from '#lib/frontend/components/ui/input/index.ts';
+	import * as RadioGroup from '#lib/frontend/components/ui/radio-group/index.ts';
+	import { Separator } from '#lib/frontend/components/ui/separator/index.ts';
+	import { Skeleton } from '#lib/frontend/components/ui/skeleton/index.ts';
+	import { Spinner } from '#lib/frontend/components/ui/spinner/index.ts';
+	import * as Tabs from '#lib/frontend/components/ui/tabs/index.ts';
+	import { api, ApiError, unwrap } from '#lib/frontend/modules/shared/http.ts';
 	import { cart } from '#lib/frontend/modules/commerce/cart.svelte.ts';
 	import { site } from '#lib/frontend/modules/commerce/site.svelte.ts';
 	import { checkout } from '#lib/frontend/modules/commerce/checkout.svelte.ts';
@@ -22,16 +35,6 @@
 		expYear?: number;
 	}
 
-	const imgShoppingCart = '/assets/64b14.svg';
-	const imgMapPin = '/assets/a58c0.svg';
-	const imgDollarSign = '/assets/43c76.svg';
-	const imgSeparator = '/assets/72948.svg';
-
-	const activeTabClass =
-		'relative flex min-w-px flex-[1_0_0] content-stretch items-center justify-center gap-[4px] overflow-clip rounded-[10px] border border-solid border-[#e5e5e5] bg-white px-[10px] py-[6px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.1),0px_1px_2px_-1px_rgba(0,0,0,0.1)]';
-	const inactiveTabClass =
-		'relative flex min-w-px flex-[1_0_0] content-stretch items-center justify-center gap-[4px] rounded-[10px] px-[10px] py-[6px]';
-
 	let mode = $state<PaymentMode>('card');
 	let cardType = $state<CardType>('debit');
 	let cardNumber = $state('');
@@ -48,6 +51,7 @@
 	let error = $state('');
 	let notice = $state('');
 
+	const activeTab = $derived(mode === 'card' ? cardType : mode);
 	const isCard = $derived(mode === 'card');
 	const selectedAddress = $derived(
 		addresses.find((address) => address.id === checkout.addressId) ?? null
@@ -59,14 +63,16 @@
 	const totalCents = $derived(cart.totalCents + shippingCents);
 	const selectedMethod = $derived(methods.find((method) => method.id === paymentMethodId) ?? null);
 
-	function tabClass(active: boolean) {
-		return active ? activeTabClass : inactiveTabClass;
-	}
+	function handleTabChange(value: string) {
+		if (value === 'debit' || value === 'credit') {
+			mode = 'card';
+			cardType = value;
+		} else if (value === 'cod' || value === 'gift') {
+			mode = value;
+		}
 
-	function tabTextClass(active: boolean) {
-		return `relative shrink-0 font-['Geist:Medium'] text-[14px] leading-[20px] font-medium [word-break:break-word] whitespace-nowrap ${
-			active ? 'text-[#0a0a0a]' : 'text-[#0a0a0a] opacity-60'
-		}`;
+		error = '';
+		notice = '';
 	}
 
 	function cardBrand(digits: string): string {
@@ -294,547 +300,386 @@
 </script>
 
 <div
-	class="relative flex size-full flex-col content-stretch items-center bg-white"
+	class="relative flex size-full flex-col items-center bg-background"
 	data-name="Shopix - Payment"
 >
 	<SiteHeader />
-	<div
-		class="relative flex w-full max-w-[1440px] shrink-0 flex-col content-stretch items-center justify-center bg-white py-[56px]"
-		data-name="Checkout"
-	>
-		<div
-			class="relative flex w-full max-w-[1280px] min-w-[328px] shrink-0 flex-col content-stretch items-start justify-center gap-[16px] px-[32px]"
-			data-name="Flex Vertical"
-		>
-			<div
-				class="relative flex h-[136px] w-full shrink-0 flex-col content-stretch items-center rounded-[8px] border border-solid border-[#e5e5e5] bg-[#f5f5f5] pt-[32px]"
-				data-name="Flex Vertical"
-			>
-				<div
-					class="relative flex w-[548px] shrink-0 content-stretch items-center justify-center"
-					data-name="Steps Horizontal"
-				>
-					<div
-						class="relative flex shrink-0 content-stretch items-center"
-						data-name="Steps / Step item"
-					>
-						<div
-							class="relative flex size-[38px] shrink-0 flex-col content-stretch items-start gap-[10px]"
-							data-name="step-details"
-						>
-							<div
-								class="relative flex size-[38px] shrink-0 flex-col content-stretch items-center justify-center rounded-[9999px] bg-black p-[8px] drop-shadow-[0px_1px_1.5px_rgba(0,0,0,0.1),0px_1px_1px_rgba(0,0,0,0.1)]"
-								data-name="step-icon"
-							>
-								<div class="relative size-[22px] shrink-0" data-name="check">
-									<img
-										alt=""
-										class="absolute inset-0 block size-full max-w-none"
-										src={imgShoppingCart}
-									/>
-								</div>
-							</div>
-							<div
-								class="relative flex shrink-0 flex-col content-stretch items-center justify-center gap-[2px]"
-								data-name="Text"
-							>
-								<a
-									href="/cart"
-									class="relative w-[min-content] min-w-full shrink-0 font-['Geist:Medium'] text-[16px] leading-[24px] font-medium [word-break:break-word] text-[#0a0a0a] hover:underline"
-									>Cart</a
-								>
-							</div>
-						</div>
-					</div>
-					<div
-						class="relative flex min-w-px flex-[1_0_0] content-stretch items-center"
-						data-name="Steps / Step item"
-					>
-						<div
-							class="relative flex min-w-px flex-[1_0_0] flex-col content-stretch items-center px-[8px]"
-							data-name="Divider"
-						>
-							<div class="relative h-[2px] w-full shrink-0 bg-[#e5e5e5]" data-name="progress"></div>
-						</div>
-						<div
-							class="relative flex size-[38px] shrink-0 flex-col content-stretch items-start gap-[10px]"
-							data-name="step-details"
-						>
-							<div
-								class="relative flex size-[38px] shrink-0 flex-col content-stretch items-center justify-center rounded-[9999px] bg-black p-[8px]"
-								data-name="step-icon"
-							>
-								<div class="relative size-[22px] shrink-0" data-name="check">
-									<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgMapPin} />
-								</div>
-							</div>
-							<div
-								class="relative flex shrink-0 flex-col content-stretch items-center justify-center gap-[2px]"
-								data-name="Text"
-							>
-								<a
-									href="/checkout/address"
-									class="relative w-[min-content] min-w-full shrink-0 font-['Geist:Medium'] text-[16px] leading-[24px] font-medium [word-break:break-word] text-[#0a0a0a] hover:underline"
-									>Address</a
-								>
-							</div>
-						</div>
-					</div>
-					<div
-						class="relative flex min-w-px flex-[1_0_0] content-stretch items-center"
-						data-name="Steps / Step item"
-					>
-						<div
-							class="relative flex min-w-px flex-[1_0_0] flex-col content-stretch items-center px-[8px]"
-							data-name="Divider"
-						>
-							<div class="relative h-[2px] w-full shrink-0 bg-[#e5e5e5]" data-name="progress"></div>
-						</div>
-						<div
-							class="relative flex size-[38px] shrink-0 flex-col content-stretch items-start gap-[10px]"
-							data-name="step-details"
-						>
-							<div
-								class="relative flex size-[38px] shrink-0 flex-col content-stretch items-center justify-center rounded-[9999px] bg-black p-[8px]"
-								data-name="step-icon"
-							>
-								<div class="relative size-[22px] shrink-0" data-name="check">
-									<img
-										alt=""
-										class="absolute inset-0 block size-full max-w-none"
-										src={imgDollarSign}
-									/>
-								</div>
-							</div>
-							<div
-								class="relative flex shrink-0 flex-col content-stretch items-center justify-center gap-[2px]"
-								data-name="Text"
-							>
-								<a
-									href="/checkout/payment"
-									class="relative w-[min-content] min-w-full shrink-0 text-center font-['Geist:Medium'] text-[16px] leading-[24px] font-medium [word-break:break-word] text-[#0a0a0a] hover:underline"
-									>Payment</a
-								>
-							</div>
-						</div>
-					</div>
-				</div>
+	<div class="flex w-full flex-col items-center bg-white py-10 sm:py-14">
+		<main class="mx-auto w-full max-w-[1280px] px-4 sm:px-8">
+			<div class="flex flex-col gap-1">
+				<h1 class="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">Payment</h1>
+				<p class="text-sm text-muted-foreground">
+					Choose how you would like to pay for your order.
+				</p>
 			</div>
 
-			<div
-				class="relative flex w-full shrink-0 content-stretch items-start gap-[16px]"
-				data-name="Flex Horizontal"
-			>
+			<nav aria-label="Checkout progress" class="mt-6 rounded-xl border bg-muted/40 p-4 sm:p-5">
+				<div class="flex items-center gap-2 sm:gap-4">
+					<a href="/cart" class="flex items-center gap-2 sm:gap-3">
+						<span
+							class="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm"
+						>
+							<ShoppingCart class="size-4" />
+						</span>
+						<span class="text-sm font-medium text-foreground sm:text-base">Cart</span>
+					</a>
+					<div class="h-px flex-1 bg-border" aria-hidden="true"></div>
+					<a href="/checkout/address" class="flex items-center gap-2 sm:gap-3">
+						<span
+							class="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm"
+						>
+							<MapPin class="size-4" />
+						</span>
+						<span class="text-sm font-medium text-foreground sm:text-base">Address</span>
+					</a>
+					<div class="h-px flex-1 bg-border" aria-hidden="true"></div>
+					<a href="/checkout/payment" aria-current="step" class="flex items-center gap-2 sm:gap-3">
+						<span
+							class="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm"
+						>
+							<CreditCard class="size-4" />
+						</span>
+						<span class="text-sm font-medium text-foreground sm:text-base">Payment</span>
+					</a>
+				</div>
+			</nav>
+
+			{#if !ready}
 				<div
-					class="relative flex min-w-px flex-[1_0_0] flex-col content-stretch items-start gap-[24px] overflow-clip rounded-[14px] bg-white py-[16px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)]"
-					data-name="Card"
+					class="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_380px] lg:items-start"
+					aria-busy="true"
+					aria-live="polite"
 				>
-					<div
-						class="relative flex w-full shrink-0 flex-col content-stretch items-start px-[16px]"
-						data-name="card-header"
-					>
-						<p
-							class="relative h-[22px] w-full shrink-0 font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] text-[#0a0a0a]"
-						>
-							Select Payment Mode
-						</p>
+					<div class="flex flex-col gap-4">
+						<Skeleton class="h-24 w-full rounded-xl" />
+						<Skeleton class="h-80 w-full rounded-xl" />
 					</div>
-					<div
-						class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[24px] px-[16px]"
-						data-name="card-body"
-					>
-						<div
-							class="relative isolate flex w-full shrink-0 flex-wrap content-center items-center overflow-clip rounded-[10px] bg-[#f5f5f5] p-[3px]"
-							data-name="Advance Tabs"
-						>
-							<div
-								class="relative z-[1] flex min-w-px flex-[1_0_0] content-stretch items-center"
-								data-name="Items"
-							>
-								<button
-									type="button"
-									class={tabClass(mode === 'card' && cardType === 'debit')}
-									data-name="Tab 01"
-									onclick={() => {
-										mode = 'card';
-										cardType = 'debit';
-										error = '';
-										notice = '';
-									}}
-								>
-									<p class={tabTextClass(mode === 'card' && cardType === 'debit')}>Debit Card</p>
-								</button>
-								<button
-									type="button"
-									class={tabClass(mode === 'card' && cardType === 'credit')}
-									data-name="Tab 02"
-									onclick={() => {
-										mode = 'card';
-										cardType = 'credit';
-										error = '';
-										notice = '';
-									}}
-								>
-									<p class={tabTextClass(mode === 'card' && cardType === 'credit')}>Credit Card</p>
-								</button>
-								<button
-									type="button"
-									class={tabClass(mode === 'cod')}
-									data-name="Tab item"
-									onclick={() => {
-										mode = 'cod';
-										error = '';
-										notice = '';
-									}}
-								>
-									<p class={tabTextClass(mode === 'cod')}>Cash on delivery</p>
-								</button>
-								<button
-									type="button"
-									class={tabClass(mode === 'gift')}
-									data-name="Tab 04"
-									onclick={() => {
-										mode = 'gift';
-										error = '';
-										notice = '';
-									}}
-								>
-									<p class={tabTextClass(mode === 'gift')}>Gift card</p>
-								</button>
-							</div>
-						</div>
-
-						{#if isCard}
-							{#if methods.length > 0}
-								<div
-									class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[8px]"
-									data-name="Flex Vertical"
-								>
-									<p
-										class="relative w-full shrink-0 font-['Geist:Medium'] text-[14px] leading-[20px] font-medium [word-break:break-word] text-[#0a0a0a]"
-									>
-										Saved cards
-									</p>
-									{#each methods as method (method.id)}
-										<button
-											type="button"
-											class="relative flex w-full shrink-0 cursor-pointer content-stretch items-center justify-between gap-[12px] rounded-[10px] border border-solid bg-white px-[10px] py-[8px] text-left {paymentMethodId ===
-											method.id
-												? 'border-[#171717]'
-												: 'border-[#e5e5e5]'}"
-											data-name="Card Radio"
-											onclick={() => selectSavedMethod(method.id)}
+					<Skeleton class="h-96 w-full rounded-xl" />
+				</div>
+			{:else}
+				<div class="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_380px] lg:items-start">
+					<div class="flex min-w-0 flex-col gap-6">
+						{#if selectedAddress && selectedShipping}
+							<Card.Root>
+								<Card.Content class="flex flex-col gap-4 py-4 sm:flex-row sm:items-start">
+									<div class="flex min-w-0 flex-1 items-start gap-3">
+										<span
+											class="flex size-9 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground"
 										>
-											<span
-												class="relative font-['Geist:Medium'] text-[14px] leading-[20px] font-medium text-[#0a0a0a]"
-											>
-												{method.brand} •••• {method.last4}
-											</span>
-											<span
-												class="relative flex items-center gap-[8px] font-['Geist:Regular'] text-[12px] leading-[16px] text-[#737373]"
-											>
-												{String(method.expMonth).padStart(2, '0')}/{String(method.expYear).slice(
-													-2
-												)}
-												{#if method.isDefault}
-													<span class="rounded-[8px] bg-[#f5f5f5] px-[6px] py-[2px]">Default</span>
-												{/if}
-											</span>
-										</button>
-									{/each}
-								</div>
-							{/if}
-
-							{#if paymentMethodId && selectedMethod}
-								<div
-									class="relative flex w-full shrink-0 content-stretch items-center justify-between gap-[12px] rounded-[10px] border border-solid border-[#e5e5e5] bg-[#f5f5f5] px-[10px] py-[8px]"
-									data-name="Flex Horizontal"
-								>
-									<p
-										class="relative font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]"
-									>
-										Using {selectedMethod.brand} ending in {selectedMethod.last4}
-									</p>
-									<button
-										type="button"
-										class="relative shrink-0 cursor-pointer font-['Geist:Medium'] text-[14px] leading-[20px] font-medium text-[#0a0a0a] hover:underline"
-										onclick={useNewCard}
-									>
-										Use a new card
-									</button>
-								</div>
-							{:else}
-								<div
-									class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[24px]"
-									data-name="Flex Vertical"
-								>
-									<div
-										class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[14px]"
-										data-name="Flex Vertical"
-									>
-										<label
-											for="card-number"
-											class="relative w-full shrink-0 font-['Geist:Medium'] text-[14px] leading-[20px] font-medium [word-break:break-word] text-[#0a0a0a]"
-										>
-											Card Number
-										</label>
-										<div
-											class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[8px]"
-											data-name="Default Input"
-										>
-											<input
-												id="card-number"
-												class="relative flex h-[32px] w-full rounded-[10px] border border-solid border-[#e5e5e5] bg-white px-[10px] py-[4px] font-['Geist:Regular'] text-[14px] leading-[20px] text-[#0a0a0a] outline-none focus:border-[#171717]"
-												inputmode="numeric"
-												autocomplete="cc-number"
-												placeholder="Card number"
-												bind:value={cardNumber}
-											/>
+											<MapPin class="size-4" />
+										</span>
+										<div class="flex min-w-0 flex-col gap-0.5">
+											<p class="text-sm font-medium text-foreground">
+												Deliver to {selectedAddress.recipientName}
+											</p>
+											<p class="text-sm text-muted-foreground">
+												{[selectedAddress.line1, selectedAddress.city, selectedAddress.country]
+													.filter(Boolean)
+													.join(', ')}
+											</p>
 										</div>
 									</div>
-									<div
-										class="relative flex w-full min-w-[280px] shrink-0 flex-wrap content-start items-start gap-[24px]"
-										data-name="Flex Horizontal"
-									>
-										<label
-											class="relative flex min-w-[160px] shrink-0 flex-col content-stretch items-start gap-[14px]"
-											data-name="Flex Vertical"
-										>
-											<span
-												class="relative w-[min-content] min-w-full shrink-0 font-['Geist:Medium'] text-[14px] leading-[20px] font-medium [word-break:break-word] text-[#0a0a0a]"
-											>
-												Card Name
+									<div class="flex items-center gap-3 sm:flex-col sm:items-end">
+										<div class="flex items-center gap-1.5 text-sm text-muted-foreground">
+											<Truck class="size-4" />
+											<span>{selectedShipping.label}</span>
+											<span class="text-xs">
+												({selectedShipping.minDays}–{selectedShipping.maxDays} days)
 											</span>
-											<input
-												class="relative h-[32px] w-[288px] rounded-[10px] border border-solid border-[#e5e5e5] bg-white px-[10px] py-[4px] font-['Geist:Regular'] text-[14px] leading-[20px] text-[#0a0a0a] outline-none focus:border-[#171717]"
-												autocomplete="cc-name"
-												placeholder="Name on card"
-												bind:value={cardName}
-											/>
-										</label>
-										<label
-											class="relative flex min-w-[77px] flex-[1_0_0] flex-col content-stretch items-start gap-[14px]"
-											data-name="Flex Vertical"
+										</div>
+										<a
+											href="/checkout/address"
+											class="text-sm font-medium underline-offset-4 hover:underline"
 										>
-											<span
-												class="relative w-full shrink-0 font-['Geist:Medium'] text-[14px] leading-[20px] font-medium [word-break:break-word] text-[#0a0a0a]"
-											>
-												Exp. Date
-											</span>
-											<input
-												class="relative h-[32px] w-full rounded-[10px] border border-solid border-[#e5e5e5] bg-white px-[10px] py-[4px] font-['Geist:Regular'] text-[14px] leading-[20px] text-[#0a0a0a] outline-none focus:border-[#171717]"
-												inputmode="numeric"
-												autocomplete="cc-exp"
-												placeholder="MM/YY"
-												bind:value={expDate}
-											/>
-										</label>
-										<label
-											class="relative flex min-w-px flex-[1_0_0] flex-col content-stretch items-start gap-[14px]"
-											data-name="Flex Vertical"
-										>
-											<span
-												class="relative shrink-0 font-['Geist:Medium'] text-[14px] leading-[20px] font-medium [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
-											>
-												CVV Code
-											</span>
-											<input
-												class="relative h-[32px] w-full rounded-[10px] border border-solid border-[#e5e5e5] bg-white px-[10px] py-[4px] font-['Geist:Regular'] text-[14px] leading-[20px] text-[#0a0a0a] outline-none focus:border-[#171717]"
-												type="password"
-												inputmode="numeric"
-												autocomplete="cc-csc"
-												placeholder="CVV"
-												bind:value={cvv}
-											/>
-										</label>
+											Change
+										</a>
 									</div>
-								</div>
-							{/if}
+								</Card.Content>
+							</Card.Root>
 						{/if}
 
-						{#if error}
-							<p class="relative font-['Geist:Regular'] text-[14px] leading-[20px] text-red-600">
-								{error}
-							</p>
-						{/if}
-						{#if notice}
-							<p class="relative font-['Geist:Regular'] text-[14px] leading-[20px] text-[#16a34a]">
-								{notice}
-							</p>
-						{/if}
+						<Card.Root>
+							<Card.Header>
+								<Card.Title>Payment method</Card.Title>
+								<Card.Description>Select how you would like to pay.</Card.Description>
+							</Card.Header>
+							<Card.Content class="flex flex-col gap-6">
+								<Tabs.Root value={activeTab} onValueChange={handleTabChange} class="w-full">
+									<Tabs.List class="h-auto w-full flex-wrap">
+										<Tabs.Trigger value="debit" class="h-8 flex-1 whitespace-nowrap">
+											Debit Card
+										</Tabs.Trigger>
+										<Tabs.Trigger value="credit" class="h-8 flex-1 whitespace-nowrap">
+											Credit Card
+										</Tabs.Trigger>
+										<Tabs.Trigger value="cod" class="h-8 flex-1 whitespace-nowrap">
+											Cash on delivery
+										</Tabs.Trigger>
+										<Tabs.Trigger value="gift" class="h-8 flex-1 whitespace-nowrap">
+											Gift card
+										</Tabs.Trigger>
+									</Tabs.List>
+								</Tabs.Root>
 
-						<div
-							class="relative flex w-full shrink-0 content-stretch items-start gap-[14px]"
-							data-name="Actions"
-						>
-							<button
-								type="button"
-								class="relative flex shrink-0 cursor-pointer content-stretch items-center justify-center gap-[6px] overflow-clip rounded-[10px] border border-solid border-[#171717] bg-[#171717] px-[16px] py-[8px] disabled:cursor-not-allowed disabled:opacity-60"
-								data-name="Solid Button"
-								disabled={placing || !isCard || Boolean(paymentMethodId)}
-								onclick={saveCardToAccount}
-							>
-								<div
-									class="relative flex shrink-0 flex-col justify-center font-['Geist:Medium'] text-[14px] leading-[0] font-medium [word-break:break-word] whitespace-nowrap text-[#fafafa]"
-								>
-									<p class="leading-[20px]">Save card</p>
+								{#if isCard}
+									{#if methods.length > 0}
+										<div class="flex flex-col gap-3">
+											<p class="text-sm font-medium text-foreground">Saved cards</p>
+											<RadioGroup.Root
+												value={paymentMethodId}
+												onValueChange={(value) => selectSavedMethod(value)}
+												class="flex flex-col gap-3"
+											>
+												{#each methods as method (method.id)}
+													<label
+														class="flex cursor-pointer items-center gap-3 rounded-xl border p-3 transition-colors {paymentMethodId ===
+														method.id
+															? 'border-primary bg-muted/30 ring-1 ring-primary/20'
+															: 'hover:bg-muted/30'}"
+													>
+														<RadioGroup.Item
+															value={method.id}
+															aria-label={`${method.brand} ending in ${method.last4}`}
+														/>
+														<div class="flex min-w-0 flex-1 items-center justify-between gap-3">
+															<div class="flex min-w-0 items-center gap-2">
+																<CreditCard class="size-4 shrink-0 text-muted-foreground" />
+																<span class="truncate text-sm font-medium text-foreground">
+																	{method.brand} •••• {method.last4}
+																</span>
+															</div>
+															<span
+																class="flex shrink-0 items-center gap-2 text-xs text-muted-foreground"
+															>
+																{String(method.expMonth).padStart(2, '0')}/{String(
+																	method.expYear
+																).slice(-2)}
+																{#if method.isDefault}
+																	<Badge variant="secondary">Default</Badge>
+																{/if}
+															</span>
+														</div>
+													</label>
+												{/each}
+											</RadioGroup.Root>
+										</div>
+									{/if}
+
+									{#if paymentMethodId && selectedMethod}
+										<div
+											class="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-muted/40 px-4 py-3"
+										>
+											<p class="text-sm text-muted-foreground">
+												Using {selectedMethod.brand} ending in {selectedMethod.last4}
+											</p>
+											<Button variant="link" size="sm" class="h-auto p-0" onclick={useNewCard}>
+												Use a new card
+											</Button>
+										</div>
+									{:else}
+										<div class="flex flex-col gap-4">
+											<Field.Field>
+												<Field.Label for="card-number">Card Number</Field.Label>
+												<Input
+													id="card-number"
+													inputmode="numeric"
+													autocomplete="cc-number"
+													placeholder="4242 4242 4242 4242"
+													bind:value={cardNumber}
+												/>
+											</Field.Field>
+											<div class="grid gap-4 sm:grid-cols-3">
+												<Field.Field>
+													<Field.Label for="card-name">Card Name</Field.Label>
+													<Input
+														id="card-name"
+														autocomplete="cc-name"
+														placeholder="Name on card"
+														bind:value={cardName}
+													/>
+												</Field.Field>
+												<Field.Field>
+													<Field.Label for="card-exp">Exp. Date</Field.Label>
+													<Input
+														id="card-exp"
+														inputmode="numeric"
+														autocomplete="cc-exp"
+														placeholder="MM/YY"
+														bind:value={expDate}
+													/>
+												</Field.Field>
+												<Field.Field>
+													<Field.Label for="card-cvv">CVV Code</Field.Label>
+													<Input
+														id="card-cvv"
+														type="password"
+														inputmode="numeric"
+														autocomplete="cc-csc"
+														placeholder="CVV"
+														bind:value={cvv}
+													/>
+												</Field.Field>
+											</div>
+											<div class="flex items-center gap-2">
+												<Checkbox id="save-card" bind:checked={saveCard} />
+												<Field.Label for="save-card" class="font-normal">
+													Save this card to my account
+												</Field.Label>
+											</div>
+										</div>
+									{/if}
+								{:else if mode === 'cod'}
+									<div class="flex items-start gap-3 rounded-xl border bg-muted/40 p-4">
+										<span
+											class="flex size-9 shrink-0 items-center justify-center rounded-full bg-background text-muted-foreground"
+										>
+											<Banknote class="size-4" />
+										</span>
+										<div class="flex flex-col gap-0.5">
+											<p class="text-sm font-medium text-foreground">Cash on delivery</p>
+											<p class="text-sm text-muted-foreground">
+												Pay with cash when your order arrives. Please have the exact amount ready.
+											</p>
+										</div>
+									</div>
+								{:else if mode === 'gift'}
+									<div class="flex items-start gap-3 rounded-xl border bg-muted/40 p-4">
+										<span
+											class="flex size-9 shrink-0 items-center justify-center rounded-full bg-background text-muted-foreground"
+										>
+											<Gift class="size-4" />
+										</span>
+										<div class="flex flex-col gap-0.5">
+											<p class="text-sm font-medium text-foreground">Gift card</p>
+											<p class="text-sm text-muted-foreground">
+												You can apply a gift card after your order is placed.
+											</p>
+										</div>
+									</div>
+								{/if}
+
+								{#if error}
+									<div
+										class="rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+										role="alert"
+									>
+										{error}
+									</div>
+								{/if}
+								{#if notice}
+									<div
+										class="rounded-lg border border-emerald-600/30 bg-emerald-50 px-4 py-3 text-sm text-emerald-700"
+										role="status"
+									>
+										{notice}
+									</div>
+								{/if}
+
+								<div class="flex flex-wrap items-center gap-3">
+									<Button
+										type="button"
+										disabled={placing || !isCard || Boolean(paymentMethodId)}
+										onclick={saveCardToAccount}
+									>
+										Save card
+									</Button>
+									<Button type="button" variant="outline" onclick={resetForm}>Reset form</Button>
 								</div>
-							</button>
-							<button
-								type="button"
-								class="relative flex shrink-0 cursor-pointer content-stretch items-center justify-center gap-[6px] overflow-clip rounded-[10px] border border-solid border-[#f5f5f5] bg-[#f5f5f5] px-[16px] py-[8px]"
-								data-name="Solid Button"
-								onclick={resetForm}
-							>
-								<div
-									class="relative flex shrink-0 flex-col justify-center font-['Geist:Medium'] text-[14px] leading-[0] font-medium [word-break:break-word] whitespace-nowrap text-[#171717]"
-								>
-									<p class="leading-[20px]">Reset form</p>
-								</div>
-							</button>
-						</div>
+							</Card.Content>
+						</Card.Root>
 					</div>
-				</div>
 
-				<div
-					class="relative flex max-w-[522px] min-w-px flex-[1_0_0] flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-white py-[24px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)]"
-					data-name="Card"
-				>
-					<div
-						class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[24px] px-[24px]"
-						data-name="card-body"
-					>
-						<div
-							class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[6px] [word-break:break-word]"
-							data-name="Flex Vertical"
-						>
-							<p
-								class="relative w-[min-content] min-w-full shrink-0 font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold text-[#0a0a0a]"
-							>
-								Pricing Details
-							</p>
-							<p
-								class="relative shrink-0 text-center font-['Geist:Regular'] text-[16px] leading-[24px] font-normal whitespace-nowrap text-[#737373]"
-							>
+					<Card.Root class="lg:sticky lg:top-24">
+						<Card.Header>
+							<Card.Title>Order summary</Card.Title>
+							<Card.Description>
 								You have {cart.count}
 								{cart.count === 1 ? 'item' : 'items'} in your cart
-							</p>
-						</div>
-
-						{#each cart.items as item (item.id)}
-							<div
-								class="relative flex w-full shrink-0 content-stretch items-center gap-[16px]"
-								data-name="Flex Horizontal"
-							>
-								<div
-									class="relative h-[86px] w-[92px] shrink-0 overflow-hidden rounded-[8px] bg-[#f5f5f5]"
-									data-name="image 110"
-								>
-									{#if item.imageUrl}
-										<img alt="" class="size-full object-cover" src={item.imageUrl} />
-									{/if}
-								</div>
-								<div
-									class="relative flex min-h-[72px] min-w-px flex-[1_0_0] flex-col content-stretch items-start gap-[4px] [word-break:break-word]"
-									data-name="Flex Vertical"
-								>
-									<p
-										class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[18px] leading-[28px] font-semibold text-[#0a0a0a]"
-									>
-										{item.productName}
-									</p>
-									<p
-										class="relative w-full shrink-0 font-['Geist:Regular'] text-[14px] leading-[20px] font-normal text-[#737373]"
-									>
-										{item.variantName}
-									</p>
-									<div
-										class="relative flex w-full shrink-0 flex-col justify-center font-['Geist:Regular'] text-[12px] leading-[16px] font-normal text-[#16a34a]"
-									>
-										<p class="leading-[16px]">
-											{formatMoney(item.unitPriceCents, cart.currency)} × {item.quantity}
-										</p>
+							</Card.Description>
+						</Card.Header>
+						<Card.Content class="flex flex-col gap-4">
+							<div class="flex flex-col gap-4">
+								{#each cart.items as item (item.id)}
+									<div class="flex items-center gap-4">
+										<div class="relative size-20 shrink-0 overflow-hidden rounded-lg bg-muted">
+											{#if item.imageUrl}
+												<img
+													src={item.imageUrl}
+													alt={item.productName}
+													loading="lazy"
+													class="size-full object-contain p-1.5"
+												/>
+											{:else}
+												<ImagePlaceholder class="size-full" label={item.productName} />
+											{/if}
+										</div>
+										<div class="flex min-w-0 flex-1 flex-col gap-0.5">
+											<p class="truncate text-sm font-semibold text-foreground">
+												{item.productName}
+											</p>
+											<p class="truncate text-xs text-muted-foreground">{item.variantName}</p>
+											<p class="text-xs font-medium text-emerald-600">
+												{formatMoney(item.unitPriceCents, cart.currency)} × {item.quantity}
+											</p>
+										</div>
 									</div>
-								</div>
+								{/each}
 							</div>
-						{/each}
 
-						<div
-							class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[14px] text-[18px] leading-[28px] [word-break:break-word] text-[#0a0a0a]"
-							data-name="Flex Vertical"
-						>
+							<Separator />
+
+							<dl class="flex flex-col gap-2.5 text-sm">
+								<div class="flex items-start justify-between gap-4">
+									<dt class="text-muted-foreground">Subtotal</dt>
+									<dd class="font-medium text-foreground">
+										{formatMoney(cart.subtotalCents, cart.currency)}
+									</dd>
+								</div>
+								<div class="flex items-start justify-between gap-4">
+									<dt class="text-muted-foreground">Shipping Cost (+)</dt>
+									<dd class="font-medium text-foreground">
+										{formatMoney(shippingCents, cart.currency)}
+									</dd>
+								</div>
+								<div class="flex items-start justify-between gap-4">
+									<dt class="text-muted-foreground">Discount (-)</dt>
+									<dd class="font-medium text-foreground">
+										{formatMoney(cart.discountCents, cart.currency)}
+									</dd>
+								</div>
+							</dl>
+
+							<Separator />
+
 							<div
-								class="relative flex w-full shrink-0 content-stretch items-start gap-[24px]"
-								data-name="Flex Horizontal"
+								class="flex items-start justify-between gap-4 text-base font-semibold text-foreground"
 							>
-								<p class="relative min-w-px flex-[1_0_0] font-['Geist:Regular'] font-normal">
-									Subtotal
-								</p>
-								<p class="relative shrink-0 font-['Geist:Medium'] font-medium whitespace-nowrap">
-									{formatMoney(cart.subtotalCents, cart.currency)}
-								</p>
+								<span>Total Payable</span>
+								<span>{formatMoney(totalCents, cart.currency)}</span>
 							</div>
-							<div
-								class="relative flex w-full shrink-0 content-stretch items-start gap-[24px]"
-								data-name="Flex Horizontal"
-							>
-								<p class="relative min-w-px flex-[1_0_0] font-['Geist:Regular'] font-normal">
-									Shipping Cost (+)
-								</p>
-								<p class="relative shrink-0 font-['Geist:Medium'] font-medium whitespace-nowrap">
-									{formatMoney(shippingCents, cart.currency)}
-								</p>
-							</div>
-							<div
-								class="relative flex w-full shrink-0 content-stretch items-start gap-[24px]"
-								data-name="Flex Horizontal"
-							>
-								<p class="relative min-w-px flex-[1_0_0] font-['Geist:Regular'] font-normal">
-									Discount (-)
-								</p>
-								<p class="relative shrink-0 font-['Geist:Medium'] font-medium whitespace-nowrap">
-									{formatMoney(cart.discountCents, cart.currency)}
-								</p>
-							</div>
-						</div>
-						<div class="relative h-0 w-full shrink-0" data-name="Separator">
-							<div class="absolute inset-[-1px_0_0_0]">
-								<img alt="" class="block size-full max-w-none" src={imgSeparator} />
-							</div>
-						</div>
-						<div
-							class="relative flex w-full shrink-0 content-stretch items-start gap-[24px] text-[18px] leading-[28px] [word-break:break-word] text-[#0a0a0a]"
-							data-name="Flex Horizontal"
-						>
-							<p class="relative min-w-px flex-[1_0_0] font-['Geist:Medium'] font-medium">
-								Total Payable
-							</p>
-							<p class="relative shrink-0 font-['Geist:SemiBold'] font-semibold whitespace-nowrap">
-								{formatMoney(totalCents, cart.currency)}
-							</p>
-						</div>
-						<div
-							class="relative flex w-full shrink-0 flex-col content-stretch items-start"
-							data-name="Action"
-						>
-							<button
-								type="button"
-								class="relative flex w-full shrink-0 cursor-pointer content-stretch items-center justify-center gap-[6px] overflow-clip rounded-[10px] border border-solid border-[#171717] bg-[#171717] px-[16px] py-[8px] disabled:cursor-not-allowed disabled:opacity-60"
-								data-name="Solid Button"
+						</Card.Content>
+						<Card.Footer class="flex-col items-stretch gap-2">
+							<Button
+								size="lg"
+								class="h-10 w-full"
 								disabled={placing || loading || !ready}
 								onclick={placeOrder}
 							>
-								<div
-									class="relative flex shrink-0 flex-col justify-center font-['Geist:Medium'] text-[14px] leading-[0] font-medium [word-break:break-word] whitespace-nowrap text-[#fafafa]"
-								>
-									<p class="leading-[20px]">{placing ? 'Placing order...' : 'Place Order'}</p>
-								</div>
-							</button>
-						</div>
-					</div>
+								{#if placing}
+									<Spinner />
+								{:else}
+									<Lock class="size-4" />
+								{/if}
+								{placing ? 'Placing order...' : 'Place Order'}
+							</Button>
+							<p class="text-center text-xs text-muted-foreground">
+								Your payment details are handled securely.
+							</p>
+						</Card.Footer>
+					</Card.Root>
 				</div>
-			</div>
-		</div>
+			{/if}
+		</main>
 	</div>
 	<SiteFooter />
 </div>

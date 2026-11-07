@@ -14,7 +14,7 @@
 	import { Textarea } from '#lib/frontend/components/ui/textarea/index.ts';
 	import { TICKET_STATUS_LABELS, statusLabel } from '#lib/frontend/content/status.ts';
 	import { formatDateTime } from '#lib/frontend/modules/commerce/format.ts';
-	import { api, ApiError, unwrap } from '#lib/frontend/modules/commerce/http.ts';
+	import { api, ApiError, unwrap } from '#lib/frontend/modules/shared/http.ts';
 	import type {
 		OrderSummary,
 		SupportTicketDetail,

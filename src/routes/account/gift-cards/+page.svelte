@@ -6,7 +6,7 @@
 	import SiteFooter from '#lib/frontend/components/SiteFooter.svelte';
 	import AccountSidebar from '#lib/frontend/components/AccountSidebar.svelte';
 	import { Spinner } from '#lib/frontend/components/ui/spinner/index.ts';
-	import { api, ApiError, unwrap } from '#frontend/modules/commerce/http.ts';
+	import { api, ApiError, unwrap } from '#lib/frontend/modules/shared/http.ts';
 	import { formatDate, formatMoney } from '#frontend/modules/commerce/format.ts';
 	import type { GiftCardSummary } from '#frontend/modules/commerce/models.ts';
 

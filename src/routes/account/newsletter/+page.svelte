@@ -9,7 +9,7 @@
 	import { Input } from '#lib/frontend/components/ui/input/index.ts';
 	import { Label } from '#lib/frontend/components/ui/label/index.ts';
 	import { Spinner } from '#lib/frontend/components/ui/spinner/index.ts';
-	import { api, ApiError, unwrap } from '#frontend/modules/commerce/http.ts';
+	import { api, ApiError, unwrap } from '#lib/frontend/modules/shared/http.ts';
 	import { formatDate } from '#frontend/modules/commerce/format.ts';
 	import type { NewsletterSubscription } from '#frontend/modules/commerce/models.ts';
 

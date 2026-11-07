@@ -18,7 +18,7 @@
 		statusLabel
 	} from '#lib/frontend/content/status.ts';
 	import { formatDate, formatMoney } from '#lib/frontend/modules/commerce/format.ts';
-	import { api, ApiError, unwrap } from '#lib/frontend/modules/commerce/http.ts';
+	import { api, ApiError, unwrap } from '#lib/frontend/modules/shared/http.ts';
 	import type {
 		OrderDetail,
 		OrderSummary,
