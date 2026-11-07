@@ -356,21 +356,24 @@
 					class="relative w-full shrink-0 font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-[#737373] hover:text-[#0a0a0a] hover:underline"
 					>Returns & Exchanges</a
 				>
-				<p
-					class="relative w-full shrink-0 font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-[#737373]"
+				<a
+					href="/privacy-policy"
+					class="relative w-full shrink-0 font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-[#737373] hover:text-[#0a0a0a] hover:underline"
 				>
 					{FOOTER_TERMS[0]}
-				</p>
-				<p
-					class="relative w-full shrink-0 font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-[#737373]"
+				</a>
+				<a
+					href="/help/purchase-protection"
+					class="relative w-full shrink-0 font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-[#737373] hover:text-[#0a0a0a] hover:underline"
 				>
 					{FOOTER_TERMS[1]}
-				</p>
-				<p
-					class="relative w-full shrink-0 font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-[#737373]"
+				</a>
+				<a
+					href="/help"
+					class="relative w-full shrink-0 font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-[#737373] hover:text-[#0a0a0a] hover:underline"
 				>
 					{FOOTER_TERMS[2]}
-				</p>
+				</a>
 			</div>
 			<div
 				class="relative flex min-w-[246px] flex-[1_0_0] flex-col content-stretch items-start justify-center gap-[24px]"

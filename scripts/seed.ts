@@ -80,6 +80,24 @@ async function ensureCredentialAccount(userId: string, password: string) {
 	});
 }
 
+async function ensureWishlist(userId: string, productId: string) {
+	const [existing] = await db
+		.select({ id: s.wishlists.id })
+		.from(s.wishlists)
+		.where(and(eq(s.wishlists.userId, userId), eq(s.wishlists.productId, productId)))
+		.limit(1);
+	if (existing) return existing.id as string;
+
+	const rowId = id();
+	await db.insert(s.wishlists).values({
+		id: rowId,
+		userId,
+		productId,
+		createdAt: now
+	});
+	return rowId;
+}
+
 async function ensureProductImage(productId: string, url: string, alt: string, position: number) {
 	const [existing] = await db
 		.select({ id: s.productImages.id })
@@ -985,6 +1003,11 @@ async function main() {
 
 	const phoneCaseId = productIds['shield-phone-case'];
 	const shirtId = productIds['everyday-cotton-shirt'];
+
+	for (const slug of ['shield-phone-case', 'everyday-cotton-shirt']) {
+		const productId = productIds[slug];
+		if (productId) await ensureWishlist(customerId, productId);
+	}
 
 	const reviewData = [
 		{

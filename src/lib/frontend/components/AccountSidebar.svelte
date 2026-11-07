@@ -86,7 +86,7 @@
 					data-name="Flex Vertical"
 				>
 					<a
-						href="/account/payment"
+						href="/account"
 						class="relative flex w-full shrink-0 content-stretch items-center gap-[8px] rounded-[6px] bg-[#f5f5f5] px-[12px] py-[10px] hover:bg-gray-100"
 						data-name="Flex Horizontal"
 					>
@@ -100,7 +100,7 @@
 						</p>
 					</a>
 					<a
-						href="/categories"
+						href="/account/wishlist"
 						class="relative flex w-full shrink-0 content-stretch items-center gap-[8px] rounded-[6px] px-[12px] py-[10px] hover:bg-gray-50"
 						data-name="Flex Horizontal"
 					>
@@ -114,7 +114,7 @@
 						</p>
 					</a>
 					<a
-						href="/account/order-tracking"
+						href="/account/orders"
 						class="relative flex w-full shrink-0 content-stretch items-center gap-[8px] rounded-[6px] px-[12px] py-[10px] hover:bg-gray-50"
 						data-name="Flex Horizontal"
 					>
@@ -128,7 +128,7 @@
 						</p>
 					</a>
 					<a
-						href="/account/order-tracking"
+						href="/account/orders/latest"
 						class="relative flex w-full shrink-0 content-stretch items-center gap-[8px] rounded-[6px] px-[12px] py-[10px] hover:bg-gray-50"
 						data-name="Flex Horizontal"
 					>
@@ -142,7 +142,7 @@
 						</p>
 					</a>
 					<a
-						href="/checkout/address"
+						href="/account/addresses"
 						class="relative flex w-full shrink-0 content-stretch items-center gap-[8px] rounded-[6px] px-[12px] py-[10px] hover:bg-gray-50"
 						data-name="Flex Horizontal"
 					>

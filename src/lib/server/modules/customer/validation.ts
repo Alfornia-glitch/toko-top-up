@@ -83,6 +83,10 @@ export const newsletterSubscribeSchema = z.object({
 	email: z.string().email().max(200)
 });
 
+export const wishlistAddSchema = z.object({
+	productId: z.string().min(1)
+});
+
 export const reviewCreateSchema = z.object({
 	productId: z.string().min(1),
 	rating: z.number().int().min(1).max(5),
@@ -105,3 +109,4 @@ export type TicketCreateInput = z.infer<typeof ticketCreateSchema>;
 export type TicketMessageInput = z.infer<typeof ticketMessageSchema>;
 export type NewsletterSubscribeInput = z.infer<typeof newsletterSubscribeSchema>;
 export type ReviewCreateInput = z.infer<typeof reviewCreateSchema>;
+export type WishlistAddInput = z.infer<typeof wishlistAddSchema>;

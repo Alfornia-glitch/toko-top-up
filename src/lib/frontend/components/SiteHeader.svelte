@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { LogOut } from '@lucide/svelte';
+	import { Heart, LogOut, Package, User } from '@lucide/svelte';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import MegaMenu from './MegaMenu.svelte';
@@ -410,6 +410,19 @@
 									<div class="truncate font-medium">{user.name ?? 'Account'}</div>
 									<div class="truncate text-xs text-muted-foreground">{user.email ?? ''}</div>
 								</DropdownMenu.Label>
+								<DropdownMenu.Separator />
+								<DropdownMenu.Item onclick={() => void goto('/account')}>
+									<User />
+									My account
+								</DropdownMenu.Item>
+								<DropdownMenu.Item onclick={() => void goto('/account/orders')}>
+									<Package />
+									My orders
+								</DropdownMenu.Item>
+								<DropdownMenu.Item onclick={() => void goto('/account/wishlist')}>
+									<Heart />
+									My wishlist
+								</DropdownMenu.Item>
 								<DropdownMenu.Separator />
 								<DropdownMenu.Item variant="destructive" onclick={() => void signOutUser('/login')}>
 									<LogOut />

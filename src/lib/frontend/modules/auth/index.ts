@@ -1,6 +1,7 @@
 import { goto } from '$app/navigation';
 import { createAuthClient } from 'better-auth/svelte';
 import { adminClient } from 'better-auth/client/plugins';
+import { wishlist } from '#lib/frontend/modules/account/index.ts';
 
 export const authClient = createAuthClient({ plugins: [adminClient()] });
 
@@ -51,5 +52,6 @@ export function authErrorMessage(
 
 export async function signOutUser(redirectTo = '/login'): Promise<void> {
 	await authClient.signOut();
+	wishlist.reset();
 	await goto(redirectTo, { replaceState: true });
 }

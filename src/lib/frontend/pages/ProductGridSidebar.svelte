@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount, untrack } from 'svelte';
+	import { onMount, untrack, type Snippet } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { page as appPage } from '$app/state';
 	import Pagination from '#lib/frontend/components/ui/Pagination.svelte';
@@ -12,7 +12,17 @@
 	import { formatMoney } from '#lib/frontend/modules/commerce/format.ts';
 	import { home } from '#lib/frontend/modules/commerce/home.svelte.ts';
 
-	let { query = {} }: { query?: ProductQuery } = $props();
+	let {
+		query = {},
+		basePath = '/products',
+		lockedCategoryId = undefined,
+		before = undefined
+	}: {
+		query?: ProductQuery;
+		basePath?: string;
+		lockedCategoryId?: string;
+		before?: Snippet;
+	} = $props();
 
 	type SortValue = NonNullable<ProductQuery['sort']>;
 
@@ -30,7 +40,7 @@
 	let error = $state('');
 	let filters = $state<Filters>(
 		untrack(() => ({
-			categoryId: query.categoryId,
+			categoryId: lockedCategoryId ?? query.categoryId,
 			brandId: query.brandId,
 			minPrice: query.minPrice,
 			maxPrice: query.maxPrice,
@@ -105,12 +115,12 @@
 
 	function syncUrl(overrides: Record<string, string | number | null | undefined> = {}) {
 		const search = currentSearch(overrides);
-		void goto(`/products${search ? `?${search}` : ''}`, { replace: true, reset: false });
+		void goto(`${basePath}${search ? `?${search}` : ''}`, { replace: true, reset: false });
 	}
 
 	function viewHref(list: boolean) {
 		const search = currentSearch({ view: list ? 'list' : null });
-		return `/products${search ? `?${search}` : ''}`;
+		return `${basePath}${search ? `?${search}` : ''}`;
 	}
 
 	function selectCategory(id: string) {
@@ -156,7 +166,7 @@
 	}
 
 	function clearAll() {
-		filters.categoryId = undefined;
+		filters.categoryId = lockedCategoryId;
 		filters.brandId = undefined;
 		filters.minPrice = undefined;
 		filters.maxPrice = undefined;
@@ -186,7 +196,12 @@
 		error = '';
 
 		try {
-			const response = await listProducts({ ...query, page, ...filters });
+			const response = await listProducts({
+				...query,
+				page,
+				...filters,
+				categoryId: lockedCategoryId ?? filters.categoryId
+			});
 			if (request !== requestId) return;
 			result = response;
 		} catch (cause) {
@@ -219,6 +234,7 @@
 	data-name="Shopix - Product Listing Grid View With Sidebar"
 >
 	<SiteHeader />
+	{@render before?.()}
 	<div
 		class="relative flex w-full max-w-[1440px] shrink-0 flex-col content-stretch items-center justify-center gap-[14px] bg-white py-[56px]"
 		data-name="Category filter"
@@ -464,36 +480,38 @@
 						class="relative flex w-full shrink-0 content-stretch items-center"
 						data-name="Flex Horizontal"
 					>
-						<div
-							class="relative flex w-[468px] shrink-0 content-stretch items-center gap-[12px]"
-							data-name="Flex Horizontal"
-						>
-							{#each result?.facets.categories ?? [] as category (category.id)}
-								<button
-									type="button"
-									class="relative flex shrink-0 cursor-pointer content-stretch items-center justify-center gap-[10px]"
-									data-name="Menu Item"
-									onclick={() => selectCategory(category.id)}
-								>
-									<p
-										class={`relative shrink-0 font-['Geist:Medium'] text-[16px] leading-[24px] font-medium [word-break:break-word] whitespace-nowrap ${
-											filters.categoryId === category.id
-												? 'text-[#171717]'
-												: 'text-[#0a0a0a] opacity-60'
-										}`}
+						{#if !lockedCategoryId}
+							<div
+								class="relative flex w-[468px] shrink-0 content-stretch items-center gap-[12px]"
+								data-name="Flex Horizontal"
+							>
+								{#each result?.facets.categories ?? [] as category (category.id)}
+									<button
+										type="button"
+										class="relative flex shrink-0 cursor-pointer content-stretch items-center justify-center gap-[10px]"
+										data-name="Menu Item"
+										onclick={() => selectCategory(category.id)}
 									>
-										{category.name}
-									</p>
-									<div class="relative size-[16px] shrink-0" data-name="Left-icon">
-										<img
-											alt=""
-											class="absolute inset-0 block size-full max-w-none"
-											src={imgMenuIcon}
-										/>
-									</div>
-								</button>
-							{/each}
-						</div>
+										<p
+											class={`relative shrink-0 font-['Geist:Medium'] text-[16px] leading-[24px] font-medium [word-break:break-word] whitespace-nowrap ${
+												filters.categoryId === category.id
+													? 'text-[#171717]'
+													: 'text-[#0a0a0a] opacity-60'
+											}`}
+										>
+											{category.name}
+										</p>
+										<div class="relative size-[16px] shrink-0" data-name="Left-icon">
+											<img
+												alt=""
+												class="absolute inset-0 block size-full max-w-none"
+												src={imgMenuIcon}
+											/>
+										</div>
+									</button>
+								{/each}
+							</div>
+						{/if}
 						<div
 							class="relative flex min-w-px flex-[1_0_0] content-stretch items-center justify-end gap-[16px]"
 							data-name="Flex Horizontal"
@@ -585,7 +603,7 @@
 						class="relative flex shrink-0 flex-wrap content-stretch items-start gap-[12px]"
 						data-name="Flex Horizontal"
 					>
-						{#if filters.categoryId}
+						{#if !lockedCategoryId && filters.categoryId}
 							<button
 								type="button"
 								class="relative flex h-[26px] shrink-0 cursor-pointer content-stretch items-center justify-center gap-[4px] rounded-[9999px] px-[12px] py-[4px]"

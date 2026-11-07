@@ -65,6 +65,10 @@ export interface StorefrontProduct {
 	dealEndsAt?: string | null;
 }
 
+export interface WishlistItem extends StorefrontProduct {
+	wishlistedAt: string;
+}
+
 export interface ProductReview {
 	id: string;
 	rating: number;

@@ -437,6 +437,23 @@ export async function getPublicProduct(slug: string) {
 	};
 }
 
+export async function listPublicProductsByIds(ids: string[]) {
+	if (ids.length === 0) return [];
+
+	const rows = await selectProductRows(
+		and(eq(t.products.status, 'active'), inArray(t.products.id, ids)),
+		[desc(t.products.createdAt)],
+		ids.length
+	);
+	const enriched = await attachExtras(rows);
+	const byId = new Map(enriched.data.map((row) => [row.id, row]));
+
+	return ids.flatMap((id) => {
+		const row = byId.get(id);
+		return row ? [row] : [];
+	});
+}
+
 export async function listPublicCategories() {
 	const rows = await queryDb
 		.select({
