@@ -1,0 +1,56 @@
+name: verify
+
+on:
+  push:
+  pull_request:
+
+concurrency:
+  group: verify-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  sqlite:
+    runs-on: ubuntu-latest
+    env:
+      DB_PROVIDER: sqlite
+      SQLITE_PATH: ${{ github.workspace }}/.data/auth.db
+      STORAGE_PROVIDER: rustfs
+      BETTER_AUTH_SECRET: ci-sqlite-secret-ci-sqlite-secret
+      BETTER_AUTH_URL: http://localhost:3000
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.4.3'
+      - run: bun install --frozen-lockfile
+      - run: bun run verify
+
+  postgres:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: shopix
+          POSTGRES_PASSWORD: shopix
+          POSTGRES_DB: shopix
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U shopix"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DB_PROVIDER: postgres
+      DATABASE_URL: postgres://shopix:shopix@localhost:5432/shopix
+      STORAGE_PROVIDER: rustfs
+      BETTER_AUTH_SECRET: ci-postgres-secret-ci-postgres-secret
+      BETTER_AUTH_URL: http://localhost:3000
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.4.3'
+      - run: bun install --frozen-lockfile
+      - run: bun run verify
