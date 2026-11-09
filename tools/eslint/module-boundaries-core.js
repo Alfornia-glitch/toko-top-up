@@ -4,7 +4,9 @@ import path from 'node:path';
 export const MODULE_ROOT = 'src/lib/modules';
 
 const FRAMEWORK = /^\$(app|env)(\/|$)/;
-const PURE_FORBIDDEN = /^(svelte|drizzle-orm|better-auth|@supabase)(\/|$)/;
+const PURE_FORBIDDEN =
+	/^(svelte|drizzle-orm|better-auth|@supabase|#db|#lib\/server|\$lib\/server)(\/|$)/;
+const SERVER_ONLY = /^(#db|#lib\/server|\$lib\/server)(\/|$)/;
 const EXTENSION = /\.[a-z0-9]+$/i;
 const EXTENSION_CANDIDATES = ['.ts', '.svelte', '.js'];
 const INDEX_CANDIDATES = ['/index.ts', '/index.svelte'];
@@ -267,6 +269,11 @@ export function createModuleBoundariesCore(root = process.cwd()) {
 		return PURE_FORBIDDEN.test(specifier);
 	}
 
+	/** @param {string} specifier */
+	function isServerOnly(specifier) {
+		return SERVER_ONLY.test(specifier);
+	}
+
 	/** @param {string} rel */
 	function schemaDialect(rel) {
 		if (rel.endsWith('/infra/pg/schema.ts')) return 'pg';
@@ -349,6 +356,7 @@ export function createModuleBoundariesCore(root = process.cwd()) {
 		isServerFile,
 		isFramework,
 		isPureForbidden,
+		isServerOnly,
 		schemaDialect,
 		isSchemaAggregator,
 		isAppRoot,

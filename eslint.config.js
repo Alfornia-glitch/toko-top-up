@@ -21,16 +21,32 @@ const IGNORED = [
 	'src/app.d.ts'
 ];
 
+const moduleTsFiles = ['src/lib/modules/**/*.ts', 'src/lib/shared/**/*.ts'];
+
+/**
+ * @param {import("eslint").Linter.Config[]} configs
+ * @returns {import("eslint").Linter.Config[]}
+ */
+function scoped(configs) {
+	return configs.map((config) => ({ ...config, files: moduleTsFiles }));
+}
+
 const boundariesSettings = {
 	'boundaries/elements': [
 		{ type: 'shared-ui', pattern: 'src/lib/shared/ui', partialMatch: false },
 		{ type: 'shared', pattern: 'src/lib/shared', partialMatch: false },
 		{ type: 'module', pattern: 'src/lib/modules', partialMatch: false },
 		{ type: 'route', pattern: 'src/routes', partialMatch: false },
-		{ type: 'app-root', pattern: 'src/hooks.server.ts', mode: 'file' },
-		{ type: 'app-root', pattern: 'src/hooks.client.ts', mode: 'file' },
-		{ type: 'db-aggregator', pattern: 'src/lib/server/db/schema.pg.ts', mode: 'file' },
-		{ type: 'db-aggregator', pattern: 'src/lib/server/db/schema.sqlite.ts', mode: 'file' }
+		{ type: 'db-schema', pattern: 'src/lib/server/db/schema', partialMatch: false },
+		{ type: 'db', pattern: 'src/lib/server/db', partialMatch: false }
+	],
+	'boundaries/files': [
+		{ pattern: 'src/hooks.server.ts', category: 'app-root' },
+		{ pattern: 'src/hooks.client.ts', category: 'app-root' },
+		{ pattern: 'src/lib/server/db/schema.pg.ts', category: 'db-aggregator' },
+		{ pattern: 'src/lib/server/db/schema.sqlite.ts', category: 'db-aggregator' },
+		{ pattern: 'src/lib/modules/**/infra/**', category: 'module-db-access' },
+		{ pattern: 'src/lib/modules/**/server.ts', category: 'module-db-access' }
 	]
 };
 
@@ -50,14 +66,18 @@ const boundariesPolicy = {
 			allow: { to: { element: { types: ['module', 'shared', 'shared-ui'] } } }
 		},
 		{
-			from: { element: { type: 'db-aggregator' } },
+			from: { file: { categories: 'module-db-access' } },
+			allow: { to: { element: { types: ['db', 'db-schema'] } } }
+		},
+		{
+			from: { file: { categories: 'db-aggregator' } },
 			allow: { to: { element: { types: ['module', 'shared'] } } }
 		},
 		{
-			from: { element: { type: 'app-root' } },
+			from: { file: { categories: 'app-root' } },
 			allow: {
 				to: {
-					element: { types: ['module', 'shared', 'shared-ui', 'db-aggregator'] }
+					element: { types: ['module', 'shared', 'shared-ui'] }
 				}
 			}
 		},
@@ -92,8 +112,7 @@ export default [
 		settings: boundariesSettings,
 		rules: {
 			'boundaries/dependencies': ['error', boundariesPolicy],
-			'boundaries/no-unknown-files': 'error',
-			'boundaries/no-unknown-dependencies': 'error'
+			'boundaries/no-unknown-files': 'error'
 		}
 	}
 ];

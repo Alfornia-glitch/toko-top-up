@@ -25,6 +25,8 @@ const rule = {
 				"Only a module's index.ts or server.ts is public. Deep import '{{target}}' is forbidden.",
 			indexServer: 'An index.ts entry point may not import server.ts or *.server.ts files.',
 			domainPurity: "Domain must stay pure; '{{specifier}}' is not allowed.",
+			applicationServer:
+				"Application may not import server-only code; '{{specifier}}' is not allowed.",
 			applicationInfra: 'Application may not import infrastructure.',
 			dialect: 'Postgres and SQLite adapters must not import each other.',
 			sharedModule: 'Shared may not import modules.',
@@ -83,6 +85,10 @@ const rule = {
 				if (sourceLayer === 'domain') {
 					report(node, 'domainPurity', { specifier });
 				}
+				return;
+			}
+			if (sourceLayer === 'application' && core.isServerOnly(specifier)) {
+				report(node, 'applicationServer', { specifier });
 				return;
 			}
 

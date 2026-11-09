@@ -1,8 +1,7 @@
 import type { RequestHandler } from './$types';
 import { requireAdmin } from '#lib/server/modules/admin/access.ts';
-import { brandWriteSchema } from '#lib/server/modules/admin/validation.ts';
-import { deleteBrand, updateBrand } from '#lib/server/modules/catalog/brands.ts';
-import { catalogErrorResponse } from '#lib/server/modules/catalog/http.ts';
+import { brandWriteSchema } from '#modules/catalog/index.ts';
+import { brandService } from '../brand-service.ts';
 
 export const PATCH: RequestHandler = async ({ locals, params, request }) => {
 	const denied = requireAdmin(locals.user);
@@ -24,31 +23,21 @@ export const PATCH: RequestHandler = async ({ locals, params, request }) => {
 		);
 	}
 
-	try {
-		const updated = await updateBrand(params.id, parsed.data);
-		if (!updated) return Response.json({ error: 'Brand not found' }, { status: 404 });
-
-		return Response.json({ data: { id: params.id } });
-	} catch (error) {
-		return catalogErrorResponse(error, 'update brand');
+	const result = await brandService.update(params.id, parsed.data);
+	if (!result.ok) {
+		return Response.json({ error: result.error.message }, { status: result.error.status });
 	}
+
+	return Response.json({ data: { id: result.value.id } });
 };
 
 export const DELETE: RequestHandler = async ({ locals, params }) => {
 	const denied = requireAdmin(locals.user);
 	if (denied) return denied;
 
-	const result = await deleteBrand(params.id);
-
-	if (result === 'not_found') {
-		return Response.json({ error: 'Brand not found' }, { status: 404 });
-	}
-
-	if (result === 'in_use') {
-		return Response.json(
-			{ error: 'Reassign or delete products that use this brand first' },
-			{ status: 409 }
-		);
+	const result = await brandService.delete(params.id);
+	if (!result.ok) {
+		return Response.json({ error: result.error.message }, { status: result.error.status });
 	}
 
 	return Response.json({ data: { id: params.id } });

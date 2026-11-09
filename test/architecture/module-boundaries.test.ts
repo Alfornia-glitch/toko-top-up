@@ -13,6 +13,10 @@ const eslintBin = path.join(root, 'node_modules/.bin/eslint');
 const fixtures: Record<string, string> = {
 	'__arch_legal__/index.ts': `import "./modules/child/index.ts";\nexport const legal = 1;\n`,
 	'__arch_legal__/modules/child/index.ts': `export const child = 1;\n`,
+	'__arch_chain__/index.ts': `import "./modules/child/index.ts";\nexport const root = 1;\n`,
+	'__arch_chain__/modules/child/index.ts': `import "./modules/grand/index.ts";\nexport const child = 1;\n`,
+	'__arch_chain__/modules/child/modules/grand/index.ts': `import "./modules/great/index.ts";\nexport const grand = 1;\n`,
+	'__arch_chain__/modules/child/modules/grand/modules/great/index.ts': `export const great = 1;\n`,
 	'__arch_deep1__/index.ts': `import "./modules/child/domain/secret.ts";\nexport const deep = 1;\n`,
 	'__arch_deep1__/modules/child/index.ts': `export const child = 1;\n`,
 	'__arch_deep1__/modules/child/domain/secret.ts': `export const secret = 1;\n`,
@@ -33,8 +37,11 @@ const fixtures: Record<string, string> = {
 	'__arch_index_server__/index.ts': `import "./server.ts";\nexport const index = 1;\n`,
 	'__arch_index_server__/server.ts': `export const server = 1;\n`,
 	'__arch_domain__/domain/model.ts': `import "drizzle-orm";\nexport const model = 1;\n`,
+	'__arch_domain_db__/domain/model.ts': `import { db } from "#db";\nexport const model = db;\n`,
 	'__arch_application__/application/use-case.ts': `import "../infra/pg/repo.ts";\nexport const useCase = 1;\n`,
 	'__arch_application__/infra/pg/repo.ts': `export const repo = 1;\n`,
+	'__arch_application_db__/application/use-case.ts': `import { db } from "#db";\nexport const useCase = db;\n`,
+	'__arch_infra_db__/infra/pg/repo.ts': `import { db } from "#db";\nexport const repo = db;\n`,
 	'__arch_dialect__/infra/pg/repo.ts': `import "../sqlite/repo.ts";\nexport const pg = 1;\n`,
 	'__arch_dialect__/infra/sqlite/repo.ts': `export const sqlite = 1;\n`
 };
@@ -109,6 +116,12 @@ describe('recursive module boundaries', () => {
 		expect(messagesFor('__arch_legal__/index.ts')).toEqual([]);
 	});
 
+	test('allows a parent -> child -> grandchild -> great-grandchild entry chain', () => {
+		expect(messagesFor('__arch_chain__/index.ts')).toEqual([]);
+		expect(messagesFor('__arch_chain__/modules/child/index.ts')).toEqual([]);
+		expect(messagesFor('__arch_chain__/modules/child/modules/grand/index.ts')).toEqual([]);
+	});
+
 	test('rejects a depth-1 deep import', () => {
 		expect(includes('__arch_deep1__/index.ts', 'Deep import')).toBe(true);
 	});
@@ -137,8 +150,20 @@ describe('recursive module boundaries', () => {
 		expect(includes('__arch_domain__/domain/model.ts', 'Domain must stay pure')).toBe(true);
 	});
 
+	test('keeps domain away from the database client', () => {
+		expect(includes('__arch_domain_db__/domain/model.ts', 'Domain must stay pure')).toBe(true);
+	});
+
 	test('keeps application away from infrastructure', () => {
 		expect(includes('__arch_application__/application/use-case.ts', 'infrastructure')).toBe(true);
+	});
+
+	test('keeps application away from the database client', () => {
+		expect(includes('__arch_application_db__/application/use-case.ts', 'server-only')).toBe(true);
+	});
+
+	test('allows infrastructure to use the database client', () => {
+		expect(messagesFor('__arch_infra_db__/infra/pg/repo.ts')).toEqual([]);
 	});
 
 	test('keeps adapters isolated', () => {

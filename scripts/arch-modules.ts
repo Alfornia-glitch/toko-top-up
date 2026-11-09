@@ -79,6 +79,13 @@ function checkFile(file: string, violations: Violation[]): void {
 			}
 			continue;
 		}
+		if (sourceLayer === 'application' && core.isServerOnly(specifier)) {
+			add(
+				'application-server',
+				`Application may not import server-only code; '${specifier}' is not allowed.`
+			);
+			continue;
+		}
 
 		const first = specifier.charCodeAt(0);
 		if (first !== 46 && first !== 35 && first !== 36) continue;

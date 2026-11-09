@@ -1,14 +1,18 @@
 import type { RequestHandler } from './$types';
 import { requireAdmin } from '#lib/server/modules/admin/access.ts';
-import { brandWriteSchema } from '#lib/server/modules/admin/validation.ts';
-import { createBrand, listBrands } from '#lib/server/modules/catalog/brands.ts';
-import { catalogErrorResponse } from '#lib/server/modules/catalog/http.ts';
+import { brandWriteSchema } from '#modules/catalog/index.ts';
+import { brandService } from './brand-service.ts';
 
 export const GET: RequestHandler = async ({ locals }) => {
 	const denied = requireAdmin(locals.user);
 	if (denied) return denied;
 
-	return Response.json({ data: await listBrands() });
+	const result = await brandService.list();
+	if (!result.ok) {
+		return Response.json({ error: result.error.message }, { status: result.error.status });
+	}
+
+	return Response.json({ data: result.value });
 };
 
 export const POST: RequestHandler = async ({ locals, request }) => {
@@ -31,10 +35,10 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 		);
 	}
 
-	try {
-		const id = await createBrand(parsed.data);
-		return Response.json({ data: { id } }, { status: 201 });
-	} catch (error) {
-		return catalogErrorResponse(error, 'create brand');
+	const result = await brandService.create(parsed.data);
+	if (!result.ok) {
+		return Response.json({ error: result.error.message }, { status: result.error.status });
 	}
+
+	return Response.json({ data: { id: result.value.id } }, { status: 201 });
 };

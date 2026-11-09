@@ -44,6 +44,7 @@ jobs:
     env:
       DB_PROVIDER: postgres
       DATABASE_URL: postgres://shopix:shopix@localhost:5432/shopix
+      TEST_DATABASE_URL: postgres://shopix:shopix@localhost:5432/shopix
       STORAGE_PROVIDER: rustfs
       BETTER_AUTH_SECRET: ci-postgres-secret-ci-postgres-secret
       BETTER_AUTH_URL: http://localhost:3000
