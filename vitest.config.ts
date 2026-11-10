@@ -11,6 +11,7 @@ export default defineConfig({
 		include: ['src/**/*.{test,spec}.{ts,js}', 'test/**/*.{test,spec}.{ts,js}'],
 		setupFiles: ['test/setup.ts'],
 		globalSetup: ['test/global-setup.ts'],
+		fileParallelism: false,
 		restoreMocks: true,
 		clearMocks: true
 	}

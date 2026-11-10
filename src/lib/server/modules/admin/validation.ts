@@ -77,24 +77,6 @@ export const productWriteSchema = z.object({
 	variants: z.array(productVariantSchema).max(500).default([])
 });
 
-export const categoryWriteSchema = z.object({
-	name: z.string().trim().min(1).max(200),
-	slug: z.string().trim().min(1).max(200).optional(),
-	parentId: z.string().trim().max(100).nullable().optional(),
-	description: z.string().trim().max(5000).nullable().optional(),
-	imageUrl: z.string().trim().max(2000).nullable().optional(),
-	position: z.number().int().min(0).default(0),
-	status: statusFilter.default('active')
-});
-
-export const brandWriteSchema = z.object({
-	name: z.string().trim().min(1).max(200),
-	slug: z.string().trim().min(1).max(200).optional(),
-	logoUrl: z.string().trim().max(2000).nullable().optional(),
-	description: z.string().trim().max(5000).nullable().optional(),
-	status: statusFilter.default('active')
-});
-
 export const inventoryListSchema = paginationSchema.extend({
 	variantId: z.string().trim().max(100).optional(),
 	lowStock: z
@@ -121,8 +103,6 @@ export const movementListSchema = paginationSchema.extend({
 export type MediaListQuery = z.infer<typeof mediaListSchema>;
 export type ProductListQuery = z.infer<typeof productListSchema>;
 export type ProductWriteInput = z.infer<typeof productWriteSchema>;
-export type CategoryWriteInput = z.infer<typeof categoryWriteSchema>;
-export type BrandWriteInput = z.infer<typeof brandWriteSchema>;
 export type InventoryListQuery = z.infer<typeof inventoryListSchema>;
 export type StockAdjustInput = z.infer<typeof stockAdjustSchema>;
 export type MovementListQuery = z.infer<typeof movementListSchema>;

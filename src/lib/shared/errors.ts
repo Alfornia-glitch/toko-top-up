@@ -1,5 +1,6 @@
 export type ErrorCode =
 	| 'VALIDATION_ERROR'
+	| 'UNPROCESSABLE'
 	| 'NOT_FOUND'
 	| 'CONFLICT'
 	| 'UNAUTHORIZED'
@@ -10,6 +11,7 @@ export type ErrorCode =
 
 export const ERROR_STATUS = {
 	VALIDATION_ERROR: 400,
+	UNPROCESSABLE: 422,
 	NOT_FOUND: 404,
 	CONFLICT: 409,
 	UNAUTHORIZED: 401,
@@ -42,6 +44,13 @@ export class ValidationError extends AppError {
 	constructor(message = 'Validation failed', options: AppErrorOptions = {}) {
 		super('VALIDATION_ERROR', message, options);
 		this.name = 'ValidationError';
+	}
+}
+
+export class UnprocessableError extends AppError {
+	constructor(message = 'Unprocessable request', options: AppErrorOptions = {}) {
+		super('UNPROCESSABLE', message, options);
+		this.name = 'UnprocessableError';
 	}
 }
 

@@ -7,6 +7,7 @@ export {
 	NotFoundError,
 	RateLimitedError,
 	UnauthorizedError,
+	UnprocessableError,
 	ValidationError,
 	isAppError,
 	toAppError
@@ -17,6 +18,8 @@ export { err, flatMapResult, isErr, isOk, mapError, mapResult, ok, unwrapOr } fr
 export type { Result } from './result.ts';
 
 export { newId } from './ids.ts';
+
+export { slugify } from './slug.ts';
 
 export { createEvent } from './events.ts';
 export type { EventBus, EventEnvelope, EventHandler } from './events.ts';

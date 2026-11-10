@@ -1,14 +1,18 @@
 import type { RequestHandler } from './$types';
 import { requireAdmin } from '#lib/server/modules/admin/access.ts';
-import { categoryWriteSchema } from '#lib/server/modules/admin/validation.ts';
-import { createCategory, listCategories } from '#lib/server/modules/catalog/categories.ts';
-import { catalogErrorResponse } from '#lib/server/modules/catalog/http.ts';
+import { categoryWriteSchema } from '#modules/catalog/index.ts';
+import { categoryService } from './category-service.ts';
 
 export const GET: RequestHandler = async ({ locals }) => {
 	const denied = requireAdmin(locals.user);
 	if (denied) return denied;
 
-	return Response.json({ data: await listCategories() });
+	const result = await categoryService.list();
+	if (!result.ok) {
+		return Response.json({ error: result.error.message }, { status: result.error.status });
+	}
+
+	return Response.json({ data: result.value });
 };
 
 export const POST: RequestHandler = async ({ locals, request }) => {
@@ -31,10 +35,10 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 		);
 	}
 
-	try {
-		const id = await createCategory(parsed.data);
-		return Response.json({ data: { id } }, { status: 201 });
-	} catch (error) {
-		return catalogErrorResponse(error, 'create category');
+	const result = await categoryService.create(parsed.data);
+	if (!result.ok) {
+		return Response.json({ error: result.error.message }, { status: result.error.status });
 	}
+
+	return Response.json({ data: { id: result.value.id } }, { status: 201 });
 };
