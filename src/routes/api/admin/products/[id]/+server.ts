@@ -1,13 +1,9 @@
 import type { RequestHandler } from './$types';
-import { requireAdmin } from '#lib/server/modules/admin/access.ts';
+import { assertActor } from '#shared';
 import { productStatusSchema, productWriteSchema } from '#modules/catalog/index.ts';
-import { productService } from '../product-service.ts';
 
 export const GET: RequestHandler = async ({ locals, params }) => {
-	const denied = requireAdmin(locals.user);
-	if (denied) return denied;
-
-	const result = await productService.get(params.id);
+	const result = await locals.services.catalog.products.get(params.id, assertActor(locals.actor));
 	if (!result.ok) {
 		return Response.json({ error: result.error.message }, { status: result.error.status });
 	}
@@ -16,9 +12,6 @@ export const GET: RequestHandler = async ({ locals, params }) => {
 };
 
 export const PATCH: RequestHandler = async ({ locals, params, request }) => {
-	const denied = requireAdmin(locals.user);
-	if (denied) return denied;
-
 	let body: unknown;
 
 	try {
@@ -39,7 +32,11 @@ export const PATCH: RequestHandler = async ({ locals, params, request }) => {
 			return Response.json({ error: 'Invalid status' }, { status: 422 });
 		}
 
-		const result = await productService.setStatus(params.id, parsedStatus.data);
+		const result = await locals.services.catalog.products.setStatus(
+			params.id,
+			parsedStatus.data,
+			assertActor(locals.actor)
+		);
 		if (!result.ok) {
 			return Response.json({ error: result.error.message }, { status: result.error.status });
 		}
@@ -55,7 +52,11 @@ export const PATCH: RequestHandler = async ({ locals, params, request }) => {
 		);
 	}
 
-	const result = await productService.update(params.id, parsed.data);
+	const result = await locals.services.catalog.products.update(
+		params.id,
+		parsed.data,
+		assertActor(locals.actor)
+	);
 	if (!result.ok) {
 		return Response.json({ error: result.error.message }, { status: result.error.status });
 	}

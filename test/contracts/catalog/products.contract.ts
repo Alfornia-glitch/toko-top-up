@@ -3,6 +3,7 @@ import type { AppError, Result } from '#shared';
 import type { ProductService } from '#modules/catalog/server.ts';
 import type { ProductDetail, ProductWriteInput } from '#modules/catalog/index.ts';
 import type { TestClock } from '../support/clock.ts';
+import { createAdminActor, createForbiddenActor } from '../support/actor.ts';
 
 const START = new Date('2026-01-01T00:00:00.000Z');
 const UPDATED = new Date('2026-01-02T03:04:05.000Z');
@@ -19,12 +20,25 @@ export interface ProductContractContext {
 export function runProductContract(context: ProductContractContext): void {
 	const { service, clock, reset, createActor, createBrand, createCategory } = context;
 	let actorId = '';
+	let actor = createAdminActor('pending');
 
 	beforeEach(async () => {
 		await reset();
 		clock.set(START);
 		actorId = await createActor();
+		actor = createAdminActor(actorId);
 	});
+
+	const testService = {
+		list: (query: Parameters<ProductService['list']>[0]) => service.list(query, actor),
+		get: (id: string) => service.get(id, actor),
+		create: (input: Parameters<ProductService['create']>[0], _legacyActorId?: string) =>
+			service.create(input, actor),
+		update: (id: string, input: Parameters<ProductService['update']>[1]) =>
+			service.update(id, input, actor),
+		setStatus: (id: string, status: Parameters<ProductService['setStatus']>[1]) =>
+			service.setStatus(id, status, actor)
+	};
 
 	describe('products contract', () => {
 		test('creates a product with nested records', async () => {
@@ -32,7 +46,7 @@ export function runProductContract(context: ProductContractContext): void {
 			const categoryId = await createCategory('Audio');
 
 			const created = valueOf(
-				await service.create(
+				await testService.create(
 					{
 						sku: 'AUD-001',
 						name: 'Wireless Headphones',
@@ -107,7 +121,7 @@ export function runProductContract(context: ProductContractContext): void {
 
 		test('applies defaults for a minimal product', async () => {
 			const created = valueOf(
-				await service.create({ sku: 'MIN-001', name: 'Minimal', priceCents: 100 }, actorId)
+				await testService.create({ sku: 'MIN-001', name: 'Minimal', priceCents: 100 }, actorId)
 			);
 
 			expect(created).toMatchObject({
@@ -130,10 +144,10 @@ export function runProductContract(context: ProductContractContext): void {
 
 		test('generates unique slugs from duplicate names', async () => {
 			const first = valueOf(
-				await service.create({ sku: 'DUP-1', name: 'Audio', priceCents: 100 }, actorId)
+				await testService.create({ sku: 'DUP-1', name: 'Audio', priceCents: 100 }, actorId)
 			);
 			const second = valueOf(
-				await service.create({ sku: 'DUP-2', name: 'Audio', priceCents: 100 }, actorId)
+				await testService.create({ sku: 'DUP-2', name: 'Audio', priceCents: 100 }, actorId)
 			);
 
 			expect(first.slug).toBe('audio');
@@ -142,13 +156,13 @@ export function runProductContract(context: ProductContractContext): void {
 
 		test('normalizes and de-duplicates an explicit slug', async () => {
 			valueOf(
-				await service.create(
+				await testService.create(
 					{ sku: 'SLUG-1', name: 'First', slug: 'Hello World!', priceCents: 100 },
 					actorId
 				)
 			);
 			const second = valueOf(
-				await service.create(
+				await testService.create(
 					{ sku: 'SLUG-2', name: 'Second', slug: 'Hello World!', priceCents: 100 },
 					actorId
 				)
@@ -158,9 +172,9 @@ export function runProductContract(context: ProductContractContext): void {
 		});
 
 		test('rejects a duplicate product SKU', async () => {
-			valueOf(await service.create({ sku: 'SKU-1', name: 'First', priceCents: 100 }, actorId));
+			valueOf(await testService.create({ sku: 'SKU-1', name: 'First', priceCents: 100 }, actorId));
 
-			const result = await service.create(
+			const result = await testService.create(
 				{ sku: 'SKU-1', name: 'Second', priceCents: 100 },
 				actorId
 			);
@@ -173,7 +187,7 @@ export function runProductContract(context: ProductContractContext): void {
 			const categoryId = await createCategory('Audio');
 
 			valueOf(
-				await service.create(
+				await testService.create(
 					{
 						sku: 'LIST-1',
 						name: 'Wireless Headphones',
@@ -192,7 +206,7 @@ export function runProductContract(context: ProductContractContext): void {
 			);
 
 			valueOf(
-				await service.create(
+				await testService.create(
 					{
 						sku: 'LIST-2',
 						name: 'Wireless Speaker',
@@ -206,7 +220,7 @@ export function runProductContract(context: ProductContractContext): void {
 			);
 
 			const result = valueOf(
-				await service.list({
+				await testService.list({
 					page: 1,
 					pageSize: 25,
 					q: 'Wireless',
@@ -231,39 +245,39 @@ export function runProductContract(context: ProductContractContext): void {
 		});
 
 		test('sorts and paginates products', async () => {
-			valueOf(await service.create({ sku: 'SORT-1', name: 'Beta', priceCents: 300 }, actorId));
-			valueOf(await service.create({ sku: 'SORT-2', name: 'Alpha', priceCents: 100 }, actorId));
-			valueOf(await service.create({ sku: 'SORT-3', name: 'Gamma', priceCents: 200 }, actorId));
+			valueOf(await testService.create({ sku: 'SORT-1', name: 'Beta', priceCents: 300 }, actorId));
+			valueOf(await testService.create({ sku: 'SORT-2', name: 'Alpha', priceCents: 100 }, actorId));
+			valueOf(await testService.create({ sku: 'SORT-3', name: 'Gamma', priceCents: 200 }, actorId));
 
-			const byPrice = valueOf(await service.list({ page: 1, pageSize: 25, sort: 'price' }));
+			const byPrice = valueOf(await testService.list({ page: 1, pageSize: 25, sort: 'price' }));
 			expect(byPrice.data.map((row) => row.name)).toEqual(['Alpha', 'Gamma', 'Beta']);
 
-			const byNameDesc = valueOf(await service.list({ page: 1, pageSize: 25, sort: '-name' }));
+			const byNameDesc = valueOf(await testService.list({ page: 1, pageSize: 25, sort: '-name' }));
 			expect(byNameDesc.data.map((row) => row.name)).toEqual(['Gamma', 'Beta', 'Alpha']);
 
-			const secondPage = valueOf(await service.list({ page: 2, pageSize: 1, sort: 'price' }));
+			const secondPage = valueOf(await testService.list({ page: 2, pageSize: 1, sort: 'price' }));
 			expect(secondPage.total).toBe(3);
 			expect(secondPage.data.map((row) => row.name)).toEqual(['Gamma']);
 		});
 
 		test('sorts by updated time by default', async () => {
-			valueOf(await service.create({ sku: 'TIME-1', name: 'Older', priceCents: 100 }, actorId));
+			valueOf(await testService.create({ sku: 'TIME-1', name: 'Older', priceCents: 100 }, actorId));
 			clock.set(UPDATED);
-			valueOf(await service.create({ sku: 'TIME-2', name: 'Newer', priceCents: 100 }, actorId));
+			valueOf(await testService.create({ sku: 'TIME-2', name: 'Newer', priceCents: 100 }, actorId));
 
-			const result = valueOf(await service.list({ page: 1, pageSize: 25 }));
+			const result = valueOf(await testService.list({ page: 1, pageSize: 25 }));
 
 			expect(result.data.map((row) => row.name)).toEqual(['Newer', 'Older']);
 		});
 
 		test('reports a missing product', async () => {
-			const result = await service.get('missing');
+			const result = await testService.get('missing');
 
 			expectError(result, 404, 'Product not found');
 		});
 
 		test('reports a missing product on update', async () => {
-			const result = await service.update('missing', {
+			const result = await testService.update('missing', {
 				sku: 'MISS-1',
 				name: 'Missing',
 				priceCents: 100
@@ -274,7 +288,7 @@ export function runProductContract(context: ProductContractContext): void {
 
 		test('updates nested records and preserves variant history', async () => {
 			const created = valueOf(
-				await service.create(
+				await testService.create(
 					{
 						sku: 'EDIT-1',
 						name: 'Original',
@@ -307,7 +321,7 @@ export function runProductContract(context: ProductContractContext): void {
 			clock.set(UPDATED);
 
 			const updated = valueOf(
-				await service.update(created.id, {
+				await testService.update(created.id, {
 					sku: 'EDIT-1',
 					name: 'Updated',
 					priceCents: 1500,
@@ -362,20 +376,20 @@ export function runProductContract(context: ProductContractContext): void {
 
 		test('checks SKU uniqueness on update while allowing the current SKU', async () => {
 			const first = valueOf(
-				await service.create({ sku: 'UNIQ-1', name: 'First', priceCents: 100 }, actorId)
+				await testService.create({ sku: 'UNIQ-1', name: 'First', priceCents: 100 }, actorId)
 			);
 			const second = valueOf(
-				await service.create({ sku: 'UNIQ-2', name: 'Second', priceCents: 100 }, actorId)
+				await testService.create({ sku: 'UNIQ-2', name: 'Second', priceCents: 100 }, actorId)
 			);
 
-			const ownSku = await service.update(first.id, {
+			const ownSku = await testService.update(first.id, {
 				sku: 'UNIQ-1',
 				name: 'First Updated',
 				priceCents: 100
 			});
 			expect(ownSku.ok).toBe(true);
 
-			const result = await service.update(second.id, {
+			const result = await testService.update(second.id, {
 				sku: 'UNIQ-1',
 				name: 'Second',
 				priceCents: 100
@@ -385,28 +399,37 @@ export function runProductContract(context: ProductContractContext): void {
 
 		test('updates only the status', async () => {
 			const created = valueOf(
-				await service.create({ sku: 'STAT-1', name: 'Status', priceCents: 100 }, actorId)
+				await testService.create({ sku: 'STAT-1', name: 'Status', priceCents: 100 }, actorId)
 			);
 			clock.set(UPDATED);
 
-			const updated = valueOf(await service.setStatus(created.id, 'archived'));
+			const updated = valueOf(await testService.setStatus(created.id, 'archived'));
 
 			expect(updated.status).toBe('archived');
 			expect(updated.createdAt.toISOString()).toBe(START.toISOString());
 			expect(updated.updatedAt.toISOString()).toBe(UPDATED.toISOString());
 
-			const result = await service.setStatus('missing', 'active');
+			const result = await testService.setStatus('missing', 'active');
 			expectError(result, 404, 'Product not found');
 		});
 
 		test('rejects invalid product data', async () => {
 			const input = { sku: 'BAD-1', name: '', priceCents: 100 } as ProductWriteInput;
-			const result = await service.create(input, actorId);
+			const result = await testService.create(input, actorId);
 
 			expect(result.ok).toBe(false);
 			if (result.ok) return;
 			expect(result.error.code).toBe('VALIDATION_ERROR');
 			expect(result.error.status).toBe(400);
+		});
+
+		test('rejects unauthorized product mutations', async () => {
+			const result = await service.create(
+				{ sku: 'DENIED-1', name: 'Denied', priceCents: 100 },
+				createForbiddenActor()
+			);
+
+			expectError(result, 403, 'Forbidden');
 		});
 	});
 }

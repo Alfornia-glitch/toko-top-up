@@ -2,11 +2,13 @@ import {
 	ConflictError,
 	NotFoundError,
 	ValidationError,
+	assertPermission,
 	err,
 	newId,
 	ok,
 	systemClock,
 	toAppError,
+	type Actor,
 	type AppError,
 	type Clock,
 	type Result
@@ -23,9 +25,12 @@ import {
 import type { InventoryRepository } from './inventory-repository.ts';
 
 export interface InventoryService {
-	list(query: InventoryListQuery): Promise<Result<InventoryListResult, AppError>>;
-	listMovements(query: MovementListQuery): Promise<Result<MovementListResult, AppError>>;
-	adjust(input: StockAdjustInput, actorId: string): Promise<Result<StockAdjustment, AppError>>;
+	list(query: InventoryListQuery, actor: Actor): Promise<Result<InventoryListResult, AppError>>;
+	listMovements(
+		query: MovementListQuery,
+		actor: Actor
+	): Promise<Result<MovementListResult, AppError>>;
+	adjust(input: StockAdjustInput, actor: Actor): Promise<Result<StockAdjustment, AppError>>;
 }
 
 export function createInventoryService(
@@ -33,8 +38,9 @@ export function createInventoryService(
 	clock: Clock = systemClock
 ): InventoryService {
 	return {
-		async list(query) {
+		async list(query, actor) {
 			try {
+				assertPermission(actor, 'catalog:inventory:read');
 				const result = await repository.listVariants(query);
 				return ok({
 					data: result.data,
@@ -47,8 +53,9 @@ export function createInventoryService(
 			}
 		},
 
-		async listMovements(query) {
+		async listMovements(query, actor) {
 			try {
+				assertPermission(actor, 'catalog:inventory:read');
 				const result = await repository.listMovements(query);
 				return ok({
 					data: result.data,
@@ -61,20 +68,21 @@ export function createInventoryService(
 			}
 		},
 
-		async adjust(input, actorId) {
-			const parsed = stockAdjustSchema.safeParse(input);
-			if (!parsed.success) {
-				return err(
-					new ValidationError('Invalid stock adjustment', {
-						details: parsed.error.flatten()
-					})
-				);
-			}
-
+		async adjust(input, actor) {
 			try {
+				const current = assertPermission(actor, 'catalog:inventory:write');
+				const parsed = stockAdjustSchema.safeParse(input);
+				if (!parsed.success) {
+					return err(
+						new ValidationError('Invalid stock adjustment', {
+							details: parsed.error.flatten()
+						})
+					);
+				}
+
 				const outcome = await repository.adjustStock(parsed.data, {
 					movementId: newId(),
-					actorId,
+					actorId: current.id,
 					now: clock.now()
 				});
 

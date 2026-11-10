@@ -8,6 +8,7 @@ import type {
 	VariantFixtureOptions
 } from '../support/database.ts';
 import type { TestClock } from '../support/clock.ts';
+import { createAdminActor, createForbiddenActor } from '../support/actor.ts';
 
 const START = new Date('2026-01-01T00:00:00.000Z');
 const UPDATED = new Date('2026-01-02T03:04:05.000Z');
@@ -24,12 +25,22 @@ export interface InventoryContractContext {
 export function runInventoryContract(context: InventoryContractContext): void {
 	const { service, clock, reset, createActor, createProductWithVariant, createVariant } = context;
 	let actorId = '';
+	let actor = createAdminActor('pending');
 
 	beforeEach(async () => {
 		await reset();
 		clock.set(START);
 		actorId = await createActor();
+		actor = createAdminActor(actorId);
 	});
+
+	const testService = {
+		list: (query: Parameters<InventoryService['list']>[0]) => service.list(query, actor),
+		listMovements: (query: Parameters<InventoryService['listMovements']>[0]) =>
+			service.listMovements(query, actor),
+		adjust: (input: Parameters<InventoryService['adjust']>[0], _legacyActorId?: string) =>
+			service.adjust(input, actor)
+	};
 
 	describe('inventory contract', () => {
 		test('lists variants with product data, filters and ordering', async () => {
@@ -50,7 +61,7 @@ export function runInventoryContract(context: InventoryContractContext): void {
 			});
 
 			const result = valueOf(
-				await service.list({ page: 1, pageSize: 25, q: 'Widget', lowStock: false })
+				await testService.list({ page: 1, pageSize: 25, q: 'Widget', lowStock: false })
 			);
 
 			expect(result.total).toBe(2);
@@ -66,12 +77,12 @@ export function runInventoryContract(context: InventoryContractContext): void {
 			});
 
 			const lowStock = valueOf(
-				await service.list({ page: 1, pageSize: 25, q: 'Widget', lowStock: true })
+				await testService.list({ page: 1, pageSize: 25, q: 'Widget', lowStock: true })
 			);
 			expect(lowStock.data.map((row) => row.name)).toEqual(['Alpha']);
 
 			const byVariant = valueOf(
-				await service.list({ page: 1, pageSize: 25, variantId: alphaId, lowStock: false })
+				await testService.list({ page: 1, pageSize: 25, variantId: alphaId, lowStock: false })
 			);
 			expect(byVariant.total).toBe(1);
 			expect(byVariant.data[0].id).toBe(alphaId);
@@ -86,7 +97,7 @@ export function runInventoryContract(context: InventoryContractContext): void {
 			await createVariant(product.productId, { name: 'C', sku: 'PAGED-1-C', stock: 3 });
 
 			const page = valueOf(
-				await service.list({ page: 2, pageSize: 1, q: 'Paged', lowStock: false })
+				await testService.list({ page: 2, pageSize: 1, q: 'Paged', lowStock: false })
 			);
 
 			expect(page.total).toBe(3);
@@ -102,7 +113,7 @@ export function runInventoryContract(context: InventoryContractContext): void {
 			});
 
 			const increased = valueOf(
-				await service.adjust(
+				await testService.adjust(
 					{
 						variantId: fixture.variantId,
 						delta: 5,
@@ -125,7 +136,7 @@ export function runInventoryContract(context: InventoryContractContext): void {
 			clock.set(UPDATED);
 
 			const decreased = valueOf(
-				await service.adjust(
+				await testService.adjust(
 					{ variantId: fixture.variantId, delta: -3, reason: 'Damaged' },
 					actorId
 				)
@@ -133,7 +144,7 @@ export function runInventoryContract(context: InventoryContractContext): void {
 			expect(decreased.stock).toBe(12);
 
 			const variants = valueOf(
-				await service.list({
+				await testService.list({
 					page: 1,
 					pageSize: 25,
 					variantId: fixture.variantId,
@@ -143,7 +154,7 @@ export function runInventoryContract(context: InventoryContractContext): void {
 			expect(variants.data[0].stock).toBe(12);
 
 			const movements = valueOf(
-				await service.listMovements({
+				await testService.listMovements({
 					page: 1,
 					pageSize: 25,
 					variantId: fixture.variantId
@@ -166,7 +177,7 @@ export function runInventoryContract(context: InventoryContractContext): void {
 		});
 
 		test('reports a missing variant', async () => {
-			const result = await service.adjust(
+			const result = await testService.adjust(
 				{ variantId: 'missing', delta: 1, reason: 'Restock' },
 				actorId
 			);
@@ -180,7 +191,7 @@ export function runInventoryContract(context: InventoryContractContext): void {
 				variant: { name: 'Default', sku: 'LOW-1-A', stock: 2 }
 			});
 
-			const result = await service.adjust(
+			const result = await testService.adjust(
 				{ variantId: fixture.variantId, delta: -3, reason: 'Shrinkage' },
 				actorId
 			);
@@ -188,7 +199,7 @@ export function runInventoryContract(context: InventoryContractContext): void {
 			expectError(result, 409, 'Stock cannot go below zero (current: 2)');
 
 			const variants = valueOf(
-				await service.list({
+				await testService.list({
 					page: 1,
 					pageSize: 25,
 					variantId: fixture.variantId,
@@ -198,7 +209,7 @@ export function runInventoryContract(context: InventoryContractContext): void {
 			expect(variants.data[0].stock).toBe(2);
 
 			const movements = valueOf(
-				await service.listMovements({
+				await testService.listMovements({
 					page: 1,
 					pageSize: 25,
 					variantId: fixture.variantId
@@ -218,7 +229,7 @@ export function runInventoryContract(context: InventoryContractContext): void {
 				delta: 0,
 				reason: 'No change'
 			} as StockAdjustInput;
-			const result = await service.adjust(input, actorId);
+			const result = await testService.adjust(input, actorId);
 
 			expect(result.ok).toBe(false);
 			if (result.ok) return;
@@ -238,13 +249,15 @@ export function runInventoryContract(context: InventoryContractContext): void {
 			});
 
 			valueOf(
-				await service.adjust({ variantId: first.variantId, delta: 1, reason: 'First' }, actorId)
+				await testService.adjust({ variantId: first.variantId, delta: 1, reason: 'First' }, actorId)
 			);
 			clock.set(UPDATED);
-			valueOf(await service.adjust({ variantId: secondId, delta: 2, reason: 'Second' }, actorId));
+			valueOf(
+				await testService.adjust({ variantId: secondId, delta: 2, reason: 'Second' }, actorId)
+			);
 
 			const filtered = valueOf(
-				await service.listMovements({
+				await testService.listMovements({
 					page: 1,
 					pageSize: 25,
 					variantId: secondId
@@ -257,10 +270,24 @@ export function runInventoryContract(context: InventoryContractContext): void {
 				reason: 'Second'
 			});
 
-			const paged = valueOf(await service.listMovements({ page: 2, pageSize: 1 }));
+			const paged = valueOf(await testService.listMovements({ page: 2, pageSize: 1 }));
 			expect(paged.total).toBe(2);
 			expect(paged.data).toHaveLength(1);
 			expect(paged.data[0].reason).toBe('First');
+		});
+
+		test('rejects unauthorized stock adjustments', async () => {
+			const fixture = await createProductWithVariant({
+				product: { name: 'Denied product', sku: 'DENIED-1' },
+				variant: { name: 'Default', sku: 'DENIED-1-A', stock: 1 }
+			});
+
+			const result = await service.adjust(
+				{ variantId: fixture.variantId, delta: 1, reason: 'Denied' },
+				createForbiddenActor()
+			);
+
+			expectError(result, 403, 'Forbidden');
 		});
 	});
 }

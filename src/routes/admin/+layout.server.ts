@@ -1,6 +1,6 @@
 import { error, redirect } from '@sveltejs/kit';
 import type { LayoutServerLoad } from './$types';
-import { isAdminRole } from '#lib/server/modules/admin/access.ts';
+import { hasPermission } from '#shared';
 
 export const load: LayoutServerLoad = ({ locals, url }) => {
 	if (!locals.user) {
@@ -8,7 +8,7 @@ export const load: LayoutServerLoad = ({ locals, url }) => {
 		redirect(303, `/login?redirectTo=${encodeURIComponent(redirectTo)}`);
 	}
 
-	if (!isAdminRole(locals.user.role)) {
+	if (!locals.actor || !hasPermission(locals.actor, 'admin:access')) {
 		error(403, 'Forbidden');
 	}
 
@@ -17,7 +17,7 @@ export const load: LayoutServerLoad = ({ locals, url }) => {
 			id: locals.user.id,
 			name: locals.user.name,
 			email: locals.user.email,
-			role: locals.user.role
+			role: locals.actor.role
 		}
 	};
 };

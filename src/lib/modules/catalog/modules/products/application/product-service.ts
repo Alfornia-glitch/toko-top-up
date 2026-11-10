@@ -2,12 +2,14 @@ import {
 	ConflictError,
 	NotFoundError,
 	ValidationError,
+	assertPermission,
 	err,
 	newId,
 	ok,
 	slugify,
 	systemClock,
 	toAppError,
+	type Actor,
 	type AppError,
 	type Clock,
 	type Result
@@ -23,11 +25,19 @@ import {
 import type { ProductRepository } from './product-repository.ts';
 
 export interface ProductService {
-	list(query: ProductListQuery): Promise<Result<ProductListResult, AppError>>;
-	get(id: string): Promise<Result<ProductDetail, AppError>>;
-	create(input: ProductWriteInput, actorId: string): Promise<Result<ProductDetail, AppError>>;
-	update(id: string, input: ProductWriteInput): Promise<Result<ProductDetail, AppError>>;
-	setStatus(id: string, status: ProductStatus): Promise<Result<ProductDetail, AppError>>;
+	list(query: ProductListQuery, actor: Actor): Promise<Result<ProductListResult, AppError>>;
+	get(id: string, actor: Actor): Promise<Result<ProductDetail, AppError>>;
+	create(input: ProductWriteInput, actor: Actor): Promise<Result<ProductDetail, AppError>>;
+	update(
+		id: string,
+		input: ProductWriteInput,
+		actor: Actor
+	): Promise<Result<ProductDetail, AppError>>;
+	setStatus(
+		id: string,
+		status: ProductStatus,
+		actor: Actor
+	): Promise<Result<ProductDetail, AppError>>;
 }
 
 export function createProductService(
@@ -54,8 +64,9 @@ export function createProductService(
 	}
 
 	return {
-		async list(query) {
+		async list(query, actor) {
 			try {
+				assertPermission(actor, 'catalog:read');
 				const result = await repository.list(query);
 				return ok({
 					data: result.data,
@@ -68,8 +79,9 @@ export function createProductService(
 			}
 		},
 
-		async get(id) {
+		async get(id, actor) {
 			try {
+				assertPermission(actor, 'catalog:read');
 				const product = await repository.findDetail(id);
 				if (!product) return err(new NotFoundError('Product not found'));
 				return ok(product);
@@ -78,17 +90,18 @@ export function createProductService(
 			}
 		},
 
-		async create(input, actorId) {
-			const parsed = productWriteSchema.safeParse(input);
-			if (!parsed.success) {
-				return err(
-					new ValidationError('Invalid product data', {
-						details: parsed.error.flatten()
-					})
-				);
-			}
-
+		async create(input, actor) {
 			try {
+				const current = assertPermission(actor, 'catalog:write');
+				const parsed = productWriteSchema.safeParse(input);
+				if (!parsed.success) {
+					return err(
+						new ValidationError('Invalid product data', {
+							details: parsed.error.flatten()
+						})
+					);
+				}
+
 				const data = parsed.data;
 				await ensureSkuAvailable(data.sku);
 
@@ -97,7 +110,7 @@ export function createProductService(
 					id,
 					slug: await nextSlug(data.slug ?? data.name),
 					now: clock.now(),
-					createdBy: actorId
+					createdBy: current.id
 				});
 
 				const product = await repository.findDetail(id);
@@ -108,17 +121,18 @@ export function createProductService(
 			}
 		},
 
-		async update(id, input) {
-			const parsed = productWriteSchema.safeParse(input);
-			if (!parsed.success) {
-				return err(
-					new ValidationError('Invalid product data', {
-						details: parsed.error.flatten()
-					})
-				);
-			}
-
+		async update(id, input, actor) {
 			try {
+				assertPermission(actor, 'catalog:write');
+				const parsed = productWriteSchema.safeParse(input);
+				if (!parsed.success) {
+					return err(
+						new ValidationError('Invalid product data', {
+							details: parsed.error.flatten()
+						})
+					);
+				}
+
 				const existing = await repository.findById(id);
 				if (!existing) return err(new NotFoundError('Product not found'));
 
@@ -137,8 +151,9 @@ export function createProductService(
 			}
 		},
 
-		async setStatus(id, status) {
+		async setStatus(id, status, actor) {
 			try {
+				assertPermission(actor, 'catalog:write');
 				const product = await repository.setStatus(id, status, clock.now());
 				if (!product) return err(new NotFoundError('Product not found'));
 				return ok(product);

@@ -1,13 +1,9 @@
 import type { RequestHandler } from './$types';
-import { requireAdmin } from '#lib/server/modules/admin/access.ts';
+import { assertActor } from '#shared';
 import { brandWriteSchema } from '#modules/catalog/index.ts';
-import { brandService } from './brand-service.ts';
 
 export const GET: RequestHandler = async ({ locals }) => {
-	const denied = requireAdmin(locals.user);
-	if (denied) return denied;
-
-	const result = await brandService.list();
+	const result = await locals.services.catalog.brands.list(assertActor(locals.actor));
 	if (!result.ok) {
 		return Response.json({ error: result.error.message }, { status: result.error.status });
 	}
@@ -16,9 +12,6 @@ export const GET: RequestHandler = async ({ locals }) => {
 };
 
 export const POST: RequestHandler = async ({ locals, request }) => {
-	const denied = requireAdmin(locals.user);
-	if (denied) return denied;
-
 	let body: unknown;
 
 	try {
@@ -35,7 +28,10 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 		);
 	}
 
-	const result = await brandService.create(parsed.data);
+	const result = await locals.services.catalog.brands.create(
+		parsed.data,
+		assertActor(locals.actor)
+	);
 	if (!result.ok) {
 		return Response.json({ error: result.error.message }, { status: result.error.status });
 	}

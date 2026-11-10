@@ -1,12 +1,8 @@
 import type { RequestHandler } from './$types';
-import { requireAdmin } from '#lib/server/modules/admin/access.ts';
+import { assertActor } from '#shared';
 import { brandWriteSchema } from '#modules/catalog/index.ts';
-import { brandService } from '../brand-service.ts';
 
 export const PATCH: RequestHandler = async ({ locals, params, request }) => {
-	const denied = requireAdmin(locals.user);
-	if (denied) return denied;
-
 	let body: unknown;
 
 	try {
@@ -23,7 +19,11 @@ export const PATCH: RequestHandler = async ({ locals, params, request }) => {
 		);
 	}
 
-	const result = await brandService.update(params.id, parsed.data);
+	const result = await locals.services.catalog.brands.update(
+		params.id,
+		parsed.data,
+		assertActor(locals.actor)
+	);
 	if (!result.ok) {
 		return Response.json({ error: result.error.message }, { status: result.error.status });
 	}
@@ -32,10 +32,7 @@ export const PATCH: RequestHandler = async ({ locals, params, request }) => {
 };
 
 export const DELETE: RequestHandler = async ({ locals, params }) => {
-	const denied = requireAdmin(locals.user);
-	if (denied) return denied;
-
-	const result = await brandService.delete(params.id);
+	const result = await locals.services.catalog.brands.delete(params.id, assertActor(locals.actor));
 	if (!result.ok) {
 		return Response.json({ error: result.error.message }, { status: result.error.status });
 	}

@@ -9,6 +9,8 @@ import {
 	slugify,
 	systemClock,
 	toAppError,
+	assertPermission,
+	type Actor,
 	type AppError,
 	type Clock,
 	type Result
@@ -22,10 +24,10 @@ import {
 import type { CategoryRepository } from './category-repository.ts';
 
 export interface CategoryService {
-	list(): Promise<Result<CategorySummary[], AppError>>;
-	create(input: CategoryWriteInput): Promise<Result<Category, AppError>>;
-	update(id: string, input: CategoryWriteInput): Promise<Result<Category, AppError>>;
-	delete(id: string): Promise<Result<{ id: string }, AppError>>;
+	list(actor: Actor): Promise<Result<CategorySummary[], AppError>>;
+	create(input: CategoryWriteInput, actor: Actor): Promise<Result<Category, AppError>>;
+	update(id: string, input: CategoryWriteInput, actor: Actor): Promise<Result<Category, AppError>>;
+	delete(id: string, actor: Actor): Promise<Result<{ id: string }, AppError>>;
 }
 
 export function createCategoryService(
@@ -59,25 +61,27 @@ export function createCategoryService(
 	}
 
 	return {
-		async list() {
+		async list(actor) {
 			try {
+				assertPermission(actor, 'catalog:read');
 				return ok(await repository.listWithProductCounts());
 			} catch (error) {
 				return err(toAppError(error));
 			}
 		},
 
-		async create(input) {
-			const parsed = categoryWriteSchema.safeParse(input);
-			if (!parsed.success) {
-				return err(
-					new ValidationError('Invalid category data', {
-						details: parsed.error.flatten()
-					})
-				);
-			}
-
+		async create(input, actor) {
 			try {
+				assertPermission(actor, 'catalog:write');
+				const parsed = categoryWriteSchema.safeParse(input);
+				if (!parsed.success) {
+					return err(
+						new ValidationError('Invalid category data', {
+							details: parsed.error.flatten()
+						})
+					);
+				}
+
 				const now = clock.now();
 				const category: Category = {
 					id: newId(),
@@ -99,17 +103,18 @@ export function createCategoryService(
 			}
 		},
 
-		async update(id, input) {
-			const parsed = categoryWriteSchema.safeParse(input);
-			if (!parsed.success) {
-				return err(
-					new ValidationError('Invalid category data', {
-						details: parsed.error.flatten()
-					})
-				);
-			}
-
+		async update(id, input, actor) {
 			try {
+				assertPermission(actor, 'catalog:write');
+				const parsed = categoryWriteSchema.safeParse(input);
+				if (!parsed.success) {
+					return err(
+						new ValidationError('Invalid category data', {
+							details: parsed.error.flatten()
+						})
+					);
+				}
+
 				const existing = await repository.findById(id);
 				if (!existing) return err(new NotFoundError('Category not found'));
 
@@ -138,8 +143,9 @@ export function createCategoryService(
 			}
 		},
 
-		async delete(id) {
+		async delete(id, actor) {
 			try {
+				assertPermission(actor, 'catalog:write');
 				const existing = await repository.findById(id);
 				if (!existing) return err(new NotFoundError('Category not found'));
 

@@ -3,6 +3,7 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import MegaMenu from './MegaMenu.svelte';
+	import { Button } from '#lib/frontend/components/ui/button/index.ts';
 	import * as DropdownMenu from '#lib/frontend/components/ui/dropdown-menu/index.ts';
 	import UserAvatar from '#lib/frontend/components/UserAvatar.svelte';
 	import { authClient, signOutUser } from '#frontend/modules/auth/index.ts';
@@ -431,16 +432,14 @@
 							</DropdownMenu.Content>
 						</DropdownMenu.Root>
 					{:else}
-						<a
+						<Button
 							href="/login"
+							variant="outline"
 							aria-label="Sign in"
-							class="relative size-[32px] shrink-0 overflow-clip rounded-[10px] border border-solid border-[#e5e5e5]"
-							data-name="Avatar"
+							class="h-[36px] rounded-[10px] border-[#e5e5e5] bg-white px-3 font-['Geist:Medium'] text-[14px] font-medium text-[#0a0a0a] hover:bg-[#f5f5f5]"
 						>
-							<div class="absolute inset-[-1px]" data-name="pic">
-								<div class="pointer-events-none absolute inset-0 overflow-hidden"></div>
-							</div>
-						</a>
+							Sign in
+						</Button>
 					{/if}
 				</div>
 			</div>

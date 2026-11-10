@@ -1,12 +1,8 @@
 import type { RequestHandler } from './$types';
-import { requireAdmin } from '#lib/server/modules/admin/access.ts';
+import { assertActor } from '#shared';
 import { categoryWriteSchema } from '#modules/catalog/index.ts';
-import { categoryService } from '../category-service.ts';
 
 export const PATCH: RequestHandler = async ({ locals, params, request }) => {
-	const denied = requireAdmin(locals.user);
-	if (denied) return denied;
-
 	let body: unknown;
 
 	try {
@@ -23,7 +19,11 @@ export const PATCH: RequestHandler = async ({ locals, params, request }) => {
 		);
 	}
 
-	const result = await categoryService.update(params.id, parsed.data);
+	const result = await locals.services.catalog.categories.update(
+		params.id,
+		parsed.data,
+		assertActor(locals.actor)
+	);
 	if (!result.ok) {
 		return Response.json({ error: result.error.message }, { status: result.error.status });
 	}
@@ -32,10 +32,10 @@ export const PATCH: RequestHandler = async ({ locals, params, request }) => {
 };
 
 export const DELETE: RequestHandler = async ({ locals, params }) => {
-	const denied = requireAdmin(locals.user);
-	if (denied) return denied;
-
-	const result = await categoryService.delete(params.id);
+	const result = await locals.services.catalog.categories.delete(
+		params.id,
+		assertActor(locals.actor)
+	);
 	if (!result.ok) {
 		return Response.json({ error: result.error.message }, { status: result.error.status });
 	}

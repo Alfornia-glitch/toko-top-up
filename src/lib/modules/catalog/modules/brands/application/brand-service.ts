@@ -7,6 +7,8 @@ import {
 	ok,
 	systemClock,
 	toAppError,
+	assertPermission,
+	type Actor,
 	type AppError,
 	type Clock,
 	type Result
@@ -22,11 +24,11 @@ import {
 import type { BrandRepository } from './brand-repository.ts';
 
 export interface BrandService {
-	list(): Promise<Result<BrandSummary[], AppError>>;
-	listOptions(): Promise<Result<BrandOption[], AppError>>;
-	create(input: BrandWriteInput): Promise<Result<Brand, AppError>>;
-	update(id: string, input: BrandWriteInput): Promise<Result<Brand, AppError>>;
-	delete(id: string): Promise<Result<{ id: string }, AppError>>;
+	list(actor: Actor): Promise<Result<BrandSummary[], AppError>>;
+	listOptions(actor: Actor): Promise<Result<BrandOption[], AppError>>;
+	create(input: BrandWriteInput, actor: Actor): Promise<Result<Brand, AppError>>;
+	update(id: string, input: BrandWriteInput, actor: Actor): Promise<Result<Brand, AppError>>;
+	delete(id: string, actor: Actor): Promise<Result<{ id: string }, AppError>>;
 }
 
 export function createBrandService(
@@ -47,8 +49,9 @@ export function createBrandService(
 	}
 
 	return {
-		async list() {
+		async list(actor) {
 			try {
+				assertPermission(actor, 'catalog:read');
 				const rows = await repository.listWithProductCounts();
 				return ok(sortByName(rows));
 			} catch (error) {
@@ -56,8 +59,9 @@ export function createBrandService(
 			}
 		},
 
-		async listOptions() {
+		async listOptions(actor) {
 			try {
+				assertPermission(actor, 'catalog:read');
 				const rows = await repository.listActiveOptions();
 				return ok(sortByName(rows));
 			} catch (error) {
@@ -65,17 +69,18 @@ export function createBrandService(
 			}
 		},
 
-		async create(input) {
-			const parsed = brandWriteSchema.safeParse(input);
-			if (!parsed.success) {
-				return err(
-					new ValidationError('Invalid brand data', {
-						details: parsed.error.flatten()
-					})
-				);
-			}
-
+		async create(input, actor) {
 			try {
+				assertPermission(actor, 'catalog:write');
+				const parsed = brandWriteSchema.safeParse(input);
+				if (!parsed.success) {
+					return err(
+						new ValidationError('Invalid brand data', {
+							details: parsed.error.flatten()
+						})
+					);
+				}
+
 				const now = clock.now();
 				const brand: Brand = {
 					id: newId(),
@@ -95,17 +100,18 @@ export function createBrandService(
 			}
 		},
 
-		async update(id, input) {
-			const parsed = brandWriteSchema.safeParse(input);
-			if (!parsed.success) {
-				return err(
-					new ValidationError('Invalid brand data', {
-						details: parsed.error.flatten()
-					})
-				);
-			}
-
+		async update(id, input, actor) {
 			try {
+				assertPermission(actor, 'catalog:write');
+				const parsed = brandWriteSchema.safeParse(input);
+				if (!parsed.success) {
+					return err(
+						new ValidationError('Invalid brand data', {
+							details: parsed.error.flatten()
+						})
+					);
+				}
+
 				const updated = await repository.update(id, {
 					name: parsed.data.name,
 					slug: await nextSlug(parsed.data.slug ?? parsed.data.name, id),
@@ -122,8 +128,9 @@ export function createBrandService(
 			}
 		},
 
-		async delete(id) {
+		async delete(id, actor) {
 			try {
+				assertPermission(actor, 'catalog:write');
 				const existing = await repository.findById(id);
 				if (!existing) return err(new NotFoundError('Brand not found'));
 

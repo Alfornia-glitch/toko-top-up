@@ -9,3 +9,6 @@ export type { ProductService } from './modules/products/server.ts';
 
 export { createInventoryService } from './modules/inventory/server.ts';
 export type { InventoryService } from './modules/inventory/server.ts';
+
+export { createCatalogServices } from './module.server.ts';
+export type { CatalogServices } from './module.server.ts';
