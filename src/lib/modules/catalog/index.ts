@@ -15,3 +15,44 @@ export type {
 	CategorySummary,
 	CategoryWriteInput
 } from './modules/categories/index.ts';
+
+export {
+	productImageSchema,
+	productListSchema,
+	productOptionSchema,
+	productOptionValueSchema,
+	productStatusSchema,
+	productVariantSchema,
+	productVariantStatusSchema,
+	productWriteSchema
+} from './modules/products/index.ts';
+export type {
+	Product,
+	ProductDetail,
+	ProductImage,
+	ProductListQuery,
+	ProductListResult,
+	ProductOption,
+	ProductOptionValue,
+	ProductStatus,
+	ProductSummary,
+	ProductVariant,
+	ProductVariantStatus,
+	ProductWriteInput
+} from './modules/products/index.ts';
+
+export {
+	inventoryListSchema,
+	movementListSchema,
+	stockAdjustSchema
+} from './modules/inventory/index.ts';
+export type {
+	InventoryListQuery,
+	InventoryListResult,
+	InventoryRow,
+	MovementListQuery,
+	MovementListResult,
+	MovementRow,
+	StockAdjustInput,
+	StockAdjustment
+} from './modules/inventory/index.ts';

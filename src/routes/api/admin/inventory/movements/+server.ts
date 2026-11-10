@@ -1,7 +1,7 @@
 import type { RequestHandler } from './$types';
 import { requireAdmin } from '#lib/server/modules/admin/access.ts';
-import { movementListSchema } from '#lib/server/modules/admin/validation.ts';
-import { listMovements } from '#lib/server/modules/catalog/inventory.ts';
+import { movementListSchema } from '#modules/catalog/index.ts';
+import { inventoryService } from '../inventory-service.ts';
 
 export const GET: RequestHandler = async ({ locals, url }) => {
 	const denied = requireAdmin(locals.user);
@@ -12,5 +12,10 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 		return Response.json({ error: 'Invalid query parameters' }, { status: 400 });
 	}
 
-	return Response.json(await listMovements(parsed.data));
+	const result = await inventoryService.listMovements(parsed.data);
+	if (!result.ok) {
+		return Response.json({ error: result.error.message }, { status: result.error.status });
+	}
+
+	return Response.json(result.value);
 };

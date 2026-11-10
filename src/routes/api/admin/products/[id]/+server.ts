@@ -1,21 +1,18 @@
 import type { RequestHandler } from './$types';
 import { requireAdmin } from '#lib/server/modules/admin/access.ts';
-import { productWriteSchema } from '#lib/server/modules/admin/validation.ts';
-import {
-	getProduct,
-	setProductStatus,
-	updateProduct
-} from '#lib/server/modules/catalog/products.ts';
-import { catalogErrorResponse } from '#lib/server/modules/catalog/http.ts';
+import { productStatusSchema, productWriteSchema } from '#modules/catalog/index.ts';
+import { productService } from '../product-service.ts';
 
 export const GET: RequestHandler = async ({ locals, params }) => {
 	const denied = requireAdmin(locals.user);
 	if (denied) return denied;
 
-	const product = await getProduct(params.id);
-	if (!product) return Response.json({ error: 'Product not found' }, { status: 404 });
+	const result = await productService.get(params.id);
+	if (!result.ok) {
+		return Response.json({ error: result.error.message }, { status: result.error.status });
+	}
 
-	return Response.json({ data: product });
+	return Response.json({ data: result.value });
 };
 
 export const PATCH: RequestHandler = async ({ locals, params, request }) => {
@@ -37,15 +34,17 @@ export const PATCH: RequestHandler = async ({ locals, params, request }) => {
 		!('name' in body) &&
 		!('sku' in body)
 	) {
-		const status = (body as { status?: string }).status;
-		if (status !== 'draft' && status !== 'active' && status !== 'archived') {
+		const parsedStatus = productStatusSchema.safeParse((body as { status?: unknown }).status);
+		if (!parsedStatus.success) {
 			return Response.json({ error: 'Invalid status' }, { status: 422 });
 		}
 
-		const updated = await setProductStatus(params.id, status);
-		if (!updated) return Response.json({ error: 'Product not found' }, { status: 404 });
+		const result = await productService.setStatus(params.id, parsedStatus.data);
+		if (!result.ok) {
+			return Response.json({ error: result.error.message }, { status: result.error.status });
+		}
 
-		return Response.json({ data: await getProduct(params.id) });
+		return Response.json({ data: result.value });
 	}
 
 	const parsed = productWriteSchema.safeParse(body);
@@ -56,12 +55,10 @@ export const PATCH: RequestHandler = async ({ locals, params, request }) => {
 		);
 	}
 
-	try {
-		const product = await updateProduct(params.id, parsed.data);
-		if (!product) return Response.json({ error: 'Product not found' }, { status: 404 });
-
-		return Response.json({ data: product });
-	} catch (error) {
-		return catalogErrorResponse(error, 'update product');
+	const result = await productService.update(params.id, parsed.data);
+	if (!result.ok) {
+		return Response.json({ error: result.error.message }, { status: result.error.status });
 	}
+
+	return Response.json({ data: result.value });
 };

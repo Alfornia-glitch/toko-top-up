@@ -2,7 +2,7 @@
 import { createBrandService } from '#modules/catalog/server.ts';
 import { runBrandContract } from './brands.contract.ts';
 import { createTestClock } from '../support/clock.ts';
-import { createSqliteBrandTestContext } from '../support/database.ts';
+import { createSqliteCatalogTestContext } from '../support/database.ts';
 
 const sqlitePath = process.env.TEST_SQLITE_PATH;
 
@@ -11,7 +11,7 @@ if (!sqlitePath) {
 }
 
 const clock = createTestClock(new Date('2026-01-01T00:00:00.000Z'));
-const { db, context } = createSqliteBrandTestContext(sqlitePath);
+const { db, context } = createSqliteCatalogTestContext(sqlitePath);
 
 runBrandContract({
 	service: createBrandService({ provider: 'sqlite', db, clock }),

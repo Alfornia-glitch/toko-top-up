@@ -1,8 +1,7 @@
 import type { RequestHandler } from './$types';
 import { requireAdmin } from '#lib/server/modules/admin/access.ts';
-import { inventoryListSchema, stockAdjustSchema } from '#lib/server/modules/admin/validation.ts';
-import { adjustStock, listInventory } from '#lib/server/modules/catalog/inventory.ts';
-import { catalogErrorResponse } from '#lib/server/modules/catalog/http.ts';
+import { inventoryListSchema, stockAdjustSchema } from '#modules/catalog/index.ts';
+import { inventoryService } from './inventory-service.ts';
 
 export const GET: RequestHandler = async ({ locals, url }) => {
 	const denied = requireAdmin(locals.user);
@@ -13,7 +12,12 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 		return Response.json({ error: 'Invalid query parameters' }, { status: 400 });
 	}
 
-	return Response.json(await listInventory(parsed.data));
+	const result = await inventoryService.list(parsed.data);
+	if (!result.ok) {
+		return Response.json({ error: result.error.message }, { status: result.error.status });
+	}
+
+	return Response.json(result.value);
 };
 
 export const POST: RequestHandler = async ({ locals, request }) => {
@@ -36,10 +40,10 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 		);
 	}
 
-	try {
-		const variant = await adjustStock(parsed.data, locals.user!.id);
-		return Response.json({ data: variant }, { status: 201 });
-	} catch (error) {
-		return catalogErrorResponse(error, 'adjust stock');
+	const result = await inventoryService.adjust(parsed.data, locals.user!.id);
+	if (!result.ok) {
+		return Response.json({ error: result.error.message }, { status: result.error.status });
 	}
+
+	return Response.json({ data: result.value }, { status: 201 });
 };
