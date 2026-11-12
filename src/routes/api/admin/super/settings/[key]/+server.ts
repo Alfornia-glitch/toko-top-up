@@ -1,13 +1,14 @@
 import type { RequestHandler } from './$types';
 import { requireSuperadmin } from '#lib/server/modules/admin/access.ts';
 import { auditRequest } from '#lib/server/modules/admin/audit.ts';
-import { deleteSetting } from '#lib/server/modules/super/settings.ts';
+import { unwrap } from '#shared';
 
 export const DELETE: RequestHandler = async (event) => {
 	const denied = requireSuperadmin(event.locals.user);
 	if (denied) return denied;
-	const deleted = await deleteSetting(event.params.key);
-	if (!deleted) return Response.json({ error: 'Setting not found' }, { status: 404 });
+	unwrap(
+		await event.locals.services.content.content.deleteSetting(event.params.key, event.locals.actor)
+	);
 	await auditRequest(event, event.locals.user!.id, {
 		action: 'settings.delete',
 		entityType: 'site_settings',

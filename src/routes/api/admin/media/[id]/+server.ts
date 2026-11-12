@@ -1,14 +1,15 @@
 import type { RequestHandler } from './$types';
-import { MediaError } from '#lib/server/modules/storage/index.ts';
-import { deleteMediaAsset } from '#lib/server/modules/admin/media.ts';
+import { MediaError, deleteMedia } from '#lib/server/modules/storage/index.ts';
+import { unwrap } from '#shared';
 
-export const DELETE: RequestHandler = async ({ params }) => {
+export const DELETE: RequestHandler = async ({ params, locals }) => {
 	try {
-		const asset = await deleteMediaAsset(params.id);
+		const { content } = locals.services.content;
+		const asset = unwrap(await content.findMedia(params.id, locals.actor));
 
-		if (!asset) {
-			return Response.json({ error: 'Media asset not found' }, { status: 404 });
-		}
+		// Remove the stored file first so a failed delete leaves the row for a retry.
+		await deleteMedia(asset.path);
+		unwrap(await content.deleteMedia(params.id, locals.actor));
 
 		return Response.json({ data: { id: asset.id } });
 	} catch (error) {

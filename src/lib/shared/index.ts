@@ -17,7 +17,17 @@ export type { AppErrorOptions, ErrorCode } from './errors.ts';
 export { assertActor, assertPermission, hasPermission } from './authz.ts';
 export type { Actor, Permission, Role } from './actor.ts';
 
-export { err, flatMapResult, isErr, isOk, mapError, mapResult, ok, unwrapOr } from './result.ts';
+export {
+	err,
+	flatMapResult,
+	isErr,
+	isOk,
+	mapError,
+	mapResult,
+	ok,
+	unwrap,
+	unwrapOr
+} from './result.ts';
 export type { Result } from './result.ts';
 
 export { newId } from './ids.ts';

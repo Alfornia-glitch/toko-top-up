@@ -1,10 +1,9 @@
-import { relations } from 'drizzle-orm';
-import { boolean, index, integer, jsonb, text, timestamp } from 'drizzle-orm/pg-core';
-import { user } from './auth.ts';
-import { shopSchema } from './schema.ts';
+import { boolean, index, integer, jsonb, pgSchema, text, timestamp } from 'drizzle-orm/pg-core';
 
-export const banners = shopSchema.table(
-	'banners',
+const shop = pgSchema('shop');
+
+export const banners = shop.table(
+	'content_banners',
 	{
 		id: text('id').primaryKey(),
 		key: text('key').$type<'hero' | 'promo' | 'cta' | 'category'>().notNull(),
@@ -23,11 +22,11 @@ export const banners = shopSchema.table(
 			.$onUpdate(() => new Date())
 			.notNull()
 	},
-	(table) => [index('banners_key_idx').on(table.key)]
+	(table) => [index('content_banners_key_idx').on(table.key)]
 );
 
-export const announcements = shopSchema.table(
-	'announcements',
+export const announcements = shop.table(
+	'content_announcements',
 	{
 		id: text('id').primaryKey(),
 		text: text('text').notNull(),
@@ -41,10 +40,10 @@ export const announcements = shopSchema.table(
 			.$onUpdate(() => new Date())
 			.notNull()
 	},
-	(table) => [index('announcements_position_idx').on(table.position)]
+	(table) => [index('content_announcements_position_idx').on(table.position)]
 );
 
-export const testimonials = shopSchema.table('testimonials', {
+export const testimonials = shop.table('content_testimonials', {
 	id: text('id').primaryKey(),
 	imageUrl: text('image_url').notNull(),
 	caption: text('caption'),
@@ -57,8 +56,8 @@ export const testimonials = shopSchema.table('testimonials', {
 		.notNull()
 });
 
-export const mediaAssets = shopSchema.table(
-	'media_assets',
+export const mediaAssets = shop.table(
+	'content_media_assets',
 	{
 		id: text('id').primaryKey(),
 		path: text('path').notNull().unique(),
@@ -66,29 +65,21 @@ export const mediaAssets = shopSchema.table(
 		contentType: text('content_type').notNull(),
 		sizeBytes: integer('size_bytes').notNull(),
 		folder: text('folder').notNull(),
-		uploadedBy: text('uploaded_by').references(() => user.id, { onDelete: 'set null' }),
+		uploadedBy: text('uploaded_by'),
 		alt: text('alt'),
 		createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).notNull()
 	},
 	(table) => [
-		index('media_assets_folder_idx').on(table.folder),
-		index('media_assets_created_idx').on(table.createdAt)
+		index('content_media_assets_folder_idx').on(table.folder),
+		index('content_media_assets_created_idx').on(table.createdAt)
 	]
 );
 
-export const siteSettings = shopSchema.table('site_settings', {
+export const siteSettings = shop.table('content_site_settings', {
 	key: text('key').primaryKey(),
 	valueJson: jsonb('value_json').$type<unknown>().notNull(),
-	updatedBy: text('updated_by').references(() => user.id, { onDelete: 'set null' }),
+	updatedBy: text('updated_by'),
 	updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'date' })
 		.$onUpdate(() => new Date())
 		.notNull()
 });
-
-export const mediaAssetsRelations = relations(mediaAssets, ({ one }) => ({
-	uploadedByUser: one(user, { fields: [mediaAssets.uploadedBy], references: [user.id] })
-}));
-
-export const siteSettingsRelations = relations(siteSettings, ({ one }) => ({
-	updatedByUser: one(user, { fields: [siteSettings.updatedBy], references: [user.id] })
-}));

@@ -9,7 +9,12 @@ const TABLES: Array<[string, string]> = [
 	['product_options', 'catalog_product_options'],
 	['product_option_values', 'catalog_product_option_values'],
 	['product_variants', 'catalog_product_variants'],
-	['inventory_movements', 'catalog_inventory_movements']
+	['inventory_movements', 'catalog_inventory_movements'],
+	['banners', 'content_banners'],
+	['announcements', 'content_announcements'],
+	['testimonials', 'content_testimonials'],
+	['media_assets', 'content_media_assets'],
+	['site_settings', 'content_site_settings']
 ];
 
 const INDEXES: Array<[string, string]> = [
@@ -24,7 +29,11 @@ const INDEXES: Array<[string, string]> = [
 	['product_options_product_idx', 'catalog_product_options_product_idx'],
 	['product_option_values_option_idx', 'catalog_product_option_values_option_idx'],
 	['product_variants_product_idx', 'catalog_product_variants_product_idx'],
-	['inventory_movements_variant_idx', 'catalog_inventory_movements_variant_idx']
+	['inventory_movements_variant_idx', 'catalog_inventory_movements_variant_idx'],
+	['banners_key_idx', 'content_banners_key_idx'],
+	['announcements_position_idx', 'content_announcements_position_idx'],
+	['media_assets_folder_idx', 'content_media_assets_folder_idx'],
+	['media_assets_created_idx', 'content_media_assets_created_idx']
 ];
 
 const provider = process.env.DB_PROVIDER;

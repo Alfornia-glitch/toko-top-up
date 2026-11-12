@@ -1,5 +1,6 @@
 import type { RequestHandler } from './$types';
-import type { ContentKind } from '#lib/server/modules/content/site-content.ts';
+import { unwrap } from '#shared';
+import { isContentKind, type ContentKind } from '#modules/content/index.ts';
 import { requireAdmin } from '#lib/server/modules/admin/access.ts';
 import { auditRequest } from '#lib/server/modules/admin/audit.ts';
 import {
@@ -7,12 +8,9 @@ import {
 	bannerWriteSchema,
 	testimonialWriteSchema
 } from '#lib/server/modules/admin/validation.ts';
-import { createContent, listContent } from '#lib/server/modules/content/site-content.ts';
-
-const KINDS: ContentKind[] = ['banners', 'announcements', 'testimonials'];
 
 function kindOf(value: string): ContentKind | null {
-	return KINDS.includes(value as ContentKind) ? (value as ContentKind) : null;
+	return isContentKind(value) ? value : null;
 }
 
 export const GET: RequestHandler = async ({ locals, params }) => {
@@ -20,7 +18,9 @@ export const GET: RequestHandler = async ({ locals, params }) => {
 	if (denied) return denied;
 	const kind = kindOf(params.kind);
 	if (!kind) return Response.json({ error: 'Unknown content type' }, { status: 404 });
-	return Response.json({ data: await listContent(kind) });
+	return Response.json({
+		data: unwrap(await locals.services.content.content.listItems(kind, locals.actor))
+	});
 };
 
 export const POST: RequestHandler = async (event) => {
@@ -46,7 +46,13 @@ export const POST: RequestHandler = async (event) => {
 			{ error: 'Invalid content data', details: parsed.error.flatten() },
 			{ status: 422 }
 		);
-	const id = await createContent(kind, parsed.data as Record<string, unknown>);
+	const id = unwrap(
+		await event.locals.services.content.content.createItem(
+			kind,
+			parsed.data as Record<string, unknown>,
+			event.locals.actor
+		)
+	);
 	await auditRequest(event, event.locals.user!.id, {
 		action: `${kind}.create`,
 		entityType: kind,

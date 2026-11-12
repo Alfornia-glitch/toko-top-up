@@ -1,5 +1,5 @@
 {
-	"id": "db8acd2c-beb6-4931-bc3f-f6d4692356fa",
+	"id": "ea34b746-5090-492f-aac9-1b507cec90ea",
 	"prevId": "00000000-0000-0000-0000-000000000000",
 	"version": "7",
 	"dialect": "postgresql",
@@ -254,8 +254,8 @@
 			"checkConstraints": {},
 			"isRLSEnabled": false
 		},
-		"shop.announcements": {
-			"name": "announcements",
+		"shop.content_announcements": {
+			"name": "content_announcements",
 			"schema": "shop",
 			"columns": {
 				"id": {
@@ -316,8 +316,8 @@
 				}
 			},
 			"indexes": {
-				"announcements_position_idx": {
-					"name": "announcements_position_idx",
+				"content_announcements_position_idx": {
+					"name": "content_announcements_position_idx",
 					"columns": [
 						{
 							"expression": "position",
@@ -475,8 +475,8 @@
 			"checkConstraints": {},
 			"isRLSEnabled": false
 		},
-		"shop.banners": {
-			"name": "banners",
+		"shop.content_banners": {
+			"name": "content_banners",
 			"schema": "shop",
 			"columns": {
 				"id": {
@@ -567,8 +567,8 @@
 				}
 			},
 			"indexes": {
-				"banners_key_idx": {
-					"name": "banners_key_idx",
+				"content_banners_key_idx": {
+					"name": "content_banners_key_idx",
 					"columns": [
 						{
 							"expression": "key",
@@ -1607,8 +1607,8 @@
 			"checkConstraints": {},
 			"isRLSEnabled": false
 		},
-		"shop.media_assets": {
-			"name": "media_assets",
+		"shop.content_media_assets": {
+			"name": "content_media_assets",
 			"schema": "shop",
 			"columns": {
 				"id": {
@@ -1667,8 +1667,8 @@
 				}
 			},
 			"indexes": {
-				"media_assets_folder_idx": {
-					"name": "media_assets_folder_idx",
+				"content_media_assets_folder_idx": {
+					"name": "content_media_assets_folder_idx",
 					"columns": [
 						{
 							"expression": "folder",
@@ -1682,8 +1682,8 @@
 					"method": "btree",
 					"with": {}
 				},
-				"media_assets_created_idx": {
-					"name": "media_assets_created_idx",
+				"content_media_assets_created_idx": {
+					"name": "content_media_assets_created_idx",
 					"columns": [
 						{
 							"expression": "created_at",
@@ -1698,22 +1698,11 @@
 					"with": {}
 				}
 			},
-			"foreignKeys": {
-				"media_assets_uploaded_by_user_id_fk": {
-					"name": "media_assets_uploaded_by_user_id_fk",
-					"tableFrom": "media_assets",
-					"tableTo": "user",
-					"schemaTo": "auth_app",
-					"columnsFrom": ["uploaded_by"],
-					"columnsTo": ["id"],
-					"onDelete": "set null",
-					"onUpdate": "no action"
-				}
-			},
+			"foreignKeys": {},
 			"compositePrimaryKeys": {},
 			"uniqueConstraints": {
-				"media_assets_path_unique": {
-					"name": "media_assets_path_unique",
+				"content_media_assets_path_unique": {
+					"name": "content_media_assets_path_unique",
 					"nullsNotDistinct": false,
 					"columns": ["path"]
 				}
@@ -3738,8 +3727,8 @@
 			"checkConstraints": {},
 			"isRLSEnabled": false
 		},
-		"shop.site_settings": {
-			"name": "site_settings",
+		"shop.content_site_settings": {
+			"name": "content_site_settings",
 			"schema": "shop",
 			"columns": {
 				"key": {
@@ -3768,18 +3757,7 @@
 				}
 			},
 			"indexes": {},
-			"foreignKeys": {
-				"site_settings_updated_by_user_id_fk": {
-					"name": "site_settings_updated_by_user_id_fk",
-					"tableFrom": "site_settings",
-					"tableTo": "user",
-					"schemaTo": "auth_app",
-					"columnsFrom": ["updated_by"],
-					"columnsTo": ["id"],
-					"onDelete": "set null",
-					"onUpdate": "no action"
-				}
-			},
+			"foreignKeys": {},
 			"compositePrimaryKeys": {},
 			"uniqueConstraints": {},
 			"policies": {},
@@ -4021,8 +3999,8 @@
 			"checkConstraints": {},
 			"isRLSEnabled": false
 		},
-		"shop.testimonials": {
-			"name": "testimonials",
+		"shop.content_testimonials": {
+			"name": "content_testimonials",
 			"schema": "shop",
 			"columns": {
 				"id": {

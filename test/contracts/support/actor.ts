@@ -25,3 +25,11 @@ export function createForbiddenActor(id = 'forbidden-actor'): Actor {
 		permissions: new Set()
 	};
 }
+
+export function createSuperAdminActor(id: string): Actor {
+	return {
+		id,
+		role: 'superadmin',
+		permissions: new Set<Permission>([...ADMIN_PERMISSIONS, 'super:access'])
+	};
+}

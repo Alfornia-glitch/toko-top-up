@@ -36,7 +36,7 @@ CREATE TABLE `addresses` (
 );
 --> statement-breakpoint
 CREATE INDEX `addresses_user_idx` ON `addresses` (`user_id`);--> statement-breakpoint
-CREATE TABLE `announcements` (
+CREATE TABLE `content_announcements` (
 	`id` text PRIMARY KEY NOT NULL,
 	`text` text NOT NULL,
 	`link` text,
@@ -48,7 +48,7 @@ CREATE TABLE `announcements` (
 	`updated_at` integer NOT NULL
 );
 --> statement-breakpoint
-CREATE INDEX `announcements_position_idx` ON `announcements` (`position`);--> statement-breakpoint
+CREATE INDEX `content_announcements_position_idx` ON `content_announcements` (`position`);--> statement-breakpoint
 CREATE TABLE `audit_log` (
 	`id` text PRIMARY KEY NOT NULL,
 	`actor_user_id` text,
@@ -66,7 +66,7 @@ CREATE TABLE `audit_log` (
 CREATE INDEX `audit_log_actor_idx` ON `audit_log` (`actor_user_id`);--> statement-breakpoint
 CREATE INDEX `audit_log_entity_idx` ON `audit_log` (`entity_type`,`entity_id`);--> statement-breakpoint
 CREATE INDEX `audit_log_created_idx` ON `audit_log` (`created_at`);--> statement-breakpoint
-CREATE TABLE `banners` (
+CREATE TABLE `content_banners` (
 	`id` text PRIMARY KEY NOT NULL,
 	`key` text NOT NULL,
 	`title` text NOT NULL,
@@ -83,7 +83,7 @@ CREATE TABLE `banners` (
 	`updated_at` integer NOT NULL
 );
 --> statement-breakpoint
-CREATE INDEX `banners_key_idx` ON `banners` (`key`);--> statement-breakpoint
+CREATE INDEX `content_banners_key_idx` ON `content_banners` (`key`);--> statement-breakpoint
 CREATE TABLE `catalog_brands` (
 	`id` text PRIMARY KEY NOT NULL,
 	`name` text NOT NULL,
@@ -228,7 +228,7 @@ CREATE TABLE `catalog_inventory_movements` (
 );
 --> statement-breakpoint
 CREATE INDEX `catalog_inventory_movements_variant_idx` ON `catalog_inventory_movements` (`variant_id`);--> statement-breakpoint
-CREATE TABLE `media_assets` (
+CREATE TABLE `content_media_assets` (
 	`id` text PRIMARY KEY NOT NULL,
 	`path` text NOT NULL,
 	`url` text NOT NULL,
@@ -237,13 +237,12 @@ CREATE TABLE `media_assets` (
 	`folder` text NOT NULL,
 	`uploaded_by` text,
 	`alt` text,
-	`created_at` integer NOT NULL,
-	FOREIGN KEY (`uploaded_by`) REFERENCES `user`(`id`) ON UPDATE no action ON DELETE set null
+	`created_at` integer NOT NULL
 );
 --> statement-breakpoint
-CREATE UNIQUE INDEX `media_assets_path_unique` ON `media_assets` (`path`);--> statement-breakpoint
-CREATE INDEX `media_assets_folder_idx` ON `media_assets` (`folder`);--> statement-breakpoint
-CREATE INDEX `media_assets_created_idx` ON `media_assets` (`created_at`);--> statement-breakpoint
+CREATE UNIQUE INDEX `content_media_assets_path_unique` ON `content_media_assets` (`path`);--> statement-breakpoint
+CREATE INDEX `content_media_assets_folder_idx` ON `content_media_assets` (`folder`);--> statement-breakpoint
+CREATE INDEX `content_media_assets_created_idx` ON `content_media_assets` (`created_at`);--> statement-breakpoint
 CREATE TABLE `newsletter_subscriptions` (
 	`id` text PRIMARY KEY NOT NULL,
 	`user_id` text,
@@ -530,12 +529,11 @@ CREATE TABLE `shipments` (
 );
 --> statement-breakpoint
 CREATE INDEX `shipments_order_idx` ON `shipments` (`order_id`);--> statement-breakpoint
-CREATE TABLE `site_settings` (
+CREATE TABLE `content_site_settings` (
 	`key` text PRIMARY KEY NOT NULL,
 	`value_json` text NOT NULL,
 	`updated_by` text,
-	`updated_at` integer NOT NULL,
-	FOREIGN KEY (`updated_by`) REFERENCES `user`(`id`) ON UPDATE no action ON DELETE set null
+	`updated_at` integer NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE `support_ticket_messages` (
@@ -570,7 +568,7 @@ CREATE TABLE `support_tickets` (
 CREATE UNIQUE INDEX `support_tickets_ticket_number_unique` ON `support_tickets` (`ticket_number`);--> statement-breakpoint
 CREATE INDEX `support_tickets_status_idx` ON `support_tickets` (`status`);--> statement-breakpoint
 CREATE INDEX `support_tickets_assigned_idx` ON `support_tickets` (`assigned_admin_id`);--> statement-breakpoint
-CREATE TABLE `testimonials` (
+CREATE TABLE `content_testimonials` (
 	`id` text PRIMARY KEY NOT NULL,
 	`image_url` text NOT NULL,
 	`caption` text,

@@ -5,5 +5,5 @@ import { systemInfo } from '#lib/server/modules/super/system.ts';
 export const GET: RequestHandler = async ({ locals }) => {
 	const denied = requireSuperadmin(locals.user);
 	if (denied) return denied;
-	return Response.json({ data: await systemInfo() });
+	return Response.json({ data: await systemInfo(locals.actor) });
 };

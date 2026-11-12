@@ -36,7 +36,7 @@ CREATE TABLE "shop"."addresses" (
 	"updated_at" timestamp with time zone NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "shop"."announcements" (
+CREATE TABLE "shop"."content_announcements" (
 	"id" text PRIMARY KEY NOT NULL,
 	"text" text NOT NULL,
 	"link" text,
@@ -61,7 +61,7 @@ CREATE TABLE "shop"."audit_log" (
 	"created_at" timestamp with time zone NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "shop"."banners" (
+CREATE TABLE "shop"."content_banners" (
 	"id" text PRIMARY KEY NOT NULL,
 	"key" text NOT NULL,
 	"title" text NOT NULL,
@@ -196,7 +196,7 @@ CREATE TABLE "shop"."catalog_inventory_movements" (
 	"created_at" timestamp with time zone NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "shop"."media_assets" (
+CREATE TABLE "shop"."content_media_assets" (
 	"id" text PRIMARY KEY NOT NULL,
 	"path" text NOT NULL,
 	"url" text NOT NULL,
@@ -206,7 +206,7 @@ CREATE TABLE "shop"."media_assets" (
 	"uploaded_by" text,
 	"alt" text,
 	"created_at" timestamp with time zone NOT NULL,
-	CONSTRAINT "media_assets_path_unique" UNIQUE("path")
+	CONSTRAINT "content_media_assets_path_unique" UNIQUE("path")
 );
 --> statement-breakpoint
 CREATE TABLE "shop"."newsletter_subscriptions" (
@@ -445,7 +445,7 @@ CREATE TABLE "shop"."shipments" (
 	"updated_at" timestamp with time zone NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "shop"."site_settings" (
+CREATE TABLE "shop"."content_site_settings" (
 	"key" text PRIMARY KEY NOT NULL,
 	"value_json" jsonb NOT NULL,
 	"updated_by" text,
@@ -476,7 +476,7 @@ CREATE TABLE "shop"."support_tickets" (
 	CONSTRAINT "support_tickets_ticket_number_unique" UNIQUE("ticket_number")
 );
 --> statement-breakpoint
-CREATE TABLE "shop"."testimonials" (
+CREATE TABLE "shop"."content_testimonials" (
 	"id" text PRIMARY KEY NOT NULL,
 	"image_url" text NOT NULL,
 	"caption" text,
@@ -534,7 +534,6 @@ ALTER TABLE "shop"."gift_card_transactions" ADD CONSTRAINT "gift_card_transactio
 ALTER TABLE "shop"."gift_cards" ADD CONSTRAINT "gift_cards_purchaser_user_id_user_id_fk" FOREIGN KEY ("purchaser_user_id") REFERENCES "auth_app"."user"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "shop"."gift_cards" ADD CONSTRAINT "gift_cards_order_id_orders_id_fk" FOREIGN KEY ("order_id") REFERENCES "shop"."orders"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "shop"."catalog_inventory_movements" ADD CONSTRAINT "catalog_inventory_movements_variant_id_catalog_product_variants_id_fk" FOREIGN KEY ("variant_id") REFERENCES "shop"."catalog_product_variants"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "shop"."media_assets" ADD CONSTRAINT "media_assets_uploaded_by_user_id_fk" FOREIGN KEY ("uploaded_by") REFERENCES "auth_app"."user"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "shop"."newsletter_subscriptions" ADD CONSTRAINT "newsletter_subscriptions_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "auth_app"."user"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "shop"."order_events" ADD CONSTRAINT "order_events_order_id_orders_id_fk" FOREIGN KEY ("order_id") REFERENCES "shop"."orders"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "shop"."order_events" ADD CONSTRAINT "order_events_actor_user_id_user_id_fk" FOREIGN KEY ("actor_user_id") REFERENCES "auth_app"."user"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
@@ -561,7 +560,6 @@ ALTER TABLE "shop"."reviews" ADD CONSTRAINT "reviews_product_id_catalog_products
 ALTER TABLE "shop"."reviews" ADD CONSTRAINT "reviews_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "auth_app"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "auth_app"."session" ADD CONSTRAINT "session_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "auth_app"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "shop"."shipments" ADD CONSTRAINT "shipments_order_id_orders_id_fk" FOREIGN KEY ("order_id") REFERENCES "shop"."orders"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "shop"."site_settings" ADD CONSTRAINT "site_settings_updated_by_user_id_fk" FOREIGN KEY ("updated_by") REFERENCES "auth_app"."user"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "shop"."support_ticket_messages" ADD CONSTRAINT "support_ticket_messages_ticket_id_support_tickets_id_fk" FOREIGN KEY ("ticket_id") REFERENCES "shop"."support_tickets"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "shop"."support_ticket_messages" ADD CONSTRAINT "support_ticket_messages_sender_user_id_user_id_fk" FOREIGN KEY ("sender_user_id") REFERENCES "auth_app"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "shop"."support_tickets" ADD CONSTRAINT "support_tickets_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "auth_app"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
@@ -571,11 +569,11 @@ ALTER TABLE "shop"."wishlists" ADD CONSTRAINT "wishlists_user_id_user_id_fk" FOR
 ALTER TABLE "shop"."wishlists" ADD CONSTRAINT "wishlists_product_id_catalog_products_id_fk" FOREIGN KEY ("product_id") REFERENCES "shop"."catalog_products"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 CREATE INDEX "account_userId_idx" ON "auth_app"."account" USING btree ("user_id");--> statement-breakpoint
 CREATE INDEX "addresses_user_idx" ON "shop"."addresses" USING btree ("user_id");--> statement-breakpoint
-CREATE INDEX "announcements_position_idx" ON "shop"."announcements" USING btree ("position");--> statement-breakpoint
+CREATE INDEX "content_announcements_position_idx" ON "shop"."content_announcements" USING btree ("position");--> statement-breakpoint
 CREATE INDEX "audit_log_actor_idx" ON "shop"."audit_log" USING btree ("actor_user_id");--> statement-breakpoint
 CREATE INDEX "audit_log_entity_idx" ON "shop"."audit_log" USING btree ("entity_type","entity_id");--> statement-breakpoint
 CREATE INDEX "audit_log_created_idx" ON "shop"."audit_log" USING btree ("created_at");--> statement-breakpoint
-CREATE INDEX "banners_key_idx" ON "shop"."banners" USING btree ("key");--> statement-breakpoint
+CREATE INDEX "content_banners_key_idx" ON "shop"."content_banners" USING btree ("key");--> statement-breakpoint
 CREATE INDEX "catalog_brands_status_idx" ON "shop"."catalog_brands" USING btree ("status");--> statement-breakpoint
 CREATE UNIQUE INDEX "cart_items_cart_variant_idx" ON "shop"."cart_items" USING btree ("cart_id","variant_id");--> statement-breakpoint
 CREATE INDEX "carts_user_idx" ON "shop"."carts" USING btree ("user_id");--> statement-breakpoint
@@ -589,8 +587,8 @@ CREATE INDEX "gift_card_transactions_card_idx" ON "shop"."gift_card_transactions
 CREATE INDEX "gift_cards_code_idx" ON "shop"."gift_cards" USING btree ("code");--> statement-breakpoint
 CREATE INDEX "gift_cards_status_idx" ON "shop"."gift_cards" USING btree ("status");--> statement-breakpoint
 CREATE INDEX "catalog_inventory_movements_variant_idx" ON "shop"."catalog_inventory_movements" USING btree ("variant_id");--> statement-breakpoint
-CREATE INDEX "media_assets_folder_idx" ON "shop"."media_assets" USING btree ("folder");--> statement-breakpoint
-CREATE INDEX "media_assets_created_idx" ON "shop"."media_assets" USING btree ("created_at");--> statement-breakpoint
+CREATE INDEX "content_media_assets_folder_idx" ON "shop"."content_media_assets" USING btree ("folder");--> statement-breakpoint
+CREATE INDEX "content_media_assets_created_idx" ON "shop"."content_media_assets" USING btree ("created_at");--> statement-breakpoint
 CREATE INDEX "newsletter_subscriptions_status_idx" ON "shop"."newsletter_subscriptions" USING btree ("status");--> statement-breakpoint
 CREATE INDEX "order_events_order_idx" ON "shop"."order_events" USING btree ("order_id");--> statement-breakpoint
 CREATE INDEX "order_items_order_idx" ON "shop"."order_items" USING btree ("order_id");--> statement-breakpoint

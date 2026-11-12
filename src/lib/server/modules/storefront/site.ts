@@ -1,7 +1,5 @@
-import { queryDb, tables } from '#db/query.ts';
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const t = tables as any;
+import { unwrap } from '#shared';
+import { getRuntime } from '#lib/server/runtime.server.ts';
 
 export interface SiteShippingMethod {
 	id: string;
@@ -68,9 +66,7 @@ function mergeRecord<T extends Record<string, unknown>>(base: T, value: unknown)
 }
 
 export async function getSiteSettings(): Promise<SiteSettings> {
-	const rows = await queryDb
-		.select({ key: t.siteSettings.key, valueJson: t.siteSettings.valueJson })
-		.from(t.siteSettings);
+	const rows = unwrap(await getRuntime().services.content.content.listSettings());
 
 	const settings: SiteSettings = {
 		contact: { ...defaultSettings.contact },

@@ -41,3 +41,8 @@ export function mapError<T, E, F>(result: Result<T, E>, map: (error: E) => F): R
 export function unwrapOr<T, E>(result: Result<T, E>, fallback: T): T {
 	return result.ok ? result.value : fallback;
 }
+
+export function unwrap<T>(result: Result<T, AppError>): T {
+	if (!result.ok) throw result.error;
+	return result.value;
+}

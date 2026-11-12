@@ -1,5 +1,7 @@
-import { count, sum } from 'drizzle-orm';
+import { count } from 'drizzle-orm';
+import { unwrap, type Actor } from '#shared';
 import { queryDb, tables } from '#db/query.ts';
+import { getRuntime } from '#lib/server/runtime.server.ts';
 import { DB_PROVIDER, STORAGE_PROVIDER } from '$app/env/private';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -10,18 +12,14 @@ async function countOf(table: any) {
 	return Number(row?.value ?? 0);
 }
 
-export async function systemInfo() {
-	const [users, products, orders, media, audit] = await Promise.all([
+export async function systemInfo(actor: Actor | null) {
+	const [users, products, orders, mediaStats, audit] = await Promise.all([
 		countOf(t.user),
 		countOf(t.products),
 		countOf(t.orders),
-		countOf(t.mediaAssets),
+		getRuntime().services.content.content.getMediaStats(actor).then(unwrap),
 		countOf(t.auditLog)
 	]);
-
-	const [storage] = await queryDb
-		.select({ value: sum(t.mediaAssets.sizeBytes) })
-		.from(t.mediaAssets);
 
 	return {
 		bunVersion: Bun.version,
@@ -29,8 +27,8 @@ export async function systemInfo() {
 		nodeEnv: process.env.NODE_ENV ?? 'development',
 		dbProvider: DB_PROVIDER,
 		storageProvider: STORAGE_PROVIDER,
-		counts: { users, products, orders, media, audit },
-		mediaBytes: Number(storage?.value ?? 0),
+		counts: { users, products, orders, media: mediaStats.assets, audit },
+		mediaBytes: mediaStats.bytes,
 		memoryBytes: process.memoryUsage().rss
 	};
 }

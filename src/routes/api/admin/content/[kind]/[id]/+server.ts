@@ -1,5 +1,6 @@
 import type { RequestHandler } from './$types';
-import type { ContentKind } from '#lib/server/modules/content/site-content.ts';
+import { unwrap } from '#shared';
+import { isContentKind, type ContentKind } from '#modules/content/index.ts';
 import { requireAdmin } from '#lib/server/modules/admin/access.ts';
 import { auditRequest } from '#lib/server/modules/admin/audit.ts';
 import {
@@ -7,12 +8,9 @@ import {
 	bannerWriteSchema,
 	testimonialWriteSchema
 } from '#lib/server/modules/admin/validation.ts';
-import { deleteContent, updateContent } from '#lib/server/modules/content/site-content.ts';
-
-const KINDS: ContentKind[] = ['banners', 'announcements', 'testimonials'];
 
 function kindOf(value: string): ContentKind | null {
-	return KINDS.includes(value as ContentKind) ? (value as ContentKind) : null;
+	return isContentKind(value) ? value : null;
 }
 
 export const PATCH: RequestHandler = async (event) => {
@@ -38,8 +36,14 @@ export const PATCH: RequestHandler = async (event) => {
 			{ error: 'Invalid content data', details: parsed.error.flatten() },
 			{ status: 422 }
 		);
-	const row = await updateContent(kind, event.params.id, parsed.data as Record<string, unknown>);
-	if (!row) return Response.json({ error: 'Content not found' }, { status: 404 });
+	const row = unwrap(
+		await event.locals.services.content.content.updateItem(
+			kind,
+			event.params.id,
+			parsed.data as Record<string, unknown>,
+			event.locals.actor
+		)
+	);
 	await auditRequest(event, event.locals.user!.id, {
 		action: `${kind}.update`,
 		entityType: kind,
@@ -54,8 +58,13 @@ export const DELETE: RequestHandler = async (event) => {
 	if (denied) return denied;
 	const kind = kindOf(event.params.kind);
 	if (!kind) return Response.json({ error: 'Unknown content type' }, { status: 404 });
-	const deleted = await deleteContent(kind, event.params.id);
-	if (!deleted) return Response.json({ error: 'Content not found' }, { status: 404 });
+	unwrap(
+		await event.locals.services.content.content.deleteItem(
+			kind,
+			event.params.id,
+			event.locals.actor
+		)
+	);
 	await auditRequest(event, event.locals.user!.id, {
 		action: `${kind}.delete`,
 		entityType: kind,

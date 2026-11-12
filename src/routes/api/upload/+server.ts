@@ -5,7 +5,7 @@ import {
 	normaliseFolder,
 	uploadMedia
 } from '#lib/server/modules/storage/index.ts';
-import { createMediaAsset } from '#lib/server/modules/admin/media.ts';
+import { unwrap } from '#shared';
 
 /**
  * Uploads one image to the configured public storage backend and returns its
@@ -43,7 +43,19 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 		}
 
 		const media = await uploadMedia(file, folder);
-		const id = await createMediaAsset(media, folder, locals.user.id);
+		const id = unwrap(
+			await locals.services.content.content.recordMedia(
+				{
+					path: media.path,
+					url: media.url,
+					contentType: media.contentType,
+					sizeBytes: media.size,
+					folder,
+					uploadedBy: locals.user.id
+				},
+				locals.actor
+			)
+		);
 
 		return Response.json({ id, ...media }, { status: 201 });
 	} catch (error) {

@@ -15,7 +15,9 @@ import {
 	sum,
 	type SQL
 } from 'drizzle-orm';
+import { unwrap } from '#shared';
 import { queryDb, tables } from '#db/query.ts';
+import { getRuntime } from '#lib/server/runtime.server.ts';
 
 const t = tables;
 
@@ -484,58 +486,30 @@ export async function listPublicCategories() {
 }
 
 export async function homeData() {
-	const [
-		banners,
-		announcements,
-		testimonials,
-		categories,
-		brands,
-		deals,
-		newArrivals,
-		featured,
-		popular
-	] = await Promise.all([
-		queryDb
-			.select()
-			.from(t.banners)
-			.where(eq(t.banners.active, true))
-			.orderBy(asc(t.banners.position)),
-		queryDb
-			.select()
-			.from(t.announcements)
-			.where(eq(t.announcements.active, true))
-			.orderBy(asc(t.announcements.position)),
-		queryDb
-			.select()
-			.from(t.testimonials)
-			.where(eq(t.testimonials.active, true))
-			.orderBy(asc(t.testimonials.position)),
-		listPublicCategories(),
-		queryDb
-			.select({
-				id: t.brands.id,
-				name: t.brands.name,
-				slug: t.brands.slug,
-				logoUrl: t.brands.logoUrl
-			})
-			.from(t.brands)
-			.where(eq(t.brands.status, 'active'))
-			.orderBy(asc(t.brands.name)),
-		listPublicProducts({ deal: true, pageSize: 8 }),
-		listPublicProducts({ newArrival: true, pageSize: 8 }),
-		listPublicProducts({ featured: true, pageSize: 8 }),
-		listPublicProducts({ sort: 'popular', pageSize: 8 })
-	]);
-
-	const now = Date.now();
-	const inWindow = (row: { startsAt?: string | Date | null; endsAt?: string | Date | null }) =>
-		(!row.startsAt || new Date(row.startsAt).getTime() <= now) &&
-		(!row.endsAt || new Date(row.endsAt).getTime() >= now);
+	const [publicContent, categories, brands, deals, newArrivals, featured, popular] =
+		await Promise.all([
+			getRuntime().services.content.content.getPublicContent().then(unwrap),
+			listPublicCategories(),
+			queryDb
+				.select({
+					id: t.brands.id,
+					name: t.brands.name,
+					slug: t.brands.slug,
+					logoUrl: t.brands.logoUrl
+				})
+				.from(t.brands)
+				.where(eq(t.brands.status, 'active'))
+				.orderBy(asc(t.brands.name)),
+			listPublicProducts({ deal: true, pageSize: 8 }),
+			listPublicProducts({ newArrival: true, pageSize: 8 }),
+			listPublicProducts({ featured: true, pageSize: 8 }),
+			listPublicProducts({ sort: 'popular', pageSize: 8 })
+		]);
 
 	return {
-		banners: banners.filter(inWindow),
-		announcements: announcements.filter(inWindow),
-		testimonials,
+		banners: publicContent.banners,
+		announcements: publicContent.announcements,
+		testimonials: publicContent.testimonials,
 		categories,
 		brands,
 		deals: deals.data,

@@ -1,7 +1,7 @@
 {
 	"version": "6",
 	"dialect": "sqlite",
-	"id": "845c2109-00cc-4ffc-985a-a6e4d9d0b586",
+	"id": "4886ee59-1263-4051-8449-51e402032796",
 	"prevId": "00000000-0000-0000-0000-000000000000",
 	"tables": {
 		"account": {
@@ -254,8 +254,8 @@
 			"uniqueConstraints": {},
 			"checkConstraints": {}
 		},
-		"announcements": {
-			"name": "announcements",
+		"content_announcements": {
+			"name": "content_announcements",
 			"columns": {
 				"id": {
 					"name": "id",
@@ -324,8 +324,8 @@
 				}
 			},
 			"indexes": {
-				"announcements_position_idx": {
-					"name": "announcements_position_idx",
+				"content_announcements_position_idx": {
+					"name": "content_announcements_position_idx",
 					"columns": ["position"],
 					"isUnique": false
 				}
@@ -441,8 +441,8 @@
 			"uniqueConstraints": {},
 			"checkConstraints": {}
 		},
-		"banners": {
-			"name": "banners",
+		"content_banners": {
+			"name": "content_banners",
 			"columns": {
 				"id": {
 					"name": "id",
@@ -546,8 +546,8 @@
 				}
 			},
 			"indexes": {
-				"banners_key_idx": {
-					"name": "banners_key_idx",
+				"content_banners_key_idx": {
+					"name": "content_banners_key_idx",
 					"columns": ["key"],
 					"isUnique": false
 				}
@@ -1475,8 +1475,8 @@
 			"uniqueConstraints": {},
 			"checkConstraints": {}
 		},
-		"media_assets": {
-			"name": "media_assets",
+		"content_media_assets": {
+			"name": "content_media_assets",
 			"columns": {
 				"id": {
 					"name": "id",
@@ -1543,33 +1543,23 @@
 				}
 			},
 			"indexes": {
-				"media_assets_path_unique": {
-					"name": "media_assets_path_unique",
+				"content_media_assets_path_unique": {
+					"name": "content_media_assets_path_unique",
 					"columns": ["path"],
 					"isUnique": true
 				},
-				"media_assets_folder_idx": {
-					"name": "media_assets_folder_idx",
+				"content_media_assets_folder_idx": {
+					"name": "content_media_assets_folder_idx",
 					"columns": ["folder"],
 					"isUnique": false
 				},
-				"media_assets_created_idx": {
-					"name": "media_assets_created_idx",
+				"content_media_assets_created_idx": {
+					"name": "content_media_assets_created_idx",
 					"columns": ["created_at"],
 					"isUnique": false
 				}
 			},
-			"foreignKeys": {
-				"media_assets_uploaded_by_user_id_fk": {
-					"name": "media_assets_uploaded_by_user_id_fk",
-					"tableFrom": "media_assets",
-					"tableTo": "user",
-					"columnsFrom": ["uploaded_by"],
-					"columnsTo": ["id"],
-					"onDelete": "set null",
-					"onUpdate": "no action"
-				}
-			},
+			"foreignKeys": {},
 			"compositePrimaryKeys": {},
 			"uniqueConstraints": {},
 			"checkConstraints": {}
@@ -3447,8 +3437,8 @@
 			"uniqueConstraints": {},
 			"checkConstraints": {}
 		},
-		"site_settings": {
-			"name": "site_settings",
+		"content_site_settings": {
+			"name": "content_site_settings",
 			"columns": {
 				"key": {
 					"name": "key",
@@ -3480,17 +3470,7 @@
 				}
 			},
 			"indexes": {},
-			"foreignKeys": {
-				"site_settings_updated_by_user_id_fk": {
-					"name": "site_settings_updated_by_user_id_fk",
-					"tableFrom": "site_settings",
-					"tableTo": "user",
-					"columnsFrom": ["updated_by"],
-					"columnsTo": ["id"],
-					"onDelete": "set null",
-					"onUpdate": "no action"
-				}
-			},
+			"foreignKeys": {},
 			"compositePrimaryKeys": {},
 			"uniqueConstraints": {},
 			"checkConstraints": {}
@@ -3705,8 +3685,8 @@
 			"uniqueConstraints": {},
 			"checkConstraints": {}
 		},
-		"testimonials": {
-			"name": "testimonials",
+		"content_testimonials": {
+			"name": "content_testimonials",
 			"columns": {
 				"id": {
 					"name": "id",

@@ -2,6 +2,7 @@ import { createEventBus, systemClock, type Clock, type EventBus } from '#shared'
 import { db as sharedDb, dbProvider } from '#db/index.ts';
 import type { Db, PostgresDb, SqliteDb } from '#db/core.ts';
 import { createCatalogServices, type CatalogServices } from '#modules/catalog/server.ts';
+import { createContentServices, type ContentServices } from '#modules/content/server.ts';
 import { createReportingServices, type ReportingServices } from '#modules/reporting/server.ts';
 import { loadConfig, type AppConfig } from './config.server.ts';
 import { createModuleRegistry } from './registry.server.ts';
@@ -9,6 +10,7 @@ import { createModuleRegistry } from './registry.server.ts';
 export interface RuntimeServices {
 	readonly catalog: CatalogServices;
 	readonly reporting: ReportingServices;
+	readonly content: ContentServices;
 }
 
 export interface Runtime {
@@ -45,6 +47,7 @@ export function createRuntime(
 
 	let catalog: CatalogServices | undefined;
 	let reporting: ReportingServices | undefined;
+	let content: ContentServices | undefined;
 	const registry = createModuleRegistry();
 
 	registry.register({
@@ -67,15 +70,22 @@ export function createRuntime(
 		}
 	});
 
+	registry.register({
+		name: 'content',
+		initialize() {
+			content = createContentServices(serviceOptions());
+		}
+	});
+
 	registry.initialize();
 
-	if (!catalog || !reporting) throw new Error('Modules failed to initialize');
+	if (!catalog || !reporting || !content) throw new Error('Modules failed to initialize');
 
 	return {
 		config,
 		db,
 		eventBus,
-		services: { catalog, reporting }
+		services: { catalog, reporting, content }
 	};
 }
 
