@@ -36,4 +36,7 @@ export interface ProductRepository {
 	setStatus(id: string, status: ProductStatus, updatedAt: Date): Promise<ProductDetail | null>;
 	findVariantSnapshots(variantIds: string[]): Promise<VariantSnapshot[]>;
 	findNames(productIds: string[]): Promise<Map<string, string>>;
+	listIdsByStatus(status: ProductStatus): Promise<string[]>;
+	/** Deletes the products with these ids that are archived; returns how many were removed. */
+	deleteArchived(productIds: string[]): Promise<number>;
 }

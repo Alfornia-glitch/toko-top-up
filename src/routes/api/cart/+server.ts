@@ -1,7 +1,7 @@
 import type { RequestHandler } from './$types';
 import { unwrap } from '#shared';
 import { resolveCartId } from '#lib/server/http/session-cart.ts';
-import { customerErrorResponse } from '#lib/server/modules/customer/http.ts';
+import { customerErrorResponse } from '#lib/server/http/customer-response.ts';
 
 export const GET: RequestHandler = async ({ cookies, locals }) => {
 	try {

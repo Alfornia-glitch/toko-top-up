@@ -1,5 +1,5 @@
 import { StorageClient } from '@supabase/storage-js';
-import { ALLOWED_TYPES, MAX_BYTES } from '#lib/server/modules/storage/rules.ts';
+import { ALLOWED_TYPES, MAX_BYTES } from '#lib/server/platform/storage/rules.ts';
 
 const provider = process.env.STORAGE_PROVIDER;
 

@@ -1,94 +1,101 @@
-import { and, asc, count, desc, eq, like, or, sum } from 'drizzle-orm';
+import { and, asc, count, desc, eq, like, or } from 'drizzle-orm';
+import { unwrap } from '#shared';
 import type { CustomerSummary } from '#modules/customers/index.ts';
 import type { CustomerDirectory } from '#modules/customers/server.ts';
+import type { OrdersService } from '#modules/orders/server.ts';
 import { queryDb, tables } from '#db/query.ts';
 
-const t = tables as any;
+const { user } = tables;
 
-/** Reads user accounts and order history through the legacy shared schema. */
-export function createCustomerDirectory(): CustomerDirectory {
+const SORTABLE = {
+	name: user.name,
+	email: user.email,
+	createdAt: user.createdAt
+} as const;
+
+/**
+ * Customer accounts come from the shared auth schema; their order history and
+ * spend come from the orders service. `ordersOf` is a getter because orders are
+ * created after customers.
+ */
+export function createCustomerDirectory(ordersOf: () => OrdersService): CustomerDirectory {
 	return {
-		async list(query) {
-			const conditions: any[] = [eq(t.user.role, 'customer')];
-
+		async list(query, actor) {
+			const conditions = [eq(user.role, 'customer')];
 			if (query.q) {
 				const term = `%${query.q}%`;
-				conditions.push(or(like(t.user.email, term), like(t.user.name, term)));
+				const search = or(like(user.email, term), like(user.name, term));
+				if (search) conditions.push(search);
 			}
-
 			const where = and(...conditions);
-			const rawSort = query.sort ?? '-createdAt';
-			const direction = rawSort.startsWith('-') ? 'desc' : 'asc';
-			const sortMap: Record<string, unknown> = {
-				name: t.user.name,
-				email: t.user.email,
-				createdAt: t.user.createdAt
-			};
-			const sortColumn = sortMap[rawSort.replace(/^-/, '')] ?? t.user.createdAt;
-			const order = direction === 'desc' ? desc(sortColumn as any) : asc(sortColumn as any);
 
-			const data = await queryDb
+			const rawSort = query.sort ?? '-createdAt';
+			const key = rawSort.replace(/^-/, '') as keyof typeof SORTABLE;
+			const column = SORTABLE[key] ?? user.createdAt;
+
+			const rows = await queryDb
 				.select({
-					id: t.user.id,
-					name: t.user.name,
-					email: t.user.email,
-					image: t.user.image,
-					createdAt: t.user.createdAt,
-					orderCount: count(t.orders.id),
-					spentCents: sum(t.orders.grandTotalCents)
+					id: user.id,
+					name: user.name,
+					email: user.email,
+					image: user.image,
+					createdAt: user.createdAt
 				})
-				.from(t.user)
-				.leftJoin(t.orders, eq(t.orders.userId, t.user.id))
+				.from(user)
 				.where(where)
-				.groupBy(t.user.id, t.user.name, t.user.email, t.user.image, t.user.createdAt)
-				.orderBy(order)
+				.orderBy(rawSort.startsWith('-') ? desc(column) : asc(column))
 				.limit(query.pageSize)
 				.offset((query.page - 1) * query.pageSize);
+			const [totalRow] = await queryDb.select({ value: count() }).from(user).where(where);
 
-			const [row] = await queryDb.select({ value: count() }).from(t.user).where(where);
+			const totals = new Map(
+				unwrap(
+					await ordersOf().getUserTotals(
+						rows.map((row) => row.id),
+						actor
+					)
+				).map((entry) => [entry.userId, entry])
+			);
 
-			return {
-				data: data.map((entry): CustomerSummary => ({
-					...entry,
-					orderCount: Number(entry.orderCount ?? 0),
-					spentCents: Number(entry.spentCents ?? 0)
-				})),
-				total: Number(row?.value ?? 0)
-			};
+			const data = rows.map((row): CustomerSummary => ({
+				...row,
+				orderCount: totals.get(row.id)?.orderCount ?? 0,
+				spentCents: totals.get(row.id)?.spentCents ?? 0
+			}));
+
+			return { data, total: Number(totalRow?.value ?? 0) };
 		},
 
-		async findProfile(id) {
+		async findProfile(id, actor) {
 			const [profile] = await queryDb
 				.select({
-					id: t.user.id,
-					name: t.user.name,
-					email: t.user.email,
-					image: t.user.image,
-					emailVerified: t.user.emailVerified,
-					createdAt: t.user.createdAt,
-					updatedAt: t.user.updatedAt
+					id: user.id,
+					name: user.name,
+					email: user.email,
+					image: user.image,
+					emailVerified: user.emailVerified,
+					createdAt: user.createdAt,
+					updatedAt: user.updatedAt
 				})
-				.from(t.user)
-				.where(and(eq(t.user.id, id), eq(t.user.role, 'customer')))
+				.from(user)
+				.where(and(eq(user.id, id), eq(user.role, 'customer')))
 				.limit(1);
 
 			if (!profile) return null;
 
-			const orders = await queryDb
-				.select({
-					id: t.orders.id,
-					orderNumber: t.orders.orderNumber,
-					status: t.orders.status,
-					paymentStatus: t.orders.paymentStatus,
-					grandTotalCents: t.orders.grandTotalCents,
-					currency: t.orders.currency,
-					placedAt: t.orders.placedAt
-				})
-				.from(t.orders)
-				.where(eq(t.orders.userId, id))
-				.orderBy(desc(t.orders.placedAt));
-
-			return { profile, orders };
+			const placed = unwrap(await ordersOf().listUserOrders(id, actor));
+			return {
+				profile,
+				orders: placed.map((order) => ({
+					id: order.id,
+					orderNumber: order.orderNumber,
+					status: order.status,
+					paymentStatus: order.paymentStatus,
+					grandTotalCents: order.grandTotalCents,
+					currency: order.currency,
+					placedAt: order.placedAt
+				}))
+			};
 		}
 	};
 }

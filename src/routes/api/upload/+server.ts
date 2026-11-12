@@ -4,7 +4,7 @@ import {
 	canUploadToFolder,
 	normaliseFolder,
 	uploadMedia
-} from '#lib/server/modules/storage/index.ts';
+} from '#lib/server/platform/storage/index.ts';
 import { unwrap } from '#shared';
 
 /**

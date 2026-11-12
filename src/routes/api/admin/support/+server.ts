@@ -1,6 +1,6 @@
 import type { RequestHandler } from './$types';
-import { requireAdmin } from '#lib/server/modules/admin/access.ts';
-import { supportListSchema } from '#lib/server/modules/admin/validation.ts';
+import { requireAdmin } from '#lib/server/http/access.ts';
+import { supportListSchema } from '#lib/server/http/admin-validation.ts';
 import { unwrap } from '#shared';
 
 export const GET: RequestHandler = async ({ locals, url }) => {

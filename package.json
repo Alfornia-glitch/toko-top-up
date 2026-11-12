@@ -28,7 +28,7 @@
 		"grant-role": "bun scripts/grant-role.ts",
 		"seed": "bun scripts/seed.ts",
 		"format:check": "prettier --cache --check .",
-		"arch": "depcruise src/lib/modules src/lib/shared --config dependency-cruiser.config.mjs && bun scripts/arch-modules.ts",
+		"arch": "depcruise src --config dependency-cruiser.config.mjs && bun scripts/arch-modules.ts",
 		"test": "vitest run",
 		"test:watch": "vitest",
 		"test:pg": "bun scripts/require-test-db.ts && DB_PROVIDER=postgres vitest run",

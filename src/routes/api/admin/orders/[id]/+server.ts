@@ -1,6 +1,6 @@
 import type { RequestHandler } from './$types';
-import { requireAdmin } from '#lib/server/modules/admin/access.ts';
-import { orderUpdateSchema } from '#lib/server/modules/admin/validation.ts';
+import { requireAdmin } from '#lib/server/http/access.ts';
+import { orderUpdateSchema } from '#lib/server/http/admin-validation.ts';
 import { unwrap } from '#shared';
 import { apiErrorResponse } from '#lib/server/http/api-error.ts';
 

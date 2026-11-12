@@ -1,6 +1,6 @@
 import type { RequestHandler } from './$types';
-import { customerErrorResponse, requireUser } from '#lib/server/modules/customer/http.ts';
-import { returnCreateSchema } from '#lib/server/modules/customer/validation.ts';
+import { customerErrorResponse, requireUser } from '#lib/server/http/customer-response.ts';
+import { returnCreateSchema } from '#lib/server/http/customer-validation.ts';
 import { unwrap } from '#shared';
 
 export const GET: RequestHandler = async ({ locals }) => {

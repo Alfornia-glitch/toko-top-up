@@ -44,6 +44,10 @@ export interface ProductService {
 	): Promise<Result<ProductDetail, AppError>>;
 	/** Service-to-service read for cart and checkout; needs no actor. Unknown ids are omitted. */
 	getVariantSnapshots(variantIds: string[]): Promise<Result<VariantSnapshot[], AppError>>;
+	/** Ids of all archived products (catalog:write). */
+	listArchivedIds(actor: Actor): Promise<Result<string[], AppError>>;
+	/** Permanently deletes archived products by id; non-archived ids are ignored. Returns the number deleted. */
+	deleteArchived(productIds: string[], actor: Actor): Promise<Result<number, AppError>>;
 	/** Service-to-service read of product names by id, in any status; unknown ids are omitted. */
 	getProductNames(productIds: string[]): Promise<Result<Map<string, string>, AppError>>;
 }
@@ -187,6 +191,25 @@ export function createProductService(
 					})
 				);
 				return ok(product);
+			} catch (error) {
+				return err(toAppError(error));
+			}
+		},
+
+		async listArchivedIds(actor) {
+			try {
+				assertPermission(actor, 'catalog:write');
+				return ok(await repository.listIdsByStatus('archived'));
+			} catch (error) {
+				return err(toAppError(error));
+			}
+		},
+
+		async deleteArchived(productIds, actor) {
+			try {
+				assertPermission(actor, 'catalog:write');
+				if (!productIds.length) return ok(0);
+				return ok(await repository.deleteArchived(productIds));
 			} catch (error) {
 				return err(toAppError(error));
 			}

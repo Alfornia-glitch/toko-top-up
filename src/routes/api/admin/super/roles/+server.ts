@@ -1,6 +1,6 @@
 import type { RequestHandler } from './$types';
-import { requireSuperadmin } from '#lib/server/modules/admin/access.ts';
-import { userRoleCounts } from '#lib/server/modules/super/users.ts';
+import { requireSuperadmin } from '#lib/server/http/access.ts';
+import { userRoleCounts } from '#lib/server/platform/accounts.ts';
 
 const MATRIX = {
 	customer: [

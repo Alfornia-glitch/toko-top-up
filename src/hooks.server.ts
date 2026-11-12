@@ -57,7 +57,7 @@ const runtimeHandle: Handle = ({ event, resolve }) => {
 const authHandle: Handle = async ({ event, resolve }) => {
 	if (building) return resolve(event);
 
-	const { auth } = await import('#lib/server/modules/auth/index.ts');
+	const { auth } = await import('#lib/server/platform/auth/index.ts');
 
 	const session = await auth.api.getSession({
 		headers: event.request.headers

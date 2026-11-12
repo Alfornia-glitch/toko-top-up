@@ -34,4 +34,4 @@ Storefront CMS: banners, announcements, testimonials, media asset records, site 
 
 ## Allowed dependencies
 
-- `shared` only. The uploaded file itself lives in `src/lib/server/modules/storage`; callers delete the file, then the row.
+- `shared` only. The uploaded file itself lives in `src/lib/server/platform/storage`; callers delete the file, then the row.

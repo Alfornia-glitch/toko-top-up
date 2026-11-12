@@ -1,7 +1,7 @@
 import type { RequestHandler } from './$types';
 import { unwrap } from '#shared';
-import { customerErrorResponse } from '#lib/server/modules/customer/http.ts';
-import { newsletterSubscribeSchema } from '#lib/server/modules/customer/validation.ts';
+import { customerErrorResponse } from '#lib/server/http/customer-response.ts';
+import { newsletterSubscribeSchema } from '#lib/server/http/customer-validation.ts';
 
 export const POST: RequestHandler = async ({ request, locals }) => {
 	let body: unknown;

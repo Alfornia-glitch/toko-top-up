@@ -120,7 +120,10 @@ export function createRuntime(
 		initialize() {
 			customers = createCustomersServices({
 				...serviceOptions(),
-				directory: createCustomerDirectory()
+				directory: createCustomerDirectory(() => {
+					if (!orders) throw new Error('Orders services are not ready');
+					return orders.orders;
+				})
 			});
 		}
 	});

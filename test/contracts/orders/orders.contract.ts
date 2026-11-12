@@ -207,6 +207,51 @@ export function runOrdersContract({ service, clock, reset }: OrdersContractConte
 		});
 	});
 
+	describe('platform reads', () => {
+		test('totals count revenue orders and a user’s orders, and find products on orders', async () => {
+			await place('user-ada', {
+				status: 'pending',
+				paymentStatus: 'pending',
+				grandTotalCents: 500
+			});
+			await place('user-ada', { grandTotalCents: 3000 });
+			await place('user-bob', { status: 'shipped', grandTotalCents: 2000 });
+
+			expect(unwrap(await service.getTotals(admin))).toEqual({
+				orderCount: 3,
+				pendingCount: 1,
+				paidCount: 2,
+				revenueCents: 5000
+			});
+			expect(unwrap(await service.getUserOrderCount('user-ada', admin))).toBe(2);
+			expect(unwrap(await service.getUserOrderCount('nobody', admin))).toBe(0);
+
+			const totals = unwrap(await service.getUserTotals(['user-ada', 'user-bob', 'nobody'], admin));
+			expect(totals.sort((a, b) => a.userId.localeCompare(b.userId))).toEqual([
+				{ userId: 'user-ada', orderCount: 2, spentCents: 3500 },
+				{ userId: 'user-bob', orderCount: 1, spentCents: 2000 }
+			]);
+			expect(unwrap(await service.getUserTotals([], admin))).toEqual([]);
+
+			const adaOrders = unwrap(await service.listUserOrders('user-ada', admin));
+			expect(adaOrders).toHaveLength(2);
+			expect(adaOrders.every((o) => o.userId === 'user-ada')).toBe(true);
+
+			expect(unwrap(await service.getProductIdsWithItems(['p1', 'p9'], admin))).toEqual(['p1']);
+			expect(unwrap(await service.getProductIdsWithItems([], admin))).toEqual([]);
+
+			for (const result of [
+				await service.getTotals(ada),
+				await service.getUserOrderCount('user-ada', ada),
+				await service.getProductIdsWithItems(['p1'], ada),
+				await service.getUserTotals(['user-ada'], ada),
+				await service.listUserOrders('user-ada', ada)
+			]) {
+				expect(result.ok).toBe(false);
+			}
+		});
+	});
+
 	describe('compensation', () => {
 		test('cancelling refunds the payment, records why, and is idempotent', async () => {
 			const { orderId } = await place();

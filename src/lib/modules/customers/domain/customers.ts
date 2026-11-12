@@ -1,3 +1,5 @@
+import type { Actor } from '#shared';
+
 export interface Address {
 	id: string;
 	userId: string;
@@ -115,9 +117,10 @@ export interface CustomerDetail extends CustomerProfile {
  * adapter, so the module never imports those schemas.
  */
 export interface CustomerDirectory {
-	list(query: CustomerListQuery): Promise<{ data: CustomerSummary[]; total: number }>;
+	list(query: CustomerListQuery, actor: Actor): Promise<{ data: CustomerSummary[]; total: number }>;
 	findProfile(
-		id: string
+		id: string,
+		actor: Actor
 	): Promise<{ profile: CustomerProfile; orders: CustomerOrderSummary[] } | null>;
 }
 

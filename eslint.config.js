@@ -13,7 +13,6 @@ const IGNORED = [
 	'scripts/**',
 	'e2e/**',
 	'src/lib/frontend/**',
-	'src/lib/server/modules/**',
 	'src/routes/**',
 	'src/hooks.server.ts',
 	'src/hooks.client.ts',

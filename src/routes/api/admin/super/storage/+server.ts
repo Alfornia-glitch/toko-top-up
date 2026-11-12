@@ -1,5 +1,5 @@
 import type { RequestHandler } from './$types';
-import { requireSuperadmin } from '#lib/server/modules/admin/access.ts';
+import { requireSuperadmin } from '#lib/server/http/access.ts';
 import { unwrap } from '#shared';
 
 export const GET: RequestHandler = async ({ locals }) => {

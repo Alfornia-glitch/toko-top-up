@@ -413,6 +413,36 @@ export function runProductContract(context: ProductContractContext): void {
 			expectError(result, 404, 'Product not found');
 		});
 
+		test('lists archived products and deletes only archived ones', async () => {
+			const archived = valueOf(
+				await testService.create({ sku: 'ARC-1', name: 'Archived', priceCents: 100 }, actorId)
+			);
+			const live = valueOf(
+				await testService.create(
+					{ sku: 'ARC-2', name: 'Live', priceCents: 100, status: 'active' },
+					actorId
+				)
+			);
+			valueOf(await testService.setStatus(archived.id, 'archived'));
+
+			expect(valueOf(await service.listArchivedIds(actor))).toEqual([archived.id]);
+
+			const deleted = valueOf(
+				await service.deleteArchived([archived.id, live.id, 'missing'], actor)
+			);
+			expect(deleted).toBe(1);
+			expectError(await testService.get(archived.id), 404, 'Product not found');
+			expect(valueOf(await testService.get(live.id)).id).toBe(live.id);
+			expect(valueOf(await service.deleteArchived([], actor))).toBe(0);
+
+			expectError(await service.listArchivedIds(createForbiddenActor()), 403, 'Forbidden');
+			expectError(
+				await service.deleteArchived([live.id], createForbiddenActor()),
+				403,
+				'Forbidden'
+			);
+		});
+
 		test('rejects invalid product data', async () => {
 			const input = { sku: 'BAD-1', name: '', priceCents: 100 } as ProductWriteInput;
 			const result = await testService.create(input, actorId);

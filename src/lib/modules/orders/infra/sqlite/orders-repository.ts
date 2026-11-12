@@ -204,15 +204,63 @@ export function createSqliteOrdersRepository(db: SqliteDb): OrdersRepository {
 				.from(orders)
 				.where(eq(orders.status, 'pending'));
 			const [revenue] = await db
-				.select({ value: sum(orders.grandTotalCents) })
+				.select({ value: sum(orders.grandTotalCents), paid: count() })
 				.from(orders)
 				.where(inArray(orders.status, [...REVENUE_STATUSES]));
 
 			return {
 				orderCount: Number(all?.value ?? 0),
 				pendingCount: Number(pending?.value ?? 0),
+				paidCount: Number(revenue?.paid ?? 0),
 				revenueCents: Number(revenue?.value ?? 0)
 			};
+		},
+
+		async productIdsWithItems(productIds) {
+			const rows = await db
+				.selectDistinct({ productId: orderItems.productId })
+				.from(orderItems)
+				.where(inArray(orderItems.productId, productIds));
+			return rows.flatMap((row) => (row.productId ? [row.productId] : []));
+		},
+
+		async countForUser(userId) {
+			const [row] = await db
+				.select({ value: count() })
+				.from(orders)
+				.where(eq(orders.userId, userId));
+			return Number(row?.value ?? 0);
+		},
+
+		async totalsForUsers(userIds) {
+			const rows = await db
+				.select({
+					userId: orders.userId,
+					orderCount: count(),
+					spentCents: sum(orders.grandTotalCents)
+				})
+				.from(orders)
+				.where(inArray(orders.userId, userIds))
+				.groupBy(orders.userId);
+			return rows.flatMap((row) =>
+				row.userId
+					? [
+							{
+								userId: row.userId,
+								orderCount: Number(row.orderCount),
+								spentCents: Number(row.spentCents ?? 0)
+							}
+						]
+					: []
+			);
+		},
+
+		async listAllForUser(userId) {
+			return db
+				.select()
+				.from(orders)
+				.where(eq(orders.userId, userId))
+				.orderBy(desc(orders.placedAt));
 		}
 	};
 }

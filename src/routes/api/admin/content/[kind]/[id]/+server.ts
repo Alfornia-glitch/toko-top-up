@@ -1,13 +1,13 @@
 import type { RequestHandler } from './$types';
 import { unwrap } from '#shared';
 import { isContentKind, type ContentKind } from '#modules/content/index.ts';
-import { requireAdmin } from '#lib/server/modules/admin/access.ts';
+import { requireAdmin } from '#lib/server/http/access.ts';
 import { auditRequest } from '#lib/server/http/audit.ts';
 import {
 	announcementWriteSchema,
 	bannerWriteSchema,
 	testimonialWriteSchema
-} from '#lib/server/modules/admin/validation.ts';
+} from '#lib/server/http/admin-validation.ts';
 
 function kindOf(value: string): ContentKind | null {
 	return isContentKind(value) ? value : null;

@@ -33,6 +33,7 @@ import {
 	type OrderUpdateInput,
 	type SalesData,
 	type Shipment,
+	type UserOrderTotals,
 	type ShipmentCreateInput
 } from '../domain/orders.ts';
 
@@ -61,6 +62,14 @@ export interface OrdersService {
 	/** Reporting reads (admin): orders placed in a range, and the best-selling products among revenue orders. */
 	getSalesData(range: DateRange, topLimit: number, actor: Actor | null): Outcome<SalesData>;
 	getTotals(actor: Actor | null): Outcome<OrderTotals>;
+	/** Order count and total spend per user, over all of their orders (admin). */
+	getUserTotals(userIds: string[], actor: Actor | null): Outcome<UserOrderTotals[]>;
+	/** Every order a user has placed, newest first (admin). */
+	listUserOrders(userId: string, actor: Actor | null): Outcome<Order[]>;
+	/** Number of orders a user has placed (admin). */
+	getUserOrderCount(userId: string, actor: Actor | null): Outcome<number>;
+	/** Which of these products appear on at least one order item. */
+	getProductIdsWithItems(productIds: string[], actor: Actor | null): Outcome<string[]>;
 
 	/** Service-to-service, used by checkout. Creates the order, items, placed event and payment atomically. */
 	createOrder(input: CreateOrderInput): Outcome<CreatedOrder>;
@@ -335,6 +344,32 @@ export function createOrdersService(
 					repository.topProducts(range, topLimit)
 				]);
 				return { orders: salesOrders, topProducts };
+			}),
+
+		getUserTotals: (userIds, actor) =>
+			run(async () => {
+				assertPermission(actor, 'admin:access');
+				if (!userIds.length) return [];
+				return repository.totalsForUsers(userIds);
+			}),
+
+		listUserOrders: (userId, actor) =>
+			run(async () => {
+				assertPermission(actor, 'admin:access');
+				return repository.listAllForUser(userId);
+			}),
+
+		getUserOrderCount: (userId, actor) =>
+			run(async () => {
+				assertPermission(actor, 'admin:access');
+				return repository.countForUser(userId);
+			}),
+
+		getProductIdsWithItems: (productIds, actor) =>
+			run(async () => {
+				assertPermission(actor, 'admin:access');
+				if (!productIds.length) return [];
+				return repository.productIdsWithItems(productIds);
 			}),
 
 		getTotals: (actor) =>

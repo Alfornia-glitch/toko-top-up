@@ -1,8 +1,8 @@
 import type { RequestHandler } from './$types';
 import { unwrap } from '#shared';
 import { resolveCartId } from '#lib/server/http/session-cart.ts';
-import { customerErrorResponse } from '#lib/server/modules/customer/http.ts';
-import { cartUpdateSchema } from '#lib/server/modules/customer/validation.ts';
+import { customerErrorResponse } from '#lib/server/http/customer-response.ts';
+import { cartUpdateSchema } from '#lib/server/http/customer-validation.ts';
 
 export const PATCH: RequestHandler = async ({ request, cookies, locals, params }) => {
 	let body: unknown;

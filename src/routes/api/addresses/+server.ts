@@ -1,7 +1,7 @@
 import type { RequestHandler } from './$types';
 import { unwrap } from '#shared';
-import { customerErrorResponse, requireUser } from '#lib/server/modules/customer/http.ts';
-import { addressWriteSchema } from '#lib/server/modules/customer/validation.ts';
+import { customerErrorResponse, requireUser } from '#lib/server/http/customer-response.ts';
+import { addressWriteSchema } from '#lib/server/http/customer-validation.ts';
 
 export const GET: RequestHandler = async ({ locals }) => {
 	const denied = requireUser(locals.user);

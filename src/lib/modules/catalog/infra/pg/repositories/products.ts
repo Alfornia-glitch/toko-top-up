@@ -370,6 +370,22 @@ export function createPostgresProductRepository(db: PostgresDb): ProductReposito
 				.from(products)
 				.where(inArray(products.id, productIds));
 			return new Map(rows.map((row) => [row.id, row.name]));
+		},
+
+		async listIdsByStatus(status) {
+			const rows = await db
+				.select({ id: products.id })
+				.from(products)
+				.where(eq(products.status, status));
+			return rows.map((row) => row.id);
+		},
+
+		async deleteArchived(productIds) {
+			const deleted = await db
+				.delete(products)
+				.where(and(inArray(products.id, productIds), eq(products.status, 'archived')))
+				.returning({ id: products.id });
+			return deleted.length;
 		}
 	};
 }

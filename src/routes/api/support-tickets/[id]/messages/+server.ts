@@ -1,6 +1,6 @@
 import type { RequestHandler } from './$types';
-import { customerErrorResponse, requireUser } from '#lib/server/modules/customer/http.ts';
-import { ticketMessageSchema } from '#lib/server/modules/customer/validation.ts';
+import { customerErrorResponse, requireUser } from '#lib/server/http/customer-response.ts';
+import { ticketMessageSchema } from '#lib/server/http/customer-validation.ts';
 import { unwrap } from '#shared';
 
 export const POST: RequestHandler = async ({ locals, params, request }) => {

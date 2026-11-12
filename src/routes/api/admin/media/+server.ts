@@ -1,6 +1,6 @@
 import type { RequestHandler } from './$types';
 import { unwrap } from '#shared';
-import { mediaListSchema } from '#lib/server/modules/admin/validation.ts';
+import { mediaListSchema } from '#lib/server/http/admin-validation.ts';
 
 export const GET: RequestHandler = async ({ url, locals }) => {
 	const parsed = mediaListSchema.safeParse(Object.fromEntries(url.searchParams));

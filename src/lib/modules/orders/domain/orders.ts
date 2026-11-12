@@ -291,7 +291,15 @@ export interface SalesData {
 export interface OrderTotals {
 	orderCount: number;
 	pendingCount: number;
+	/** Orders in a revenue status (paid, processing, shipped, delivered). */
+	paidCount: number;
 	revenueCents: number;
+}
+
+export interface UserOrderTotals {
+	userId: string;
+	orderCount: number;
+	spentCents: number;
 }
 
 export interface OrdersRepository {
@@ -320,6 +328,10 @@ export interface OrdersRepository {
 	listSalesOrders(range: DateRange): Promise<SalesOrderRow[]>;
 	topProducts(range: DateRange, limit: number): Promise<TopProductRow[]>;
 	totals(): Promise<OrderTotals>;
+	productIdsWithItems(productIds: string[]): Promise<string[]>;
+	countForUser(userId: string): Promise<number>;
+	totalsForUsers(userIds: string[]): Promise<UserOrderTotals[]>;
+	listAllForUser(userId: string): Promise<Order[]>;
 	/** Marks the order's payments failed (used when an order is cancelled after a failed checkout). */
 	updatePayments(orderId: string, patch: Partial<Payment>): Promise<void>;
 }

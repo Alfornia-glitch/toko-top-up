@@ -27,8 +27,7 @@ const config = {
 				pathNot: [
 					'^src/lib/modules/',
 					'^src/lib/server/db/schema\\.(pg|sqlite)\\.ts$',
-					'^src/lib/frontend/',
-					'^src/lib/server/modules/'
+					'^src/lib/frontend/'
 				]
 			},
 			to: {
@@ -102,8 +101,7 @@ const config = {
 				'^tools/',
 				'^scripts/',
 				'^e2e/',
-				'^src/lib/frontend/',
-				'^src/lib/server/modules/'
+				'^src/lib/frontend/'
 			]
 		},
 		tsConfig: { fileName: 'tsconfig.json' },

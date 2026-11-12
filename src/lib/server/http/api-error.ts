@@ -1,5 +1,5 @@
 import { isAppError } from '#shared';
-import { MediaError } from '#lib/server/modules/storage/index.ts';
+import { MediaError } from '#lib/server/platform/storage/index.ts';
 
 export function apiErrorResponse(error: unknown, context: string): Response {
 	if (isAppError(error) || error instanceof MediaError) {

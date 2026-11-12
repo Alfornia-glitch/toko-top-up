@@ -1,6 +1,6 @@
 import type { RequestHandler } from './$types';
-import { requireSuperadmin } from '#lib/server/modules/admin/access.ts';
-import { listAdmins } from '#lib/server/modules/super/users.ts';
+import { requireSuperadmin } from '#lib/server/http/access.ts';
+import { listAdmins } from '#lib/server/platform/accounts.ts';
 
 export const GET: RequestHandler = async ({ locals }) => {
 	const denied = requireSuperadmin(locals.user);

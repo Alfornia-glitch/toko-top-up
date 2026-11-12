@@ -1,7 +1,7 @@
 import type { RequestHandler } from './$types';
 import { resolveCartId } from '#lib/server/http/session-cart.ts';
-import { customerErrorResponse, requireUser } from '#lib/server/modules/customer/http.ts';
-import { checkoutSchema } from '#lib/server/modules/customer/validation.ts';
+import { customerErrorResponse, requireUser } from '#lib/server/http/customer-response.ts';
+import { checkoutSchema } from '#lib/server/http/customer-validation.ts';
 import { ConflictError, unwrap } from '#shared';
 
 export const POST: RequestHandler = async ({ locals, request, cookies }) => {

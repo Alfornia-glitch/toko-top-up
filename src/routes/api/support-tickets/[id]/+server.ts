@@ -1,5 +1,5 @@
 import type { RequestHandler } from './$types';
-import { customerErrorResponse, requireUser } from '#lib/server/modules/customer/http.ts';
+import { customerErrorResponse, requireUser } from '#lib/server/http/customer-response.ts';
 import { unwrap } from '#shared';
 
 export const GET: RequestHandler = async ({ locals, params }) => {

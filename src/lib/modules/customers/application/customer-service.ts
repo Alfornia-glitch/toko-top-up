@@ -211,15 +211,15 @@ export function createCustomerService(
 
 		listCustomers: (query, actor) =>
 			run(async () => {
-				assertPermission(actor, 'admin:access');
-				const { data, total } = await directory.list(query);
+				const admin = assertPermission(actor, 'admin:access');
+				const { data, total } = await directory.list(query, admin);
 				return { data, page: query.page, pageSize: query.pageSize, total };
 			}),
 
 		getCustomer: (id, actor) =>
 			run(async () => {
-				assertPermission(actor, 'admin:access');
-				const found = await directory.findProfile(id);
+				const admin = assertPermission(actor, 'admin:access');
+				const found = await directory.findProfile(id, admin);
 				if (!found) throw new NotFoundError('Customer not found');
 
 				const addresses = await repository.listAddresses(id);

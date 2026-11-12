@@ -1,6 +1,6 @@
 import type { RequestHandler } from './$types';
 import { unwrap } from '#shared';
-import { customerErrorResponse, requireUser } from '#lib/server/modules/customer/http.ts';
+import { customerErrorResponse, requireUser } from '#lib/server/http/customer-response.ts';
 
 export const DELETE: RequestHandler = async ({ locals, params }) => {
 	const denied = requireUser(locals.user);

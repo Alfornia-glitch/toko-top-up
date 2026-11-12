@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import type { RequestHandler } from './$types';
-import { customerErrorResponse, requireUser } from '#lib/server/modules/customer/http.ts';
+import { customerErrorResponse, requireUser } from '#lib/server/http/customer-response.ts';
 import { unwrap } from '#shared';
 
 const newsletterStatusSchema = z.object({

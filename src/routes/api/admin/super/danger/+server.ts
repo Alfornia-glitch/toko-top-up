@@ -1,8 +1,8 @@
 import type { RequestHandler } from './$types';
-import { requireSuperadmin } from '#lib/server/modules/admin/access.ts';
+import { requireSuperadmin } from '#lib/server/http/access.ts';
 import { auditRequest } from '#lib/server/http/audit.ts';
-import { dangerActionSchema } from '#lib/server/modules/admin/validation.ts';
-import { runDangerAction } from '#lib/server/modules/super/danger.ts';
+import { dangerActionSchema } from '#lib/server/http/admin-validation.ts';
+import { runDangerAction } from '#lib/server/platform/danger.ts';
 
 export const POST: RequestHandler = async (event) => {
 	const denied = requireSuperadmin(event.locals.user);

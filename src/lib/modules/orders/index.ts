@@ -23,6 +23,7 @@ export type {
 	Shipment,
 	ShipmentCreateInput,
 	TopProductRow,
+	UserOrderTotals,
 	UserSummary
 } from './domain/orders.ts';
 export type {

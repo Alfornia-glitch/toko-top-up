@@ -1,5 +1,5 @@
 import type { RequestHandler } from './$types';
-import { MediaError, deleteMedia } from '#lib/server/modules/storage/index.ts';
+import { MediaError, deleteMedia } from '#lib/server/platform/storage/index.ts';
 import { unwrap } from '#shared';
 
 export const DELETE: RequestHandler = async ({ params, locals }) => {
