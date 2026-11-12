@@ -1,17 +1,18 @@
 # orders
 
-Orders, their items, timeline events, shipments and payments, for customers and the admin back office.
+Orders, their items, timeline events, shipments, payments and return requests, for customers and the admin back office.
 
 ## Public API
 
 - `index.ts`: DTOs (`Order`, `AdminOrderDetail`, `CustomerOrderDetail`, `CreateOrderInput`, …) and `ORDER_TRANSITIONS`.
-- `server.ts`: `createOrdersServices({ ..., users })` returning `{ orders }`.
+- `server.ts`: `createOrdersServices({ ..., users })` returning `{ orders, returns }`.
 
 ## Owned tables
 
 - `orders_orders` — `user_id` and `coupon_id` are plain ids, not foreign keys.
 - `orders_items` — `variant_id` and `product_id` are plain ids; the name, SKU, image and price are snapshots, so history survives product changes.
 - `orders_events`, `orders_shipments`, `orders_payments` — cascade with their order; `actor_user_id` is a plain id.
+- `orders_returns`, `orders_return_images` — return and exchange requests; `user_id`, `exchange_variant_id` and `resolved_by` are plain ids. They cascade with their order and order item.
 
 ## Ports
 
@@ -21,6 +22,10 @@ Orders, their items, timeline events, shipments and payments, for customers and 
 
 - `createOrder` — used by checkout. Inserts the order, items, a `placed` event and the payment in one transaction and returns the generated order number.
 - `cancelOrder` — compensation used by checkout when a later step fails. Marks the order cancelled and its payment refunded; idempotent.
+
+## Returns
+
+- `returns` service: customers request a return for an item of their own order; admins review, approve and resolve it. Status changes follow `RETURNS_TRANSITIONS`, and every update writes a `return_update` event to the order timeline in the same transaction.
 
 ## Events
 

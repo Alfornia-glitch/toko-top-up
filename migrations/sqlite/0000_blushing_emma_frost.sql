@@ -426,15 +426,15 @@ CREATE INDEX `catalog_products_status_idx` ON `catalog_products` (`status`);--> 
 CREATE INDEX `catalog_products_category_idx` ON `catalog_products` (`category_id`);--> statement-breakpoint
 CREATE INDEX `catalog_products_brand_idx` ON `catalog_products` (`brand_id`);--> statement-breakpoint
 CREATE INDEX `catalog_products_slug_idx` ON `catalog_products` (`slug`);--> statement-breakpoint
-CREATE TABLE `return_request_images` (
+CREATE TABLE `orders_return_images` (
 	`id` text PRIMARY KEY NOT NULL,
 	`request_id` text NOT NULL,
 	`url` text NOT NULL,
-	FOREIGN KEY (`request_id`) REFERENCES `return_requests`(`id`) ON UPDATE no action ON DELETE cascade
+	FOREIGN KEY (`request_id`) REFERENCES `orders_returns`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
-CREATE INDEX `return_request_images_request_idx` ON `return_request_images` (`request_id`);--> statement-breakpoint
-CREATE TABLE `return_requests` (
+CREATE INDEX `orders_return_images_request_idx` ON `orders_return_images` (`request_id`);--> statement-breakpoint
+CREATE TABLE `orders_returns` (
 	`id` text PRIMARY KEY NOT NULL,
 	`order_id` text NOT NULL,
 	`order_item_id` text NOT NULL,
@@ -452,14 +452,12 @@ CREATE TABLE `return_requests` (
 	`created_at` integer NOT NULL,
 	`updated_at` integer NOT NULL,
 	FOREIGN KEY (`order_id`) REFERENCES `orders_orders`(`id`) ON UPDATE no action ON DELETE cascade,
-	FOREIGN KEY (`order_item_id`) REFERENCES `orders_items`(`id`) ON UPDATE no action ON DELETE cascade,
-	FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON UPDATE no action ON DELETE cascade,
-	FOREIGN KEY (`exchange_variant_id`) REFERENCES `catalog_product_variants`(`id`) ON UPDATE no action ON DELETE set null,
-	FOREIGN KEY (`resolved_by`) REFERENCES `user`(`id`) ON UPDATE no action ON DELETE set null
+	FOREIGN KEY (`order_item_id`) REFERENCES `orders_items`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
-CREATE INDEX `return_requests_status_idx` ON `return_requests` (`status`);--> statement-breakpoint
-CREATE INDEX `return_requests_order_idx` ON `return_requests` (`order_id`);--> statement-breakpoint
+CREATE INDEX `orders_returns_status_idx` ON `orders_returns` (`status`);--> statement-breakpoint
+CREATE INDEX `orders_returns_order_idx` ON `orders_returns` (`order_id`);--> statement-breakpoint
+CREATE INDEX `orders_returns_user_idx` ON `orders_returns` (`user_id`);--> statement-breakpoint
 CREATE TABLE `review_images` (
 	`id` text PRIMARY KEY NOT NULL,
 	`review_id` text NOT NULL,

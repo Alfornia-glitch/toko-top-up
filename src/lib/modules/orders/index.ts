@@ -1,4 +1,5 @@
 export { ORDER_TRANSITIONS } from './domain/orders.ts';
+export { RETURNS_TRANSITIONS } from './domain/returns.ts';
 export type {
 	AdminOrderDetail,
 	AdminOrderListItem,
@@ -19,3 +20,17 @@ export type {
 	ShipmentCreateInput,
 	UserSummary
 } from './domain/orders.ts';
+export type {
+	AdminReturnDetail,
+	AdminReturnListItem,
+	CustomerReturn,
+	CustomerReturnDetail,
+	ReturnCreateInput,
+	ReturnImage,
+	ReturnListQuery,
+	ReturnRequest,
+	ReturnResolution,
+	ReturnStatus,
+	ReturnType,
+	ReturnUpdateInput
+} from './domain/returns.ts';

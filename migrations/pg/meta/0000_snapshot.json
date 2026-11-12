@@ -1,5 +1,5 @@
 {
-	"id": "29f50974-f00e-40f4-bb30-697093180250",
+	"id": "7174bb7c-d89d-4f33-b640-5d65c8aea4db",
 	"prevId": "00000000-0000-0000-0000-000000000000",
 	"version": "7",
 	"dialect": "postgresql",
@@ -2956,8 +2956,8 @@
 			"checkConstraints": {},
 			"isRLSEnabled": false
 		},
-		"shop.return_request_images": {
-			"name": "return_request_images",
+		"shop.orders_return_images": {
+			"name": "orders_return_images",
 			"schema": "shop",
 			"columns": {
 				"id": {
@@ -2980,8 +2980,8 @@
 				}
 			},
 			"indexes": {
-				"return_request_images_request_idx": {
-					"name": "return_request_images_request_idx",
+				"orders_return_images_request_idx": {
+					"name": "orders_return_images_request_idx",
 					"columns": [
 						{
 							"expression": "request_id",
@@ -2997,10 +2997,10 @@
 				}
 			},
 			"foreignKeys": {
-				"return_request_images_request_id_return_requests_id_fk": {
-					"name": "return_request_images_request_id_return_requests_id_fk",
-					"tableFrom": "return_request_images",
-					"tableTo": "return_requests",
+				"orders_return_images_request_id_orders_returns_id_fk": {
+					"name": "orders_return_images_request_id_orders_returns_id_fk",
+					"tableFrom": "orders_return_images",
+					"tableTo": "orders_returns",
 					"schemaTo": "shop",
 					"columnsFrom": ["request_id"],
 					"columnsTo": ["id"],
@@ -3014,8 +3014,8 @@
 			"checkConstraints": {},
 			"isRLSEnabled": false
 		},
-		"shop.return_requests": {
-			"name": "return_requests",
+		"shop.orders_returns": {
+			"name": "orders_returns",
 			"schema": "shop",
 			"columns": {
 				"id": {
@@ -3117,8 +3117,8 @@
 				}
 			},
 			"indexes": {
-				"return_requests_status_idx": {
-					"name": "return_requests_status_idx",
+				"orders_returns_status_idx": {
+					"name": "orders_returns_status_idx",
 					"columns": [
 						{
 							"expression": "status",
@@ -3132,8 +3132,8 @@
 					"method": "btree",
 					"with": {}
 				},
-				"return_requests_order_idx": {
-					"name": "return_requests_order_idx",
+				"orders_returns_order_idx": {
+					"name": "orders_returns_order_idx",
 					"columns": [
 						{
 							"expression": "order_id",
@@ -3146,12 +3146,27 @@
 					"concurrently": false,
 					"method": "btree",
 					"with": {}
+				},
+				"orders_returns_user_idx": {
+					"name": "orders_returns_user_idx",
+					"columns": [
+						{
+							"expression": "user_id",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
 				}
 			},
 			"foreignKeys": {
-				"return_requests_order_id_orders_orders_id_fk": {
-					"name": "return_requests_order_id_orders_orders_id_fk",
-					"tableFrom": "return_requests",
+				"orders_returns_order_id_orders_orders_id_fk": {
+					"name": "orders_returns_order_id_orders_orders_id_fk",
+					"tableFrom": "orders_returns",
 					"tableTo": "orders_orders",
 					"schemaTo": "shop",
 					"columnsFrom": ["order_id"],
@@ -3159,44 +3174,14 @@
 					"onDelete": "cascade",
 					"onUpdate": "no action"
 				},
-				"return_requests_order_item_id_orders_items_id_fk": {
-					"name": "return_requests_order_item_id_orders_items_id_fk",
-					"tableFrom": "return_requests",
+				"orders_returns_order_item_id_orders_items_id_fk": {
+					"name": "orders_returns_order_item_id_orders_items_id_fk",
+					"tableFrom": "orders_returns",
 					"tableTo": "orders_items",
 					"schemaTo": "shop",
 					"columnsFrom": ["order_item_id"],
 					"columnsTo": ["id"],
 					"onDelete": "cascade",
-					"onUpdate": "no action"
-				},
-				"return_requests_user_id_user_id_fk": {
-					"name": "return_requests_user_id_user_id_fk",
-					"tableFrom": "return_requests",
-					"tableTo": "user",
-					"schemaTo": "auth_app",
-					"columnsFrom": ["user_id"],
-					"columnsTo": ["id"],
-					"onDelete": "cascade",
-					"onUpdate": "no action"
-				},
-				"return_requests_exchange_variant_id_catalog_product_variants_id_fk": {
-					"name": "return_requests_exchange_variant_id_catalog_product_variants_id_fk",
-					"tableFrom": "return_requests",
-					"tableTo": "catalog_product_variants",
-					"schemaTo": "shop",
-					"columnsFrom": ["exchange_variant_id"],
-					"columnsTo": ["id"],
-					"onDelete": "set null",
-					"onUpdate": "no action"
-				},
-				"return_requests_resolved_by_user_id_fk": {
-					"name": "return_requests_resolved_by_user_id_fk",
-					"tableFrom": "return_requests",
-					"tableTo": "user",
-					"schemaTo": "auth_app",
-					"columnsFrom": ["resolved_by"],
-					"columnsTo": ["id"],
-					"onDelete": "set null",
 					"onUpdate": "no action"
 				}
 			},

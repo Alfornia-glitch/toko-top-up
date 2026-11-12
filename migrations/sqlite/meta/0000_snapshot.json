@@ -1,7 +1,7 @@
 {
 	"version": "6",
 	"dialect": "sqlite",
-	"id": "ac773d13-31a8-4a06-b04b-1aa804b5877a",
+	"id": "ca2003bf-efc3-4863-9aee-9963853781ae",
 	"prevId": "00000000-0000-0000-0000-000000000000",
 	"tables": {
 		"account": {
@@ -2724,8 +2724,8 @@
 			"uniqueConstraints": {},
 			"checkConstraints": {}
 		},
-		"return_request_images": {
-			"name": "return_request_images",
+		"orders_return_images": {
+			"name": "orders_return_images",
 			"columns": {
 				"id": {
 					"name": "id",
@@ -2750,17 +2750,17 @@
 				}
 			},
 			"indexes": {
-				"return_request_images_request_idx": {
-					"name": "return_request_images_request_idx",
+				"orders_return_images_request_idx": {
+					"name": "orders_return_images_request_idx",
 					"columns": ["request_id"],
 					"isUnique": false
 				}
 			},
 			"foreignKeys": {
-				"return_request_images_request_id_return_requests_id_fk": {
-					"name": "return_request_images_request_id_return_requests_id_fk",
-					"tableFrom": "return_request_images",
-					"tableTo": "return_requests",
+				"orders_return_images_request_id_orders_returns_id_fk": {
+					"name": "orders_return_images_request_id_orders_returns_id_fk",
+					"tableFrom": "orders_return_images",
+					"tableTo": "orders_returns",
 					"columnsFrom": ["request_id"],
 					"columnsTo": ["id"],
 					"onDelete": "cascade",
@@ -2771,8 +2771,8 @@
 			"uniqueConstraints": {},
 			"checkConstraints": {}
 		},
-		"return_requests": {
-			"name": "return_requests",
+		"orders_returns": {
+			"name": "orders_returns",
 			"columns": {
 				"id": {
 					"name": "id",
@@ -2889,61 +2889,39 @@
 				}
 			},
 			"indexes": {
-				"return_requests_status_idx": {
-					"name": "return_requests_status_idx",
+				"orders_returns_status_idx": {
+					"name": "orders_returns_status_idx",
 					"columns": ["status"],
 					"isUnique": false
 				},
-				"return_requests_order_idx": {
-					"name": "return_requests_order_idx",
+				"orders_returns_order_idx": {
+					"name": "orders_returns_order_idx",
 					"columns": ["order_id"],
+					"isUnique": false
+				},
+				"orders_returns_user_idx": {
+					"name": "orders_returns_user_idx",
+					"columns": ["user_id"],
 					"isUnique": false
 				}
 			},
 			"foreignKeys": {
-				"return_requests_order_id_orders_orders_id_fk": {
-					"name": "return_requests_order_id_orders_orders_id_fk",
-					"tableFrom": "return_requests",
+				"orders_returns_order_id_orders_orders_id_fk": {
+					"name": "orders_returns_order_id_orders_orders_id_fk",
+					"tableFrom": "orders_returns",
 					"tableTo": "orders_orders",
 					"columnsFrom": ["order_id"],
 					"columnsTo": ["id"],
 					"onDelete": "cascade",
 					"onUpdate": "no action"
 				},
-				"return_requests_order_item_id_orders_items_id_fk": {
-					"name": "return_requests_order_item_id_orders_items_id_fk",
-					"tableFrom": "return_requests",
+				"orders_returns_order_item_id_orders_items_id_fk": {
+					"name": "orders_returns_order_item_id_orders_items_id_fk",
+					"tableFrom": "orders_returns",
 					"tableTo": "orders_items",
 					"columnsFrom": ["order_item_id"],
 					"columnsTo": ["id"],
 					"onDelete": "cascade",
-					"onUpdate": "no action"
-				},
-				"return_requests_user_id_user_id_fk": {
-					"name": "return_requests_user_id_user_id_fk",
-					"tableFrom": "return_requests",
-					"tableTo": "user",
-					"columnsFrom": ["user_id"],
-					"columnsTo": ["id"],
-					"onDelete": "cascade",
-					"onUpdate": "no action"
-				},
-				"return_requests_exchange_variant_id_catalog_product_variants_id_fk": {
-					"name": "return_requests_exchange_variant_id_catalog_product_variants_id_fk",
-					"tableFrom": "return_requests",
-					"tableTo": "catalog_product_variants",
-					"columnsFrom": ["exchange_variant_id"],
-					"columnsTo": ["id"],
-					"onDelete": "set null",
-					"onUpdate": "no action"
-				},
-				"return_requests_resolved_by_user_id_fk": {
-					"name": "return_requests_resolved_by_user_id_fk",
-					"tableFrom": "return_requests",
-					"tableTo": "user",
-					"columnsFrom": ["resolved_by"],
-					"columnsTo": ["id"],
-					"onDelete": "set null",
 					"onUpdate": "no action"
 				}
 			},

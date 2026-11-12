@@ -28,7 +28,9 @@ const TABLES: Array<[string, string]> = [
 	['order_items', 'orders_items'],
 	['order_events', 'orders_events'],
 	['shipments', 'orders_shipments'],
-	['payments', 'orders_payments']
+	['payments', 'orders_payments'],
+	['return_requests', 'orders_returns'],
+	['return_request_images', 'orders_return_images']
 ];
 
 const INDEXES: Array<[string, string]> = [
@@ -66,7 +68,10 @@ const INDEXES: Array<[string, string]> = [
 	['order_items_order_idx', 'orders_items_order_idx'],
 	['order_events_order_idx', 'orders_events_order_idx'],
 	['shipments_order_idx', 'orders_shipments_order_idx'],
-	['payments_order_idx', 'orders_payments_order_idx']
+	['payments_order_idx', 'orders_payments_order_idx'],
+	['return_requests_status_idx', 'orders_returns_status_idx'],
+	['return_requests_order_idx', 'orders_returns_order_idx'],
+	['return_request_images_request_idx', 'orders_return_images_request_idx']
 ];
 
 const provider = process.env.DB_PROVIDER;

@@ -1,14 +1,16 @@
 import type { RequestHandler } from './$types';
 import { customerErrorResponse, requireUser } from '#lib/server/modules/customer/http.ts';
 import { returnCreateSchema } from '#lib/server/modules/customer/validation.ts';
-import { createReturn, listReturns } from '#lib/server/modules/account/returns.ts';
+import { unwrap } from '#shared';
 
 export const GET: RequestHandler = async ({ locals }) => {
 	const denied = requireUser(locals.user);
 	if (denied) return denied;
 
 	try {
-		return Response.json({ data: await listReturns(locals.user!.id) });
+		return Response.json({
+			data: unwrap(await locals.services.orders.returns.listMyReturns(locals.actor))
+		});
 	} catch (error) {
 		return customerErrorResponse(error, 'list returns');
 	}
@@ -34,7 +36,9 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 	}
 
 	try {
-		const created = await createReturn(locals.user!.id, parsed.data);
+		const created = unwrap(
+			await locals.services.orders.returns.createReturn(parsed.data, locals.actor)
+		);
 		return Response.json({ data: created }, { status: 201 });
 	} catch (error) {
 		return customerErrorResponse(error, 'create return');

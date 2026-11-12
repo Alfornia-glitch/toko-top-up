@@ -7,9 +7,12 @@ import {
 	orderItems,
 	orders,
 	payments,
+	returnRequestImages,
+	returnRequests,
 	shipments
 } from '#modules/orders/infra/pg/schema.ts';
 import { runOrdersContract } from './orders.contract.ts';
+import { runReturnsContract } from './returns.contract.ts';
 import { createFakeOrdersUsers } from './users.ts';
 import { createTestClock } from '../support/clock.ts';
 
@@ -20,20 +23,34 @@ if (testDatabaseUrl) {
 		const clock = createTestClock(new Date('2026-01-01T00:00:00.000Z'));
 		const { db } = createPostgresDb(testDatabaseUrl);
 
-		runOrdersContract({
-			service: createOrdersServices({
-				provider: 'postgres',
-				db,
-				clock,
-				users: createFakeOrdersUsers()
-			}).orders,
+		const services = createOrdersServices({
+			provider: 'postgres',
+			db,
 			clock,
-			async reset() {
-				for (const table of [orderEvents, payments, shipments, orderItems, orders]) {
-					await db.delete(table);
-				}
-			}
+			users: createFakeOrdersUsers()
 		});
+
+		async function reset() {
+			for (const table of [
+				returnRequestImages,
+				returnRequests,
+				orderEvents,
+				payments,
+				shipments,
+				orderItems,
+				orders
+			]) {
+				await db.delete(table);
+			}
+		}
+
+		runOrdersContract({
+			service: services.orders,
+			clock,
+			reset
+		});
+
+		runReturnsContract({ returns: services.returns, orders: services.orders, clock, reset });
 	});
 } else {
 	describe.skip('orders contract (postgres)', () => {

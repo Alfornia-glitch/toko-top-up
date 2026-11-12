@@ -120,3 +120,51 @@ export const payments = sqliteTable(
 	},
 	(table) => [index('orders_payments_order_idx').on(table.orderId)]
 );
+
+export const returnRequests = sqliteTable(
+	'orders_returns',
+	{
+		id: text('id').primaryKey(),
+		orderId: text('order_id')
+			.notNull()
+			.references(() => orders.id, { onDelete: 'cascade' }),
+		orderItemId: text('order_item_id')
+			.notNull()
+			.references(() => orderItems.id, { onDelete: 'cascade' }),
+		userId: text('user_id').notNull(),
+		type: text('type', { enum: ['return', 'exchange'] }).notNull(),
+		reason: text('reason').notNull(),
+		note: text('note'),
+		status: text('status', {
+			enum: ['requested', 'approved', 'rejected', 'received', 'refunded', 'completed']
+		})
+			.notNull()
+			.default('requested'),
+		resolution: text('resolution', { enum: ['original_payment', 'gift_card', 'card'] }),
+		refundAmountCents: integer('refund_amount_cents'),
+		exchangeVariantId: text('exchange_variant_id'),
+		pickupAddressJson: text('pickup_address_json', { mode: 'json' }).$type<
+			Record<string, unknown>
+		>(),
+		resolvedBy: text('resolved_by'),
+		resolvedAt: integer('resolved_at', { mode: 'timestamp_ms' }),
+		...timestamps
+	},
+	(table) => [
+		index('orders_returns_status_idx').on(table.status),
+		index('orders_returns_order_idx').on(table.orderId),
+		index('orders_returns_user_idx').on(table.userId)
+	]
+);
+
+export const returnRequestImages = sqliteTable(
+	'orders_return_images',
+	{
+		id: text('id').primaryKey(),
+		requestId: text('request_id')
+			.notNull()
+			.references(() => returnRequests.id, { onDelete: 'cascade' }),
+		url: text('url').notNull()
+	},
+	(table) => [index('orders_return_images_request_idx').on(table.requestId)]
+);
