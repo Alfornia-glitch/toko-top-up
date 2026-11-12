@@ -1,5 +1,5 @@
 {
-	"id": "ddbf0f7b-6c30-45e0-bd4a-f8644c231aed",
+	"id": "3fcd28d4-71b7-4e66-88a6-61e37b1a9727",
 	"prevId": "00000000-0000-0000-0000-000000000000",
 	"version": "7",
 	"dialect": "postgresql",
@@ -446,18 +446,7 @@
 					"with": {}
 				}
 			},
-			"foreignKeys": {
-				"audit_log_actor_user_id_user_id_fk": {
-					"name": "audit_log_actor_user_id_user_id_fk",
-					"tableFrom": "audit_log",
-					"tableTo": "user",
-					"schemaTo": "auth_app",
-					"columnsFrom": ["actor_user_id"],
-					"columnsTo": ["id"],
-					"onDelete": "set null",
-					"onUpdate": "no action"
-				}
-			},
+			"foreignKeys": {},
 			"compositePrimaryKeys": {},
 			"uniqueConstraints": {},
 			"policies": {},

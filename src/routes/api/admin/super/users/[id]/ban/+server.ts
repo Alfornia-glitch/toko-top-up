@@ -1,6 +1,6 @@
 import type { RequestHandler } from './$types';
 import { requireSuperadmin } from '#lib/server/modules/admin/access.ts';
-import { auditRequest } from '#lib/server/modules/admin/audit.ts';
+import { auditRequest } from '#lib/server/http/audit.ts';
 import { superBanSchema } from '#lib/server/modules/admin/validation.ts';
 import { assertNotSelf, banUser, unbanUser } from '#lib/server/modules/super/users.ts';
 import { apiErrorResponse } from '#lib/server/http/api-error.ts';

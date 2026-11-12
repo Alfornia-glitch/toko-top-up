@@ -1,7 +1,7 @@
 {
 	"version": "6",
 	"dialect": "sqlite",
-	"id": "0caba307-038e-4759-b0fe-637951d5dfc4",
+	"id": "04303835-4fef-4e7b-860c-d3ad3ba961e4",
 	"prevId": "00000000-0000-0000-0000-000000000000",
 	"tables": {
 		"account": {
@@ -416,17 +416,7 @@
 					"isUnique": false
 				}
 			},
-			"foreignKeys": {
-				"audit_log_actor_user_id_user_id_fk": {
-					"name": "audit_log_actor_user_id_user_id_fk",
-					"tableFrom": "audit_log",
-					"tableTo": "user",
-					"columnsFrom": ["actor_user_id"],
-					"columnsTo": ["id"],
-					"onDelete": "set null",
-					"onUpdate": "no action"
-				}
-			},
+			"foreignKeys": {},
 			"compositePrimaryKeys": {},
 			"uniqueConstraints": {},
 			"checkConstraints": {}

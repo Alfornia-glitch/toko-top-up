@@ -7,3 +7,4 @@ export * from '#modules/support/infra/sqlite/schema.ts';
 export * from '#modules/marketing/infra/sqlite/schema.ts';
 export * from '#modules/cart/infra/sqlite/schema.ts';
 export * from '#modules/orders/infra/sqlite/schema.ts';
+export * from '#modules/audit/infra/sqlite/schema.ts';

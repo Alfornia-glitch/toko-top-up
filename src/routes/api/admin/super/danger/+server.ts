@@ -1,6 +1,6 @@
 import type { RequestHandler } from './$types';
 import { requireSuperadmin } from '#lib/server/modules/admin/access.ts';
-import { auditRequest } from '#lib/server/modules/admin/audit.ts';
+import { auditRequest } from '#lib/server/http/audit.ts';
 import { dangerActionSchema } from '#lib/server/modules/admin/validation.ts';
 import { runDangerAction } from '#lib/server/modules/super/danger.ts';
 
@@ -16,7 +16,7 @@ export const POST: RequestHandler = async (event) => {
 	const parsed = dangerActionSchema.safeParse(body);
 	if (!parsed.success)
 		return Response.json({ error: 'Typed confirmation required' }, { status: 422 });
-	const result = await runDangerAction(parsed.data.action);
+	const result = await runDangerAction(parsed.data.action, event.locals.actor);
 	await auditRequest(event, event.locals.user!.id, {
 		action: 'danger.run',
 		entityType: 'system',

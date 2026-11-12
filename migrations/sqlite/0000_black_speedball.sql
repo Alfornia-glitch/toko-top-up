@@ -58,8 +58,7 @@ CREATE TABLE `audit_log` (
 	`after_json` text,
 	`ip_address` text,
 	`user_agent` text,
-	`created_at` integer NOT NULL,
-	FOREIGN KEY (`actor_user_id`) REFERENCES `user`(`id`) ON UPDATE no action ON DELETE set null
+	`created_at` integer NOT NULL
 );
 --> statement-breakpoint
 CREATE INDEX `audit_log_actor_idx` ON `audit_log` (`actor_user_id`);--> statement-breakpoint

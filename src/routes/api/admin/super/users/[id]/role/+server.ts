@@ -1,6 +1,6 @@
 import type { RequestHandler } from './$types';
 import { requireSuperadmin } from '#lib/server/modules/admin/access.ts';
-import { auditRequest } from '#lib/server/modules/admin/audit.ts';
+import { auditRequest } from '#lib/server/http/audit.ts';
 import { superRoleSchema } from '#lib/server/modules/admin/validation.ts';
 import { assertNotSelf, setRole } from '#lib/server/modules/super/users.ts';
 import { apiErrorResponse } from '#lib/server/http/api-error.ts';

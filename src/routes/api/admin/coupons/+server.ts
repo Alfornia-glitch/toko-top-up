@@ -1,6 +1,6 @@
 import type { RequestHandler } from './$types';
 import { requireAdmin } from '#lib/server/modules/admin/access.ts';
-import { auditRequest } from '#lib/server/modules/admin/audit.ts';
+import { auditRequest } from '#lib/server/http/audit.ts';
 import { couponWriteSchema, paginationSchema } from '#lib/server/modules/admin/validation.ts';
 import { unwrap } from '#shared';
 import { apiErrorResponse } from '#lib/server/http/api-error.ts';

@@ -1,12 +1,12 @@
-import { index, jsonb, text, timestamp } from 'drizzle-orm/pg-core';
-import { user } from './auth.ts';
-import { shopSchema } from './schema.ts';
+import { index, jsonb, pgSchema, text, timestamp } from 'drizzle-orm/pg-core';
 
-export const auditLog = shopSchema.table(
+const shop = pgSchema('shop');
+
+export const auditLog = shop.table(
 	'audit_log',
 	{
 		id: text('id').primaryKey(),
-		actorUserId: text('actor_user_id').references(() => user.id, { onDelete: 'set null' }),
+		actorUserId: text('actor_user_id'),
 		action: text('action').notNull(),
 		entityType: text('entity_type').notNull(),
 		entityId: text('entity_id'),

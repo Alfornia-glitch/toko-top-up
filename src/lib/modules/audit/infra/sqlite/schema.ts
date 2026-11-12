@@ -1,11 +1,10 @@
 import { index, integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
-import { user } from './auth.ts';
 
 export const auditLog = sqliteTable(
 	'audit_log',
 	{
 		id: text('id').primaryKey(),
-		actorUserId: text('actor_user_id').references(() => user.id, { onDelete: 'set null' }),
+		actorUserId: text('actor_user_id'),
 		action: text('action').notNull(),
 		entityType: text('entity_type').notNull(),
 		entityId: text('entity_id'),

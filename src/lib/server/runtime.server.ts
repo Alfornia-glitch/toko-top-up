@@ -4,6 +4,7 @@ import type { Db, PostgresDb, SqliteDb } from '#db/core.ts';
 import { createCatalogServices, type CatalogServices } from '#modules/catalog/server.ts';
 import { createContentServices, type ContentServices } from '#modules/content/server.ts';
 import { createCheckoutServices, type CheckoutServices } from '#modules/checkout/server.ts';
+import { createAuditServices, type AuditServices } from '#modules/audit/server.ts';
 import { createCartServices, type CartServices } from '#modules/cart/server.ts';
 import { createCustomersServices, type CustomersServices } from '#modules/customers/server.ts';
 import { createMarketingServices, type MarketingServices } from '#modules/marketing/server.ts';
@@ -30,6 +31,7 @@ export interface RuntimeServices {
 	readonly orders: OrdersServices;
 	readonly checkout: CheckoutServices;
 	readonly storefront: StorefrontServices;
+	readonly audit: AuditServices;
 }
 
 export interface Runtime {
@@ -74,6 +76,7 @@ export function createRuntime(
 	let orders: OrdersServices | undefined;
 	let checkout: CheckoutServices | undefined;
 	let storefront: StorefrontServices | undefined;
+	let audit: AuditServices | undefined;
 	const registry = createModuleRegistry();
 
 	registry.register({
@@ -188,6 +191,13 @@ export function createRuntime(
 		}
 	});
 
+	registry.register({
+		name: 'audit',
+		initialize() {
+			audit = createAuditServices(serviceOptions());
+		}
+	});
+
 	registry.initialize();
 
 	if (
@@ -200,7 +210,8 @@ export function createRuntime(
 		!cart ||
 		!orders ||
 		!checkout ||
-		!storefront
+		!storefront ||
+		!audit
 	)
 		throw new Error('Modules failed to initialize');
 
@@ -218,7 +229,8 @@ export function createRuntime(
 			cart,
 			orders,
 			checkout,
-			storefront
+			storefront,
+			audit
 		}
 	};
 }

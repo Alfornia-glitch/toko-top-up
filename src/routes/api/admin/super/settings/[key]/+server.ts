@@ -1,6 +1,6 @@
 import type { RequestHandler } from './$types';
 import { requireSuperadmin } from '#lib/server/modules/admin/access.ts';
-import { auditRequest } from '#lib/server/modules/admin/audit.ts';
+import { auditRequest } from '#lib/server/http/audit.ts';
 import { unwrap } from '#shared';
 
 export const DELETE: RequestHandler = async (event) => {

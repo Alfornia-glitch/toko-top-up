@@ -1,6 +1,6 @@
 import type { RequestHandler } from './$types';
 import { requireAdmin } from '#lib/server/modules/admin/access.ts';
-import { auditRequest } from '#lib/server/modules/admin/audit.ts';
+import { auditRequest } from '#lib/server/http/audit.ts';
 import { giftCardUpdateSchema } from '#lib/server/modules/admin/validation.ts';
 import { unwrap } from '#shared';
 

@@ -1,6 +1,7 @@
 import { count, eq, inArray } from 'drizzle-orm';
 import { queryDb, tables } from '#db/query.ts';
-import { purgeOldAuditLogs } from './audit-logs.ts';
+import { unwrap, type Actor } from '#shared';
+import { getRuntime } from '#lib/server/runtime.server.ts';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const t = tables as any;
@@ -26,11 +27,14 @@ export async function purgeArchivedProducts() {
 	return deleted;
 }
 
-export async function runDangerAction(action: 'purge_archived_products' | 'purge_old_audit_logs') {
+export async function runDangerAction(
+	action: 'purge_archived_products' | 'purge_old_audit_logs',
+	actor: Actor | null
+) {
 	if (action === 'purge_archived_products') {
 		return { action, deleted: await purgeArchivedProducts() };
 	}
-	return { action, deleted: await purgeOldAuditLogs(90) };
+	return { action, deleted: unwrap(await getRuntime().services.audit.audit.purgeOld(actor)) };
 }
 
 export async function superStats() {
