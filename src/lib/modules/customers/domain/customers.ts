@@ -37,6 +37,34 @@ export interface WishlistEntry {
 	createdAt: Date;
 }
 
+export interface PaymentMethod {
+	id: string;
+	userId: string;
+	provider: string;
+	brand: string | null;
+	last4: string | null;
+	expMonth: number | null;
+	expYear: number | null;
+	isDefault: boolean;
+	status: 'active' | 'expired' | 'removed';
+	createdAt: Date;
+	updatedAt: Date;
+}
+
+/** What a customer sees of a saved payment method. */
+export type PaymentMethodView = Pick<
+	PaymentMethod,
+	'id' | 'brand' | 'last4' | 'expMonth' | 'expYear' | 'isDefault' | 'status'
+>;
+
+export interface PaymentMethodInput {
+	brand: string;
+	last4: string;
+	expMonth: number;
+	expYear: number;
+	isDefault?: boolean | undefined;
+}
+
 export interface CustomerListQuery {
 	q?: string | undefined;
 	sort?: string | undefined;
@@ -102,6 +130,13 @@ export interface CustomerRepository {
 	updateAddress(userId: string, id: string, patch: Partial<Address>): Promise<void>;
 	deleteAddress(userId: string, id: string): Promise<void>;
 
+	/** Active and expired methods; removed ones are hidden. */
+	listPaymentMethods(userId: string): Promise<PaymentMethod[]>;
+	findPaymentMethod(userId: string, id: string): Promise<PaymentMethod | null>;
+	/** Inserts the method, clearing the user's other defaults when this one claims it. */
+	insertPaymentMethod(method: PaymentMethod): Promise<void>;
+	updatePaymentMethod(userId: string, id: string, patch: Partial<PaymentMethod>): Promise<void>;
+
 	listWishlist(userId: string): Promise<WishlistEntry[]>;
 	findWishlist(userId: string, productId: string): Promise<WishlistEntry | null>;
 	insertWishlist(entry: WishlistEntry): Promise<void>;
@@ -127,4 +162,16 @@ export function addressPatch(input: AddressInput, now: Date): Partial<Address> {
 	if (input.isDefaultBilling !== undefined) patch.isDefaultBilling = input.isDefaultBilling;
 
 	return patch;
+}
+
+export function toPaymentMethodView(method: PaymentMethod): PaymentMethodView {
+	return {
+		id: method.id,
+		brand: method.brand,
+		last4: method.last4,
+		expMonth: method.expMonth,
+		expYear: method.expYear,
+		isDefault: method.isDefault,
+		status: method.status
+	};
 }

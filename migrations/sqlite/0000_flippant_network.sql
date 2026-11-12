@@ -314,7 +314,7 @@ CREATE UNIQUE INDEX `orders_order_number_unique` ON `orders` (`order_number`);--
 CREATE INDEX `orders_user_idx` ON `orders` (`user_id`);--> statement-breakpoint
 CREATE INDEX `orders_status_idx` ON `orders` (`status`);--> statement-breakpoint
 CREATE INDEX `orders_placed_idx` ON `orders` (`placed_at`);--> statement-breakpoint
-CREATE TABLE `payment_methods` (
+CREATE TABLE `customers_payment_methods` (
 	`id` text PRIMARY KEY NOT NULL,
 	`user_id` text NOT NULL,
 	`provider` text NOT NULL,
@@ -325,11 +325,10 @@ CREATE TABLE `payment_methods` (
 	`is_default` integer DEFAULT false NOT NULL,
 	`status` text DEFAULT 'active' NOT NULL,
 	`created_at` integer NOT NULL,
-	`updated_at` integer NOT NULL,
-	FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON UPDATE no action ON DELETE cascade
+	`updated_at` integer NOT NULL
 );
 --> statement-breakpoint
-CREATE INDEX `payment_methods_user_idx` ON `payment_methods` (`user_id`);--> statement-breakpoint
+CREATE INDEX `customers_payment_methods_user_idx` ON `customers_payment_methods` (`user_id`);--> statement-breakpoint
 CREATE TABLE `payments` (
 	`id` text PRIMARY KEY NOT NULL,
 	`order_id` text NOT NULL,

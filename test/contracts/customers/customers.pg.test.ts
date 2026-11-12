@@ -2,7 +2,7 @@
 import { describe, test } from 'vitest';
 import { createPostgresDb } from '#db/core.ts';
 import { createCustomersServices } from '#modules/customers/server.ts';
-import { addresses, wishlists } from '#modules/customers/infra/pg/schema.ts';
+import { addresses, paymentMethods, wishlists } from '#modules/customers/infra/pg/schema.ts';
 import { runCustomersContract } from './customers.contract.ts';
 import { createFakeCustomerDirectory } from './directory.ts';
 import { createTestClock } from '../support/clock.ts';
@@ -25,6 +25,7 @@ if (testDatabaseUrl) {
 			async reset() {
 				await db.delete(addresses);
 				await db.delete(wishlists);
+				await db.delete(paymentMethods);
 			}
 		});
 	});

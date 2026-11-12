@@ -1,17 +1,16 @@
 import type { RequestHandler } from './$types';
 import { customerErrorResponse, requireUser } from '#lib/server/modules/customer/http.ts';
 import { paymentMethodWriteSchema } from '#lib/server/modules/customer/validation.ts';
-import {
-	createPaymentMethod,
-	listPaymentMethods
-} from '#lib/server/modules/account/payment-methods.ts';
+import { unwrap } from '#shared';
 
 export const GET: RequestHandler = async ({ locals }) => {
 	const denied = requireUser(locals.user);
 	if (denied) return denied;
 
 	try {
-		return Response.json({ data: await listPaymentMethods(locals.user!.id) });
+		return Response.json({
+			data: unwrap(await locals.services.customers.customers.listPaymentMethods(locals.actor))
+		});
 	} catch (error) {
 		return customerErrorResponse(error, 'list payment methods');
 	}
@@ -37,7 +36,9 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 	}
 
 	try {
-		const created = await createPaymentMethod(locals.user!.id, parsed.data);
+		const created = unwrap(
+			await locals.services.customers.customers.createPaymentMethod(parsed.data, locals.actor)
+		);
 		return Response.json({ data: created }, { status: 201 });
 	} catch (error) {
 		return customerErrorResponse(error, 'create payment method');

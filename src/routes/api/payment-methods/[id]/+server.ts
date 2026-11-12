@@ -1,10 +1,7 @@
 import type { RequestHandler } from './$types';
 import { customerErrorResponse, requireUser } from '#lib/server/modules/customer/http.ts';
 import { paymentMethodWriteSchema } from '#lib/server/modules/customer/validation.ts';
-import {
-	deletePaymentMethod,
-	updatePaymentMethod
-} from '#lib/server/modules/account/payment-methods.ts';
+import { unwrap } from '#shared';
 
 export const PATCH: RequestHandler = async ({ locals, params, request }) => {
 	const denied = requireUser(locals.user);
@@ -26,8 +23,13 @@ export const PATCH: RequestHandler = async ({ locals, params, request }) => {
 	}
 
 	try {
-		const updated = await updatePaymentMethod(locals.user!.id, params.id, parsed.data);
-		if (!updated) return Response.json({ error: 'Payment method not found' }, { status: 404 });
+		const updated = unwrap(
+			await locals.services.customers.customers.updatePaymentMethod(
+				params.id,
+				parsed.data,
+				locals.actor
+			)
+		);
 
 		return Response.json({ data: updated });
 	} catch (error) {
@@ -40,8 +42,7 @@ export const DELETE: RequestHandler = async ({ locals, params }) => {
 	if (denied) return denied;
 
 	try {
-		const deleted = await deletePaymentMethod(locals.user!.id, params.id);
-		if (!deleted) return Response.json({ error: 'Payment method not found' }, { status: 404 });
+		unwrap(await locals.services.customers.customers.deletePaymentMethod(params.id, locals.actor));
 
 		return Response.json({ data: { id: params.id, deleted: true } });
 	} catch (error) {

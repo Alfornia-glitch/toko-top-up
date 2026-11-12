@@ -1,6 +1,6 @@
 # customers
 
-Customer-owned records (addresses, wishlists) and the admin customer directory.
+Customer-owned records (addresses, wishlists, saved payment methods) and the admin customer directory.
 
 ## Public API
 
@@ -11,6 +11,7 @@ Customer-owned records (addresses, wishlists) and the admin customer directory.
 
 - `customers_addresses` — `user_id` is a plain user id, not a foreign key.
 - `customers_wishlists` — `user_id` and `product_id` are plain ids, not foreign keys. Wishlist reads skip products that no longer exist.
+- `customers_payment_methods` — `user_id` is a plain user id. Deleting a method is a soft delete (`status = 'removed'`).
 
 ## Ports
 

@@ -6,5 +6,8 @@ export type {
 	CustomerOrderSummary,
 	CustomerProfile,
 	CustomerSummary,
+	PaymentMethod,
+	PaymentMethodInput,
+	PaymentMethodView,
 	WishlistEntry
 } from './domain/customers.ts';

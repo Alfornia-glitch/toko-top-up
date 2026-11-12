@@ -1,7 +1,7 @@
 import { and, desc, eq, ne } from 'drizzle-orm';
 import type { PostgresDb } from '#db/core.ts';
-import type { Address, CustomerRepository } from '../../domain/customers.ts';
-import { addresses, wishlists } from './schema.ts';
+import type { Address, CustomerRepository, PaymentMethod } from '../../domain/customers.ts';
+import { addresses, paymentMethods, wishlists } from './schema.ts';
 
 export function createPostgresCustomerRepository(db: PostgresDb): CustomerRepository {
 	function ownedBy(userId: string, id: string) {
@@ -75,6 +75,57 @@ export function createPostgresCustomerRepository(db: PostgresDb): CustomerReposi
 
 		async deleteAddress(userId, id) {
 			await db.delete(addresses).where(ownedBy(userId, id));
+		},
+
+		async listPaymentMethods(userId) {
+			return db
+				.select()
+				.from(paymentMethods)
+				.where(and(eq(paymentMethods.userId, userId), ne(paymentMethods.status, 'removed')))
+				.orderBy(desc(paymentMethods.isDefault), desc(paymentMethods.createdAt));
+		},
+
+		async findPaymentMethod(userId, id) {
+			const [row] = await db
+				.select()
+				.from(paymentMethods)
+				.where(
+					and(
+						eq(paymentMethods.id, id),
+						eq(paymentMethods.userId, userId),
+						ne(paymentMethods.status, 'removed')
+					)
+				)
+				.limit(1);
+			return row ?? null;
+		},
+
+		async insertPaymentMethod(method: PaymentMethod) {
+			await db.transaction(async (tx) => {
+				if (method.isDefault) {
+					await tx
+						.update(paymentMethods)
+						.set({ isDefault: false, updatedAt: method.updatedAt })
+						.where(eq(paymentMethods.userId, method.userId));
+				}
+				await tx.insert(paymentMethods).values(method);
+			});
+		},
+
+		async updatePaymentMethod(userId, id, patch) {
+			const updatedAt = patch.updatedAt ?? new Date();
+			await db.transaction(async (tx) => {
+				if (patch.isDefault) {
+					await tx
+						.update(paymentMethods)
+						.set({ isDefault: false, updatedAt })
+						.where(and(eq(paymentMethods.userId, userId), ne(paymentMethods.id, id)));
+				}
+				await tx
+					.update(paymentMethods)
+					.set(patch)
+					.where(and(eq(paymentMethods.id, id), eq(paymentMethods.userId, userId)));
+			});
 		},
 
 		async listWishlist(userId) {

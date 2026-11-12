@@ -139,25 +139,6 @@ export const shipments = shopSchema.table(
 	(table) => [index('shipments_order_idx').on(table.orderId)]
 );
 
-export const paymentMethods = shopSchema.table(
-	'payment_methods',
-	{
-		id: text('id').primaryKey(),
-		userId: text('user_id')
-			.notNull()
-			.references(() => user.id, { onDelete: 'cascade' }),
-		provider: text('provider').notNull(),
-		brand: text('brand'),
-		last4: text('last4'),
-		expMonth: integer('exp_month'),
-		expYear: integer('exp_year'),
-		isDefault: boolean('is_default').notNull().default(false),
-		status: text('status').$type<'active' | 'expired' | 'removed'>().notNull().default('active'),
-		...timestamps
-	},
-	(table) => [index('payment_methods_user_idx').on(table.userId)]
-);
-
 export const payments = shopSchema.table(
 	'payments',
 	{
@@ -282,10 +263,6 @@ export const orderEventsRelations = relations(orderEvents, ({ one }) => ({
 
 export const shipmentsRelations = relations(shipments, ({ one }) => ({
 	order: one(orders, { fields: [shipments.orderId], references: [orders.id] })
-}));
-
-export const paymentMethodsRelations = relations(paymentMethods, ({ one }) => ({
-	user: one(user, { fields: [paymentMethods.userId], references: [user.id] })
 }));
 
 export const paymentsRelations = relations(payments, ({ one }) => ({

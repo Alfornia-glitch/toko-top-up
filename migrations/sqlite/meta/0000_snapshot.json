@@ -1,7 +1,7 @@
 {
 	"version": "6",
 	"dialect": "sqlite",
-	"id": "38c90378-9e9f-44d8-b243-d39125150219",
+	"id": "71431202-cc2b-460a-af77-5de36dc96598",
 	"prevId": "00000000-0000-0000-0000-000000000000",
 	"tables": {
 		"account": {
@@ -2022,8 +2022,8 @@
 			"uniqueConstraints": {},
 			"checkConstraints": {}
 		},
-		"payment_methods": {
-			"name": "payment_methods",
+		"customers_payment_methods": {
+			"name": "customers_payment_methods",
 			"columns": {
 				"id": {
 					"name": "id",
@@ -2106,23 +2106,13 @@
 				}
 			},
 			"indexes": {
-				"payment_methods_user_idx": {
-					"name": "payment_methods_user_idx",
+				"customers_payment_methods_user_idx": {
+					"name": "customers_payment_methods_user_idx",
 					"columns": ["user_id"],
 					"isUnique": false
 				}
 			},
-			"foreignKeys": {
-				"payment_methods_user_id_user_id_fk": {
-					"name": "payment_methods_user_id_user_id_fk",
-					"tableFrom": "payment_methods",
-					"tableTo": "user",
-					"columnsFrom": ["user_id"],
-					"columnsTo": ["id"],
-					"onDelete": "cascade",
-					"onUpdate": "no action"
-				}
-			},
+			"foreignKeys": {},
 			"compositePrimaryKeys": {},
 			"uniqueConstraints": {},
 			"checkConstraints": {}

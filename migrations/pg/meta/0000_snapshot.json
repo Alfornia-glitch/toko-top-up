@@ -1,5 +1,5 @@
 {
-	"id": "7f5ac7d2-c810-4d73-91d3-8b849f55cb08",
+	"id": "fa8c1dd6-b633-4894-a6c3-0915afdb6f93",
 	"prevId": "00000000-0000-0000-0000-000000000000",
 	"version": "7",
 	"dialect": "postgresql",
@@ -2196,8 +2196,8 @@
 			"checkConstraints": {},
 			"isRLSEnabled": false
 		},
-		"shop.payment_methods": {
-			"name": "payment_methods",
+		"shop.customers_payment_methods": {
+			"name": "customers_payment_methods",
 			"schema": "shop",
 			"columns": {
 				"id": {
@@ -2270,8 +2270,8 @@
 				}
 			},
 			"indexes": {
-				"payment_methods_user_idx": {
-					"name": "payment_methods_user_idx",
+				"customers_payment_methods_user_idx": {
+					"name": "customers_payment_methods_user_idx",
 					"columns": [
 						{
 							"expression": "user_id",
@@ -2286,18 +2286,7 @@
 					"with": {}
 				}
 			},
-			"foreignKeys": {
-				"payment_methods_user_id_user_id_fk": {
-					"name": "payment_methods_user_id_user_id_fk",
-					"tableFrom": "payment_methods",
-					"tableTo": "user",
-					"schemaTo": "auth_app",
-					"columnsFrom": ["user_id"],
-					"columnsTo": ["id"],
-					"onDelete": "cascade",
-					"onUpdate": "no action"
-				}
-			},
+			"foreignKeys": {},
 			"compositePrimaryKeys": {},
 			"uniqueConstraints": {},
 			"policies": {},

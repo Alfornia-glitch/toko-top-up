@@ -84,6 +84,62 @@ export function runCustomersContract({ service, clock, reset }: CustomersContrac
 		});
 	});
 
+	describe('payment methods contract', () => {
+		const visa = { brand: 'Visa', last4: '4242', expMonth: 12, expYear: 2030 };
+
+		test('creates, updates and soft-deletes a method', async () => {
+			const created = unwrap(await service.createPaymentMethod({ ...visa, isDefault: true }, ada));
+			expect(created).toMatchObject({
+				brand: 'Visa',
+				last4: '4242',
+				isDefault: true,
+				status: 'active'
+			});
+			expect(created).not.toHaveProperty('userId');
+
+			const updated = unwrap(
+				await service.updatePaymentMethod(created.id, { ...visa, expYear: 2031 }, ada)
+			);
+			expect(updated).toMatchObject({ expYear: 2031, isDefault: true });
+
+			expect(unwrap(await service.deletePaymentMethod(created.id, ada))).toBe(created.id);
+			expect(unwrap(await service.listPaymentMethods(ada))).toEqual([]);
+			const gone = await service.updatePaymentMethod(created.id, visa, ada);
+			expect(gone.ok).toBe(false);
+		});
+
+		test('only one default per user, and other users are unaffected', async () => {
+			const first = unwrap(await service.createPaymentMethod({ ...visa, isDefault: true }, ada));
+			const other = unwrap(await service.createPaymentMethod({ ...visa, isDefault: true }, bob));
+			const second = unwrap(
+				await service.createPaymentMethod({ ...visa, last4: '1111', isDefault: true }, ada)
+			);
+
+			const list = unwrap(await service.listPaymentMethods(ada));
+			expect(list.find((m) => m.id === first.id)?.isDefault).toBe(false);
+			expect(list[0]?.id).toBe(second.id);
+			expect(unwrap(await service.listPaymentMethods(bob))[0]).toMatchObject({
+				id: other.id,
+				isDefault: true
+			});
+
+			unwrap(await service.updatePaymentMethod(first.id, { ...visa, isDefault: true }, ada));
+			const after = unwrap(await service.listPaymentMethods(ada));
+			expect(after.filter((m) => m.isDefault).map((m) => m.id)).toEqual([first.id]);
+		});
+
+		test("another customer's method reads as not found", async () => {
+			const created = unwrap(await service.createPaymentMethod(visa, ada));
+			for (const result of [
+				await service.updatePaymentMethod(created.id, visa, bob),
+				await service.deletePaymentMethod(created.id, bob)
+			]) {
+				expect(result.ok).toBe(false);
+				if (!result.ok) expect(result.error.status).toBe(404);
+			}
+		});
+	});
+
 	describe('wishlist contract', () => {
 		test('adding is idempotent and removing reports missing items', async () => {
 			const first = unwrap(await service.addWishlist('product-1', ada));

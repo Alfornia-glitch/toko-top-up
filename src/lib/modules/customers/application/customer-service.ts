@@ -14,6 +14,7 @@ import {
 } from '#shared';
 import {
 	addressPatch,
+	toPaymentMethodView,
 	type Address,
 	type AddressInput,
 	type CustomerDetail,
@@ -21,6 +22,9 @@ import {
 	type CustomerListQuery,
 	type CustomerRepository,
 	type CustomerSummary,
+	type PaymentMethod,
+	type PaymentMethodInput,
+	type PaymentMethodView,
 	type WishlistEntry
 } from '../domain/customers.ts';
 
@@ -33,6 +37,16 @@ export interface CustomerService {
 	createAddress(input: AddressInput, actor: Actor | null): Outcome<Address>;
 	updateAddress(id: string, input: AddressInput, actor: Actor | null): Outcome<Address>;
 	deleteAddress(id: string, actor: Actor | null): Outcome<string>;
+
+	listPaymentMethods(actor: Actor | null): Outcome<PaymentMethodView[]>;
+	createPaymentMethod(input: PaymentMethodInput, actor: Actor | null): Outcome<PaymentMethodView>;
+	updatePaymentMethod(
+		id: string,
+		input: PaymentMethodInput,
+		actor: Actor | null
+	): Outcome<PaymentMethodView>;
+	/** Soft delete: the method is marked removed and no longer listed. */
+	deletePaymentMethod(id: string, actor: Actor | null): Outcome<string>;
 
 	listWishlist(actor: Actor | null): Outcome<WishlistEntry[]>;
 	/** Idempotent: returns the existing entry when the product is already wishlisted. */
@@ -63,6 +77,12 @@ export function createCustomerService(
 		const address = await repository.findAddress(userId, id);
 		if (!address) throw new NotFoundError('Address not found');
 		return address;
+	}
+
+	async function ownedPaymentMethod(userId: string, id: string): Promise<PaymentMethod> {
+		const method = await repository.findPaymentMethod(userId, id);
+		if (!method) throw new NotFoundError('Payment method not found');
+		return method;
 	}
 
 	return {
@@ -108,6 +128,60 @@ export function createCustomerService(
 				const userId = assertActor(actor).id;
 				await ownedAddress(userId, id);
 				await repository.deleteAddress(userId, id);
+				return id;
+			}),
+
+		listPaymentMethods: (actor) =>
+			run(async () => {
+				const methods = await repository.listPaymentMethods(assertActor(actor).id);
+				return methods.map(toPaymentMethodView);
+			}),
+
+		createPaymentMethod: (input, actor) =>
+			run(async () => {
+				const userId = assertActor(actor).id;
+				const now = clock.now();
+				const id = newId();
+				await repository.insertPaymentMethod({
+					id,
+					userId,
+					provider: 'mock',
+					brand: input.brand,
+					last4: input.last4,
+					expMonth: input.expMonth,
+					expYear: input.expYear,
+					isDefault: input.isDefault ?? false,
+					status: 'active',
+					createdAt: now,
+					updatedAt: now
+				});
+				return toPaymentMethodView(await ownedPaymentMethod(userId, id));
+			}),
+
+		updatePaymentMethod: (id, input, actor) =>
+			run(async () => {
+				const userId = assertActor(actor).id;
+				const existing = await ownedPaymentMethod(userId, id);
+				await repository.updatePaymentMethod(userId, id, {
+					brand: input.brand,
+					last4: input.last4,
+					expMonth: input.expMonth,
+					expYear: input.expYear,
+					isDefault: input.isDefault ?? existing.isDefault,
+					updatedAt: clock.now()
+				});
+				return toPaymentMethodView(await ownedPaymentMethod(userId, id));
+			}),
+
+		deletePaymentMethod: (id, actor) =>
+			run(async () => {
+				const userId = assertActor(actor).id;
+				await ownedPaymentMethod(userId, id);
+				await repository.updatePaymentMethod(userId, id, {
+					status: 'removed',
+					isDefault: false,
+					updatedAt: clock.now()
+				});
 				return id;
 			}),
 

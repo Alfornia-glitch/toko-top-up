@@ -37,3 +37,25 @@ export const wishlists = sqliteTable(
 		index('customers_wishlists_product_idx').on(table.productId)
 	]
 );
+
+export const paymentMethods = sqliteTable(
+	'customers_payment_methods',
+	{
+		id: text('id').primaryKey(),
+		userId: text('user_id').notNull(),
+		provider: text('provider').notNull(),
+		brand: text('brand'),
+		last4: text('last4'),
+		expMonth: integer('exp_month'),
+		expYear: integer('exp_year'),
+		isDefault: integer('is_default', { mode: 'boolean' }).notNull().default(false),
+		status: text('status', { enum: ['active', 'expired', 'removed'] })
+			.notNull()
+			.default('active'),
+		createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull(),
+		updatedAt: integer('updated_at', { mode: 'timestamp_ms' })
+			.$onUpdate(() => new Date())
+			.notNull()
+	},
+	(table) => [index('customers_payment_methods_user_idx').on(table.userId)]
+);
