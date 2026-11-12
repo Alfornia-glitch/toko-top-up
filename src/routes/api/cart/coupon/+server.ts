@@ -1,6 +1,6 @@
 import type { RequestHandler } from './$types';
-import { applyCoupon, removeCoupon } from '#lib/server/modules/cart/cart.ts';
-import { resolveCartId } from '#lib/server/modules/cart/session-cart.ts';
+import { unwrap } from '#shared';
+import { resolveCartId } from '#lib/server/http/session-cart.ts';
 import { customerErrorResponse } from '#lib/server/modules/customer/http.ts';
 import { couponApplySchema } from '#lib/server/modules/customer/validation.ts';
 
@@ -21,7 +21,7 @@ export const POST: RequestHandler = async ({ request, cookies, locals }) => {
 
 	try {
 		const cartId = await resolveCartId(cookies, locals.user?.id ?? null);
-		const cart = await applyCoupon(cartId, parsed.data.code);
+		const cart = unwrap(await locals.services.cart.cart.applyCoupon(cartId, parsed.data.code));
 		return Response.json({ data: cart });
 	} catch (error) {
 		return customerErrorResponse(error, 'apply coupon');
@@ -31,7 +31,7 @@ export const POST: RequestHandler = async ({ request, cookies, locals }) => {
 export const DELETE: RequestHandler = async ({ cookies, locals }) => {
 	try {
 		const cartId = await resolveCartId(cookies, locals.user?.id ?? null);
-		const cart = await removeCoupon(cartId);
+		const cart = unwrap(await locals.services.cart.cart.removeCoupon(cartId));
 		return Response.json({ data: cart });
 	} catch (error) {
 		return customerErrorResponse(error, 'remove coupon');

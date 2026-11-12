@@ -3,6 +3,7 @@ import { db as sharedDb, dbProvider } from '#db/index.ts';
 import type { Db, PostgresDb, SqliteDb } from '#db/core.ts';
 import { createCatalogServices, type CatalogServices } from '#modules/catalog/server.ts';
 import { createContentServices, type ContentServices } from '#modules/content/server.ts';
+import { createCartServices, type CartServices } from '#modules/cart/server.ts';
 import { createCustomersServices, type CustomersServices } from '#modules/customers/server.ts';
 import { createMarketingServices, type MarketingServices } from '#modules/marketing/server.ts';
 import { createSupportServices, type SupportServices } from '#modules/support/server.ts';
@@ -19,6 +20,7 @@ export interface RuntimeServices {
 	readonly customers: CustomersServices;
 	readonly support: SupportServices;
 	readonly marketing: MarketingServices;
+	readonly cart: CartServices;
 }
 
 export interface Runtime {
@@ -59,6 +61,7 @@ export function createRuntime(
 	let customers: CustomersServices | undefined;
 	let support: SupportServices | undefined;
 	let marketing: MarketingServices | undefined;
+	let cart: CartServices | undefined;
 	const registry = createModuleRegistry();
 
 	registry.register({
@@ -115,16 +118,25 @@ export function createRuntime(
 		}
 	});
 
+	registry.register({
+		name: 'cart',
+		dependencies: ['catalog', 'marketing'],
+		initialize() {
+			if (!catalog || !marketing) throw new Error('Catalog and marketing are required by cart');
+			cart = createCartServices({ ...serviceOptions(), catalog, marketing });
+		}
+	});
+
 	registry.initialize();
 
-	if (!catalog || !reporting || !content || !customers || !support || !marketing)
+	if (!catalog || !reporting || !content || !customers || !support || !marketing || !cart)
 		throw new Error('Modules failed to initialize');
 
 	return {
 		config,
 		db,
 		eventBus,
-		services: { catalog, reporting, content, customers, support, marketing }
+		services: { catalog, reporting, content, customers, support, marketing, cart }
 	};
 }
 

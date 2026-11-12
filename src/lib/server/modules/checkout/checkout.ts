@@ -1,6 +1,6 @@
 import { and, eq } from 'drizzle-orm';
 import { queryDb, tables } from '#db/query.ts';
-import { getCart, markCartConverted, type Cart } from '#lib/server/modules/cart/cart.ts';
+import type { Cart } from '#modules/cart/index.ts';
 import { getSiteSettings } from '#lib/server/modules/storefront/site.ts';
 import type { CheckoutInput } from '#lib/server/modules/customer/validation.ts';
 import type { Address } from '#modules/customers/index.ts';
@@ -100,7 +100,7 @@ function generateOrderNumber() {
 
 export async function placeOrder(actor: Actor, cartId: string, input: CheckoutInput) {
 	const userId = actor.id;
-	const cart = await getCart(cartId);
+	const cart = unwrap(await getRuntime().services.cart.cart.getCart(cartId));
 
 	if (!cart || cart.items.length === 0) {
 		throw new ConflictError('Your cart is empty');
@@ -240,7 +240,7 @@ export async function placeOrder(actor: Actor, cartId: string, input: CheckoutIn
 		if (!redeemed.ok) console.error('[checkout] coupon redemption failed', redeemed.error);
 	}
 
-	await markCartConverted(cartId);
+	unwrap(await getRuntime().services.cart.cart.markConverted(cartId));
 
 	return { orderId, orderNumber };
 }

@@ -12,39 +12,6 @@ const timestamps = {
 		.notNull()
 };
 
-export const carts = shopSchema.table(
-	'carts',
-	{
-		id: text('id').primaryKey(),
-		userId: text('user_id').references(() => user.id, { onDelete: 'set null' }),
-		status: text('status')
-			.$type<'active' | 'converted' | 'abandoned'>()
-			.notNull()
-			.default('active'),
-		currency: text('currency').notNull().default('USD'),
-		couponId: text('coupon_id').references(() => coupons.id, { onDelete: 'set null' }),
-		...timestamps
-	},
-	(table) => [index('carts_user_idx').on(table.userId), index('carts_status_idx').on(table.status)]
-);
-
-export const cartItems = shopSchema.table(
-	'cart_items',
-	{
-		id: text('id').primaryKey(),
-		cartId: text('cart_id')
-			.notNull()
-			.references(() => carts.id, { onDelete: 'cascade' }),
-		variantId: text('variant_id')
-			.notNull()
-			.references(() => productVariants.id, { onDelete: 'cascade' }),
-		quantity: integer('quantity').notNull().default(1),
-		unitPriceCents: integer('unit_price_cents').notNull(),
-		...timestamps
-	},
-	(table) => [uniqueIndex('cart_items_cart_variant_idx').on(table.cartId, table.variantId)]
-);
-
 export const orders = shopSchema.table(
 	'orders',
 	{
@@ -207,20 +174,6 @@ export const returnRequestImages = shopSchema.table(
 	},
 	(table) => [index('return_request_images_request_idx').on(table.requestId)]
 );
-
-export const cartsRelations = relations(carts, ({ one, many }) => ({
-	user: one(user, { fields: [carts.userId], references: [user.id] }),
-	coupon: one(coupons, { fields: [carts.couponId], references: [coupons.id] }),
-	items: many(cartItems)
-}));
-
-export const cartItemsRelations = relations(cartItems, ({ one }) => ({
-	cart: one(carts, { fields: [cartItems.cartId], references: [carts.id] }),
-	variant: one(productVariants, {
-		fields: [cartItems.variantId],
-		references: [productVariants.id]
-	})
-}));
 
 export const ordersRelations = relations(orders, ({ one, many }) => ({
 	user: one(user, { fields: [orders.userId], references: [user.id] }),

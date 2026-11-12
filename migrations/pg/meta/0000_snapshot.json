@@ -1,5 +1,5 @@
 {
-	"id": "52bca285-7f2d-4c11-b5d8-837f86fe22ba",
+	"id": "9cc9ae72-1700-48e6-aa98-d7f2c1cf434d",
 	"prevId": "00000000-0000-0000-0000-000000000000",
 	"version": "7",
 	"dialect": "postgresql",
@@ -735,22 +735,12 @@
 				}
 			},
 			"foreignKeys": {
-				"cart_items_cart_id_carts_id_fk": {
-					"name": "cart_items_cart_id_carts_id_fk",
+				"cart_items_cart_id_cart_carts_id_fk": {
+					"name": "cart_items_cart_id_cart_carts_id_fk",
 					"tableFrom": "cart_items",
-					"tableTo": "carts",
+					"tableTo": "cart_carts",
 					"schemaTo": "shop",
 					"columnsFrom": ["cart_id"],
-					"columnsTo": ["id"],
-					"onDelete": "cascade",
-					"onUpdate": "no action"
-				},
-				"cart_items_variant_id_catalog_product_variants_id_fk": {
-					"name": "cart_items_variant_id_catalog_product_variants_id_fk",
-					"tableFrom": "cart_items",
-					"tableTo": "catalog_product_variants",
-					"schemaTo": "shop",
-					"columnsFrom": ["variant_id"],
 					"columnsTo": ["id"],
 					"onDelete": "cascade",
 					"onUpdate": "no action"
@@ -762,8 +752,8 @@
 			"checkConstraints": {},
 			"isRLSEnabled": false
 		},
-		"shop.carts": {
-			"name": "carts",
+		"shop.cart_carts": {
+			"name": "cart_carts",
 			"schema": "shop",
 			"columns": {
 				"id": {
@@ -812,8 +802,8 @@
 				}
 			},
 			"indexes": {
-				"carts_user_idx": {
-					"name": "carts_user_idx",
+				"cart_carts_user_idx": {
+					"name": "cart_carts_user_idx",
 					"columns": [
 						{
 							"expression": "user_id",
@@ -827,8 +817,8 @@
 					"method": "btree",
 					"with": {}
 				},
-				"carts_status_idx": {
-					"name": "carts_status_idx",
+				"cart_carts_status_idx": {
+					"name": "cart_carts_status_idx",
 					"columns": [
 						{
 							"expression": "status",
@@ -843,28 +833,7 @@
 					"with": {}
 				}
 			},
-			"foreignKeys": {
-				"carts_user_id_user_id_fk": {
-					"name": "carts_user_id_user_id_fk",
-					"tableFrom": "carts",
-					"tableTo": "user",
-					"schemaTo": "auth_app",
-					"columnsFrom": ["user_id"],
-					"columnsTo": ["id"],
-					"onDelete": "set null",
-					"onUpdate": "no action"
-				},
-				"carts_coupon_id_marketing_coupons_id_fk": {
-					"name": "carts_coupon_id_marketing_coupons_id_fk",
-					"tableFrom": "carts",
-					"tableTo": "marketing_coupons",
-					"schemaTo": "shop",
-					"columnsFrom": ["coupon_id"],
-					"columnsTo": ["id"],
-					"onDelete": "set null",
-					"onUpdate": "no action"
-				}
-			},
+			"foreignKeys": {},
 			"compositePrimaryKeys": {},
 			"uniqueConstraints": {},
 			"policies": {},

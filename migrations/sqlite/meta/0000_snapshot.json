@@ -1,7 +1,7 @@
 {
 	"version": "6",
 	"dialect": "sqlite",
-	"id": "0c853d70-21f7-4f6f-88a7-ce368b193317",
+	"id": "70546e59-da89-4129-b39e-4d32941cdd41",
 	"prevId": "00000000-0000-0000-0000-000000000000",
 	"tables": {
 		"account": {
@@ -687,20 +687,11 @@
 				}
 			},
 			"foreignKeys": {
-				"cart_items_cart_id_carts_id_fk": {
-					"name": "cart_items_cart_id_carts_id_fk",
+				"cart_items_cart_id_cart_carts_id_fk": {
+					"name": "cart_items_cart_id_cart_carts_id_fk",
 					"tableFrom": "cart_items",
-					"tableTo": "carts",
+					"tableTo": "cart_carts",
 					"columnsFrom": ["cart_id"],
-					"columnsTo": ["id"],
-					"onDelete": "cascade",
-					"onUpdate": "no action"
-				},
-				"cart_items_variant_id_catalog_product_variants_id_fk": {
-					"name": "cart_items_variant_id_catalog_product_variants_id_fk",
-					"tableFrom": "cart_items",
-					"tableTo": "catalog_product_variants",
-					"columnsFrom": ["variant_id"],
 					"columnsTo": ["id"],
 					"onDelete": "cascade",
 					"onUpdate": "no action"
@@ -710,8 +701,8 @@
 			"uniqueConstraints": {},
 			"checkConstraints": {}
 		},
-		"carts": {
-			"name": "carts",
+		"cart_carts": {
+			"name": "cart_carts",
 			"columns": {
 				"id": {
 					"name": "id",
@@ -766,37 +757,18 @@
 				}
 			},
 			"indexes": {
-				"carts_user_idx": {
-					"name": "carts_user_idx",
+				"cart_carts_user_idx": {
+					"name": "cart_carts_user_idx",
 					"columns": ["user_id"],
 					"isUnique": false
 				},
-				"carts_status_idx": {
-					"name": "carts_status_idx",
+				"cart_carts_status_idx": {
+					"name": "cart_carts_status_idx",
 					"columns": ["status"],
 					"isUnique": false
 				}
 			},
-			"foreignKeys": {
-				"carts_user_id_user_id_fk": {
-					"name": "carts_user_id_user_id_fk",
-					"tableFrom": "carts",
-					"tableTo": "user",
-					"columnsFrom": ["user_id"],
-					"columnsTo": ["id"],
-					"onDelete": "set null",
-					"onUpdate": "no action"
-				},
-				"carts_coupon_id_marketing_coupons_id_fk": {
-					"name": "carts_coupon_id_marketing_coupons_id_fk",
-					"tableFrom": "carts",
-					"tableTo": "marketing_coupons",
-					"columnsFrom": ["coupon_id"],
-					"columnsTo": ["id"],
-					"onDelete": "set null",
-					"onUpdate": "no action"
-				}
-			},
+			"foreignKeys": {},
 			"compositePrimaryKeys": {},
 			"uniqueConstraints": {},
 			"checkConstraints": {}

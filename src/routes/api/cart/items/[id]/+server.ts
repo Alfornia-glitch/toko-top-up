@@ -1,6 +1,6 @@
 import type { RequestHandler } from './$types';
-import { removeItem, updateItem } from '#lib/server/modules/cart/cart.ts';
-import { resolveCartId } from '#lib/server/modules/cart/session-cart.ts';
+import { unwrap } from '#shared';
+import { resolveCartId } from '#lib/server/http/session-cart.ts';
 import { customerErrorResponse } from '#lib/server/modules/customer/http.ts';
 import { cartUpdateSchema } from '#lib/server/modules/customer/validation.ts';
 
@@ -21,7 +21,9 @@ export const PATCH: RequestHandler = async ({ request, cookies, locals, params }
 
 	try {
 		const cartId = await resolveCartId(cookies, locals.user?.id ?? null);
-		const cart = await updateItem(cartId, params.id, parsed.data.quantity);
+		const cart = unwrap(
+			await locals.services.cart.cart.updateItem(cartId, params.id, parsed.data.quantity)
+		);
 		return Response.json({ data: cart });
 	} catch (error) {
 		return customerErrorResponse(error, 'update cart item');
@@ -31,7 +33,7 @@ export const PATCH: RequestHandler = async ({ request, cookies, locals, params }
 export const DELETE: RequestHandler = async ({ cookies, locals, params }) => {
 	try {
 		const cartId = await resolveCartId(cookies, locals.user?.id ?? null);
-		const cart = await removeItem(cartId, params.id);
+		const cart = unwrap(await locals.services.cart.cart.removeItem(cartId, params.id));
 		return Response.json({ data: cart });
 	} catch (error) {
 		return customerErrorResponse(error, 'remove cart item');

@@ -22,7 +22,8 @@ const TABLES: Array<[string, string]> = [
 	['gift_cards', 'marketing_gift_cards'],
 	['gift_card_transactions', 'marketing_gift_card_transactions'],
 	['newsletter_subscriptions', 'marketing_newsletter_subscriptions'],
-	['coupon_redemptions', 'marketing_coupon_redemptions']
+	['coupon_redemptions', 'marketing_coupon_redemptions'],
+	['carts', 'cart_carts']
 ];
 
 const INDEXES: Array<[string, string]> = [
@@ -51,7 +52,9 @@ const INDEXES: Array<[string, string]> = [
 	['gift_cards_status_idx', 'marketing_gift_cards_status_idx'],
 	['gift_card_transactions_card_idx', 'marketing_gift_card_transactions_card_idx'],
 	['newsletter_subscriptions_status_idx', 'marketing_newsletter_subscriptions_status_idx'],
-	['coupon_redemptions_coupon_idx', 'marketing_coupon_redemptions_coupon_idx']
+	['coupon_redemptions_coupon_idx', 'marketing_coupon_redemptions_coupon_idx'],
+	['carts_user_idx', 'cart_carts_user_idx'],
+	['carts_status_idx', 'cart_carts_status_idx']
 ];
 
 const provider = process.env.DB_PROVIDER;

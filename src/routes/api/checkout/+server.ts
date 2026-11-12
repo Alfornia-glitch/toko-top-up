@@ -1,6 +1,6 @@
 import type { RequestHandler } from './$types';
 import { placeOrder } from '#lib/server/modules/checkout/checkout.ts';
-import { resolveCartId } from '#lib/server/modules/cart/session-cart.ts';
+import { resolveCartId } from '#lib/server/http/session-cart.ts';
 import { customerErrorResponse, requireUser } from '#lib/server/modules/customer/http.ts';
 import { checkoutSchema } from '#lib/server/modules/customer/validation.ts';
 import { ConflictError } from '#shared';

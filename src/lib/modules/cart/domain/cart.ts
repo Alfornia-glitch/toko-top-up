@@ -1,0 +1,94 @@
+export type CartStatus = 'active' | 'converted' | 'abandoned';
+
+export interface CartRecord {
+	id: string;
+	userId: string | null;
+	status: CartStatus;
+	currency: string;
+	couponId: string | null;
+	createdAt: Date;
+	updatedAt: Date;
+}
+
+export interface CartItemRecord {
+	id: string;
+	cartId: string;
+	variantId: string;
+	quantity: number;
+	unitPriceCents: number;
+	createdAt: Date;
+	updatedAt: Date;
+}
+
+export interface CartItem {
+	id: string;
+	variantId: string;
+	productId: string;
+	productSlug: string;
+	productName: string;
+	variantName: string;
+	brandName: string | null;
+	imageUrl: string | null;
+	unitPriceCents: number;
+	compareAtPriceCents: number | null;
+	quantity: number;
+	stock: number;
+}
+
+export interface CartCoupon {
+	code: string;
+	type: 'percentage' | 'fixed';
+	value: number;
+}
+
+export interface Cart {
+	id: string;
+	items: CartItem[];
+	subtotalCents: number;
+	discountCents: number;
+	shippingCents: number;
+	totalCents: number;
+	currency: string;
+	itemCount: number;
+	coupon: CartCoupon | null;
+}
+
+export interface MergePlan {
+	guestCartId: string;
+	userCartId: string;
+	inserts: CartItemRecord[];
+	updates: Array<{ id: string; quantity: number }>;
+	deletes: string[];
+	now: Date;
+}
+
+export interface CartRepository {
+	findCart(id: string): Promise<CartRecord | null>;
+	findActiveCartId(userId: string): Promise<string | null>;
+	insertCart(cart: CartRecord): Promise<void>;
+	updateCart(id: string, patch: Partial<CartRecord>): Promise<void>;
+
+	listItems(cartId: string): Promise<CartItemRecord[]>;
+	findItem(cartId: string, itemId: string): Promise<CartItemRecord | null>;
+	findItemByVariant(cartId: string, variantId: string): Promise<CartItemRecord | null>;
+	insertItem(item: CartItemRecord): Promise<void>;
+	updateItem(id: string, patch: Partial<CartItemRecord>): Promise<void>;
+	deleteItem(cartId: string, itemId: string): Promise<void>;
+	deleteItems(cartId: string): Promise<void>;
+	/** Applies the whole merge atomically: item changes, guest cart emptied and abandoned, user cart touched. */
+	applyMerge(plan: MergePlan): Promise<void>;
+}
+
+export function emptyCart(cartId: string, currency = 'USD'): Cart {
+	return {
+		id: cartId,
+		items: [],
+		subtotalCents: 0,
+		discountCents: 0,
+		shippingCents: 0,
+		totalCents: 0,
+		currency,
+		itemCount: 0,
+		coupon: null
+	};
+}

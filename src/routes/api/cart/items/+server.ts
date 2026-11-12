@@ -1,6 +1,6 @@
 import type { RequestHandler } from './$types';
-import { addItem } from '#lib/server/modules/cart/cart.ts';
-import { resolveCartId } from '#lib/server/modules/cart/session-cart.ts';
+import { unwrap } from '#shared';
+import { resolveCartId } from '#lib/server/http/session-cart.ts';
 import { customerErrorResponse } from '#lib/server/modules/customer/http.ts';
 import { cartAddSchema } from '#lib/server/modules/customer/validation.ts';
 
@@ -21,7 +21,7 @@ export const POST: RequestHandler = async ({ request, cookies, locals }) => {
 
 	try {
 		const cartId = await resolveCartId(cookies, locals.user?.id ?? null);
-		const cart = await addItem(cartId, parsed.data);
+		const cart = unwrap(await locals.services.cart.cart.addItem(cartId, parsed.data));
 		return Response.json({ data: cart }, { status: 201 });
 	} catch (error) {
 		return customerErrorResponse(error, 'add cart item');

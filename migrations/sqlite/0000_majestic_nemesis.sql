@@ -104,25 +104,22 @@ CREATE TABLE `cart_items` (
 	`unit_price_cents` integer NOT NULL,
 	`created_at` integer NOT NULL,
 	`updated_at` integer NOT NULL,
-	FOREIGN KEY (`cart_id`) REFERENCES `carts`(`id`) ON UPDATE no action ON DELETE cascade,
-	FOREIGN KEY (`variant_id`) REFERENCES `catalog_product_variants`(`id`) ON UPDATE no action ON DELETE cascade
+	FOREIGN KEY (`cart_id`) REFERENCES `cart_carts`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `cart_items_cart_variant_idx` ON `cart_items` (`cart_id`,`variant_id`);--> statement-breakpoint
-CREATE TABLE `carts` (
+CREATE TABLE `cart_carts` (
 	`id` text PRIMARY KEY NOT NULL,
 	`user_id` text,
 	`status` text DEFAULT 'active' NOT NULL,
 	`currency` text DEFAULT 'USD' NOT NULL,
 	`coupon_id` text,
 	`created_at` integer NOT NULL,
-	`updated_at` integer NOT NULL,
-	FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON UPDATE no action ON DELETE set null,
-	FOREIGN KEY (`coupon_id`) REFERENCES `marketing_coupons`(`id`) ON UPDATE no action ON DELETE set null
+	`updated_at` integer NOT NULL
 );
 --> statement-breakpoint
-CREATE INDEX `carts_user_idx` ON `carts` (`user_id`);--> statement-breakpoint
-CREATE INDEX `carts_status_idx` ON `carts` (`status`);--> statement-breakpoint
+CREATE INDEX `cart_carts_user_idx` ON `cart_carts` (`user_id`);--> statement-breakpoint
+CREATE INDEX `cart_carts_status_idx` ON `cart_carts` (`status`);--> statement-breakpoint
 CREATE TABLE `reporting_catalog_products` (
 	`product_id` text PRIMARY KEY NOT NULL,
 	`sku` text NOT NULL,
