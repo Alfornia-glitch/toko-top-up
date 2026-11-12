@@ -1,6 +1,6 @@
-import { and, asc, count, desc, eq, inArray, like, or, type SQL } from 'drizzle-orm';
+import { and, asc, count, desc, eq, gte, inArray, like, lte, or, sum, type SQL } from 'drizzle-orm';
 import type { PostgresDb } from '#db/core.ts';
-import type { OrderFilter, OrdersRepository } from '../../domain/orders.ts';
+import { REVENUE_STATUSES, type OrderFilter, type OrdersRepository } from '../../domain/orders.ts';
 import { orderEvents, orderItems, orders, payments, shipments } from './schema.ts';
 
 const SORTABLE = {
@@ -153,6 +153,65 @@ export function createPostgresOrdersRepository(db: PostgresDb): OrdersRepository
 
 		async updatePayments(orderId, patch) {
 			await db.update(payments).set(patch).where(eq(payments.orderId, orderId));
+		},
+
+		async listSalesOrders(range) {
+			return db
+				.select({
+					id: orders.id,
+					status: orders.status,
+					grandTotalCents: orders.grandTotalCents,
+					placedAt: orders.placedAt
+				})
+				.from(orders)
+				.where(and(gte(orders.placedAt, range.start), lte(orders.placedAt, range.end)));
+		},
+
+		async topProducts(range, limit) {
+			const rows = await db
+				.select({
+					name: orderItems.productNameSnapshot,
+					sku: orderItems.skuSnapshot,
+					quantity: sum(orderItems.quantity),
+					totalCents: sum(orderItems.totalCents)
+				})
+				.from(orderItems)
+				.innerJoin(orders, eq(orderItems.orderId, orders.id))
+				.where(
+					and(
+						gte(orders.placedAt, range.start),
+						lte(orders.placedAt, range.end),
+						inArray(orders.status, [...REVENUE_STATUSES])
+					)
+				)
+				.groupBy(orderItems.productNameSnapshot, orderItems.skuSnapshot)
+				.orderBy(desc(sum(orderItems.totalCents)))
+				.limit(limit);
+
+			return rows.map((row) => ({
+				name: row.name,
+				sku: row.sku,
+				quantity: Number(row.quantity ?? 0),
+				totalCents: Number(row.totalCents ?? 0)
+			}));
+		},
+
+		async totals() {
+			const [all] = await db.select({ value: count() }).from(orders);
+			const [pending] = await db
+				.select({ value: count() })
+				.from(orders)
+				.where(eq(orders.status, 'pending'));
+			const [revenue] = await db
+				.select({ value: sum(orders.grandTotalCents) })
+				.from(orders)
+				.where(inArray(orders.status, [...REVENUE_STATUSES]));
+
+			return {
+				orderCount: Number(all?.value ?? 0),
+				pendingCount: Number(pending?.value ?? 0),
+				revenueCents: Number(revenue?.value ?? 0)
+			};
 		}
 	};
 }

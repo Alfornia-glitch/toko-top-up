@@ -84,12 +84,16 @@ export function createRuntime(
 	});
 	registry.register({
 		name: 'reporting',
-		dependencies: ['catalog'],
+		dependencies: ['catalog', 'orders', 'customers'],
 		initialize() {
-			if (!catalog) throw new Error('Catalog services are required by reporting');
+			if (!catalog || !orders || !customers) {
+				throw new Error('Catalog, orders and customers services are required by reporting');
+			}
 			reporting = createReportingServices({
 				...serviceOptions(),
 				catalog,
+				orders,
+				customers,
 				eventBus,
 				clock
 			});

@@ -1,4 +1,4 @@
-export { ORDER_TRANSITIONS } from './domain/orders.ts';
+export { ORDER_TRANSITIONS, REVENUE_STATUSES } from './domain/orders.ts';
 export { RETURNS_TRANSITIONS } from './domain/returns.ts';
 export type {
 	AdminOrderDetail,
@@ -7,17 +7,22 @@ export type {
 	CreatedOrder,
 	CustomerOrderDetail,
 	CustomerOrderSummary,
+	DateRange,
 	NewOrderItem,
 	Order,
 	OrderEvent,
 	OrderItem,
 	OrderListQuery,
 	OrderStatus,
+	OrderTotals,
 	OrderUpdateInput,
 	Payment,
+	SalesData,
+	SalesOrderRow,
 	PaymentStatus,
 	Shipment,
 	ShipmentCreateInput,
+	TopProductRow,
 	UserSummary
 } from './domain/orders.ts';
 export type {

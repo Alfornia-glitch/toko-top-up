@@ -21,14 +21,17 @@ import {
 	type AdminOrderListItem,
 	type CreateOrderInput,
 	type CreatedOrder,
+	type DateRange,
 	type CustomerOrderDetail,
 	type CustomerOrderSummary,
 	type Order,
 	type OrderEvent,
+	type OrderTotals,
 	type OrderListQuery,
 	type OrdersRepository,
 	type OrdersUserDirectory,
 	type OrderUpdateInput,
+	type SalesData,
 	type Shipment,
 	type ShipmentCreateInput
 } from '../domain/orders.ts';
@@ -54,6 +57,10 @@ export interface OrdersService {
 		actor: Actor | null
 	): Outcome<{ data: CustomerOrderSummary[]; page: number; pageSize: number; total: number }>;
 	getMyOrder(numberOrId: string, actor: Actor | null): Outcome<CustomerOrderDetail>;
+
+	/** Reporting reads (admin): orders placed in a range, and the best-selling products among revenue orders. */
+	getSalesData(range: DateRange, topLimit: number, actor: Actor | null): Outcome<SalesData>;
+	getTotals(actor: Actor | null): Outcome<OrderTotals>;
 
 	/** Service-to-service, used by checkout. Creates the order, items, placed event and payment atomically. */
 	createOrder(input: CreateOrderInput): Outcome<CreatedOrder>;
@@ -318,6 +325,22 @@ export function createOrdersService(
 						deliveredAt: shipment.deliveredAt
 					}))
 				};
+			}),
+
+		getSalesData: (range, topLimit, actor) =>
+			run(async () => {
+				assertPermission(actor, 'admin:access');
+				const [salesOrders, topProducts] = await Promise.all([
+					repository.listSalesOrders(range),
+					repository.topProducts(range, topLimit)
+				]);
+				return { orders: salesOrders, topProducts };
+			}),
+
+		getTotals: (actor) =>
+			run(async () => {
+				assertPermission(actor, 'admin:access');
+				return repository.totals();
 			}),
 
 		createOrder: (input) =>

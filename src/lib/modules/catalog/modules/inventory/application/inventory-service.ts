@@ -20,6 +20,7 @@ import {
 	type InventoryListQuery,
 	type InventoryListResult,
 	type MovementListQuery,
+	type InventoryReportData,
 	type MovementListResult,
 	type StockAdjustInput,
 	type StockAdjustment,
@@ -36,6 +37,8 @@ export interface InventoryService {
 		actor: Actor
 	): Promise<Result<MovementListResult, AppError>>;
 	adjust(input: StockAdjustInput, actor: Actor): Promise<Result<StockAdjustment, AppError>>;
+	/** Everything the inventory report needs: all variants and the last 30 days of movement totals. */
+	getReportData(actor: Actor): Promise<Result<InventoryReportData, AppError>>;
 	/**
 	 * Service-to-service: takes stock for an order. All lines succeed or none do;
 	 * fails with 409 naming the variant when stock is insufficient. Needs no actor.
@@ -137,6 +140,20 @@ export function createInventoryService(
 					})
 				);
 				return ok(outcome.adjustment);
+			} catch (error) {
+				return err(toAppError(error));
+			}
+		},
+
+		async getReportData(actor) {
+			try {
+				assertPermission(actor, 'catalog:inventory:read');
+				const since = new Date(clock.now().getTime() - 30 * 86_400_000);
+				const [variants, recentMovements] = await Promise.all([
+					repository.listAllVariants(),
+					repository.movementTotalsSince(since, 10)
+				]);
+				return ok({ variants, recentMovements });
 			} catch (error) {
 				return err(toAppError(error));
 			}

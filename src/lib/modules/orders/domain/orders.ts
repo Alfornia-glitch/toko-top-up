@@ -261,6 +261,39 @@ export interface OrderBundle {
 	payment: Payment;
 }
 
+/** Statuses that count as revenue in reports. */
+export const REVENUE_STATUSES = ['paid', 'processing', 'shipped', 'delivered'] as const;
+
+export interface DateRange {
+	start: Date;
+	end: Date;
+}
+
+export interface SalesOrderRow {
+	id: string;
+	status: OrderStatus;
+	grandTotalCents: number;
+	placedAt: Date;
+}
+
+export interface TopProductRow {
+	name: string;
+	sku: string;
+	quantity: number;
+	totalCents: number;
+}
+
+export interface SalesData {
+	orders: SalesOrderRow[];
+	topProducts: TopProductRow[];
+}
+
+export interface OrderTotals {
+	orderCount: number;
+	pendingCount: number;
+	revenueCents: number;
+}
+
 export interface OrdersRepository {
 	listOrders(
 		filter: OrderFilter,
@@ -284,6 +317,9 @@ export interface OrdersRepository {
 	updateOrder(id: string, patch: Partial<Order>, events: OrderEvent[]): Promise<void>;
 	/** Inserts the shipment, patches the order and appends the event atomically. */
 	insertShipment(shipment: Shipment, orderPatch: Partial<Order>, event: OrderEvent): Promise<void>;
+	listSalesOrders(range: DateRange): Promise<SalesOrderRow[]>;
+	topProducts(range: DateRange, limit: number): Promise<TopProductRow[]>;
+	totals(): Promise<OrderTotals>;
 	/** Marks the order's payments failed (used when an order is cancelled after a failed checkout). */
 	updatePayments(orderId: string, patch: Partial<Payment>): Promise<void>;
 }

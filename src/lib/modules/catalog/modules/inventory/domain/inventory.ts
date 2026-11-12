@@ -102,3 +102,25 @@ export type StockReserveOutcome =
 	| { kind: 'reserved'; stock: Array<{ variantId: string; stock: number; movementId: string }> }
 	| { kind: 'not_found'; variantId: string }
 	| { kind: 'insufficient'; variantId: string; available: number };
+
+export interface InventoryReportVariant {
+	id: string;
+	name: string;
+	sku: string;
+	stock: number;
+	priceCents: number;
+	status: 'active' | 'inactive';
+	productName: string;
+}
+
+export interface MovementTotal {
+	variantId: string;
+	delta: number;
+	entries: number;
+}
+
+export interface InventoryReportData {
+	variants: InventoryReportVariant[];
+	/** Net stock change per variant over the last 30 days, largest first. */
+	recentMovements: MovementTotal[];
+}

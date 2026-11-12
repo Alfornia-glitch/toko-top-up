@@ -4,6 +4,8 @@ import type {
 	MovementListQuery,
 	MovementRow,
 	StockAdjustInput,
+	InventoryReportVariant,
+	MovementTotal,
 	StockAdjustOutcome,
 	StockLine,
 	StockReference,
@@ -30,6 +32,8 @@ export interface InventoryRepository {
 	listVariants(query: InventoryListQuery): Promise<InventoryListRecord>;
 	listMovements(query: MovementListQuery): Promise<MovementListRecord>;
 	adjustStock(input: StockAdjustInput, meta: StockAdjustMeta): Promise<StockAdjustOutcome>;
+	listAllVariants(): Promise<InventoryReportVariant[]>;
+	movementTotalsSince(since: Date, limit: number): Promise<MovementTotal[]>;
 	/**
 	 * Decrements every line atomically: a guarded update per variant inside one
 	 * transaction, rolled back entirely when any line cannot be fulfilled.

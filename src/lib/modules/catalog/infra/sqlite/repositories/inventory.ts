@@ -1,4 +1,4 @@
-import { and, asc, count, desc, eq, gte, like, lte, or, sql, type SQL } from 'drizzle-orm';
+import { and, asc, count, desc, eq, gte, like, lte, or, sql, sum, type SQL } from 'drizzle-orm';
 import type { SqliteDb } from '#db/core.ts';
 import { inventoryMovements, products, productVariants } from '../schema.ts';
 import type { InventoryRepository } from '../../../modules/inventory/server.ts';
@@ -138,6 +138,41 @@ export function createSqliteInventoryRepository(db: SqliteDb): InventoryReposito
 					}
 				};
 			});
+		},
+
+		async listAllVariants() {
+			return db
+				.select({
+					id: productVariants.id,
+					name: productVariants.name,
+					sku: productVariants.sku,
+					stock: productVariants.stock,
+					priceCents: productVariants.priceCents,
+					status: productVariants.status,
+					productName: products.name
+				})
+				.from(productVariants)
+				.innerJoin(products, eq(productVariants.productId, products.id));
+		},
+
+		async movementTotalsSince(since, limit) {
+			const rows = await db
+				.select({
+					variantId: inventoryMovements.variantId,
+					delta: sum(inventoryMovements.delta),
+					entries: count()
+				})
+				.from(inventoryMovements)
+				.where(gte(inventoryMovements.createdAt, since))
+				.groupBy(inventoryMovements.variantId)
+				.orderBy(desc(sum(inventoryMovements.delta)))
+				.limit(limit);
+
+			return rows.map((row) => ({
+				variantId: row.variantId,
+				delta: Number(row.delta ?? 0),
+				entries: Number(row.entries ?? 0)
+			}));
 		},
 
 		async reserveStock(lines, reference, meta) {

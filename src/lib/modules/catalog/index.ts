@@ -60,10 +60,13 @@ export {
 export type {
 	InventoryListQuery,
 	InventoryListResult,
+	InventoryReportData,
+	InventoryReportVariant,
 	InventoryRow,
 	MovementListQuery,
 	MovementListResult,
 	MovementRow,
+	MovementTotal,
 	StockAdjustInput,
 	StockAdjustment
 } from './modules/inventory/index.ts';

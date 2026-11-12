@@ -1,10 +1,17 @@
-import type { Clock, EventBus, EventEnvelope } from '#shared';
+import { unwrap, type Clock, type EventBus, type EventEnvelope } from '#shared';
 import type { PostgresDb, SqliteDb } from '#db/core.ts';
 import { PRODUCT_EVENTS, type CatalogEventMap } from '#modules/catalog/index.ts';
 import type { CatalogServices } from '#modules/catalog/server.ts';
+import type { CustomersServices } from '#modules/customers/server.ts';
+import type { OrdersServices } from '#modules/orders/server.ts';
+import {
+	createCommerceReportsService,
+	type CommerceReportsService
+} from './application/commerce-reports-service.ts';
 import { createReportingService, type ReportingService } from './application/reporting-service.ts';
 import type {
 	CatalogProductReader,
+	CommerceReader,
 	CatalogSnapshot,
 	ReportedProductStatus
 } from './domain/reporting.ts';
@@ -13,6 +20,7 @@ import { createSqliteReportingRepository } from './infra/sqlite/reporting-reposi
 
 export interface ReportingServices {
 	readonly reporting: ReportingService;
+	readonly commerce: CommerceReportsService;
 }
 
 type ReportingOptions =
@@ -20,6 +28,8 @@ type ReportingOptions =
 			provider: 'postgres';
 			db: PostgresDb;
 			catalog: CatalogServices;
+			orders: Pick<OrdersServices, 'orders'>;
+			customers: Pick<CustomersServices, 'customers'>;
 			eventBus: EventBus;
 			clock?: Clock;
 	  }
@@ -27,6 +37,8 @@ type ReportingOptions =
 			provider: 'sqlite';
 			db: SqliteDb;
 			catalog: CatalogServices;
+			orders: Pick<OrdersServices, 'orders'>;
+			customers: Pick<CustomersServices, 'customers'>;
 			eventBus: EventBus;
 			clock?: Clock;
 	  };
@@ -64,11 +76,49 @@ export function createReportingServices(options: ReportingOptions): ReportingSer
 		}
 	};
 
+	const commerceReader: CommerceReader = {
+		async salesData(range, topLimit, actor) {
+			return unwrap(await options.orders.orders.getSalesData(range, topLimit, actor));
+		},
+		async orderTotals(actor) {
+			return unwrap(await options.orders.orders.getTotals(actor));
+		},
+		async recentOrders(limit, actor) {
+			const page = unwrap(
+				await options.orders.orders.listOrders(
+					{ page: 1, pageSize: limit, sort: '-placedAt' },
+					actor
+				)
+			);
+			return page.data.map((order) => ({
+				id: order.id,
+				orderNumber: order.orderNumber,
+				status: order.status,
+				paymentStatus: order.paymentStatus,
+				grandTotalCents: order.grandTotalCents,
+				currency: order.currency,
+				placedAt: order.placedAt
+			}));
+		},
+		async inventoryData(actor) {
+			return unwrap(await options.catalog.inventory.getReportData(actor));
+		},
+		async productCount(actor) {
+			return unwrap(await options.catalog.products.list({ page: 1, pageSize: 1 }, actor)).total;
+		},
+		async customerCount(actor) {
+			return unwrap(
+				await options.customers.customers.listCustomers({ page: 1, pageSize: 1 }, actor)
+			).total;
+		}
+	};
+
 	const reporting = createReportingService(repository, reader, options.clock);
+	const commerce = createCommerceReportsService(commerceReader, options.clock);
 
 	subscribeReportingEvents(options.eventBus, reporting);
 
-	return { reporting };
+	return { reporting, commerce };
 }
 
 export function subscribeReportingEvents(eventBus: EventBus, reporting: ReportingService): void {
