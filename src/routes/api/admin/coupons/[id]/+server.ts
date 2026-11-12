@@ -2,7 +2,7 @@ import type { RequestHandler } from './$types';
 import { requireAdmin } from '#lib/server/modules/admin/access.ts';
 import { auditRequest } from '#lib/server/modules/admin/audit.ts';
 import { couponWriteSchema } from '#lib/server/modules/admin/validation.ts';
-import { deleteCoupon, updateCoupon } from '#lib/server/modules/marketing/coupons.ts';
+import { unwrap } from '#shared';
 import { apiErrorResponse } from '#lib/server/http/api-error.ts';
 
 export const PATCH: RequestHandler = async (event) => {
@@ -21,8 +21,13 @@ export const PATCH: RequestHandler = async (event) => {
 			{ status: 422 }
 		);
 	try {
-		const coupon = await updateCoupon(event.params.id, parsed.data);
-		if (!coupon) return Response.json({ error: 'Coupon not found' }, { status: 404 });
+		const coupon = unwrap(
+			await event.locals.services.marketing.marketing.updateCoupon(
+				event.params.id,
+				parsed.data,
+				event.locals.actor
+			)
+		);
 		await auditRequest(event, event.locals.user!.id, {
 			action: 'coupon.update',
 			entityType: 'coupon',
@@ -38,10 +43,12 @@ export const PATCH: RequestHandler = async (event) => {
 export const DELETE: RequestHandler = async (event) => {
 	const denied = requireAdmin(event.locals.user);
 	if (denied) return denied;
-	const result = await deleteCoupon(event.params.id);
-	if (result === 'not_found') return Response.json({ error: 'Coupon not found' }, { status: 404 });
-	if (result === 'in_use')
-		return Response.json({ error: 'Coupon has redemptions; disable it instead' }, { status: 409 });
+	unwrap(
+		await event.locals.services.marketing.marketing.deleteCoupon(
+			event.params.id,
+			event.locals.actor
+		)
+	);
 	await auditRequest(event, event.locals.user!.id, {
 		action: 'coupon.delete',
 		entityType: 'coupon',

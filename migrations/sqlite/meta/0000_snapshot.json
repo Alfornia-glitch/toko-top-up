@@ -1,7 +1,7 @@
 {
 	"version": "6",
 	"dialect": "sqlite",
-	"id": "a384c06f-6094-4d39-ba81-feed86bf5bd1",
+	"id": "38c90378-9e9f-44d8-b243-d39125150219",
 	"prevId": "00000000-0000-0000-0000-000000000000",
 	"tables": {
 		"account": {
@@ -787,10 +787,10 @@
 					"onDelete": "set null",
 					"onUpdate": "no action"
 				},
-				"carts_coupon_id_coupons_id_fk": {
-					"name": "carts_coupon_id_coupons_id_fk",
+				"carts_coupon_id_marketing_coupons_id_fk": {
+					"name": "carts_coupon_id_marketing_coupons_id_fk",
 					"tableFrom": "carts",
-					"tableTo": "coupons",
+					"tableTo": "marketing_coupons",
 					"columnsFrom": ["coupon_id"],
 					"columnsTo": ["id"],
 					"onDelete": "set null",
@@ -1007,10 +1007,10 @@
 				}
 			},
 			"foreignKeys": {
-				"coupon_redemptions_coupon_id_coupons_id_fk": {
-					"name": "coupon_redemptions_coupon_id_coupons_id_fk",
+				"coupon_redemptions_coupon_id_marketing_coupons_id_fk": {
+					"name": "coupon_redemptions_coupon_id_marketing_coupons_id_fk",
 					"tableFrom": "coupon_redemptions",
-					"tableTo": "coupons",
+					"tableTo": "marketing_coupons",
 					"columnsFrom": ["coupon_id"],
 					"columnsTo": ["id"],
 					"onDelete": "cascade",
@@ -1039,8 +1039,8 @@
 			"uniqueConstraints": {},
 			"checkConstraints": {}
 		},
-		"coupons": {
-			"name": "coupons",
+		"marketing_coupons": {
+			"name": "marketing_coupons",
 			"columns": {
 				"id": {
 					"name": "id",
@@ -1138,13 +1138,13 @@
 				}
 			},
 			"indexes": {
-				"coupons_code_unique": {
-					"name": "coupons_code_unique",
+				"marketing_coupons_code_unique": {
+					"name": "marketing_coupons_code_unique",
 					"columns": ["code"],
 					"isUnique": true
 				},
-				"coupons_status_idx": {
-					"name": "coupons_status_idx",
+				"marketing_coupons_status_idx": {
+					"name": "marketing_coupons_status_idx",
 					"columns": ["status"],
 					"isUnique": false
 				}
@@ -1154,8 +1154,8 @@
 			"uniqueConstraints": {},
 			"checkConstraints": {}
 		},
-		"gift_card_transactions": {
-			"name": "gift_card_transactions",
+		"marketing_gift_card_transactions": {
+			"name": "marketing_gift_card_transactions",
 			"columns": {
 				"id": {
 					"name": "id",
@@ -1201,29 +1201,20 @@
 				}
 			},
 			"indexes": {
-				"gift_card_transactions_card_idx": {
-					"name": "gift_card_transactions_card_idx",
+				"marketing_gift_card_transactions_card_idx": {
+					"name": "marketing_gift_card_transactions_card_idx",
 					"columns": ["gift_card_id"],
 					"isUnique": false
 				}
 			},
 			"foreignKeys": {
-				"gift_card_transactions_gift_card_id_gift_cards_id_fk": {
-					"name": "gift_card_transactions_gift_card_id_gift_cards_id_fk",
-					"tableFrom": "gift_card_transactions",
-					"tableTo": "gift_cards",
+				"marketing_gift_card_transactions_gift_card_id_marketing_gift_cards_id_fk": {
+					"name": "marketing_gift_card_transactions_gift_card_id_marketing_gift_cards_id_fk",
+					"tableFrom": "marketing_gift_card_transactions",
+					"tableTo": "marketing_gift_cards",
 					"columnsFrom": ["gift_card_id"],
 					"columnsTo": ["id"],
 					"onDelete": "cascade",
-					"onUpdate": "no action"
-				},
-				"gift_card_transactions_order_id_orders_id_fk": {
-					"name": "gift_card_transactions_order_id_orders_id_fk",
-					"tableFrom": "gift_card_transactions",
-					"tableTo": "orders",
-					"columnsFrom": ["order_id"],
-					"columnsTo": ["id"],
-					"onDelete": "set null",
 					"onUpdate": "no action"
 				}
 			},
@@ -1231,8 +1222,8 @@
 			"uniqueConstraints": {},
 			"checkConstraints": {}
 		},
-		"gift_cards": {
-			"name": "gift_cards",
+		"marketing_gift_cards": {
+			"name": "marketing_gift_cards",
 			"columns": {
 				"id": {
 					"name": "id",
@@ -1343,42 +1334,23 @@
 				}
 			},
 			"indexes": {
-				"gift_cards_code_unique": {
-					"name": "gift_cards_code_unique",
+				"marketing_gift_cards_code_unique": {
+					"name": "marketing_gift_cards_code_unique",
 					"columns": ["code"],
 					"isUnique": true
 				},
-				"gift_cards_code_idx": {
-					"name": "gift_cards_code_idx",
+				"marketing_gift_cards_code_idx": {
+					"name": "marketing_gift_cards_code_idx",
 					"columns": ["code"],
 					"isUnique": false
 				},
-				"gift_cards_status_idx": {
-					"name": "gift_cards_status_idx",
+				"marketing_gift_cards_status_idx": {
+					"name": "marketing_gift_cards_status_idx",
 					"columns": ["status"],
 					"isUnique": false
 				}
 			},
-			"foreignKeys": {
-				"gift_cards_purchaser_user_id_user_id_fk": {
-					"name": "gift_cards_purchaser_user_id_user_id_fk",
-					"tableFrom": "gift_cards",
-					"tableTo": "user",
-					"columnsFrom": ["purchaser_user_id"],
-					"columnsTo": ["id"],
-					"onDelete": "set null",
-					"onUpdate": "no action"
-				},
-				"gift_cards_order_id_orders_id_fk": {
-					"name": "gift_cards_order_id_orders_id_fk",
-					"tableFrom": "gift_cards",
-					"tableTo": "orders",
-					"columnsFrom": ["order_id"],
-					"columnsTo": ["id"],
-					"onDelete": "set null",
-					"onUpdate": "no action"
-				}
-			},
+			"foreignKeys": {},
 			"compositePrimaryKeys": {},
 			"uniqueConstraints": {},
 			"checkConstraints": {}
@@ -1554,8 +1526,8 @@
 			"uniqueConstraints": {},
 			"checkConstraints": {}
 		},
-		"newsletter_subscriptions": {
-			"name": "newsletter_subscriptions",
+		"marketing_newsletter_subscriptions": {
+			"name": "marketing_newsletter_subscriptions",
 			"columns": {
 				"id": {
 					"name": "id",
@@ -1616,28 +1588,18 @@
 				}
 			},
 			"indexes": {
-				"newsletter_subscriptions_email_unique": {
-					"name": "newsletter_subscriptions_email_unique",
+				"marketing_newsletter_subscriptions_email_unique": {
+					"name": "marketing_newsletter_subscriptions_email_unique",
 					"columns": ["email"],
 					"isUnique": true
 				},
-				"newsletter_subscriptions_status_idx": {
-					"name": "newsletter_subscriptions_status_idx",
+				"marketing_newsletter_subscriptions_status_idx": {
+					"name": "marketing_newsletter_subscriptions_status_idx",
 					"columns": ["status"],
 					"isUnique": false
 				}
 			},
-			"foreignKeys": {
-				"newsletter_subscriptions_user_id_user_id_fk": {
-					"name": "newsletter_subscriptions_user_id_user_id_fk",
-					"tableFrom": "newsletter_subscriptions",
-					"tableTo": "user",
-					"columnsFrom": ["user_id"],
-					"columnsTo": ["id"],
-					"onDelete": "set null",
-					"onUpdate": "no action"
-				}
-			},
+			"foreignKeys": {},
 			"compositePrimaryKeys": {},
 			"uniqueConstraints": {},
 			"checkConstraints": {}
@@ -2046,10 +2008,10 @@
 					"onDelete": "set null",
 					"onUpdate": "no action"
 				},
-				"orders_coupon_id_coupons_id_fk": {
-					"name": "orders_coupon_id_coupons_id_fk",
+				"orders_coupon_id_marketing_coupons_id_fk": {
+					"name": "orders_coupon_id_marketing_coupons_id_fk",
 					"tableFrom": "orders",
-					"tableTo": "coupons",
+					"tableTo": "marketing_coupons",
 					"columnsFrom": ["coupon_id"],
 					"columnsTo": ["id"],
 					"onDelete": "set null",

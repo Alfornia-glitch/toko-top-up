@@ -2,6 +2,7 @@ import { relations } from 'drizzle-orm';
 import { index, integer, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core';
 import { user } from './auth.ts';
 import { productVariants } from '#modules/catalog/infra/sqlite/schema.ts';
+import { coupons } from '#modules/marketing/infra/sqlite/schema.ts';
 
 const timestamps = {
 	createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull(),
@@ -9,27 +10,6 @@ const timestamps = {
 		.$onUpdate(() => new Date())
 		.notNull()
 };
-
-export const coupons = sqliteTable(
-	'coupons',
-	{
-		id: text('id').primaryKey(),
-		code: text('code').notNull().unique(),
-		type: text('type', { enum: ['percentage', 'fixed'] }).notNull(),
-		value: integer('value').notNull(),
-		minSubtotalCents: integer('min_subtotal_cents').notNull().default(0),
-		maxUses: integer('max_uses'),
-		usedCount: integer('used_count').notNull().default(0),
-		startsAt: integer('starts_at', { mode: 'timestamp_ms' }),
-		endsAt: integer('ends_at', { mode: 'timestamp_ms' }),
-		status: text('status', { enum: ['active', 'disabled'] })
-			.notNull()
-			.default('active'),
-		appliesToJson: text('applies_to_json', { mode: 'json' }).$type<Record<string, unknown>>(),
-		...timestamps
-	},
-	(table) => [index('coupons_status_idx').on(table.status)]
-);
 
 export const carts = sqliteTable(
 	'carts',
@@ -268,65 +248,6 @@ export const returnRequestImages = sqliteTable(
 	(table) => [index('return_request_images_request_idx').on(table.requestId)]
 );
 
-export const giftCards = sqliteTable(
-	'gift_cards',
-	{
-		id: text('id').primaryKey(),
-		code: text('code').notNull().unique(),
-		initialAmountCents: integer('initial_amount_cents').notNull(),
-		balanceCents: integer('balance_cents').notNull(),
-		currency: text('currency').notNull().default('USD'),
-		status: text('status', { enum: ['active', 'redeemed', 'expired', 'disabled'] })
-			.notNull()
-			.default('active'),
-		recipientName: text('recipient_name'),
-		recipientEmail: text('recipient_email'),
-		purchaserUserId: text('purchaser_user_id').references(() => user.id, {
-			onDelete: 'set null'
-		}),
-		orderId: text('order_id').references(() => orders.id, { onDelete: 'set null' }),
-		message: text('message'),
-		deliveredAt: integer('delivered_at', { mode: 'timestamp_ms' }),
-		expiresAt: integer('expires_at', { mode: 'timestamp_ms' }),
-		...timestamps
-	},
-	(table) => [
-		index('gift_cards_code_idx').on(table.code),
-		index('gift_cards_status_idx').on(table.status)
-	]
-);
-
-export const giftCardTransactions = sqliteTable(
-	'gift_card_transactions',
-	{
-		id: text('id').primaryKey(),
-		giftCardId: text('gift_card_id')
-			.notNull()
-			.references(() => giftCards.id, { onDelete: 'cascade' }),
-		orderId: text('order_id').references(() => orders.id, { onDelete: 'set null' }),
-		amountCents: integer('amount_cents').notNull(),
-		type: text('type', { enum: ['issue', 'redeem', 'refund'] }).notNull(),
-		createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull()
-	},
-	(table) => [index('gift_card_transactions_card_idx').on(table.giftCardId)]
-);
-
-export const newsletterSubscriptions = sqliteTable(
-	'newsletter_subscriptions',
-	{
-		id: text('id').primaryKey(),
-		userId: text('user_id').references(() => user.id, { onDelete: 'set null' }),
-		email: text('email').notNull().unique(),
-		preferencesJson: text('preferences_json', { mode: 'json' }).$type<Record<string, unknown>>(),
-		status: text('status', { enum: ['subscribed', 'unsubscribed'] })
-			.notNull()
-			.default('subscribed'),
-		source: text('source'),
-		...timestamps
-	},
-	(table) => [index('newsletter_subscriptions_status_idx').on(table.status)]
-);
-
 export const cartsRelations = relations(carts, ({ one, many }) => ({
 	user: one(user, { fields: [carts.userId], references: [user.id] }),
 	coupon: one(coupons, { fields: [carts.couponId], references: [coupons.id] }),
@@ -396,22 +317,4 @@ export const returnRequestImagesRelations = relations(returnRequestImages, ({ on
 		fields: [returnRequestImages.requestId],
 		references: [returnRequests.id]
 	})
-}));
-
-export const giftCardsRelations = relations(giftCards, ({ one, many }) => ({
-	purchaser: one(user, { fields: [giftCards.purchaserUserId], references: [user.id] }),
-	order: one(orders, { fields: [giftCards.orderId], references: [orders.id] }),
-	transactions: many(giftCardTransactions)
-}));
-
-export const giftCardTransactionsRelations = relations(giftCardTransactions, ({ one }) => ({
-	giftCard: one(giftCards, {
-		fields: [giftCardTransactions.giftCardId],
-		references: [giftCards.id]
-	}),
-	order: one(orders, { fields: [giftCardTransactions.orderId], references: [orders.id] })
-}));
-
-export const newsletterSubscriptionsRelations = relations(newsletterSubscriptions, ({ one }) => ({
-	user: one(user, { fields: [newsletterSubscriptions.userId], references: [user.id] })
 }));

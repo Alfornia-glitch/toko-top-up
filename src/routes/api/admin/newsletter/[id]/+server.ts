@@ -2,7 +2,7 @@ import type { RequestHandler } from './$types';
 import { requireAdmin } from '#lib/server/modules/admin/access.ts';
 import { auditRequest } from '#lib/server/modules/admin/audit.ts';
 import { newsletterUpdateSchema } from '#lib/server/modules/admin/validation.ts';
-import { setNewsletterStatus } from '#lib/server/modules/marketing/newsletter.ts';
+import { unwrap } from '#shared';
 
 export const PATCH: RequestHandler = async (event) => {
 	const denied = requireAdmin(event.locals.user);
@@ -16,8 +16,13 @@ export const PATCH: RequestHandler = async (event) => {
 	const parsed = newsletterUpdateSchema.safeParse(body);
 	if (!parsed.success)
 		return Response.json({ error: 'Invalid subscription update' }, { status: 422 });
-	const row = await setNewsletterStatus(event.params.id, parsed.data.status);
-	if (!row) return Response.json({ error: 'Subscription not found' }, { status: 404 });
+	const row = unwrap(
+		await event.locals.services.marketing.marketing.setSubscriptionStatus(
+			event.params.id,
+			parsed.data.status,
+			event.locals.actor
+		)
+	);
 	await auditRequest(event, event.locals.user!.id, {
 		action: 'newsletter.status',
 		entityType: 'newsletter',

@@ -2,7 +2,7 @@ import type { RequestHandler } from './$types';
 import { requireAdmin } from '#lib/server/modules/admin/access.ts';
 import { auditRequest } from '#lib/server/modules/admin/audit.ts';
 import { giftCardWriteSchema, paginationSchema } from '#lib/server/modules/admin/validation.ts';
-import { createGiftCard, listGiftCards } from '#lib/server/modules/marketing/gift-cards.ts';
+import { unwrap } from '#shared';
 import { apiErrorResponse } from '#lib/server/http/api-error.ts';
 
 export const GET: RequestHandler = async ({ locals, url }) => {
@@ -10,7 +10,9 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 	if (denied) return denied;
 	const parsed = paginationSchema.safeParse(Object.fromEntries(url.searchParams));
 	if (!parsed.success) return Response.json({ error: 'Invalid query parameters' }, { status: 400 });
-	return Response.json(await listGiftCards(parsed.data));
+	return Response.json(
+		unwrap(await locals.services.marketing.marketing.listGiftCards(parsed.data, locals.actor))
+	);
 };
 
 export const POST: RequestHandler = async (event) => {
@@ -29,7 +31,12 @@ export const POST: RequestHandler = async (event) => {
 			{ status: 422 }
 		);
 	try {
-		const id = await createGiftCard(parsed.data);
+		const id = unwrap(
+			await event.locals.services.marketing.marketing.createGiftCard(
+				parsed.data,
+				event.locals.actor
+			)
+		);
 		await auditRequest(event, event.locals.user!.id, {
 			action: 'gift_card.create',
 			entityType: 'gift_card',

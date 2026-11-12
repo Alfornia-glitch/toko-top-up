@@ -2,13 +2,14 @@ import type { RequestHandler } from './$types';
 import { requireAdmin } from '#lib/server/modules/admin/access.ts';
 import { auditRequest } from '#lib/server/modules/admin/audit.ts';
 import { giftCardUpdateSchema } from '#lib/server/modules/admin/validation.ts';
-import { getGiftCard, updateGiftCard } from '#lib/server/modules/marketing/gift-cards.ts';
+import { unwrap } from '#shared';
 
 export const GET: RequestHandler = async ({ locals, params }) => {
 	const denied = requireAdmin(locals.user);
 	if (denied) return denied;
-	const card = await getGiftCard(params.id);
-	if (!card) return Response.json({ error: 'Gift card not found' }, { status: 404 });
+	const card = unwrap(
+		await locals.services.marketing.marketing.getGiftCard(params.id, locals.actor)
+	);
 	return Response.json({ data: card });
 };
 
@@ -23,8 +24,13 @@ export const PATCH: RequestHandler = async (event) => {
 	}
 	const parsed = giftCardUpdateSchema.safeParse(body);
 	if (!parsed.success) return Response.json({ error: 'Invalid gift card update' }, { status: 422 });
-	const card = await updateGiftCard(event.params.id, parsed.data);
-	if (!card) return Response.json({ error: 'Gift card not found' }, { status: 404 });
+	const card = unwrap(
+		await event.locals.services.marketing.marketing.updateGiftCard(
+			event.params.id,
+			parsed.data,
+			event.locals.actor
+		)
+	);
 	await auditRequest(event, event.locals.user!.id, {
 		action: 'gift_card.update',
 		entityType: 'gift_card',

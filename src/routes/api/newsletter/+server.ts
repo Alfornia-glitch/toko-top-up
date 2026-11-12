@@ -1,11 +1,7 @@
 import type { RequestHandler } from './$types';
-import { eq } from 'drizzle-orm';
-import { queryDb, tables } from '#db/query.ts';
+import { unwrap } from '#shared';
 import { customerErrorResponse } from '#lib/server/modules/customer/http.ts';
 import { newsletterSubscribeSchema } from '#lib/server/modules/customer/validation.ts';
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const t = tables as any;
 
 export const POST: RequestHandler = async ({ request, locals }) => {
 	let body: unknown;
@@ -23,36 +19,11 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		);
 
 	const email = parsed.data.email;
-	const userId = locals.user?.id ?? null;
 
 	try {
-		const [existing] = await queryDb
-			.select()
-			.from(t.newsletterSubscriptions)
-			.where(eq(t.newsletterSubscriptions.email, email))
-			.limit(1);
-
-		if (existing) {
-			await queryDb
-				.update(t.newsletterSubscriptions)
-				.set({
-					status: 'subscribed',
-					userId: userId ?? existing.userId ?? null,
-					updatedAt: new Date()
-				})
-				.where(eq(t.newsletterSubscriptions.id, existing.id));
-		} else {
-			const now = new Date();
-			await queryDb.insert(t.newsletterSubscriptions).values({
-				id: crypto.randomUUID(),
-				email,
-				userId,
-				status: 'subscribed',
-				source: 'footer',
-				createdAt: now,
-				updatedAt: now
-			});
-		}
+		unwrap(
+			await locals.services.marketing.marketing.subscribe(email, locals.user?.id ?? null, 'footer')
+		);
 
 		return Response.json({ data: { email, status: 'subscribed' } }, { status: 201 });
 	} catch (error) {

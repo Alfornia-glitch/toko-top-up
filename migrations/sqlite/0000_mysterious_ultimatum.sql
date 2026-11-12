@@ -118,7 +118,7 @@ CREATE TABLE `carts` (
 	`created_at` integer NOT NULL,
 	`updated_at` integer NOT NULL,
 	FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON UPDATE no action ON DELETE set null,
-	FOREIGN KEY (`coupon_id`) REFERENCES `coupons`(`id`) ON UPDATE no action ON DELETE set null
+	FOREIGN KEY (`coupon_id`) REFERENCES `marketing_coupons`(`id`) ON UPDATE no action ON DELETE set null
 );
 --> statement-breakpoint
 CREATE INDEX `carts_user_idx` ON `carts` (`user_id`);--> statement-breakpoint
@@ -155,13 +155,13 @@ CREATE TABLE `coupon_redemptions` (
 	`user_id` text,
 	`amount_cents` integer NOT NULL,
 	`created_at` integer NOT NULL,
-	FOREIGN KEY (`coupon_id`) REFERENCES `coupons`(`id`) ON UPDATE no action ON DELETE cascade,
+	FOREIGN KEY (`coupon_id`) REFERENCES `marketing_coupons`(`id`) ON UPDATE no action ON DELETE cascade,
 	FOREIGN KEY (`order_id`) REFERENCES `orders`(`id`) ON UPDATE no action ON DELETE cascade,
 	FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON UPDATE no action ON DELETE set null
 );
 --> statement-breakpoint
 CREATE INDEX `coupon_redemptions_coupon_idx` ON `coupon_redemptions` (`coupon_id`);--> statement-breakpoint
-CREATE TABLE `coupons` (
+CREATE TABLE `marketing_coupons` (
 	`id` text PRIMARY KEY NOT NULL,
 	`code` text NOT NULL,
 	`type` text NOT NULL,
@@ -177,21 +177,20 @@ CREATE TABLE `coupons` (
 	`updated_at` integer NOT NULL
 );
 --> statement-breakpoint
-CREATE UNIQUE INDEX `coupons_code_unique` ON `coupons` (`code`);--> statement-breakpoint
-CREATE INDEX `coupons_status_idx` ON `coupons` (`status`);--> statement-breakpoint
-CREATE TABLE `gift_card_transactions` (
+CREATE UNIQUE INDEX `marketing_coupons_code_unique` ON `marketing_coupons` (`code`);--> statement-breakpoint
+CREATE INDEX `marketing_coupons_status_idx` ON `marketing_coupons` (`status`);--> statement-breakpoint
+CREATE TABLE `marketing_gift_card_transactions` (
 	`id` text PRIMARY KEY NOT NULL,
 	`gift_card_id` text NOT NULL,
 	`order_id` text,
 	`amount_cents` integer NOT NULL,
 	`type` text NOT NULL,
 	`created_at` integer NOT NULL,
-	FOREIGN KEY (`gift_card_id`) REFERENCES `gift_cards`(`id`) ON UPDATE no action ON DELETE cascade,
-	FOREIGN KEY (`order_id`) REFERENCES `orders`(`id`) ON UPDATE no action ON DELETE set null
+	FOREIGN KEY (`gift_card_id`) REFERENCES `marketing_gift_cards`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
-CREATE INDEX `gift_card_transactions_card_idx` ON `gift_card_transactions` (`gift_card_id`);--> statement-breakpoint
-CREATE TABLE `gift_cards` (
+CREATE INDEX `marketing_gift_card_transactions_card_idx` ON `marketing_gift_card_transactions` (`gift_card_id`);--> statement-breakpoint
+CREATE TABLE `marketing_gift_cards` (
 	`id` text PRIMARY KEY NOT NULL,
 	`code` text NOT NULL,
 	`initial_amount_cents` integer NOT NULL,
@@ -206,14 +205,12 @@ CREATE TABLE `gift_cards` (
 	`delivered_at` integer,
 	`expires_at` integer,
 	`created_at` integer NOT NULL,
-	`updated_at` integer NOT NULL,
-	FOREIGN KEY (`purchaser_user_id`) REFERENCES `user`(`id`) ON UPDATE no action ON DELETE set null,
-	FOREIGN KEY (`order_id`) REFERENCES `orders`(`id`) ON UPDATE no action ON DELETE set null
+	`updated_at` integer NOT NULL
 );
 --> statement-breakpoint
-CREATE UNIQUE INDEX `gift_cards_code_unique` ON `gift_cards` (`code`);--> statement-breakpoint
-CREATE INDEX `gift_cards_code_idx` ON `gift_cards` (`code`);--> statement-breakpoint
-CREATE INDEX `gift_cards_status_idx` ON `gift_cards` (`status`);--> statement-breakpoint
+CREATE UNIQUE INDEX `marketing_gift_cards_code_unique` ON `marketing_gift_cards` (`code`);--> statement-breakpoint
+CREATE INDEX `marketing_gift_cards_code_idx` ON `marketing_gift_cards` (`code`);--> statement-breakpoint
+CREATE INDEX `marketing_gift_cards_status_idx` ON `marketing_gift_cards` (`status`);--> statement-breakpoint
 CREATE TABLE `catalog_inventory_movements` (
 	`id` text PRIMARY KEY NOT NULL,
 	`variant_id` text NOT NULL,
@@ -242,7 +239,7 @@ CREATE TABLE `content_media_assets` (
 CREATE UNIQUE INDEX `content_media_assets_path_unique` ON `content_media_assets` (`path`);--> statement-breakpoint
 CREATE INDEX `content_media_assets_folder_idx` ON `content_media_assets` (`folder`);--> statement-breakpoint
 CREATE INDEX `content_media_assets_created_idx` ON `content_media_assets` (`created_at`);--> statement-breakpoint
-CREATE TABLE `newsletter_subscriptions` (
+CREATE TABLE `marketing_newsletter_subscriptions` (
 	`id` text PRIMARY KEY NOT NULL,
 	`user_id` text,
 	`email` text NOT NULL,
@@ -250,12 +247,11 @@ CREATE TABLE `newsletter_subscriptions` (
 	`status` text DEFAULT 'subscribed' NOT NULL,
 	`source` text,
 	`created_at` integer NOT NULL,
-	`updated_at` integer NOT NULL,
-	FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON UPDATE no action ON DELETE set null
+	`updated_at` integer NOT NULL
 );
 --> statement-breakpoint
-CREATE UNIQUE INDEX `newsletter_subscriptions_email_unique` ON `newsletter_subscriptions` (`email`);--> statement-breakpoint
-CREATE INDEX `newsletter_subscriptions_status_idx` ON `newsletter_subscriptions` (`status`);--> statement-breakpoint
+CREATE UNIQUE INDEX `marketing_newsletter_subscriptions_email_unique` ON `marketing_newsletter_subscriptions` (`email`);--> statement-breakpoint
+CREATE INDEX `marketing_newsletter_subscriptions_status_idx` ON `marketing_newsletter_subscriptions` (`status`);--> statement-breakpoint
 CREATE TABLE `order_events` (
 	`id` text PRIMARY KEY NOT NULL,
 	`order_id` text NOT NULL,
@@ -311,7 +307,7 @@ CREATE TABLE `orders` (
 	`created_at` integer NOT NULL,
 	`updated_at` integer NOT NULL,
 	FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON UPDATE no action ON DELETE set null,
-	FOREIGN KEY (`coupon_id`) REFERENCES `coupons`(`id`) ON UPDATE no action ON DELETE set null
+	FOREIGN KEY (`coupon_id`) REFERENCES `marketing_coupons`(`id`) ON UPDATE no action ON DELETE set null
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `orders_order_number_unique` ON `orders` (`order_number`);--> statement-breakpoint

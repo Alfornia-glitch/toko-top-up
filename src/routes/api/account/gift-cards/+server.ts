@@ -1,13 +1,17 @@
 import type { RequestHandler } from './$types';
 import { customerErrorResponse, requireUser } from '#lib/server/modules/customer/http.ts';
-import { listGiftCards } from '#lib/server/modules/account/gift-cards.ts';
+import { unwrap } from '#shared';
 
 export const GET: RequestHandler = async ({ locals }) => {
 	const denied = requireUser(locals.user);
 	if (denied) return denied;
 
 	try {
-		return Response.json({ data: await listGiftCards(locals.user!.id) });
+		return Response.json({
+			data: unwrap(
+				await locals.services.marketing.marketing.listMyGiftCards(locals.user!.email, locals.actor)
+			)
+		});
 	} catch (error) {
 		return customerErrorResponse(error, 'list gift cards');
 	}

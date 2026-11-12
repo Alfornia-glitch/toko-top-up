@@ -4,9 +4,11 @@ import type { Db, PostgresDb, SqliteDb } from '#db/core.ts';
 import { createCatalogServices, type CatalogServices } from '#modules/catalog/server.ts';
 import { createContentServices, type ContentServices } from '#modules/content/server.ts';
 import { createCustomersServices, type CustomersServices } from '#modules/customers/server.ts';
+import { createMarketingServices, type MarketingServices } from '#modules/marketing/server.ts';
 import { createSupportServices, type SupportServices } from '#modules/support/server.ts';
 import { createReportingServices, type ReportingServices } from '#modules/reporting/server.ts';
 import { createCustomerDirectory } from './adapters/customer-directory.ts';
+import { createCouponUsageReader } from './adapters/coupon-usage.ts';
 import { createSupportUserDirectory } from './adapters/support-users.ts';
 import { loadConfig, type AppConfig } from './config.server.ts';
 import { createModuleRegistry } from './registry.server.ts';
@@ -17,6 +19,7 @@ export interface RuntimeServices {
 	readonly content: ContentServices;
 	readonly customers: CustomersServices;
 	readonly support: SupportServices;
+	readonly marketing: MarketingServices;
 }
 
 export interface Runtime {
@@ -56,6 +59,7 @@ export function createRuntime(
 	let content: ContentServices | undefined;
 	let customers: CustomersServices | undefined;
 	let support: SupportServices | undefined;
+	let marketing: MarketingServices | undefined;
 	const registry = createModuleRegistry();
 
 	registry.register({
@@ -105,16 +109,26 @@ export function createRuntime(
 		}
 	});
 
+	registry.register({
+		name: 'marketing',
+		initialize() {
+			marketing = createMarketingServices({
+				...serviceOptions(),
+				usage: createCouponUsageReader()
+			});
+		}
+	});
+
 	registry.initialize();
 
-	if (!catalog || !reporting || !content || !customers || !support)
+	if (!catalog || !reporting || !content || !customers || !support || !marketing)
 		throw new Error('Modules failed to initialize');
 
 	return {
 		config,
 		db,
 		eventBus,
-		services: { catalog, reporting, content, customers, support }
+		services: { catalog, reporting, content, customers, support, marketing }
 	};
 }
 

@@ -16,7 +16,11 @@ const TABLES: Array<[string, string]> = [
 	['media_assets', 'content_media_assets'],
 	['site_settings', 'content_site_settings'],
 	['addresses', 'customers_addresses'],
-	['wishlists', 'customers_wishlists']
+	['wishlists', 'customers_wishlists'],
+	['coupons', 'marketing_coupons'],
+	['gift_cards', 'marketing_gift_cards'],
+	['gift_card_transactions', 'marketing_gift_card_transactions'],
+	['newsletter_subscriptions', 'marketing_newsletter_subscriptions']
 ];
 
 const INDEXES: Array<[string, string]> = [
@@ -38,7 +42,12 @@ const INDEXES: Array<[string, string]> = [
 	['media_assets_created_idx', 'content_media_assets_created_idx'],
 	['addresses_user_idx', 'customers_addresses_user_idx'],
 	['wishlists_user_product_idx', 'customers_wishlists_user_product_idx'],
-	['wishlists_product_idx', 'customers_wishlists_product_idx']
+	['wishlists_product_idx', 'customers_wishlists_product_idx'],
+	['coupons_status_idx', 'marketing_coupons_status_idx'],
+	['gift_cards_code_idx', 'marketing_gift_cards_code_idx'],
+	['gift_cards_status_idx', 'marketing_gift_cards_status_idx'],
+	['gift_card_transactions_card_idx', 'marketing_gift_card_transactions_card_idx'],
+	['newsletter_subscriptions_status_idx', 'marketing_newsletter_subscriptions_status_idx']
 ];
 
 const provider = process.env.DB_PROVIDER;
