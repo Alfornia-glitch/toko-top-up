@@ -1,7 +1,7 @@
 import type { RequestHandler } from './$types';
 import { requireAdmin } from '#lib/server/modules/admin/access.ts';
 import { orderListSchema } from '#lib/server/modules/admin/validation.ts';
-import { listOrders } from '#lib/server/modules/orders/orders.ts';
+import { unwrap } from '#shared';
 
 export const GET: RequestHandler = async ({ locals, url }) => {
 	const denied = requireAdmin(locals.user);
@@ -12,5 +12,7 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 		return Response.json({ error: 'Invalid query parameters' }, { status: 400 });
 	}
 
-	return Response.json(await listOrders(parsed.data));
+	return Response.json(
+		unwrap(await locals.services.orders.orders.listOrders(parsed.data, locals.actor))
+	);
 };

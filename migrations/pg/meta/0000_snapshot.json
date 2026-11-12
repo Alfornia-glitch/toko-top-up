@@ -1,5 +1,5 @@
 {
-	"id": "9cc9ae72-1700-48e6-aa98-d7f2c1cf434d",
+	"id": "29f50974-f00e-40f4-bb30-697093180250",
 	"prevId": "00000000-0000-0000-0000-000000000000",
 	"version": "7",
 	"dialect": "postgresql",
@@ -1723,8 +1723,8 @@
 			"checkConstraints": {},
 			"isRLSEnabled": false
 		},
-		"shop.order_events": {
-			"name": "order_events",
+		"shop.orders_events": {
+			"name": "orders_events",
 			"schema": "shop",
 			"columns": {
 				"id": {
@@ -1765,8 +1765,8 @@
 				}
 			},
 			"indexes": {
-				"order_events_order_idx": {
-					"name": "order_events_order_idx",
+				"orders_events_order_idx": {
+					"name": "orders_events_order_idx",
 					"columns": [
 						{
 							"expression": "order_id",
@@ -1782,24 +1782,14 @@
 				}
 			},
 			"foreignKeys": {
-				"order_events_order_id_orders_id_fk": {
-					"name": "order_events_order_id_orders_id_fk",
-					"tableFrom": "order_events",
-					"tableTo": "orders",
+				"orders_events_order_id_orders_orders_id_fk": {
+					"name": "orders_events_order_id_orders_orders_id_fk",
+					"tableFrom": "orders_events",
+					"tableTo": "orders_orders",
 					"schemaTo": "shop",
 					"columnsFrom": ["order_id"],
 					"columnsTo": ["id"],
 					"onDelete": "cascade",
-					"onUpdate": "no action"
-				},
-				"order_events_actor_user_id_user_id_fk": {
-					"name": "order_events_actor_user_id_user_id_fk",
-					"tableFrom": "order_events",
-					"tableTo": "user",
-					"schemaTo": "auth_app",
-					"columnsFrom": ["actor_user_id"],
-					"columnsTo": ["id"],
-					"onDelete": "set null",
 					"onUpdate": "no action"
 				}
 			},
@@ -1809,8 +1799,8 @@
 			"checkConstraints": {},
 			"isRLSEnabled": false
 		},
-		"shop.order_items": {
-			"name": "order_items",
+		"shop.orders_items": {
+			"name": "orders_items",
 			"schema": "shop",
 			"columns": {
 				"id": {
@@ -1895,8 +1885,8 @@
 				}
 			},
 			"indexes": {
-				"order_items_order_idx": {
-					"name": "order_items_order_idx",
+				"orders_items_order_idx": {
+					"name": "orders_items_order_idx",
 					"columns": [
 						{
 							"expression": "order_id",
@@ -1912,24 +1902,14 @@
 				}
 			},
 			"foreignKeys": {
-				"order_items_order_id_orders_id_fk": {
-					"name": "order_items_order_id_orders_id_fk",
-					"tableFrom": "order_items",
-					"tableTo": "orders",
+				"orders_items_order_id_orders_orders_id_fk": {
+					"name": "orders_items_order_id_orders_orders_id_fk",
+					"tableFrom": "orders_items",
+					"tableTo": "orders_orders",
 					"schemaTo": "shop",
 					"columnsFrom": ["order_id"],
 					"columnsTo": ["id"],
 					"onDelete": "cascade",
-					"onUpdate": "no action"
-				},
-				"order_items_variant_id_catalog_product_variants_id_fk": {
-					"name": "order_items_variant_id_catalog_product_variants_id_fk",
-					"tableFrom": "order_items",
-					"tableTo": "catalog_product_variants",
-					"schemaTo": "shop",
-					"columnsFrom": ["variant_id"],
-					"columnsTo": ["id"],
-					"onDelete": "set null",
 					"onUpdate": "no action"
 				}
 			},
@@ -1939,8 +1919,8 @@
 			"checkConstraints": {},
 			"isRLSEnabled": false
 		},
-		"shop.orders": {
-			"name": "orders",
+		"shop.orders_orders": {
+			"name": "orders_orders",
 			"schema": "shop",
 			"columns": {
 				"id": {
@@ -2086,8 +2066,8 @@
 				}
 			},
 			"indexes": {
-				"orders_user_idx": {
-					"name": "orders_user_idx",
+				"orders_orders_user_idx": {
+					"name": "orders_orders_user_idx",
 					"columns": [
 						{
 							"expression": "user_id",
@@ -2101,8 +2081,8 @@
 					"method": "btree",
 					"with": {}
 				},
-				"orders_status_idx": {
-					"name": "orders_status_idx",
+				"orders_orders_status_idx": {
+					"name": "orders_orders_status_idx",
 					"columns": [
 						{
 							"expression": "status",
@@ -2116,8 +2096,8 @@
 					"method": "btree",
 					"with": {}
 				},
-				"orders_placed_idx": {
-					"name": "orders_placed_idx",
+				"orders_orders_placed_idx": {
+					"name": "orders_orders_placed_idx",
 					"columns": [
 						{
 							"expression": "placed_at",
@@ -2132,32 +2112,11 @@
 					"with": {}
 				}
 			},
-			"foreignKeys": {
-				"orders_user_id_user_id_fk": {
-					"name": "orders_user_id_user_id_fk",
-					"tableFrom": "orders",
-					"tableTo": "user",
-					"schemaTo": "auth_app",
-					"columnsFrom": ["user_id"],
-					"columnsTo": ["id"],
-					"onDelete": "set null",
-					"onUpdate": "no action"
-				},
-				"orders_coupon_id_marketing_coupons_id_fk": {
-					"name": "orders_coupon_id_marketing_coupons_id_fk",
-					"tableFrom": "orders",
-					"tableTo": "marketing_coupons",
-					"schemaTo": "shop",
-					"columnsFrom": ["coupon_id"],
-					"columnsTo": ["id"],
-					"onDelete": "set null",
-					"onUpdate": "no action"
-				}
-			},
+			"foreignKeys": {},
 			"compositePrimaryKeys": {},
 			"uniqueConstraints": {
-				"orders_order_number_unique": {
-					"name": "orders_order_number_unique",
+				"orders_orders_order_number_unique": {
+					"name": "orders_orders_order_number_unique",
 					"nullsNotDistinct": false,
 					"columns": ["order_number"]
 				}
@@ -2263,8 +2222,8 @@
 			"checkConstraints": {},
 			"isRLSEnabled": false
 		},
-		"shop.payments": {
-			"name": "payments",
+		"shop.orders_payments": {
+			"name": "orders_payments",
 			"schema": "shop",
 			"columns": {
 				"id": {
@@ -2330,8 +2289,8 @@
 				}
 			},
 			"indexes": {
-				"payments_order_idx": {
-					"name": "payments_order_idx",
+				"orders_payments_order_idx": {
+					"name": "orders_payments_order_idx",
 					"columns": [
 						{
 							"expression": "order_id",
@@ -2347,10 +2306,10 @@
 				}
 			},
 			"foreignKeys": {
-				"payments_order_id_orders_id_fk": {
-					"name": "payments_order_id_orders_id_fk",
-					"tableFrom": "payments",
-					"tableTo": "orders",
+				"orders_payments_order_id_orders_orders_id_fk": {
+					"name": "orders_payments_order_id_orders_orders_id_fk",
+					"tableFrom": "orders_payments",
+					"tableTo": "orders_orders",
 					"schemaTo": "shop",
 					"columnsFrom": ["order_id"],
 					"columnsTo": ["id"],
@@ -3190,20 +3149,20 @@
 				}
 			},
 			"foreignKeys": {
-				"return_requests_order_id_orders_id_fk": {
-					"name": "return_requests_order_id_orders_id_fk",
+				"return_requests_order_id_orders_orders_id_fk": {
+					"name": "return_requests_order_id_orders_orders_id_fk",
 					"tableFrom": "return_requests",
-					"tableTo": "orders",
+					"tableTo": "orders_orders",
 					"schemaTo": "shop",
 					"columnsFrom": ["order_id"],
 					"columnsTo": ["id"],
 					"onDelete": "cascade",
 					"onUpdate": "no action"
 				},
-				"return_requests_order_item_id_order_items_id_fk": {
-					"name": "return_requests_order_item_id_order_items_id_fk",
+				"return_requests_order_item_id_orders_items_id_fk": {
+					"name": "return_requests_order_item_id_orders_items_id_fk",
 					"tableFrom": "return_requests",
-					"tableTo": "order_items",
+					"tableTo": "orders_items",
 					"schemaTo": "shop",
 					"columnsFrom": ["order_item_id"],
 					"columnsTo": ["id"],
@@ -3532,8 +3491,8 @@
 			"checkConstraints": {},
 			"isRLSEnabled": false
 		},
-		"shop.shipments": {
-			"name": "shipments",
+		"shop.orders_shipments": {
+			"name": "orders_shipments",
 			"schema": "shop",
 			"columns": {
 				"id": {
@@ -3599,8 +3558,8 @@
 				}
 			},
 			"indexes": {
-				"shipments_order_idx": {
-					"name": "shipments_order_idx",
+				"orders_shipments_order_idx": {
+					"name": "orders_shipments_order_idx",
 					"columns": [
 						{
 							"expression": "order_id",
@@ -3616,10 +3575,10 @@
 				}
 			},
 			"foreignKeys": {
-				"shipments_order_id_orders_id_fk": {
-					"name": "shipments_order_id_orders_id_fk",
-					"tableFrom": "shipments",
-					"tableTo": "orders",
+				"orders_shipments_order_id_orders_orders_id_fk": {
+					"name": "orders_shipments_order_id_orders_orders_id_fk",
+					"tableFrom": "orders_shipments",
+					"tableTo": "orders_orders",
 					"schemaTo": "shop",
 					"columnsFrom": ["order_id"],
 					"columnsTo": ["id"],

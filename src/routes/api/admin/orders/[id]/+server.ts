@@ -1,15 +1,14 @@
 import type { RequestHandler } from './$types';
 import { requireAdmin } from '#lib/server/modules/admin/access.ts';
 import { orderUpdateSchema } from '#lib/server/modules/admin/validation.ts';
-import { getOrder, updateOrder } from '#lib/server/modules/orders/orders.ts';
+import { unwrap } from '#shared';
 import { apiErrorResponse } from '#lib/server/http/api-error.ts';
 
 export const GET: RequestHandler = async ({ locals, params }) => {
 	const denied = requireAdmin(locals.user);
 	if (denied) return denied;
 
-	const order = await getOrder(params.id);
-	if (!order) return Response.json({ error: 'Order not found' }, { status: 404 });
+	const order = unwrap(await locals.services.orders.orders.getOrder(params.id, locals.actor));
 
 	return Response.json({ data: order });
 };
@@ -35,8 +34,9 @@ export const PATCH: RequestHandler = async ({ locals, params, request }) => {
 	}
 
 	try {
-		const order = await updateOrder(params.id, parsed.data, locals.user!.id);
-		if (!order) return Response.json({ error: 'Order not found' }, { status: 404 });
+		const order = unwrap(
+			await locals.services.orders.orders.updateOrder(params.id, parsed.data, locals.actor)
+		);
 
 		return Response.json({ data: order });
 	} catch (error) {

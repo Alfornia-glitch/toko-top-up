@@ -221,7 +221,7 @@ CREATE TABLE "shop"."marketing_newsletter_subscriptions" (
 	CONSTRAINT "marketing_newsletter_subscriptions_email_unique" UNIQUE("email")
 );
 --> statement-breakpoint
-CREATE TABLE "shop"."order_events" (
+CREATE TABLE "shop"."orders_events" (
 	"id" text PRIMARY KEY NOT NULL,
 	"order_id" text NOT NULL,
 	"type" text NOT NULL,
@@ -230,7 +230,7 @@ CREATE TABLE "shop"."order_events" (
 	"created_at" timestamp with time zone NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "shop"."order_items" (
+CREATE TABLE "shop"."orders_items" (
 	"id" text PRIMARY KEY NOT NULL,
 	"order_id" text NOT NULL,
 	"product_id" text,
@@ -246,7 +246,7 @@ CREATE TABLE "shop"."order_items" (
 	"updated_at" timestamp with time zone NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "shop"."orders" (
+CREATE TABLE "shop"."orders_orders" (
 	"id" text PRIMARY KEY NOT NULL,
 	"order_number" text NOT NULL,
 	"user_id" text,
@@ -269,7 +269,7 @@ CREATE TABLE "shop"."orders" (
 	"notes" text,
 	"created_at" timestamp with time zone NOT NULL,
 	"updated_at" timestamp with time zone NOT NULL,
-	CONSTRAINT "orders_order_number_unique" UNIQUE("order_number")
+	CONSTRAINT "orders_orders_order_number_unique" UNIQUE("order_number")
 );
 --> statement-breakpoint
 CREATE TABLE "shop"."customers_payment_methods" (
@@ -286,7 +286,7 @@ CREATE TABLE "shop"."customers_payment_methods" (
 	"updated_at" timestamp with time zone NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "shop"."payments" (
+CREATE TABLE "shop"."orders_payments" (
 	"id" text PRIMARY KEY NOT NULL,
 	"order_id" text NOT NULL,
 	"provider" text NOT NULL,
@@ -432,7 +432,7 @@ CREATE TABLE "auth_app"."session" (
 	CONSTRAINT "session_token_unique" UNIQUE("token")
 );
 --> statement-breakpoint
-CREATE TABLE "shop"."shipments" (
+CREATE TABLE "shop"."orders_shipments" (
 	"id" text PRIMARY KEY NOT NULL,
 	"order_id" text NOT NULL,
 	"carrier" text NOT NULL,
@@ -525,13 +525,9 @@ ALTER TABLE "shop"."catalog_categories" ADD CONSTRAINT "catalog_categories_paren
 ALTER TABLE "shop"."marketing_coupon_redemptions" ADD CONSTRAINT "marketing_coupon_redemptions_coupon_id_marketing_coupons_id_fk" FOREIGN KEY ("coupon_id") REFERENCES "shop"."marketing_coupons"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "shop"."marketing_gift_card_transactions" ADD CONSTRAINT "marketing_gift_card_transactions_gift_card_id_marketing_gift_cards_id_fk" FOREIGN KEY ("gift_card_id") REFERENCES "shop"."marketing_gift_cards"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "shop"."catalog_inventory_movements" ADD CONSTRAINT "catalog_inventory_movements_variant_id_catalog_product_variants_id_fk" FOREIGN KEY ("variant_id") REFERENCES "shop"."catalog_product_variants"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "shop"."order_events" ADD CONSTRAINT "order_events_order_id_orders_id_fk" FOREIGN KEY ("order_id") REFERENCES "shop"."orders"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "shop"."order_events" ADD CONSTRAINT "order_events_actor_user_id_user_id_fk" FOREIGN KEY ("actor_user_id") REFERENCES "auth_app"."user"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "shop"."order_items" ADD CONSTRAINT "order_items_order_id_orders_id_fk" FOREIGN KEY ("order_id") REFERENCES "shop"."orders"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "shop"."order_items" ADD CONSTRAINT "order_items_variant_id_catalog_product_variants_id_fk" FOREIGN KEY ("variant_id") REFERENCES "shop"."catalog_product_variants"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "shop"."orders" ADD CONSTRAINT "orders_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "auth_app"."user"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "shop"."orders" ADD CONSTRAINT "orders_coupon_id_marketing_coupons_id_fk" FOREIGN KEY ("coupon_id") REFERENCES "shop"."marketing_coupons"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "shop"."payments" ADD CONSTRAINT "payments_order_id_orders_id_fk" FOREIGN KEY ("order_id") REFERENCES "shop"."orders"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "shop"."orders_events" ADD CONSTRAINT "orders_events_order_id_orders_orders_id_fk" FOREIGN KEY ("order_id") REFERENCES "shop"."orders_orders"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "shop"."orders_items" ADD CONSTRAINT "orders_items_order_id_orders_orders_id_fk" FOREIGN KEY ("order_id") REFERENCES "shop"."orders_orders"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "shop"."orders_payments" ADD CONSTRAINT "orders_payments_order_id_orders_orders_id_fk" FOREIGN KEY ("order_id") REFERENCES "shop"."orders_orders"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "shop"."catalog_product_images" ADD CONSTRAINT "catalog_product_images_product_id_catalog_products_id_fk" FOREIGN KEY ("product_id") REFERENCES "shop"."catalog_products"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "shop"."catalog_product_option_values" ADD CONSTRAINT "catalog_product_option_values_option_id_catalog_product_options_id_fk" FOREIGN KEY ("option_id") REFERENCES "shop"."catalog_product_options"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "shop"."catalog_product_options" ADD CONSTRAINT "catalog_product_options_product_id_catalog_products_id_fk" FOREIGN KEY ("product_id") REFERENCES "shop"."catalog_products"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
@@ -539,8 +535,8 @@ ALTER TABLE "shop"."catalog_product_variants" ADD CONSTRAINT "catalog_product_va
 ALTER TABLE "shop"."catalog_products" ADD CONSTRAINT "catalog_products_brand_id_catalog_brands_id_fk" FOREIGN KEY ("brand_id") REFERENCES "shop"."catalog_brands"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "shop"."catalog_products" ADD CONSTRAINT "catalog_products_category_id_catalog_categories_id_fk" FOREIGN KEY ("category_id") REFERENCES "shop"."catalog_categories"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "shop"."return_request_images" ADD CONSTRAINT "return_request_images_request_id_return_requests_id_fk" FOREIGN KEY ("request_id") REFERENCES "shop"."return_requests"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "shop"."return_requests" ADD CONSTRAINT "return_requests_order_id_orders_id_fk" FOREIGN KEY ("order_id") REFERENCES "shop"."orders"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "shop"."return_requests" ADD CONSTRAINT "return_requests_order_item_id_order_items_id_fk" FOREIGN KEY ("order_item_id") REFERENCES "shop"."order_items"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "shop"."return_requests" ADD CONSTRAINT "return_requests_order_id_orders_orders_id_fk" FOREIGN KEY ("order_id") REFERENCES "shop"."orders_orders"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "shop"."return_requests" ADD CONSTRAINT "return_requests_order_item_id_orders_items_id_fk" FOREIGN KEY ("order_item_id") REFERENCES "shop"."orders_items"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "shop"."return_requests" ADD CONSTRAINT "return_requests_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "auth_app"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "shop"."return_requests" ADD CONSTRAINT "return_requests_exchange_variant_id_catalog_product_variants_id_fk" FOREIGN KEY ("exchange_variant_id") REFERENCES "shop"."catalog_product_variants"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "shop"."return_requests" ADD CONSTRAINT "return_requests_resolved_by_user_id_fk" FOREIGN KEY ("resolved_by") REFERENCES "auth_app"."user"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
@@ -548,7 +544,7 @@ ALTER TABLE "shop"."review_images" ADD CONSTRAINT "review_images_review_id_revie
 ALTER TABLE "shop"."reviews" ADD CONSTRAINT "reviews_product_id_catalog_products_id_fk" FOREIGN KEY ("product_id") REFERENCES "shop"."catalog_products"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "shop"."reviews" ADD CONSTRAINT "reviews_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "auth_app"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "auth_app"."session" ADD CONSTRAINT "session_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "auth_app"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "shop"."shipments" ADD CONSTRAINT "shipments_order_id_orders_id_fk" FOREIGN KEY ("order_id") REFERENCES "shop"."orders"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "shop"."orders_shipments" ADD CONSTRAINT "orders_shipments_order_id_orders_orders_id_fk" FOREIGN KEY ("order_id") REFERENCES "shop"."orders_orders"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "shop"."support_ticket_messages" ADD CONSTRAINT "support_ticket_messages_ticket_id_support_tickets_id_fk" FOREIGN KEY ("ticket_id") REFERENCES "shop"."support_tickets"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 CREATE INDEX "account_userId_idx" ON "auth_app"."account" USING btree ("user_id");--> statement-breakpoint
 CREATE INDEX "customers_addresses_user_idx" ON "shop"."customers_addresses" USING btree ("user_id");--> statement-breakpoint
@@ -574,13 +570,13 @@ CREATE INDEX "catalog_inventory_movements_variant_idx" ON "shop"."catalog_invent
 CREATE INDEX "content_media_assets_folder_idx" ON "shop"."content_media_assets" USING btree ("folder");--> statement-breakpoint
 CREATE INDEX "content_media_assets_created_idx" ON "shop"."content_media_assets" USING btree ("created_at");--> statement-breakpoint
 CREATE INDEX "marketing_newsletter_subscriptions_status_idx" ON "shop"."marketing_newsletter_subscriptions" USING btree ("status");--> statement-breakpoint
-CREATE INDEX "order_events_order_idx" ON "shop"."order_events" USING btree ("order_id");--> statement-breakpoint
-CREATE INDEX "order_items_order_idx" ON "shop"."order_items" USING btree ("order_id");--> statement-breakpoint
-CREATE INDEX "orders_user_idx" ON "shop"."orders" USING btree ("user_id");--> statement-breakpoint
-CREATE INDEX "orders_status_idx" ON "shop"."orders" USING btree ("status");--> statement-breakpoint
-CREATE INDEX "orders_placed_idx" ON "shop"."orders" USING btree ("placed_at");--> statement-breakpoint
+CREATE INDEX "orders_events_order_idx" ON "shop"."orders_events" USING btree ("order_id");--> statement-breakpoint
+CREATE INDEX "orders_items_order_idx" ON "shop"."orders_items" USING btree ("order_id");--> statement-breakpoint
+CREATE INDEX "orders_orders_user_idx" ON "shop"."orders_orders" USING btree ("user_id");--> statement-breakpoint
+CREATE INDEX "orders_orders_status_idx" ON "shop"."orders_orders" USING btree ("status");--> statement-breakpoint
+CREATE INDEX "orders_orders_placed_idx" ON "shop"."orders_orders" USING btree ("placed_at");--> statement-breakpoint
 CREATE INDEX "customers_payment_methods_user_idx" ON "shop"."customers_payment_methods" USING btree ("user_id");--> statement-breakpoint
-CREATE INDEX "payments_order_idx" ON "shop"."payments" USING btree ("order_id");--> statement-breakpoint
+CREATE INDEX "orders_payments_order_idx" ON "shop"."orders_payments" USING btree ("order_id");--> statement-breakpoint
 CREATE INDEX "catalog_product_images_product_idx" ON "shop"."catalog_product_images" USING btree ("product_id");--> statement-breakpoint
 CREATE INDEX "catalog_product_option_values_option_idx" ON "shop"."catalog_product_option_values" USING btree ("option_id");--> statement-breakpoint
 CREATE INDEX "catalog_product_options_product_idx" ON "shop"."catalog_product_options" USING btree ("product_id");--> statement-breakpoint
@@ -596,7 +592,7 @@ CREATE INDEX "review_images_review_idx" ON "shop"."review_images" USING btree ("
 CREATE INDEX "reviews_product_idx" ON "shop"."reviews" USING btree ("product_id");--> statement-breakpoint
 CREATE INDEX "reviews_status_idx" ON "shop"."reviews" USING btree ("status");--> statement-breakpoint
 CREATE INDEX "session_userId_idx" ON "auth_app"."session" USING btree ("user_id");--> statement-breakpoint
-CREATE INDEX "shipments_order_idx" ON "shop"."shipments" USING btree ("order_id");--> statement-breakpoint
+CREATE INDEX "orders_shipments_order_idx" ON "shop"."orders_shipments" USING btree ("order_id");--> statement-breakpoint
 CREATE INDEX "support_ticket_messages_ticket_idx" ON "shop"."support_ticket_messages" USING btree ("ticket_id");--> statement-breakpoint
 CREATE INDEX "support_tickets_status_idx" ON "shop"."support_tickets" USING btree ("status");--> statement-breakpoint
 CREATE INDEX "support_tickets_assigned_idx" ON "shop"."support_tickets" USING btree ("assigned_admin_id");--> statement-breakpoint

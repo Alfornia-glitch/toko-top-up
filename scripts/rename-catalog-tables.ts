@@ -23,7 +23,12 @@ const TABLES: Array<[string, string]> = [
 	['gift_card_transactions', 'marketing_gift_card_transactions'],
 	['newsletter_subscriptions', 'marketing_newsletter_subscriptions'],
 	['coupon_redemptions', 'marketing_coupon_redemptions'],
-	['carts', 'cart_carts']
+	['carts', 'cart_carts'],
+	['orders', 'orders_orders'],
+	['order_items', 'orders_items'],
+	['order_events', 'orders_events'],
+	['shipments', 'orders_shipments'],
+	['payments', 'orders_payments']
 ];
 
 const INDEXES: Array<[string, string]> = [
@@ -54,7 +59,14 @@ const INDEXES: Array<[string, string]> = [
 	['newsletter_subscriptions_status_idx', 'marketing_newsletter_subscriptions_status_idx'],
 	['coupon_redemptions_coupon_idx', 'marketing_coupon_redemptions_coupon_idx'],
 	['carts_user_idx', 'cart_carts_user_idx'],
-	['carts_status_idx', 'cart_carts_status_idx']
+	['carts_status_idx', 'cart_carts_status_idx'],
+	['orders_user_idx', 'orders_orders_user_idx'],
+	['orders_status_idx', 'orders_orders_status_idx'],
+	['orders_placed_idx', 'orders_orders_placed_idx'],
+	['order_items_order_idx', 'orders_items_order_idx'],
+	['order_events_order_idx', 'orders_events_order_idx'],
+	['shipments_order_idx', 'orders_shipments_order_idx'],
+	['payments_order_idx', 'orders_payments_order_idx']
 ];
 
 const provider = process.env.DB_PROVIDER;

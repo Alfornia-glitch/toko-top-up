@@ -1,7 +1,7 @@
 import type { RequestHandler } from './$types';
 import { requireAdmin } from '#lib/server/modules/admin/access.ts';
 import { returnListSchema } from '#lib/server/modules/admin/validation.ts';
-import { listReturns } from '#lib/server/modules/orders/orders.ts';
+import { listReturns } from '#lib/server/modules/orders/returns.ts';
 
 export const GET: RequestHandler = async ({ locals, url }) => {
 	const denied = requireAdmin(locals.user);

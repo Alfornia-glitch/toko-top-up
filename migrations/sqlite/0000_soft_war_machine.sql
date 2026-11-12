@@ -248,19 +248,18 @@ CREATE TABLE `marketing_newsletter_subscriptions` (
 --> statement-breakpoint
 CREATE UNIQUE INDEX `marketing_newsletter_subscriptions_email_unique` ON `marketing_newsletter_subscriptions` (`email`);--> statement-breakpoint
 CREATE INDEX `marketing_newsletter_subscriptions_status_idx` ON `marketing_newsletter_subscriptions` (`status`);--> statement-breakpoint
-CREATE TABLE `order_events` (
+CREATE TABLE `orders_events` (
 	`id` text PRIMARY KEY NOT NULL,
 	`order_id` text NOT NULL,
 	`type` text NOT NULL,
 	`message` text,
 	`actor_user_id` text,
 	`created_at` integer NOT NULL,
-	FOREIGN KEY (`order_id`) REFERENCES `orders`(`id`) ON UPDATE no action ON DELETE cascade,
-	FOREIGN KEY (`actor_user_id`) REFERENCES `user`(`id`) ON UPDATE no action ON DELETE set null
+	FOREIGN KEY (`order_id`) REFERENCES `orders_orders`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
-CREATE INDEX `order_events_order_idx` ON `order_events` (`order_id`);--> statement-breakpoint
-CREATE TABLE `order_items` (
+CREATE INDEX `orders_events_order_idx` ON `orders_events` (`order_id`);--> statement-breakpoint
+CREATE TABLE `orders_items` (
 	`id` text PRIMARY KEY NOT NULL,
 	`order_id` text NOT NULL,
 	`product_id` text,
@@ -274,12 +273,11 @@ CREATE TABLE `order_items` (
 	`status` text DEFAULT 'pending' NOT NULL,
 	`created_at` integer NOT NULL,
 	`updated_at` integer NOT NULL,
-	FOREIGN KEY (`order_id`) REFERENCES `orders`(`id`) ON UPDATE no action ON DELETE cascade,
-	FOREIGN KEY (`variant_id`) REFERENCES `catalog_product_variants`(`id`) ON UPDATE no action ON DELETE set null
+	FOREIGN KEY (`order_id`) REFERENCES `orders_orders`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
-CREATE INDEX `order_items_order_idx` ON `order_items` (`order_id`);--> statement-breakpoint
-CREATE TABLE `orders` (
+CREATE INDEX `orders_items_order_idx` ON `orders_items` (`order_id`);--> statement-breakpoint
+CREATE TABLE `orders_orders` (
 	`id` text PRIMARY KEY NOT NULL,
 	`order_number` text NOT NULL,
 	`user_id` text,
@@ -301,15 +299,13 @@ CREATE TABLE `orders` (
 	`placed_at` integer NOT NULL,
 	`notes` text,
 	`created_at` integer NOT NULL,
-	`updated_at` integer NOT NULL,
-	FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON UPDATE no action ON DELETE set null,
-	FOREIGN KEY (`coupon_id`) REFERENCES `marketing_coupons`(`id`) ON UPDATE no action ON DELETE set null
+	`updated_at` integer NOT NULL
 );
 --> statement-breakpoint
-CREATE UNIQUE INDEX `orders_order_number_unique` ON `orders` (`order_number`);--> statement-breakpoint
-CREATE INDEX `orders_user_idx` ON `orders` (`user_id`);--> statement-breakpoint
-CREATE INDEX `orders_status_idx` ON `orders` (`status`);--> statement-breakpoint
-CREATE INDEX `orders_placed_idx` ON `orders` (`placed_at`);--> statement-breakpoint
+CREATE UNIQUE INDEX `orders_orders_order_number_unique` ON `orders_orders` (`order_number`);--> statement-breakpoint
+CREATE INDEX `orders_orders_user_idx` ON `orders_orders` (`user_id`);--> statement-breakpoint
+CREATE INDEX `orders_orders_status_idx` ON `orders_orders` (`status`);--> statement-breakpoint
+CREATE INDEX `orders_orders_placed_idx` ON `orders_orders` (`placed_at`);--> statement-breakpoint
 CREATE TABLE `customers_payment_methods` (
 	`id` text PRIMARY KEY NOT NULL,
 	`user_id` text NOT NULL,
@@ -325,7 +321,7 @@ CREATE TABLE `customers_payment_methods` (
 );
 --> statement-breakpoint
 CREATE INDEX `customers_payment_methods_user_idx` ON `customers_payment_methods` (`user_id`);--> statement-breakpoint
-CREATE TABLE `payments` (
+CREATE TABLE `orders_payments` (
 	`id` text PRIMARY KEY NOT NULL,
 	`order_id` text NOT NULL,
 	`provider` text NOT NULL,
@@ -336,10 +332,10 @@ CREATE TABLE `payments` (
 	`failure_reason` text,
 	`created_at` integer NOT NULL,
 	`updated_at` integer NOT NULL,
-	FOREIGN KEY (`order_id`) REFERENCES `orders`(`id`) ON UPDATE no action ON DELETE cascade
+	FOREIGN KEY (`order_id`) REFERENCES `orders_orders`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
-CREATE INDEX `payments_order_idx` ON `payments` (`order_id`);--> statement-breakpoint
+CREATE INDEX `orders_payments_order_idx` ON `orders_payments` (`order_id`);--> statement-breakpoint
 CREATE TABLE `catalog_product_images` (
 	`id` text PRIMARY KEY NOT NULL,
 	`product_id` text NOT NULL,
@@ -455,8 +451,8 @@ CREATE TABLE `return_requests` (
 	`resolved_at` integer,
 	`created_at` integer NOT NULL,
 	`updated_at` integer NOT NULL,
-	FOREIGN KEY (`order_id`) REFERENCES `orders`(`id`) ON UPDATE no action ON DELETE cascade,
-	FOREIGN KEY (`order_item_id`) REFERENCES `order_items`(`id`) ON UPDATE no action ON DELETE cascade,
+	FOREIGN KEY (`order_id`) REFERENCES `orders_orders`(`id`) ON UPDATE no action ON DELETE cascade,
+	FOREIGN KEY (`order_item_id`) REFERENCES `orders_items`(`id`) ON UPDATE no action ON DELETE cascade,
 	FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON UPDATE no action ON DELETE cascade,
 	FOREIGN KEY (`exchange_variant_id`) REFERENCES `catalog_product_variants`(`id`) ON UPDATE no action ON DELETE set null,
 	FOREIGN KEY (`resolved_by`) REFERENCES `user`(`id`) ON UPDATE no action ON DELETE set null
@@ -504,7 +500,7 @@ CREATE TABLE `session` (
 --> statement-breakpoint
 CREATE UNIQUE INDEX `session_token_unique` ON `session` (`token`);--> statement-breakpoint
 CREATE INDEX `session_userId_idx` ON `session` (`user_id`);--> statement-breakpoint
-CREATE TABLE `shipments` (
+CREATE TABLE `orders_shipments` (
 	`id` text PRIMARY KEY NOT NULL,
 	`order_id` text NOT NULL,
 	`carrier` text NOT NULL,
@@ -515,10 +511,10 @@ CREATE TABLE `shipments` (
 	`events_json` text,
 	`created_at` integer NOT NULL,
 	`updated_at` integer NOT NULL,
-	FOREIGN KEY (`order_id`) REFERENCES `orders`(`id`) ON UPDATE no action ON DELETE cascade
+	FOREIGN KEY (`order_id`) REFERENCES `orders_orders`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
-CREATE INDEX `shipments_order_idx` ON `shipments` (`order_id`);--> statement-breakpoint
+CREATE INDEX `orders_shipments_order_idx` ON `orders_shipments` (`order_id`);--> statement-breakpoint
 CREATE TABLE `content_site_settings` (
 	`key` text PRIMARY KEY NOT NULL,
 	`value_json` text NOT NULL,

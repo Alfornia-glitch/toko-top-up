@@ -1,7 +1,7 @@
 import type { RequestHandler } from './$types';
 import { requireAdmin } from '#lib/server/modules/admin/access.ts';
 import { shipmentCreateSchema } from '#lib/server/modules/admin/validation.ts';
-import { createShipment } from '#lib/server/modules/orders/orders.ts';
+import { unwrap } from '#shared';
 import { apiErrorResponse } from '#lib/server/http/api-error.ts';
 
 export const POST: RequestHandler = async ({ locals, params, request }) => {
@@ -25,8 +25,9 @@ export const POST: RequestHandler = async ({ locals, params, request }) => {
 	}
 
 	try {
-		const result = await createShipment(params.id, parsed.data, locals.user!.id);
-		if (!result) return Response.json({ error: 'Order not found' }, { status: 404 });
+		const result = unwrap(
+			await locals.services.orders.orders.createShipment(params.id, parsed.data, locals.actor)
+		);
 
 		return Response.json({ data: result }, { status: 201 });
 	} catch (error) {

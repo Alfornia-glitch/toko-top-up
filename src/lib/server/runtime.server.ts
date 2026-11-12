@@ -7,8 +7,10 @@ import { createCartServices, type CartServices } from '#modules/cart/server.ts';
 import { createCustomersServices, type CustomersServices } from '#modules/customers/server.ts';
 import { createMarketingServices, type MarketingServices } from '#modules/marketing/server.ts';
 import { createSupportServices, type SupportServices } from '#modules/support/server.ts';
+import { createOrdersServices, type OrdersServices } from '#modules/orders/server.ts';
 import { createReportingServices, type ReportingServices } from '#modules/reporting/server.ts';
 import { createCustomerDirectory } from './adapters/customer-directory.ts';
+import { createOrdersUserDirectory } from './adapters/orders-users.ts';
 import { createSupportUserDirectory } from './adapters/support-users.ts';
 import { loadConfig, type AppConfig } from './config.server.ts';
 import { createModuleRegistry } from './registry.server.ts';
@@ -21,6 +23,7 @@ export interface RuntimeServices {
 	readonly support: SupportServices;
 	readonly marketing: MarketingServices;
 	readonly cart: CartServices;
+	readonly orders: OrdersServices;
 }
 
 export interface Runtime {
@@ -62,6 +65,7 @@ export function createRuntime(
 	let support: SupportServices | undefined;
 	let marketing: MarketingServices | undefined;
 	let cart: CartServices | undefined;
+	let orders: OrdersServices | undefined;
 	const registry = createModuleRegistry();
 
 	registry.register({
@@ -127,16 +131,32 @@ export function createRuntime(
 		}
 	});
 
+	registry.register({
+		name: 'orders',
+		initialize() {
+			orders = createOrdersServices({ ...serviceOptions(), users: createOrdersUserDirectory() });
+		}
+	});
+
 	registry.initialize();
 
-	if (!catalog || !reporting || !content || !customers || !support || !marketing || !cart)
+	if (
+		!catalog ||
+		!reporting ||
+		!content ||
+		!customers ||
+		!support ||
+		!marketing ||
+		!cart ||
+		!orders
+	)
 		throw new Error('Modules failed to initialize');
 
 	return {
 		config,
 		db,
 		eventBus,
-		services: { catalog, reporting, content, customers, support, marketing, cart }
+		services: { catalog, reporting, content, customers, support, marketing, cart, orders }
 	};
 }
 

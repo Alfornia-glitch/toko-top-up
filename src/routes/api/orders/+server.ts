@@ -1,5 +1,5 @@
 import type { RequestHandler } from './$types';
-import { listOrders } from '#lib/server/modules/account/orders.ts';
+import { unwrap } from '#shared';
 import { customerErrorResponse, requireUser } from '#lib/server/modules/customer/http.ts';
 import { paginationQuerySchema } from '#lib/server/modules/customer/validation.ts';
 
@@ -16,7 +16,12 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 	}
 
 	try {
-		const data = await listOrders(locals.user!.id, parsed.data.page, parsed.data.pageSize);
+		const data = unwrap(
+			await locals.services.orders.orders.listMyOrders(
+				{ page: parsed.data.page, pageSize: parsed.data.pageSize },
+				locals.actor
+			)
+		);
 		return Response.json(data);
 	} catch (error) {
 		return customerErrorResponse(error, 'list orders');

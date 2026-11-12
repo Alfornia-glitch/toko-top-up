@@ -1,5 +1,5 @@
 import type { RequestHandler } from './$types';
-import { getOrder } from '#lib/server/modules/account/orders.ts';
+import { unwrap } from '#shared';
 import { customerErrorResponse, requireUser } from '#lib/server/modules/customer/http.ts';
 
 export const GET: RequestHandler = async ({ locals, params }) => {
@@ -7,8 +7,9 @@ export const GET: RequestHandler = async ({ locals, params }) => {
 	if (denied) return denied;
 
 	try {
-		const order = await getOrder(locals.user!.id, params.number);
-		if (!order) return Response.json({ error: 'Order not found' }, { status: 404 });
+		const order = unwrap(
+			await locals.services.orders.orders.getMyOrder(params.number, locals.actor)
+		);
 
 		return Response.json({ data: order });
 	} catch (error) {

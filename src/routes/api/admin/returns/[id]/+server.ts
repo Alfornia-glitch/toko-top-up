@@ -1,7 +1,7 @@
 import type { RequestHandler } from './$types';
 import { requireAdmin } from '#lib/server/modules/admin/access.ts';
 import { returnUpdateSchema } from '#lib/server/modules/admin/validation.ts';
-import { getReturn, updateReturn } from '#lib/server/modules/orders/orders.ts';
+import { getReturn, updateReturn } from '#lib/server/modules/orders/returns.ts';
 import { apiErrorResponse } from '#lib/server/http/api-error.ts';
 
 export const GET: RequestHandler = async ({ locals, params }) => {
