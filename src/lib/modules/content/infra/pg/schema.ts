@@ -83,3 +83,38 @@ export const siteSettings = shop.table('content_site_settings', {
 		.$onUpdate(() => new Date())
 		.notNull()
 });
+
+export const reviews = shop.table(
+	'content_reviews',
+	{
+		id: text('id').primaryKey(),
+		productId: text('product_id').notNull(),
+		userId: text('user_id').notNull(),
+		orderItemId: text('order_item_id'),
+		rating: integer('rating').notNull(),
+		title: text('title'),
+		body: text('body'),
+		status: text('status')
+			.$type<'pending' | 'approved' | 'rejected'>()
+			.notNull()
+			.default('pending'),
+		helpfulCount: integer('helpful_count').notNull().default(0),
+		createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).notNull()
+	},
+	(table) => [
+		index('content_reviews_product_idx').on(table.productId),
+		index('content_reviews_status_idx').on(table.status)
+	]
+);
+
+export const reviewImages = shop.table(
+	'content_review_images',
+	{
+		id: text('id').primaryKey(),
+		reviewId: text('review_id')
+			.notNull()
+			.references(() => reviews.id, { onDelete: 'cascade' }),
+		url: text('url').notNull()
+	},
+	(table) => [index('content_review_images_review_idx').on(table.reviewId)]
+);

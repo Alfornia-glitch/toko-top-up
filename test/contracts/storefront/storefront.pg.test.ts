@@ -8,13 +8,15 @@ import {
 	banners,
 	mediaAssets,
 	siteSettings,
+	reviewImages,
+	reviews,
 	testimonials
 } from '#modules/content/infra/pg/schema.ts';
 import { createCustomersServices } from '#modules/customers/server.ts';
 import { wishlists } from '#modules/customers/infra/pg/schema.ts';
 import { createStorefrontServices } from '#modules/storefront/server.ts';
 import { runStorefrontContract } from './storefront.contract.ts';
-import { createFakeReviewReader } from './reviews.ts';
+import { createFakeReviewDirectory } from '../content/directory.ts';
 import { createTestClock } from '../support/clock.ts';
 import { createPostgresCatalogTestContext } from '../support/database.ts';
 
@@ -27,7 +29,13 @@ if (testDatabaseUrl) {
 		const { context } = createPostgresCatalogTestContext(testDatabaseUrl);
 
 		const catalog = createCatalogServices({ provider: 'postgres', db, clock });
-		const content = createContentServices({ provider: 'postgres', db, clock });
+		const directory = createFakeReviewDirectory();
+		const content = createContentServices({
+			provider: 'postgres',
+			db,
+			clock,
+			directory
+		});
 		const customers = createCustomersServices({
 			provider: 'postgres',
 			db,
@@ -39,8 +47,7 @@ if (testDatabaseUrl) {
 			storefront: createStorefrontServices({
 				catalog,
 				content,
-				customers,
-				reviews: createFakeReviewReader()
+				customers
 			}).storefront,
 			catalog,
 			content: content.content,
@@ -58,6 +65,9 @@ if (testDatabaseUrl) {
 					await db.delete(table);
 				}
 				await context.reset();
+			},
+			async seedReview(review) {
+				await db.insert(reviews).values({ body: null, createdAt: clock.now(), ...review });
 			},
 			createActor: context.createActor,
 			createBrand: context.createBrand,

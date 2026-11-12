@@ -44,6 +44,8 @@ export interface ProductService {
 	): Promise<Result<ProductDetail, AppError>>;
 	/** Service-to-service read for cart and checkout; needs no actor. Unknown ids are omitted. */
 	getVariantSnapshots(variantIds: string[]): Promise<Result<VariantSnapshot[], AppError>>;
+	/** Service-to-service read of product names by id, in any status; unknown ids are omitted. */
+	getProductNames(productIds: string[]): Promise<Result<Map<string, string>, AppError>>;
 }
 
 export function createProductService(
@@ -185,6 +187,15 @@ export function createProductService(
 					})
 				);
 				return ok(product);
+			} catch (error) {
+				return err(toAppError(error));
+			}
+		},
+
+		async getProductNames(productIds) {
+			try {
+				if (!productIds.length) return ok(new Map());
+				return ok(await repository.findNames([...new Set(productIds)]));
 			} catch (error) {
 				return err(toAppError(error));
 			}

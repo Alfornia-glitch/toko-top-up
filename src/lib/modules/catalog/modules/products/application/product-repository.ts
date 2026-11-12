@@ -35,4 +35,5 @@ export interface ProductRepository {
 	update(id: string, input: ProductWrite, meta: ProductUpdateMeta): Promise<ProductDetail | null>;
 	setStatus(id: string, status: ProductStatus, updatedAt: Date): Promise<ProductDetail | null>;
 	findVariantSnapshots(variantIds: string[]): Promise<VariantSnapshot[]>;
+	findNames(productIds: string[]): Promise<Map<string, string>>;
 }

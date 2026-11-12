@@ -81,3 +81,37 @@ export const siteSettings = sqliteTable('content_site_settings', {
 		.$onUpdate(() => new Date())
 		.notNull()
 });
+
+export const reviews = sqliteTable(
+	'content_reviews',
+	{
+		id: text('id').primaryKey(),
+		productId: text('product_id').notNull(),
+		userId: text('user_id').notNull(),
+		orderItemId: text('order_item_id'),
+		rating: integer('rating').notNull(),
+		title: text('title'),
+		body: text('body'),
+		status: text('status', { enum: ['pending', 'approved', 'rejected'] })
+			.notNull()
+			.default('pending'),
+		helpfulCount: integer('helpful_count').notNull().default(0),
+		createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull()
+	},
+	(table) => [
+		index('content_reviews_product_idx').on(table.productId),
+		index('content_reviews_status_idx').on(table.status)
+	]
+);
+
+export const reviewImages = sqliteTable(
+	'content_review_images',
+	{
+		id: text('id').primaryKey(),
+		reviewId: text('review_id')
+			.notNull()
+			.references(() => reviews.id, { onDelete: 'cascade' }),
+		url: text('url').notNull()
+	},
+	(table) => [index('content_review_images_review_idx').on(table.reviewId)]
+);

@@ -8,4 +8,3 @@ export type {
 	StorefrontService,
 	WishlistProduct
 } from './application/storefront-service.ts';
-export type { ProductReview, ProductReviewReader, RatingBuckets } from './domain/storefront.ts';

@@ -17,6 +17,15 @@ export interface StorefrontContractContext {
 	customers: CustomersServices['customers'];
 	clock: TestClock;
 	reset(): Promise<void>;
+	/** Inserts a review row directly; there is no customer-facing creation yet. */
+	seedReview(review: {
+		id: string;
+		productId: string;
+		userId: string;
+		rating: number;
+		title: string;
+		status: 'pending' | 'approved' | 'rejected';
+	}): Promise<void>;
 	createActor(): Promise<string>;
 	createBrand(name?: string): Promise<string>;
 	createCategory(name?: string): Promise<string>;
@@ -173,6 +182,22 @@ export function runStorefrontContract(context: StorefrontContractContext): void 
 					{ sku: 'M-1', name: 'Active', priceCents: 1000, stock: 2 },
 					{ sku: 'M-2', name: 'Hidden', priceCents: 900, stock: 2, status: 'inactive' }
 				]
+			});
+			await context.seedReview({
+				id: 'review-ok',
+				productId: main,
+				userId: 'user-reviewer',
+				rating: 4,
+				title: 'Great',
+				status: 'approved'
+			});
+			await context.seedReview({
+				id: 'review-pending',
+				productId: main,
+				userId: 'user-reviewer',
+				rating: 1,
+				title: 'Waiting',
+				status: 'pending'
 			});
 			await product({ name: 'Same category', categoryId, variants: [] });
 			await product({ name: 'Same brand', brandId, variants: [] });

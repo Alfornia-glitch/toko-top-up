@@ -30,7 +30,9 @@ const TABLES: Array<[string, string]> = [
 	['shipments', 'orders_shipments'],
 	['payments', 'orders_payments'],
 	['return_requests', 'orders_returns'],
-	['return_request_images', 'orders_return_images']
+	['return_request_images', 'orders_return_images'],
+	['reviews', 'content_reviews'],
+	['review_images', 'content_review_images']
 ];
 
 const INDEXES: Array<[string, string]> = [
@@ -71,7 +73,10 @@ const INDEXES: Array<[string, string]> = [
 	['payments_order_idx', 'orders_payments_order_idx'],
 	['return_requests_status_idx', 'orders_returns_status_idx'],
 	['return_requests_order_idx', 'orders_returns_order_idx'],
-	['return_request_images_request_idx', 'orders_return_images_request_idx']
+	['return_request_images_request_idx', 'orders_return_images_request_idx'],
+	['reviews_product_idx', 'content_reviews_product_idx'],
+	['reviews_status_idx', 'content_reviews_status_idx'],
+	['review_images_review_idx', 'content_review_images_review_idx']
 ];
 
 const provider = process.env.DB_PROVIDER;

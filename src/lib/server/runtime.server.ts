@@ -13,7 +13,7 @@ import { createOrdersServices, type OrdersServices } from '#modules/orders/serve
 import { createReportingServices, type ReportingServices } from '#modules/reporting/server.ts';
 import { createCheckoutSettings } from './adapters/checkout-settings.ts';
 import { createCustomerDirectory } from './adapters/customer-directory.ts';
-import { createProductReviewReader } from './adapters/product-reviews.ts';
+import { createReviewDirectory } from './adapters/review-directory.ts';
 import { createOrdersUserDirectory } from './adapters/orders-users.ts';
 import { createSupportUserDirectory } from './adapters/support-users.ts';
 import { loadConfig, type AppConfig } from './config.server.ts';
@@ -98,8 +98,13 @@ export function createRuntime(
 
 	registry.register({
 		name: 'content',
+		dependencies: ['catalog'],
 		initialize() {
-			content = createContentServices(serviceOptions());
+			if (!catalog) throw new Error('Catalog services are required by content');
+			content = createContentServices({
+				...serviceOptions(),
+				directory: createReviewDirectory(catalog)
+			});
 		}
 	});
 
@@ -156,8 +161,7 @@ export function createRuntime(
 			storefront = createStorefrontServices({
 				catalog,
 				content,
-				customers,
-				reviews: createProductReviewReader()
+				customers
 			});
 		}
 	});

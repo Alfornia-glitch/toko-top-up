@@ -7,13 +7,15 @@ import {
 	banners,
 	mediaAssets,
 	siteSettings,
+	reviewImages,
+	reviews,
 	testimonials
 } from '#modules/content/infra/sqlite/schema.ts';
 import { createCustomersServices } from '#modules/customers/server.ts';
 import { wishlists } from '#modules/customers/infra/sqlite/schema.ts';
 import { createStorefrontServices } from '#modules/storefront/server.ts';
 import { runStorefrontContract } from './storefront.contract.ts';
-import { createFakeReviewReader } from './reviews.ts';
+import { createFakeReviewDirectory } from '../content/directory.ts';
 import { createTestClock } from '../support/clock.ts';
 import { createSqliteCatalogTestContext } from '../support/database.ts';
 
@@ -28,7 +30,13 @@ const { db } = createSqliteDb(sqlitePath);
 const { context } = createSqliteCatalogTestContext(sqlitePath);
 
 const catalog = createCatalogServices({ provider: 'sqlite', db, clock });
-const content = createContentServices({ provider: 'sqlite', db, clock });
+const directory = createFakeReviewDirectory();
+const content = createContentServices({
+	provider: 'sqlite',
+	db,
+	clock,
+	directory
+});
 const customers = createCustomersServices({
 	provider: 'sqlite',
 	db,
@@ -40,8 +48,7 @@ runStorefrontContract({
 	storefront: createStorefrontServices({
 		catalog,
 		content,
-		customers,
-		reviews: createFakeReviewReader()
+		customers
 	}).storefront,
 	catalog,
 	content: content.content,
@@ -59,6 +66,9 @@ runStorefrontContract({
 			await db.delete(table);
 		}
 		await context.reset();
+	},
+	async seedReview(review) {
+		await db.insert(reviews).values({ body: null, createdAt: clock.now(), ...review });
 	},
 	createActor: context.createActor,
 	createBrand: context.createBrand,

@@ -11,3 +11,12 @@ export type {
 	PublicContent,
 	SiteSetting
 } from './domain/content.ts';
+export type {
+	AdminReview,
+	PublicReview,
+	RatingBuckets,
+	Review,
+	ReviewListQuery,
+	ReviewStatus,
+	ReviewUser
+} from './domain/reviews.ts';

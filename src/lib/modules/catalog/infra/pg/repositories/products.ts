@@ -361,6 +361,15 @@ export function createPostgresProductRepository(db: PostgresDb): ProductReposito
 				brandName: row.brandName ?? null,
 				imageUrl: imageByProduct.get(row.productId) ?? null
 			}));
+		},
+
+		async findNames(productIds) {
+			if (!productIds.length) return new Map();
+			const rows = await db
+				.select({ id: products.id, name: products.name })
+				.from(products)
+				.where(inArray(products.id, productIds));
+			return new Map(rows.map((row) => [row.id, row.name]));
 		}
 	};
 }

@@ -458,15 +458,15 @@ CREATE TABLE `orders_returns` (
 CREATE INDEX `orders_returns_status_idx` ON `orders_returns` (`status`);--> statement-breakpoint
 CREATE INDEX `orders_returns_order_idx` ON `orders_returns` (`order_id`);--> statement-breakpoint
 CREATE INDEX `orders_returns_user_idx` ON `orders_returns` (`user_id`);--> statement-breakpoint
-CREATE TABLE `review_images` (
+CREATE TABLE `content_review_images` (
 	`id` text PRIMARY KEY NOT NULL,
 	`review_id` text NOT NULL,
 	`url` text NOT NULL,
-	FOREIGN KEY (`review_id`) REFERENCES `reviews`(`id`) ON UPDATE no action ON DELETE cascade
+	FOREIGN KEY (`review_id`) REFERENCES `content_reviews`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
-CREATE INDEX `review_images_review_idx` ON `review_images` (`review_id`);--> statement-breakpoint
-CREATE TABLE `reviews` (
+CREATE INDEX `content_review_images_review_idx` ON `content_review_images` (`review_id`);--> statement-breakpoint
+CREATE TABLE `content_reviews` (
 	`id` text PRIMARY KEY NOT NULL,
 	`product_id` text NOT NULL,
 	`user_id` text NOT NULL,
@@ -476,13 +476,11 @@ CREATE TABLE `reviews` (
 	`body` text,
 	`status` text DEFAULT 'pending' NOT NULL,
 	`helpful_count` integer DEFAULT 0 NOT NULL,
-	`created_at` integer NOT NULL,
-	FOREIGN KEY (`product_id`) REFERENCES `catalog_products`(`id`) ON UPDATE no action ON DELETE cascade,
-	FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON UPDATE no action ON DELETE cascade
+	`created_at` integer NOT NULL
 );
 --> statement-breakpoint
-CREATE INDEX `reviews_product_idx` ON `reviews` (`product_id`);--> statement-breakpoint
-CREATE INDEX `reviews_status_idx` ON `reviews` (`status`);--> statement-breakpoint
+CREATE INDEX `content_reviews_product_idx` ON `content_reviews` (`product_id`);--> statement-breakpoint
+CREATE INDEX `content_reviews_status_idx` ON `content_reviews` (`status`);--> statement-breakpoint
 CREATE TABLE `session` (
 	`id` text PRIMARY KEY NOT NULL,
 	`expires_at` integer NOT NULL,

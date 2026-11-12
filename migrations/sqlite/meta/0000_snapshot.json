@@ -1,7 +1,7 @@
 {
 	"version": "6",
 	"dialect": "sqlite",
-	"id": "ca2003bf-efc3-4863-9aee-9963853781ae",
+	"id": "0caba307-038e-4759-b0fe-637951d5dfc4",
 	"prevId": "00000000-0000-0000-0000-000000000000",
 	"tables": {
 		"account": {
@@ -2929,8 +2929,8 @@
 			"uniqueConstraints": {},
 			"checkConstraints": {}
 		},
-		"review_images": {
-			"name": "review_images",
+		"content_review_images": {
+			"name": "content_review_images",
 			"columns": {
 				"id": {
 					"name": "id",
@@ -2955,17 +2955,17 @@
 				}
 			},
 			"indexes": {
-				"review_images_review_idx": {
-					"name": "review_images_review_idx",
+				"content_review_images_review_idx": {
+					"name": "content_review_images_review_idx",
 					"columns": ["review_id"],
 					"isUnique": false
 				}
 			},
 			"foreignKeys": {
-				"review_images_review_id_reviews_id_fk": {
-					"name": "review_images_review_id_reviews_id_fk",
-					"tableFrom": "review_images",
-					"tableTo": "reviews",
+				"content_review_images_review_id_content_reviews_id_fk": {
+					"name": "content_review_images_review_id_content_reviews_id_fk",
+					"tableFrom": "content_review_images",
+					"tableTo": "content_reviews",
 					"columnsFrom": ["review_id"],
 					"columnsTo": ["id"],
 					"onDelete": "cascade",
@@ -2976,8 +2976,8 @@
 			"uniqueConstraints": {},
 			"checkConstraints": {}
 		},
-		"reviews": {
-			"name": "reviews",
+		"content_reviews": {
+			"name": "content_reviews",
 			"columns": {
 				"id": {
 					"name": "id",
@@ -3053,37 +3053,18 @@
 				}
 			},
 			"indexes": {
-				"reviews_product_idx": {
-					"name": "reviews_product_idx",
+				"content_reviews_product_idx": {
+					"name": "content_reviews_product_idx",
 					"columns": ["product_id"],
 					"isUnique": false
 				},
-				"reviews_status_idx": {
-					"name": "reviews_status_idx",
+				"content_reviews_status_idx": {
+					"name": "content_reviews_status_idx",
 					"columns": ["status"],
 					"isUnique": false
 				}
 			},
-			"foreignKeys": {
-				"reviews_product_id_catalog_products_id_fk": {
-					"name": "reviews_product_id_catalog_products_id_fk",
-					"tableFrom": "reviews",
-					"tableTo": "catalog_products",
-					"columnsFrom": ["product_id"],
-					"columnsTo": ["id"],
-					"onDelete": "cascade",
-					"onUpdate": "no action"
-				},
-				"reviews_user_id_user_id_fk": {
-					"name": "reviews_user_id_user_id_fk",
-					"tableFrom": "reviews",
-					"tableTo": "user",
-					"columnsFrom": ["user_id"],
-					"columnsTo": ["id"],
-					"onDelete": "cascade",
-					"onUpdate": "no action"
-				}
-			},
+			"foreignKeys": {},
 			"compositePrimaryKeys": {},
 			"uniqueConstraints": {},
 			"checkConstraints": {}
