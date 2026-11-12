@@ -10,8 +10,6 @@ const START = new Date('2026-01-01T00:00:00.000Z');
 export interface MarketingContractContext {
 	service: MarketingService;
 	clock: TestClock;
-	/** Redemption counts the fake usage reader reports, keyed by coupon id. */
-	redemptions: Map<string, number>;
 	reset(): Promise<void>;
 }
 
@@ -23,19 +21,13 @@ const coupon: CouponInput = {
 	status: 'active'
 };
 
-export function runMarketingContract({
-	service,
-	clock,
-	redemptions,
-	reset
-}: MarketingContractContext): void {
+export function runMarketingContract({ service, clock, reset }: MarketingContractContext): void {
 	const admin = createAdminActor('marketing-admin');
 	const ada: Actor = createForbiddenActor('customer-ada');
 	const bob: Actor = createForbiddenActor('customer-bob');
 
 	beforeEach(async () => {
 		await reset();
-		redemptions.clear();
 		clock.set(START);
 	});
 
@@ -79,7 +71,14 @@ export function runMarketingContract({
 
 		test('refuses to delete a redeemed coupon and reports missing ones', async () => {
 			const id = unwrap(await service.createCoupon(coupon, admin));
-			redemptions.set(id, 2);
+			unwrap(
+				await service.redeemCoupon({
+					couponId: id,
+					orderId: 'order-1',
+					userId: 'u1',
+					amountCents: 100
+				})
+			);
 
 			const inUse = await service.deleteCoupon(id, admin);
 			expect(inUse.ok).toBe(false);
@@ -94,6 +93,58 @@ export function runMarketingContract({
 			const denied = await service.listCoupons({ page: 1, pageSize: 10 }, ada);
 			expect(denied.ok).toBe(false);
 			if (!denied.ok) expect(denied.error.status).toBe(403);
+		});
+	});
+
+	describe('coupon redemption contract', () => {
+		const redeem = (couponId: string, orderId: string) =>
+			service.redeemCoupon({ couponId, orderId, userId: 'u1', amountCents: 500 });
+
+		test('redeeming increments the usage count and is idempotent per order', async () => {
+			const id = unwrap(await service.createCoupon(coupon, admin));
+			unwrap(await redeem(id, 'order-1'));
+			unwrap(await redeem(id, 'order-1'));
+			unwrap(await redeem(id, 'order-2'));
+
+			const stored = unwrap(await service.getCouponById(id));
+			expect(stored?.usedCount).toBe(2);
+		});
+
+		test('stops at maxUses with a conflict and writes nothing', async () => {
+			const id = unwrap(await service.createCoupon({ ...coupon, maxUses: 1 }, admin));
+			unwrap(await redeem(id, 'order-1'));
+
+			const exhausted = await redeem(id, 'order-2');
+			expect(exhausted.ok).toBe(false);
+			if (!exhausted.ok) expect(exhausted.error.status).toBe(409);
+			expect(unwrap(await service.getCouponById(id))?.usedCount).toBe(1);
+		});
+
+		test('validates a code for a cart, with the reason when it cannot apply', async () => {
+			unwrap(await service.createCoupon({ ...coupon, minSubtotalCents: 1000 }, admin));
+			unwrap(await service.createCoupon({ ...coupon, code: 'OFF', status: 'disabled' }, admin));
+			unwrap(
+				await service.createCoupon(
+					{ ...coupon, code: 'OLD', endsAt: '2025-12-31T00:00:00.000Z' },
+					admin
+				)
+			);
+
+			expect(unwrap(await service.validateCouponForCart(' welcome10 ', 1500)).code).toBe(
+				'WELCOME10'
+			);
+
+			const cases: Array<[string, number, number, string]> = [
+				['NOPE', 1500, 404, 'Coupon not found'],
+				['OFF', 1500, 422, 'Coupon is not active'],
+				['OLD', 1500, 422, 'Coupon has expired'],
+				['WELCOME10', 500, 422, 'Cart subtotal is below the coupon minimum']
+			];
+			for (const [code, subtotal, status, message] of cases) {
+				const result = await service.validateCouponForCart(code, subtotal);
+				expect(result.ok).toBe(false);
+				if (!result.ok) expect(result.error).toMatchObject({ status, message });
+			}
 		});
 	});
 

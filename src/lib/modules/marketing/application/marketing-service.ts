@@ -1,6 +1,7 @@
 import {
 	ConflictError,
 	NotFoundError,
+	UnprocessableError,
 	assertActor,
 	assertPermission,
 	err,
@@ -15,11 +16,11 @@ import {
 } from '#shared';
 import {
 	generateGiftCardCode,
+	isCouponApplicable,
 	parseDate,
 	toCustomerGiftCard,
 	type Coupon,
 	type CouponInput,
-	type CouponUsageReader,
 	type CustomerGiftCard,
 	type GiftCard,
 	type GiftCardDetail,
@@ -29,7 +30,8 @@ import {
 	type MarketingRepository,
 	type NewsletterStatus,
 	type NewsletterSubscription,
-	type PageResult
+	type PageResult,
+	type RedeemCouponInput
 } from '../domain/marketing.ts';
 
 type Outcome<T> = Promise<Result<T, AppError>>;
@@ -39,6 +41,13 @@ export interface MarketingService {
 	createCoupon(input: CouponInput, actor: Actor | null): Outcome<string>;
 	updateCoupon(id: string, input: CouponInput, actor: Actor | null): Outcome<Coupon>;
 	deleteCoupon(id: string, actor: Actor | null): Outcome<string>;
+	/** Service-to-service reads and writes used by cart and checkout; no actor required. */
+	getCouponById(id: string): Outcome<Coupon | null>;
+	getCouponByCode(code: string): Outcome<Coupon | null>;
+	/** Resolves a code to a coupon that may be applied to a cart of this subtotal, or fails with the reason. */
+	validateCouponForCart(code: string, subtotalCents: number): Outcome<Coupon>;
+	/** Idempotent per (coupon, order). Fails with 409 when the usage limit is already reached. */
+	redeemCoupon(input: RedeemCouponInput): Outcome<void>;
 
 	listGiftCards(query: ListQuery, actor: Actor | null): Outcome<PageResult<GiftCard>>;
 	createGiftCard(input: GiftCardInput, actor: Actor | null): Outcome<string>;
@@ -71,7 +80,6 @@ export interface MarketingService {
 
 export function createMarketingService(
 	repository: MarketingRepository,
-	usage: CouponUsageReader,
 	clock: Clock = systemClock
 ): MarketingService {
 	async function run<T>(action: () => Promise<T>): Outcome<T> {
@@ -150,11 +158,47 @@ export function createMarketingService(
 			run(async () => {
 				assertPermission(actor, 'admin:access');
 				if (!(await repository.findCoupon(id))) throw new NotFoundError('Coupon not found');
-				if ((await usage.countRedemptions(id)) > 0) {
+				if ((await repository.countRedemptions(id)) > 0) {
 					throw new ConflictError('Coupon has redemptions; disable it instead');
 				}
 				await repository.deleteCoupon(id);
 				return id;
+			}),
+
+		getCouponById: (id) => run(() => repository.findCoupon(id)),
+
+		getCouponByCode: (code) => run(() => repository.findCouponByCode(code.trim().toUpperCase())),
+
+		validateCouponForCart: (code, subtotalCents) =>
+			run(async () => {
+				const coupon = await repository.findCouponByCode(code.trim().toUpperCase());
+				if (!coupon) throw new NotFoundError('Coupon not found');
+				if (coupon.status !== 'active') throw new UnprocessableError('Coupon is not active');
+
+				const now = clock.now().getTime();
+				if (coupon.startsAt && now < coupon.startsAt.getTime()) {
+					throw new UnprocessableError('Coupon is not yet active');
+				}
+				if (coupon.endsAt && now > coupon.endsAt.getTime()) {
+					throw new UnprocessableError('Coupon has expired');
+				}
+				if (coupon.maxUses !== null && coupon.usedCount >= coupon.maxUses) {
+					throw new UnprocessableError('Coupon usage limit reached');
+				}
+				if (!isCouponApplicable(coupon, subtotalCents, now)) {
+					throw new UnprocessableError('Cart subtotal is below the coupon minimum');
+				}
+				return coupon;
+			}),
+
+		redeemCoupon: (input) =>
+			run(async () => {
+				const now = clock.now();
+				const outcome = await repository.redeemCoupon(
+					{ id: newId(), ...input, createdAt: now },
+					now
+				);
+				if (outcome === 'exhausted') throw new ConflictError('Coupon usage limit reached');
 			}),
 
 		listGiftCards: (query, actor) =>

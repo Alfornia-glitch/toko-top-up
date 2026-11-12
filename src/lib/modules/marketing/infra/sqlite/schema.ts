@@ -1,4 +1,4 @@
-import { index, integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
+import { index, integer, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core';
 
 const timestamps = {
 	createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull(),
@@ -83,4 +83,22 @@ export const newsletterSubscriptions = sqliteTable(
 		...timestamps
 	},
 	(table) => [index('marketing_newsletter_subscriptions_status_idx').on(table.status)]
+);
+
+export const couponRedemptions = sqliteTable(
+	'marketing_coupon_redemptions',
+	{
+		id: text('id').primaryKey(),
+		couponId: text('coupon_id')
+			.notNull()
+			.references(() => coupons.id, { onDelete: 'cascade' }),
+		orderId: text('order_id').notNull(),
+		userId: text('user_id'),
+		amountCents: integer('amount_cents').notNull(),
+		createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull()
+	},
+	(table) => [
+		index('marketing_coupon_redemptions_coupon_idx').on(table.couponId),
+		uniqueIndex('marketing_coupon_redemptions_coupon_order_idx').on(table.couponId, table.orderId)
+	]
 );

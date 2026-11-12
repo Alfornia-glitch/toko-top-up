@@ -8,7 +8,6 @@ import { createMarketingServices, type MarketingServices } from '#modules/market
 import { createSupportServices, type SupportServices } from '#modules/support/server.ts';
 import { createReportingServices, type ReportingServices } from '#modules/reporting/server.ts';
 import { createCustomerDirectory } from './adapters/customer-directory.ts';
-import { createCouponUsageReader } from './adapters/coupon-usage.ts';
 import { createSupportUserDirectory } from './adapters/support-users.ts';
 import { loadConfig, type AppConfig } from './config.server.ts';
 import { createModuleRegistry } from './registry.server.ts';
@@ -112,10 +111,7 @@ export function createRuntime(
 	registry.register({
 		name: 'marketing',
 		initialize() {
-			marketing = createMarketingServices({
-				...serviceOptions(),
-				usage: createCouponUsageReader()
-			});
+			marketing = createMarketingServices(serviceOptions());
 		}
 	});
 

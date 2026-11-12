@@ -1,7 +1,6 @@
 import { systemClock, type Clock } from '#shared';
 import type { PostgresDb, SqliteDb } from '#db/core.ts';
 import { createMarketingService, type MarketingService } from './application/marketing-service.ts';
-import type { CouponUsageReader } from './domain/marketing.ts';
 import { createPostgresMarketingRepository } from './infra/pg/marketing-repository.ts';
 import { createSqliteMarketingRepository } from './infra/sqlite/marketing-repository.ts';
 
@@ -10,8 +9,8 @@ export interface MarketingServices {
 }
 
 type MarketingServiceOptions =
-	| { provider: 'postgres'; db: PostgresDb; usage: CouponUsageReader; clock?: Clock }
-	| { provider: 'sqlite'; db: SqliteDb; usage: CouponUsageReader; clock?: Clock };
+	| { provider: 'postgres'; db: PostgresDb; clock?: Clock }
+	| { provider: 'sqlite'; db: SqliteDb; clock?: Clock };
 
 export function createMarketingServices(options: MarketingServiceOptions): MarketingServices {
 	const clock = options.clock ?? systemClock;
@@ -20,5 +19,5 @@ export function createMarketingServices(options: MarketingServiceOptions): Marke
 			? createPostgresMarketingRepository(options.db)
 			: createSqliteMarketingRepository(options.db);
 
-	return { marketing: createMarketingService(repository, options.usage, clock) };
+	return { marketing: createMarketingService(repository, clock) };
 }

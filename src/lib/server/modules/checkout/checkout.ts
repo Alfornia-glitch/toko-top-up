@@ -165,12 +165,10 @@ export async function placeOrder(actor: Actor, cartId: string, input: CheckoutIn
 
 	let couponRecord: { id: string } | null = null;
 	if (discountCents > 0 && cart.coupon) {
-		const [row] = await queryDb
-			.select({ id: t.coupons.id })
-			.from(t.coupons)
-			.where(eq(t.coupons.code, cart.coupon.code))
-			.limit(1);
-		couponRecord = row ?? null;
+		const coupon = unwrap(
+			await getRuntime().services.marketing.marketing.getCouponByCode(cart.coupon.code)
+		);
+		couponRecord = coupon ? { id: coupon.id } : null;
 	}
 
 	const couponId = couponRecord?.id ?? null;
@@ -246,26 +244,19 @@ export async function placeOrder(actor: Actor, cartId: string, input: CheckoutIn
 				createdAt: now
 			});
 		}
-
-		if (couponId) {
-			await tx
-				.update(t.coupons)
-				.set({
-					usedCount: sql`${t.coupons.usedCount} + 1`,
-					updatedAt: now
-				})
-				.where(eq(t.coupons.id, couponId));
-
-			await tx.insert(t.couponRedemptions).values({
-				id: crypto.randomUUID(),
-				couponId,
-				orderId,
-				userId,
-				amountCents: discountCents,
-				createdAt: now
-			});
-		}
 	});
+
+	if (couponId) {
+		// Interim: redemption now runs after the order commits. The checkout saga
+		// (Phase 7, checkout module) restores atomicity with compensation.
+		const redeemed = await getRuntime().services.marketing.marketing.redeemCoupon({
+			couponId,
+			orderId,
+			userId,
+			amountCents: discountCents
+		});
+		if (!redeemed.ok) console.error('[checkout] coupon redemption failed', redeemed.error);
+	}
 
 	await markCartConverted(cartId);
 

@@ -1,6 +1,8 @@
 import { and, asc, desc, eq, inArray } from 'drizzle-orm';
 import { queryDb, tables } from '#db/query.ts';
-import { NotFoundError, UnprocessableError } from '#shared';
+import { NotFoundError, UnprocessableError, unwrap } from '#shared';
+import { discountFor, isCouponApplicable } from '#modules/marketing/index.ts';
+import { getRuntime } from '#lib/server/runtime.server.ts';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const t = tables as any;
@@ -52,43 +54,6 @@ type CartItemRow = {
 	stock: number;
 	brandName: string | null;
 };
-
-type CouponRow = {
-	code: string;
-	type: 'percentage' | 'fixed';
-	value: number;
-	minSubtotalCents: number;
-	maxUses: number | null;
-	usedCount: number;
-	startsAt: Date | number | null;
-	endsAt: Date | number | null;
-	status: 'active' | 'disabled';
-};
-
-function toTime(value: Date | number | null): number | null {
-	if (value === null) return null;
-	return value instanceof Date ? value.getTime() : value;
-}
-
-export function discountFor(
-	coupon: { type: 'percentage' | 'fixed'; value: number },
-	subtotal: number
-): number {
-	if (coupon.type === 'percentage') return Math.round((subtotal * coupon.value) / 100);
-	return Math.min(coupon.value, subtotal);
-}
-
-function couponIsApplicable(coupon: CouponRow, subtotal: number): boolean {
-	const now = Date.now();
-	if (coupon.status !== 'active') return false;
-	const startsAt = toTime(coupon.startsAt);
-	const endsAt = toTime(coupon.endsAt);
-	if (startsAt !== null && now < startsAt) return false;
-	if (endsAt !== null && now > endsAt) return false;
-	if (coupon.maxUses !== null && coupon.usedCount >= coupon.maxUses) return false;
-	if (subtotal < (coupon.minSubtotalCents ?? 0)) return false;
-	return true;
-}
 
 function emptyCart(cartId: string, currency = 'USD'): Cart {
 	return {
@@ -174,15 +139,13 @@ export async function getCart(cartId: string): Promise<Cart> {
 	let coupon: CartCoupon | null = null;
 	let discountCents = 0;
 	if (cart.couponId) {
-		const [couponRow] = await queryDb
-			.select()
-			.from(t.coupons)
-			.where(eq(t.coupons.id, cart.couponId))
-			.limit(1);
+		const couponRow = unwrap(
+			await getRuntime().services.marketing.marketing.getCouponById(cart.couponId)
+		);
 		if (couponRow) {
 			coupon = { code: couponRow.code, type: couponRow.type, value: couponRow.value };
-			if (couponIsApplicable(couponRow as CouponRow, subtotalCents)) {
-				discountCents = discountFor(couponRow as CouponRow, subtotalCents);
+			if (isCouponApplicable(couponRow, subtotalCents, Date.now())) {
+				discountCents = discountFor(couponRow, subtotalCents);
 			}
 		}
 	}
@@ -368,27 +331,13 @@ export async function removeItem(cartId: string, itemId: string): Promise<Cart> 
 }
 
 export async function applyCoupon(cartId: string, code: string): Promise<Cart> {
-	const normalized = code.trim().toUpperCase();
-	const [coupon] = await queryDb
-		.select()
-		.from(t.coupons)
-		.where(eq(t.coupons.code, normalized))
-		.limit(1);
-
-	if (!coupon) throw new NotFoundError('Coupon not found');
-	if (coupon.status !== 'active') throw new UnprocessableError('Coupon is not active');
-
-	const now = Date.now();
-	const startsAt = toTime(coupon.startsAt);
-	const endsAt = toTime(coupon.endsAt);
-	if (startsAt !== null && now < startsAt) throw new UnprocessableError('Coupon is not yet active');
-	if (endsAt !== null && now > endsAt) throw new UnprocessableError('Coupon has expired');
-	if (coupon.maxUses !== null && coupon.usedCount >= coupon.maxUses)
-		throw new UnprocessableError('Coupon usage limit reached');
-
 	const current = await getCart(cartId);
-	if (current.subtotalCents < (coupon.minSubtotalCents ?? 0))
-		throw new UnprocessableError('Cart subtotal is below the coupon minimum');
+	const coupon = unwrap(
+		await getRuntime().services.marketing.marketing.validateCouponForCart(
+			code,
+			current.subtotalCents
+		)
+	);
 
 	await queryDb
 		.update(t.carts)

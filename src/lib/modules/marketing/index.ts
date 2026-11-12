@@ -1,6 +1,8 @@
+export { discountFor, isCouponApplicable } from './domain/marketing.ts';
 export type {
 	Coupon,
 	CouponInput,
+	CouponRedemption,
 	CouponStatus,
 	CouponType,
 	CustomerGiftCard,
@@ -13,5 +15,7 @@ export type {
 	ListQuery,
 	NewsletterStatus,
 	NewsletterSubscription,
-	PageResult
+	PageResult,
+	RedeemCouponInput,
+	RedeemOutcome
 } from './domain/marketing.ts';

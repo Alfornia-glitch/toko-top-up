@@ -131,7 +131,7 @@ CREATE TABLE "shop"."catalog_categories" (
 	CONSTRAINT "catalog_categories_slug_unique" UNIQUE("slug")
 );
 --> statement-breakpoint
-CREATE TABLE "shop"."coupon_redemptions" (
+CREATE TABLE "shop"."marketing_coupon_redemptions" (
 	"id" text PRIMARY KEY NOT NULL,
 	"coupon_id" text NOT NULL,
 	"order_id" text NOT NULL,
@@ -525,9 +525,7 @@ ALTER TABLE "shop"."cart_items" ADD CONSTRAINT "cart_items_variant_id_catalog_pr
 ALTER TABLE "shop"."carts" ADD CONSTRAINT "carts_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "auth_app"."user"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "shop"."carts" ADD CONSTRAINT "carts_coupon_id_marketing_coupons_id_fk" FOREIGN KEY ("coupon_id") REFERENCES "shop"."marketing_coupons"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "shop"."catalog_categories" ADD CONSTRAINT "catalog_categories_parent_id_catalog_categories_id_fk" FOREIGN KEY ("parent_id") REFERENCES "shop"."catalog_categories"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "shop"."coupon_redemptions" ADD CONSTRAINT "coupon_redemptions_coupon_id_marketing_coupons_id_fk" FOREIGN KEY ("coupon_id") REFERENCES "shop"."marketing_coupons"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "shop"."coupon_redemptions" ADD CONSTRAINT "coupon_redemptions_order_id_orders_id_fk" FOREIGN KEY ("order_id") REFERENCES "shop"."orders"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "shop"."coupon_redemptions" ADD CONSTRAINT "coupon_redemptions_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "auth_app"."user"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "shop"."marketing_coupon_redemptions" ADD CONSTRAINT "marketing_coupon_redemptions_coupon_id_marketing_coupons_id_fk" FOREIGN KEY ("coupon_id") REFERENCES "shop"."marketing_coupons"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "shop"."marketing_gift_card_transactions" ADD CONSTRAINT "marketing_gift_card_transactions_gift_card_id_marketing_gift_cards_id_fk" FOREIGN KEY ("gift_card_id") REFERENCES "shop"."marketing_gift_cards"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "shop"."catalog_inventory_movements" ADD CONSTRAINT "catalog_inventory_movements_variant_id_catalog_product_variants_id_fk" FOREIGN KEY ("variant_id") REFERENCES "shop"."catalog_product_variants"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "shop"."order_events" ADD CONSTRAINT "order_events_order_id_orders_id_fk" FOREIGN KEY ("order_id") REFERENCES "shop"."orders"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
@@ -569,7 +567,8 @@ CREATE INDEX "carts_status_idx" ON "shop"."carts" USING btree ("status");--> sta
 CREATE INDEX "reporting_catalog_products_status_idx" ON "shop"."reporting_catalog_products" USING btree ("status");--> statement-breakpoint
 CREATE INDEX "catalog_categories_parent_idx" ON "shop"."catalog_categories" USING btree ("parent_id");--> statement-breakpoint
 CREATE INDEX "catalog_categories_position_idx" ON "shop"."catalog_categories" USING btree ("position");--> statement-breakpoint
-CREATE INDEX "coupon_redemptions_coupon_idx" ON "shop"."coupon_redemptions" USING btree ("coupon_id");--> statement-breakpoint
+CREATE INDEX "marketing_coupon_redemptions_coupon_idx" ON "shop"."marketing_coupon_redemptions" USING btree ("coupon_id");--> statement-breakpoint
+CREATE UNIQUE INDEX "marketing_coupon_redemptions_coupon_order_idx" ON "shop"."marketing_coupon_redemptions" USING btree ("coupon_id","order_id");--> statement-breakpoint
 CREATE INDEX "marketing_coupons_status_idx" ON "shop"."marketing_coupons" USING btree ("status");--> statement-breakpoint
 CREATE INDEX "marketing_gift_card_transactions_card_idx" ON "shop"."marketing_gift_card_transactions" USING btree ("gift_card_id");--> statement-breakpoint
 CREATE INDEX "marketing_gift_cards_code_idx" ON "shop"."marketing_gift_cards" USING btree ("code");--> statement-breakpoint

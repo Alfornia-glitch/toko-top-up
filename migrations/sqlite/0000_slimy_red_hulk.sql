@@ -148,19 +148,18 @@ CREATE TABLE `catalog_categories` (
 CREATE UNIQUE INDEX `catalog_categories_slug_unique` ON `catalog_categories` (`slug`);--> statement-breakpoint
 CREATE INDEX `catalog_categories_parent_idx` ON `catalog_categories` (`parent_id`);--> statement-breakpoint
 CREATE INDEX `catalog_categories_position_idx` ON `catalog_categories` (`position`);--> statement-breakpoint
-CREATE TABLE `coupon_redemptions` (
+CREATE TABLE `marketing_coupon_redemptions` (
 	`id` text PRIMARY KEY NOT NULL,
 	`coupon_id` text NOT NULL,
 	`order_id` text NOT NULL,
 	`user_id` text,
 	`amount_cents` integer NOT NULL,
 	`created_at` integer NOT NULL,
-	FOREIGN KEY (`coupon_id`) REFERENCES `marketing_coupons`(`id`) ON UPDATE no action ON DELETE cascade,
-	FOREIGN KEY (`order_id`) REFERENCES `orders`(`id`) ON UPDATE no action ON DELETE cascade,
-	FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON UPDATE no action ON DELETE set null
+	FOREIGN KEY (`coupon_id`) REFERENCES `marketing_coupons`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
-CREATE INDEX `coupon_redemptions_coupon_idx` ON `coupon_redemptions` (`coupon_id`);--> statement-breakpoint
+CREATE INDEX `marketing_coupon_redemptions_coupon_idx` ON `marketing_coupon_redemptions` (`coupon_id`);--> statement-breakpoint
+CREATE UNIQUE INDEX `marketing_coupon_redemptions_coupon_order_idx` ON `marketing_coupon_redemptions` (`coupon_id`,`order_id`);--> statement-breakpoint
 CREATE TABLE `marketing_coupons` (
 	`id` text PRIMARY KEY NOT NULL,
 	`code` text NOT NULL,

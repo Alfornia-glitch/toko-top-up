@@ -1,7 +1,7 @@
 {
 	"version": "6",
 	"dialect": "sqlite",
-	"id": "71431202-cc2b-460a-af77-5de36dc96598",
+	"id": "0c853d70-21f7-4f6f-88a7-ce368b193317",
 	"prevId": "00000000-0000-0000-0000-000000000000",
 	"tables": {
 		"account": {
@@ -953,8 +953,8 @@
 			"uniqueConstraints": {},
 			"checkConstraints": {}
 		},
-		"coupon_redemptions": {
-			"name": "coupon_redemptions",
+		"marketing_coupon_redemptions": {
+			"name": "marketing_coupon_redemptions",
 			"columns": {
 				"id": {
 					"name": "id",
@@ -1000,38 +1000,25 @@
 				}
 			},
 			"indexes": {
-				"coupon_redemptions_coupon_idx": {
-					"name": "coupon_redemptions_coupon_idx",
+				"marketing_coupon_redemptions_coupon_idx": {
+					"name": "marketing_coupon_redemptions_coupon_idx",
 					"columns": ["coupon_id"],
 					"isUnique": false
+				},
+				"marketing_coupon_redemptions_coupon_order_idx": {
+					"name": "marketing_coupon_redemptions_coupon_order_idx",
+					"columns": ["coupon_id", "order_id"],
+					"isUnique": true
 				}
 			},
 			"foreignKeys": {
-				"coupon_redemptions_coupon_id_marketing_coupons_id_fk": {
-					"name": "coupon_redemptions_coupon_id_marketing_coupons_id_fk",
-					"tableFrom": "coupon_redemptions",
+				"marketing_coupon_redemptions_coupon_id_marketing_coupons_id_fk": {
+					"name": "marketing_coupon_redemptions_coupon_id_marketing_coupons_id_fk",
+					"tableFrom": "marketing_coupon_redemptions",
 					"tableTo": "marketing_coupons",
 					"columnsFrom": ["coupon_id"],
 					"columnsTo": ["id"],
 					"onDelete": "cascade",
-					"onUpdate": "no action"
-				},
-				"coupon_redemptions_order_id_orders_id_fk": {
-					"name": "coupon_redemptions_order_id_orders_id_fk",
-					"tableFrom": "coupon_redemptions",
-					"tableTo": "orders",
-					"columnsFrom": ["order_id"],
-					"columnsTo": ["id"],
-					"onDelete": "cascade",
-					"onUpdate": "no action"
-				},
-				"coupon_redemptions_user_id_user_id_fk": {
-					"name": "coupon_redemptions_user_id_user_id_fk",
-					"tableFrom": "coupon_redemptions",
-					"tableTo": "user",
-					"columnsFrom": ["user_id"],
-					"columnsTo": ["id"],
-					"onDelete": "set null",
 					"onUpdate": "no action"
 				}
 			},

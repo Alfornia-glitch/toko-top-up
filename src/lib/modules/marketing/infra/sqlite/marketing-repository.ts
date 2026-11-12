@@ -1,7 +1,13 @@
-import { and, count, desc, eq, like, or } from 'drizzle-orm';
+import { and, count, desc, eq, isNull, like, lt, or, sql } from 'drizzle-orm';
 import type { SqliteDb } from '#db/core.ts';
 import type { ListQuery, MarketingRepository } from '../../domain/marketing.ts';
-import { coupons, giftCardTransactions, giftCards, newsletterSubscriptions } from './schema.ts';
+import {
+	couponRedemptions,
+	coupons,
+	giftCardTransactions,
+	giftCards,
+	newsletterSubscriptions
+} from './schema.ts';
 
 export function createSqliteMarketingRepository(db: SqliteDb): MarketingRepository {
 	return {
@@ -43,6 +49,45 @@ export function createSqliteMarketingRepository(db: SqliteDb): MarketingReposito
 
 		async deleteCoupon(id) {
 			await db.delete(coupons).where(eq(coupons.id, id));
+		},
+
+		async countRedemptions(couponId) {
+			const [row] = await db
+				.select({ value: count() })
+				.from(couponRedemptions)
+				.where(eq(couponRedemptions.couponId, couponId));
+			return Number(row?.value ?? 0);
+		},
+
+		async redeemCoupon(redemption, now) {
+			return db.transaction(async (tx) => {
+				const [existing] = await tx
+					.select({ id: couponRedemptions.id })
+					.from(couponRedemptions)
+					.where(
+						and(
+							eq(couponRedemptions.couponId, redemption.couponId),
+							eq(couponRedemptions.orderId, redemption.orderId)
+						)
+					)
+					.limit(1);
+				if (existing) return 'duplicate' as const;
+
+				const claimed = await tx
+					.update(coupons)
+					.set({ usedCount: sql`${coupons.usedCount} + 1`, updatedAt: now })
+					.where(
+						and(
+							eq(coupons.id, redemption.couponId),
+							or(isNull(coupons.maxUses), lt(coupons.usedCount, coupons.maxUses))
+						)
+					)
+					.returning({ id: coupons.id });
+				if (!claimed.length) return 'exhausted' as const;
+
+				await tx.insert(couponRedemptions).values(redemption);
+				return 'redeemed' as const;
+			});
 		},
 
 		async listGiftCards(query: ListQuery) {

@@ -118,13 +118,23 @@ export interface PageResult<T> {
 	total: number;
 }
 
-/**
- * Read-only port over coupon redemptions. Redemptions are written by checkout
- * inside the order transaction, so they are not owned by this module yet.
- */
-export interface CouponUsageReader {
-	countRedemptions(couponId: string): Promise<number>;
+export interface CouponRedemption {
+	id: string;
+	couponId: string;
+	orderId: string;
+	userId: string | null;
+	amountCents: number;
+	createdAt: Date;
 }
+
+export interface RedeemCouponInput {
+	couponId: string;
+	orderId: string;
+	userId: string | null;
+	amountCents: number;
+}
+
+export type RedeemOutcome = 'redeemed' | 'duplicate' | 'exhausted';
 
 export interface MarketingRepository {
 	listCoupons(query: ListQuery): Promise<{ data: Coupon[]; total: number }>;
@@ -133,6 +143,13 @@ export interface MarketingRepository {
 	insertCoupon(coupon: Coupon): Promise<void>;
 	updateCoupon(id: string, patch: Partial<Coupon>): Promise<void>;
 	deleteCoupon(id: string): Promise<void>;
+	countRedemptions(couponId: string): Promise<number>;
+	/**
+	 * Atomically records the redemption and increments `usedCount`.
+	 * `duplicate` when this order already redeemed the coupon; `exhausted` when
+	 * `maxUses` is already reached (nothing is written in either case).
+	 */
+	redeemCoupon(redemption: CouponRedemption, now: Date): Promise<RedeemOutcome>;
 
 	listGiftCards(query: ListQuery): Promise<{ data: GiftCard[]; total: number }>;
 	listGiftCardsFor(userId: string, email: string | null): Promise<GiftCard[]>;
@@ -171,4 +188,18 @@ export function toCustomerGiftCard(card: GiftCard): CustomerGiftCard {
 
 export function generateGiftCardCode(id: string): string {
 	return id.replaceAll('-', '').slice(0, 16).toUpperCase();
+}
+
+export function discountFor(coupon: Pick<Coupon, 'type' | 'value'>, subtotalCents: number): number {
+	if (coupon.type === 'percentage') return Math.round((subtotalCents * coupon.value) / 100);
+	return Math.min(coupon.value, subtotalCents);
+}
+
+/** Whether the coupon can be applied to a cart of this subtotal right now. */
+export function isCouponApplicable(coupon: Coupon, subtotalCents: number, now: number): boolean {
+	if (coupon.status !== 'active') return false;
+	if (coupon.startsAt && now < coupon.startsAt.getTime()) return false;
+	if (coupon.endsAt && now > coupon.endsAt.getTime()) return false;
+	if (coupon.maxUses !== null && coupon.usedCount >= coupon.maxUses) return false;
+	return subtotalCents >= coupon.minSubtotalCents;
 }

@@ -3,6 +3,7 @@ import { describe, test } from 'vitest';
 import { createPostgresDb } from '#db/core.ts';
 import { createMarketingServices } from '#modules/marketing/server.ts';
 import {
+	couponRedemptions,
 	coupons,
 	giftCardTransactions,
 	giftCards,
@@ -17,20 +18,18 @@ if (testDatabaseUrl) {
 	describe('marketing contract (postgres)', () => {
 		const clock = createTestClock(new Date('2026-01-01T00:00:00.000Z'));
 		const { db } = createPostgresDb(testDatabaseUrl);
-		const redemptions = new Map<string, number>();
 
 		runMarketingContract({
 			service: createMarketingServices({
 				provider: 'postgres',
 				db,
-				clock,
-				usage: { countRedemptions: async (id) => redemptions.get(id) ?? 0 }
+				clock
 			}).marketing,
 			clock,
-			redemptions,
 			async reset() {
 				await db.delete(giftCardTransactions);
 				await db.delete(giftCards);
+				await db.delete(couponRedemptions);
 				await db.delete(coupons);
 				await db.delete(newsletterSubscriptions);
 			}

@@ -1,5 +1,5 @@
 {
-	"id": "fa8c1dd6-b633-4894-a6c3-0915afdb6f93",
+	"id": "52bca285-7f2d-4c11-b5d8-837f86fe22ba",
 	"prevId": "00000000-0000-0000-0000-000000000000",
 	"version": "7",
 	"dialect": "postgresql",
@@ -1047,8 +1047,8 @@
 			"checkConstraints": {},
 			"isRLSEnabled": false
 		},
-		"shop.coupon_redemptions": {
-			"name": "coupon_redemptions",
+		"shop.marketing_coupon_redemptions": {
+			"name": "marketing_coupon_redemptions",
 			"schema": "shop",
 			"columns": {
 				"id": {
@@ -1089,8 +1089,8 @@
 				}
 			},
 			"indexes": {
-				"coupon_redemptions_coupon_idx": {
-					"name": "coupon_redemptions_coupon_idx",
+				"marketing_coupon_redemptions_coupon_idx": {
+					"name": "marketing_coupon_redemptions_coupon_idx",
 					"columns": [
 						{
 							"expression": "coupon_id",
@@ -1103,37 +1103,38 @@
 					"concurrently": false,
 					"method": "btree",
 					"with": {}
+				},
+				"marketing_coupon_redemptions_coupon_order_idx": {
+					"name": "marketing_coupon_redemptions_coupon_order_idx",
+					"columns": [
+						{
+							"expression": "coupon_id",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						},
+						{
+							"expression": "order_id",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": true,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
 				}
 			},
 			"foreignKeys": {
-				"coupon_redemptions_coupon_id_marketing_coupons_id_fk": {
-					"name": "coupon_redemptions_coupon_id_marketing_coupons_id_fk",
-					"tableFrom": "coupon_redemptions",
+				"marketing_coupon_redemptions_coupon_id_marketing_coupons_id_fk": {
+					"name": "marketing_coupon_redemptions_coupon_id_marketing_coupons_id_fk",
+					"tableFrom": "marketing_coupon_redemptions",
 					"tableTo": "marketing_coupons",
 					"schemaTo": "shop",
 					"columnsFrom": ["coupon_id"],
 					"columnsTo": ["id"],
 					"onDelete": "cascade",
-					"onUpdate": "no action"
-				},
-				"coupon_redemptions_order_id_orders_id_fk": {
-					"name": "coupon_redemptions_order_id_orders_id_fk",
-					"tableFrom": "coupon_redemptions",
-					"tableTo": "orders",
-					"schemaTo": "shop",
-					"columnsFrom": ["order_id"],
-					"columnsTo": ["id"],
-					"onDelete": "cascade",
-					"onUpdate": "no action"
-				},
-				"coupon_redemptions_user_id_user_id_fk": {
-					"name": "coupon_redemptions_user_id_user_id_fk",
-					"tableFrom": "coupon_redemptions",
-					"tableTo": "user",
-					"schemaTo": "auth_app",
-					"columnsFrom": ["user_id"],
-					"columnsTo": ["id"],
-					"onDelete": "set null",
 					"onUpdate": "no action"
 				}
 			},

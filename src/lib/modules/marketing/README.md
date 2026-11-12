@@ -5,21 +5,19 @@ Coupons, gift cards and newsletter subscriptions.
 ## Public API
 
 - `index.ts`: DTOs (`Coupon`, `GiftCard`, `GiftCardDetail`, `NewsletterSubscription`, …).
-- `server.ts`: `createMarketingServices({ ..., usage })` returning `{ marketing }`.
+- `server.ts`: `createMarketingServices({ db, provider })` returning `{ marketing }`.
 
 ## Owned tables
 
 - `marketing_coupons`
+- `marketing_coupon_redemptions` — `order_id` and `user_id` are plain ids; unique per (coupon, order).
 - `marketing_gift_cards`, `marketing_gift_card_transactions` — `purchaser_user_id` and `order_id` are plain ids, not foreign keys.
 - `marketing_newsletter_subscriptions` — `user_id` is a plain id, not a foreign key.
 
-## Ports
+## Service-to-service API
 
-- `CouponUsageReader` — counts redemptions of a coupon so a redeemed coupon cannot be deleted. Redemptions (`coupon_redemptions`) and `marketing_coupons.used_count` are still written by legacy checkout inside the order transaction, so the runtime supplies the adapter (`src/lib/server/adapters/coupon-usage.ts`).
-
-## Known debt
-
-- Legacy `cart` and `checkout` still read and update `marketing_coupons` directly through `#db/query.ts`, and `coupon_redemptions`, `carts` and `orders` keep foreign keys to it. Remove when `cart`, `checkout` and `orders` migrate and redemption moves behind this module.
+- `getCouponById`, `getCouponByCode`, `validateCouponForCart` and `redeemCoupon` need no actor; they are called by cart and checkout. `redeemCoupon` is idempotent per (coupon, order) and returns a 409 when `maxUses` is already reached.
+- `discountFor` and `isCouponApplicable` are pure helpers exported from `index.ts`.
 
 ## Events
 

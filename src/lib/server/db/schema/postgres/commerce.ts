@@ -160,23 +160,6 @@ export const payments = shopSchema.table(
 	(table) => [index('payments_order_idx').on(table.orderId)]
 );
 
-export const couponRedemptions = shopSchema.table(
-	'coupon_redemptions',
-	{
-		id: text('id').primaryKey(),
-		couponId: text('coupon_id')
-			.notNull()
-			.references(() => coupons.id, { onDelete: 'cascade' }),
-		orderId: text('order_id')
-			.notNull()
-			.references(() => orders.id, { onDelete: 'cascade' }),
-		userId: text('user_id').references(() => user.id, { onDelete: 'set null' }),
-		amountCents: integer('amount_cents').notNull(),
-		createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).notNull()
-	},
-	(table) => [index('coupon_redemptions_coupon_idx').on(table.couponId)]
-);
-
 export const returnRequests = shopSchema.table(
 	'return_requests',
 	{
@@ -267,12 +250,6 @@ export const shipmentsRelations = relations(shipments, ({ one }) => ({
 
 export const paymentsRelations = relations(payments, ({ one }) => ({
 	order: one(orders, { fields: [payments.orderId], references: [orders.id] })
-}));
-
-export const couponRedemptionsRelations = relations(couponRedemptions, ({ one }) => ({
-	coupon: one(coupons, { fields: [couponRedemptions.couponId], references: [coupons.id] }),
-	order: one(orders, { fields: [couponRedemptions.orderId], references: [orders.id] }),
-	user: one(user, { fields: [couponRedemptions.userId], references: [user.id] })
 }));
 
 export const returnRequestsRelations = relations(returnRequests, ({ one, many }) => ({
