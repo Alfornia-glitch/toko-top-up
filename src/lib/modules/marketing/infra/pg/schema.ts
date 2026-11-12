@@ -1,4 +1,13 @@
-import { index, integer, jsonb, pgSchema, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core';
+import {
+	foreignKey,
+	index,
+	integer,
+	jsonb,
+	pgSchema,
+	text,
+	timestamp,
+	uniqueIndex
+} from 'drizzle-orm/pg-core';
 
 const shop = pgSchema('shop');
 
@@ -59,15 +68,21 @@ export const giftCardTransactions = shop.table(
 	'marketing_gift_card_transactions',
 	{
 		id: text('id').primaryKey(),
-		giftCardId: text('gift_card_id')
-			.notNull()
-			.references(() => giftCards.id, { onDelete: 'cascade' }),
+		giftCardId: text('gift_card_id').notNull(),
 		orderId: text('order_id'),
 		amountCents: integer('amount_cents').notNull(),
 		type: text('type').$type<'issue' | 'redeem' | 'refund'>().notNull(),
 		createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).notNull()
 	},
-	(table) => [index('marketing_gift_card_transactions_card_idx').on(table.giftCardId)]
+	(table) => [
+		index('marketing_gift_card_transactions_card_idx').on(table.giftCardId),
+		// Explicit name: the generated one exceeds Postgres's 63-character identifier limit.
+		foreignKey({
+			name: 'marketing_gift_card_tx_gift_card_id_fk',
+			columns: [table.giftCardId],
+			foreignColumns: [giftCards.id]
+		}).onDelete('cascade')
+	]
 );
 
 export const newsletterSubscriptions = shop.table(

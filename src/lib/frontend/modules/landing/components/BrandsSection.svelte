@@ -11,12 +11,12 @@
 		data-name="Flex Vertical"
 	>
 		<p
-			class="relative w-full shrink-0 text-center font-['Geist:Bold'] text-[30px] leading-[36px] font-bold [word-break:break-word] text-[#0a0a0a]"
+			class="relative w-full shrink-0 text-start font-['Geist:Bold'] text-[30px] leading-[36px] font-bold [word-break:break-word] text-[#0a0a0a]"
 		>
 			Shop By Brands
 		</p>
 		<div
-			class="relative flex w-full shrink-0 flex-wrap content-stretch items-center justify-center gap-[32px]"
+			class="relative flex w-full shrink-0 flex-wrap content-stretch items-center justify-start gap-[32px]"
 			data-name="Brand Logos"
 		>
 			{#each home.brands as brand (brand.id)}

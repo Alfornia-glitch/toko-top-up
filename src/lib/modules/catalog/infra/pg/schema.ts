@@ -2,6 +2,7 @@ import { relations } from 'drizzle-orm';
 import {
 	type AnyPgColumn,
 	boolean,
+	foreignKey,
 	index,
 	integer,
 	jsonb,
@@ -126,15 +127,21 @@ export const productOptionValues = shop.table(
 	'catalog_product_option_values',
 	{
 		id: text('id').primaryKey(),
-		optionId: text('option_id')
-			.notNull()
-			.references(() => productOptions.id, { onDelete: 'cascade' }),
+		optionId: text('option_id').notNull(),
 		value: text('value').notNull(),
 		colorHex: text('color_hex'),
 		position: integer('position').notNull().default(0),
 		...timestamps
 	},
-	(table) => [index('catalog_product_option_values_option_idx').on(table.optionId)]
+	(table) => [
+		index('catalog_product_option_values_option_idx').on(table.optionId),
+		// Explicit name: the generated one exceeds Postgres's 63-character identifier limit.
+		foreignKey({
+			name: 'catalog_option_values_option_id_fk',
+			columns: [table.optionId],
+			foreignColumns: [productOptions.id]
+		}).onDelete('cascade')
+	]
 );
 
 export const productVariants = shop.table(
@@ -161,9 +168,7 @@ export const inventoryMovements = shop.table(
 	'catalog_inventory_movements',
 	{
 		id: text('id').primaryKey(),
-		variantId: text('variant_id')
-			.notNull()
-			.references(() => productVariants.id, { onDelete: 'cascade' }),
+		variantId: text('variant_id').notNull(),
 		delta: integer('delta').notNull(),
 		reason: text('reason').notNull(),
 		referenceType: text('reference_type'),
@@ -172,7 +177,15 @@ export const inventoryMovements = shop.table(
 		adminUserId: text('admin_user_id'),
 		createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).notNull()
 	},
-	(table) => [index('catalog_inventory_movements_variant_idx').on(table.variantId)]
+	(table) => [
+		index('catalog_inventory_movements_variant_idx').on(table.variantId),
+		// Explicit name: the generated one exceeds Postgres's 63-character identifier limit.
+		foreignKey({
+			name: 'catalog_inventory_movements_variant_id_fk',
+			columns: [table.variantId],
+			foreignColumns: [productVariants.id]
+		}).onDelete('cascade')
+	]
 );
 
 export const brandsRelations = relations(brands, ({ many }) => ({
