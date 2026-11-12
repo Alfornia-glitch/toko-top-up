@@ -3,7 +3,7 @@ import { requireSuperadmin } from '#lib/server/modules/admin/access.ts';
 import { auditRequest } from '#lib/server/modules/admin/audit.ts';
 import { superBanSchema } from '#lib/server/modules/admin/validation.ts';
 import { assertNotSelf, banUser, unbanUser } from '#lib/server/modules/super/users.ts';
-import { catalogErrorResponse } from '#lib/server/modules/catalog/http.ts';
+import { apiErrorResponse } from '#lib/server/http/api-error.ts';
 
 export const POST: RequestHandler = async (event) => {
 	const denied = requireSuperadmin(event.locals.user);
@@ -28,7 +28,7 @@ export const POST: RequestHandler = async (event) => {
 		});
 		return Response.json({ data: user });
 	} catch (error) {
-		return catalogErrorResponse(error, 'ban user');
+		return apiErrorResponse(error, 'ban user');
 	}
 };
 
@@ -45,6 +45,6 @@ export const DELETE: RequestHandler = async (event) => {
 		});
 		return Response.json({ data: user });
 	} catch (error) {
-		return catalogErrorResponse(error, 'unban user');
+		return apiErrorResponse(error, 'unban user');
 	}
 };

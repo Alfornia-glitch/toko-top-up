@@ -1,9 +1,9 @@
 import { and, asc, eq, inArray, sql } from 'drizzle-orm';
 import { queryDb, tables } from '#db/query.ts';
 import { getCart, markCartConverted, type Cart } from '#lib/server/modules/cart/cart.ts';
-import { CatalogError } from '#lib/server/modules/catalog/errors.ts';
 import { getSiteSettings } from '#lib/server/modules/storefront/site.ts';
 import type { CheckoutInput } from '#lib/server/modules/customer/validation.ts';
+import { ConflictError, NotFoundError, UnprocessableError } from '#shared';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const t = tables as any;
@@ -45,11 +45,11 @@ function resolveItems(
 		const variant = variantById.get(item.variantId);
 
 		if (!variant) {
-			throw new CatalogError(409, 'A product in your cart is no longer available');
+			throw new ConflictError('A product in your cart is no longer available');
 		}
 
 		if (variant.stock < item.quantity) {
-			throw new CatalogError(409, `Insufficient stock for ${variant.productName}`);
+			throw new ConflictError(`Insufficient stock for ${variant.productName}`);
 		}
 
 		const totalCents = variant.priceCents * item.quantity;
@@ -100,7 +100,7 @@ export async function placeOrder(userId: string, cartId: string, input: Checkout
 	const cart = await getCart(cartId);
 
 	if (!cart || cart.items.length === 0) {
-		throw new CatalogError(409, 'Your cart is empty');
+		throw new ConflictError('Your cart is empty');
 	}
 
 	const [address] = await queryDb
@@ -110,14 +110,14 @@ export async function placeOrder(userId: string, cartId: string, input: Checkout
 		.limit(1);
 
 	if (!address) {
-		throw new CatalogError(404, 'Address not found');
+		throw new NotFoundError('Address not found');
 	}
 
 	const settings = await getSiteSettings();
 	const shipping = settings.shipping.find((method) => method.id === input.shippingId);
 
 	if (!shipping) {
-		throw new CatalogError(422, 'Unknown shipping method');
+		throw new UnprocessableError('Unknown shipping method');
 	}
 
 	const variantIds: string[] = Array.from(new Set(cart.items.map((item) => item.variantId)));

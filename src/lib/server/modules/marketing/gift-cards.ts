@@ -1,10 +1,10 @@
 import { and, count, desc, eq, like, or } from 'drizzle-orm';
 import { queryDb, tables } from '#db/query.ts';
-import { CatalogError } from '#lib/server/modules/catalog/errors.ts';
 import type {
 	GiftCardUpdateInput,
 	GiftCardWriteInput
 } from '#lib/server/modules/admin/validation.ts';
+import { ConflictError } from '#shared';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const t = tables as any;
@@ -60,7 +60,7 @@ export async function createGiftCard(input: GiftCardWriteInput) {
 			.where(eq(t.giftCards.code, code))
 			.limit(1);
 		if (!existing) break;
-		if (input.code) throw new CatalogError(409, `Gift card code "${code}" already exists`);
+		if (input.code) throw new ConflictError(`Gift card code "${code}" already exists`);
 		code = generateCode();
 	}
 

@@ -2,7 +2,7 @@ import type { RequestHandler } from './$types';
 import { requireAdmin } from '#lib/server/modules/admin/access.ts';
 import { shipmentCreateSchema } from '#lib/server/modules/admin/validation.ts';
 import { createShipment } from '#lib/server/modules/orders/orders.ts';
-import { catalogErrorResponse } from '#lib/server/modules/catalog/http.ts';
+import { apiErrorResponse } from '#lib/server/http/api-error.ts';
 
 export const POST: RequestHandler = async ({ locals, params, request }) => {
 	const denied = requireAdmin(locals.user);
@@ -30,6 +30,6 @@ export const POST: RequestHandler = async ({ locals, params, request }) => {
 
 		return Response.json({ data: result }, { status: 201 });
 	} catch (error) {
-		return catalogErrorResponse(error, 'create shipment');
+		return apiErrorResponse(error, 'create shipment');
 	}
 };

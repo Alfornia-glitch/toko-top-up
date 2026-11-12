@@ -1,7 +1,7 @@
 import { and, desc, eq } from 'drizzle-orm';
 import { queryDb, tables } from '#db/query.ts';
-import { CatalogError } from '#lib/server/modules/catalog/errors.ts';
 import { listPublicProductsByIds } from '#lib/server/modules/storefront/catalog.ts';
+import { NotFoundError } from '#shared';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const t = tables as any;
@@ -39,7 +39,7 @@ export async function addWishlist(userId: string, productId: string) {
 		.where(and(eq(t.products.id, productId), eq(t.products.status, 'active')))
 		.limit(1);
 
-	if (!product) throw new CatalogError(404, 'Product not found');
+	if (!product) throw new NotFoundError('Product not found');
 
 	const existing = await findOwnedWishlist(userId, productId);
 	if (existing) return existing;

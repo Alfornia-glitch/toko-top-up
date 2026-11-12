@@ -1,11 +1,11 @@
 import { and, asc, count, desc, eq, like, or } from 'drizzle-orm';
 import { queryDb, tables } from '#db/query.ts';
-import { CatalogError } from '#lib/server/modules/catalog/errors.ts';
 import type {
 	OrderListQuery,
 	OrderUpdateInput,
 	ShipmentCreateInput
 } from '#lib/server/modules/admin/validation.ts';
+import { UnprocessableError } from '#shared';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const t = tables as any;
@@ -154,7 +154,7 @@ function assertTransition(from: string, to: string) {
 
 	const allowed = ORDER_TRANSITIONS[from] ?? [];
 	if (!allowed.includes(to)) {
-		throw new CatalogError(422, `Cannot move an order from "${from}" to "${to}"`);
+		throw new UnprocessableError(`Cannot move an order from "${from}" to "${to}"`);
 	}
 }
 
@@ -217,7 +217,7 @@ export async function createShipment(id: string, input: ShipmentCreateInput, act
 	if (!existing) return null;
 
 	if (['pending', 'cancelled', 'refunded'].includes(existing.status)) {
-		throw new CatalogError(422, `Cannot ship an order with status "${existing.status}"`);
+		throw new UnprocessableError(`Cannot ship an order with status "${existing.status}"`);
 	}
 
 	const now = new Date();
@@ -394,8 +394,7 @@ export async function updateReturn(
 	if (input.status && input.status !== existing.status) {
 		const allowed = RETURNS_TRANSITIONS[existing.status] ?? [];
 		if (!allowed.includes(input.status)) {
-			throw new CatalogError(
-				422,
+			throw new UnprocessableError(
 				`Cannot move a return from "${existing.status}" to "${input.status}"`
 			);
 		}

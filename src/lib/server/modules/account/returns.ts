@@ -1,7 +1,7 @@
 import { and, desc, eq } from 'drizzle-orm';
 import { queryDb, tables } from '#db/query.ts';
-import { CatalogError } from '#lib/server/modules/catalog/errors.ts';
 import type { ReturnCreateInput } from '#lib/server/modules/customer/validation.ts';
+import { NotFoundError } from '#shared';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const t = tables as any;
@@ -59,7 +59,7 @@ export async function createReturn(userId: string, input: ReturnCreateInput) {
 		.where(and(eq(t.orderItems.id, input.orderItemId), eq(t.orders.userId, userId)))
 		.limit(1);
 
-	if (!item) throw new CatalogError(404, 'Order item not found');
+	if (!item) throw new NotFoundError('Order item not found');
 
 	const id = crypto.randomUUID();
 	const now = new Date();

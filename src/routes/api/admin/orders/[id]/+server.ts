@@ -2,7 +2,7 @@ import type { RequestHandler } from './$types';
 import { requireAdmin } from '#lib/server/modules/admin/access.ts';
 import { orderUpdateSchema } from '#lib/server/modules/admin/validation.ts';
 import { getOrder, updateOrder } from '#lib/server/modules/orders/orders.ts';
-import { catalogErrorResponse } from '#lib/server/modules/catalog/http.ts';
+import { apiErrorResponse } from '#lib/server/http/api-error.ts';
 
 export const GET: RequestHandler = async ({ locals, params }) => {
 	const denied = requireAdmin(locals.user);
@@ -40,6 +40,6 @@ export const PATCH: RequestHandler = async ({ locals, params, request }) => {
 
 		return Response.json({ data: order });
 	} catch (error) {
-		return catalogErrorResponse(error, 'update order');
+		return apiErrorResponse(error, 'update order');
 	}
 };

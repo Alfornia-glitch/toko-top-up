@@ -3,7 +3,7 @@ import { requireSuperadmin } from '#lib/server/modules/admin/access.ts';
 import { auditRequest } from '#lib/server/modules/admin/audit.ts';
 import { superRoleSchema } from '#lib/server/modules/admin/validation.ts';
 import { assertNotSelf, setRole } from '#lib/server/modules/super/users.ts';
-import { catalogErrorResponse } from '#lib/server/modules/catalog/http.ts';
+import { apiErrorResponse } from '#lib/server/http/api-error.ts';
 
 export const PATCH: RequestHandler = async (event) => {
 	const denied = requireSuperadmin(event.locals.user);
@@ -28,6 +28,6 @@ export const PATCH: RequestHandler = async (event) => {
 		});
 		return Response.json({ data: user });
 	} catch (error) {
-		return catalogErrorResponse(error, 'set user role');
+		return apiErrorResponse(error, 'set user role');
 	}
 };

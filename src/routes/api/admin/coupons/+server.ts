@@ -3,7 +3,7 @@ import { requireAdmin } from '#lib/server/modules/admin/access.ts';
 import { auditRequest } from '#lib/server/modules/admin/audit.ts';
 import { couponWriteSchema, paginationSchema } from '#lib/server/modules/admin/validation.ts';
 import { createCoupon, listCoupons } from '#lib/server/modules/marketing/coupons.ts';
-import { catalogErrorResponse } from '#lib/server/modules/catalog/http.ts';
+import { apiErrorResponse } from '#lib/server/http/api-error.ts';
 
 export const GET: RequestHandler = async ({ locals, url }) => {
 	const denied = requireAdmin(locals.user);
@@ -38,6 +38,6 @@ export const POST: RequestHandler = async (event) => {
 		});
 		return Response.json({ data: { id } }, { status: 201 });
 	} catch (error) {
-		return catalogErrorResponse(error, 'create coupon');
+		return apiErrorResponse(error, 'create coupon');
 	}
 };

@@ -1,6 +1,6 @@
 import { and, count, desc, eq, like, or } from 'drizzle-orm';
 import { queryDb, tables } from '#db/query.ts';
-import { CatalogError } from '#lib/server/modules/catalog/errors.ts';
+import { UnprocessableError } from '#shared';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const t = tables as any;
@@ -169,5 +169,5 @@ export async function userRoleCounts() {
 
 export function assertNotSelf(actorId: string, targetId: string) {
 	if (actorId === targetId)
-		throw new CatalogError(422, 'You cannot modify your own superadmin access here');
+		throw new UnprocessableError('You cannot modify your own superadmin access here');
 }

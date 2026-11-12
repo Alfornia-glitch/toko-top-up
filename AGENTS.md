@@ -74,7 +74,6 @@ Bun-only repo (no pnpm/npm). Run `bun install` from `web/`. Requires **Bun >= 1.
 - Only `catalog` and `reporting` own module schemas today. Legacy modules still query through `#db/query.ts` and the shared legacy schema tree.
 - `reviews`, `review_images`, `wishlists`, and `commerce.ts` temporarily import the catalog module schema for foreign keys; remove those imports when `content` and `customers` migrate.
 - Catalog submodules (`brands`, `categories`, `products`, `inventory`) keep domain/application code but no own `infra/` folder. Catalog intentionally owns the aggregate schema and the repository adapters (`catalog/infra/{pg,sqlite}/repositories/`) so no submodule joins a sibling's tables.
-- Phase 6 (open): legacy modules and routes still use `CatalogError` / `catalogErrorResponse`; replace with shared `AppError` subclasses.
 - Legacy modules still read `catalog_*` tables directly through `#db/query.ts` (`storefront`, `cart`, `checkout`, `account/wishlist`, `content/reviews`, `reports`, `super`); `check:data` does not scan `src/lib/server/modules`.
 - Tests need the Bun runtime (`bun --bun run test:sqlite`); plain `vitest` under Node fails with `Cannot find package 'bun'`.
 - `drizzle-kit push` baselines now live in `migrations/pg` and `migrations/sqlite`. Existing local databases must run `bun scripts/rename-catalog-tables.ts` once before using the new schema; the app has not been deployed, so production migration is not required yet.

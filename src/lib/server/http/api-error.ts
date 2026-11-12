@@ -1,8 +1,8 @@
+import { isAppError } from '#shared';
 import { MediaError } from '#lib/server/modules/storage/index.ts';
-import { CatalogError } from './errors.ts';
 
-export function catalogErrorResponse(error: unknown, context: string): Response {
-	if (error instanceof CatalogError || error instanceof MediaError) {
+export function apiErrorResponse(error: unknown, context: string): Response {
+	if (isAppError(error) || error instanceof MediaError) {
 		return Response.json({ error: error.message }, { status: error.status });
 	}
 

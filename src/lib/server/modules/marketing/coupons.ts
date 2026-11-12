@@ -1,7 +1,7 @@
 import { and, count, desc, eq, like, or } from 'drizzle-orm';
 import { queryDb, tables } from '#db/query.ts';
-import { CatalogError } from '#lib/server/modules/catalog/errors.ts';
 import type { CouponWriteInput } from '#lib/server/modules/admin/validation.ts';
+import { ConflictError } from '#shared';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const t = tables as any;
@@ -57,8 +57,7 @@ async function ensureCode(code: string, excludeId?: string) {
 		.from(t.coupons)
 		.where(condition)
 		.limit(1);
-	if (row && row.id !== excludeId)
-		throw new CatalogError(409, `Coupon code "${code}" already exists`);
+	if (row && row.id !== excludeId) throw new ConflictError(`Coupon code "${code}" already exists`);
 }
 
 export async function createCoupon(input: CouponWriteInput) {
@@ -68,7 +67,7 @@ export async function createCoupon(input: CouponWriteInput) {
 		.from(t.coupons)
 		.where(eq(t.coupons.code, code))
 		.limit(1);
-	if (existing) throw new CatalogError(409, `Coupon code "${code}" already exists`);
+	if (existing) throw new ConflictError(`Coupon code "${code}" already exists`);
 
 	const id = crypto.randomUUID();
 	const now = new Date();

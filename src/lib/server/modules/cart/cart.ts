@@ -1,6 +1,6 @@
 import { and, asc, desc, eq, inArray } from 'drizzle-orm';
 import { queryDb, tables } from '#db/query.ts';
-import { CatalogError } from '#lib/server/modules/catalog/errors.ts';
+import { NotFoundError, UnprocessableError } from '#shared';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const t = tables as any;
@@ -296,8 +296,8 @@ export async function addItem(
 		.where(eq(t.productVariants.id, input.variantId))
 		.limit(1);
 
-	if (!variant) throw new CatalogError(404, 'Variant not found');
-	if (variant.status !== 'active') throw new CatalogError(422, 'Variant is not available');
+	if (!variant) throw new NotFoundError('Variant not found');
+	if (variant.status !== 'active') throw new UnprocessableError('Variant is not available');
 
 	const [existing] = await queryDb
 		.select()
@@ -307,13 +307,13 @@ export async function addItem(
 
 	if (existing) {
 		const quantity = existing.quantity + input.quantity;
-		if (quantity > variant.stock) throw new CatalogError(422, 'Insufficient stock');
+		if (quantity > variant.stock) throw new UnprocessableError('Insufficient stock');
 		await queryDb
 			.update(t.cartItems)
 			.set({ quantity, updatedAt: new Date() })
 			.where(eq(t.cartItems.id, existing.id));
 	} else {
-		if (input.quantity > variant.stock) throw new CatalogError(422, 'Insufficient stock');
+		if (input.quantity > variant.stock) throw new UnprocessableError('Insufficient stock');
 		const now = new Date();
 		await queryDb.insert(t.cartItems).values({
 			id: crypto.randomUUID(),
@@ -337,7 +337,7 @@ export async function updateItem(cartId: string, itemId: string, quantity: numbe
 		.where(and(eq(t.cartItems.id, itemId), eq(t.cartItems.cartId, cartId)))
 		.limit(1);
 
-	if (!item) throw new CatalogError(404, 'Cart item not found');
+	if (!item) throw new NotFoundError('Cart item not found');
 
 	if (quantity <= 0) {
 		await queryDb.delete(t.cartItems).where(eq(t.cartItems.id, itemId));
@@ -347,8 +347,8 @@ export async function updateItem(cartId: string, itemId: string, quantity: numbe
 			.from(t.productVariants)
 			.where(eq(t.productVariants.id, item.variantId))
 			.limit(1);
-		if (!variant) throw new CatalogError(404, 'Variant not found');
-		if (quantity > variant.stock) throw new CatalogError(422, 'Insufficient stock');
+		if (!variant) throw new NotFoundError('Variant not found');
+		if (quantity > variant.stock) throw new UnprocessableError('Insufficient stock');
 		await queryDb
 			.update(t.cartItems)
 			.set({ quantity, updatedAt: new Date() })
@@ -375,20 +375,20 @@ export async function applyCoupon(cartId: string, code: string): Promise<Cart> {
 		.where(eq(t.coupons.code, normalized))
 		.limit(1);
 
-	if (!coupon) throw new CatalogError(404, 'Coupon not found');
-	if (coupon.status !== 'active') throw new CatalogError(422, 'Coupon is not active');
+	if (!coupon) throw new NotFoundError('Coupon not found');
+	if (coupon.status !== 'active') throw new UnprocessableError('Coupon is not active');
 
 	const now = Date.now();
 	const startsAt = toTime(coupon.startsAt);
 	const endsAt = toTime(coupon.endsAt);
-	if (startsAt !== null && now < startsAt) throw new CatalogError(422, 'Coupon is not yet active');
-	if (endsAt !== null && now > endsAt) throw new CatalogError(422, 'Coupon has expired');
+	if (startsAt !== null && now < startsAt) throw new UnprocessableError('Coupon is not yet active');
+	if (endsAt !== null && now > endsAt) throw new UnprocessableError('Coupon has expired');
 	if (coupon.maxUses !== null && coupon.usedCount >= coupon.maxUses)
-		throw new CatalogError(422, 'Coupon usage limit reached');
+		throw new UnprocessableError('Coupon usage limit reached');
 
 	const current = await getCart(cartId);
 	if (current.subtotalCents < (coupon.minSubtotalCents ?? 0))
-		throw new CatalogError(422, 'Cart subtotal is below the coupon minimum');
+		throw new UnprocessableError('Cart subtotal is below the coupon minimum');
 
 	await queryDb
 		.update(t.carts)
