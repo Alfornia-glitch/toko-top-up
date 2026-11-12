@@ -1,14 +1,17 @@
 import type { Clock, EventBus } from '#shared';
 import { systemClock } from '#shared';
 import type { PostgresDb, SqliteDb } from '#db/core.ts';
+import { createPostgresBrowseRepository } from './infra/pg/repositories/browse.ts';
 import { createPostgresBrandRepository } from './infra/pg/repositories/brands.ts';
 import { createPostgresCategoryRepository } from './infra/pg/repositories/categories.ts';
 import { createPostgresInventoryRepository } from './infra/pg/repositories/inventory.ts';
 import { createPostgresProductRepository } from './infra/pg/repositories/products.ts';
+import { createSqliteBrowseRepository } from './infra/sqlite/repositories/browse.ts';
 import { createSqliteBrandRepository } from './infra/sqlite/repositories/brands.ts';
 import { createSqliteCategoryRepository } from './infra/sqlite/repositories/categories.ts';
 import { createSqliteInventoryRepository } from './infra/sqlite/repositories/inventory.ts';
 import { createSqliteProductRepository } from './infra/sqlite/repositories/products.ts';
+import { createBrowseService, type BrowseService } from './modules/browse/server.ts';
 import { createBrandService, type BrandService } from './modules/brands/server.ts';
 import { createCategoryService, type CategoryService } from './modules/categories/server.ts';
 import { createInventoryService, type InventoryService } from './modules/inventory/server.ts';
@@ -19,6 +22,8 @@ export interface CatalogServices {
 	readonly brands: BrandService;
 	readonly categories: CategoryService;
 	readonly inventory: InventoryService;
+	/** Public, actor-free browsing of active products for the storefront. */
+	readonly browse: BrowseService;
 }
 
 type CatalogServiceOptions =
@@ -41,7 +46,8 @@ export function createCatalogServices(options: CatalogServiceOptions): CatalogSe
 				createPostgresInventoryRepository(options.db),
 				clock,
 				options.events
-			)
+			),
+			browse: createBrowseService(createPostgresBrowseRepository(options.db))
 		};
 	}
 
@@ -57,6 +63,7 @@ export function createCatalogServices(options: CatalogServiceOptions): CatalogSe
 			createSqliteInventoryRepository(options.db),
 			clock,
 			options.events
-		)
+		),
+		browse: createBrowseService(createSqliteBrowseRepository(options.db))
 	};
 }

@@ -1,8 +1,7 @@
 import type { RequestHandler } from './$types';
-import { getPublicProduct } from '#lib/server/modules/storefront/catalog.ts';
+import { unwrap } from '#shared';
 
-export const GET: RequestHandler = async ({ params }) => {
-	const product = await getPublicProduct(params.slug);
-	if (!product) return Response.json({ error: 'Product not found' }, { status: 404 });
-	return Response.json({ data: product });
-};
+export const GET: RequestHandler = async ({ locals, params }) =>
+	Response.json({
+		data: unwrap(await locals.services.storefront.storefront.getProduct(params.slug))
+	});

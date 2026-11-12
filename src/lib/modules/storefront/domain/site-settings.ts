@@ -1,6 +1,3 @@
-import { unwrap } from '#shared';
-import { getRuntime } from '#lib/server/runtime.server.ts';
-
 export interface SiteShippingMethod {
 	id: string;
 	label: string;
@@ -65,9 +62,10 @@ function mergeRecord<T extends Record<string, unknown>>(base: T, value: unknown)
 	return { ...base, ...value };
 }
 
-export async function getSiteSettings(): Promise<SiteSettings> {
-	const rows = unwrap(await getRuntime().services.content.content.listSettings());
-
+/** Layers stored site settings over the built-in defaults. */
+export function resolveSiteSettings(
+	rows: Array<{ key: string; valueJson: unknown }>
+): SiteSettings {
 	const settings: SiteSettings = {
 		contact: { ...defaultSettings.contact },
 		social: { ...defaultSettings.social },

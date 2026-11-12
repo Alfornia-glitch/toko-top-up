@@ -4,6 +4,7 @@ import { building } from '$app/env';
 import { svelteKitHandler } from 'better-auth/svelte-kit';
 import { hasPermission, isAppError } from '#shared';
 import { actorFromUser, adminPermissionForPath } from '#lib/server/actor.server.ts';
+import { answerAppError } from '#lib/server/http/app-error-response.ts';
 import { getRuntime } from '#lib/server/runtime.server.ts';
 
 const requestContextHandle: Handle = async ({ event, resolve }) => {
@@ -12,7 +13,7 @@ const requestContextHandle: Handle = async ({ event, resolve }) => {
 	event.locals.requestId = requestId;
 
 	try {
-		const response = await resolve(event);
+		const response = answerAppError(await resolve(event), event);
 		response.headers.set('x-request-id', requestId);
 		console.info(
 			JSON.stringify({
@@ -113,6 +114,12 @@ export const handle: Handle = async (input) => {
 };
 
 export const handleError: HandleServerError = ({ error: cause, event }) => {
+	if (isAppError(cause)) {
+		event.locals.appError = cause;
+		// Expected client errors (404, 403, 409, ...) are not worth an error log.
+		if (cause.status < 500) return { message: cause.message };
+	}
+
 	console.error('[hooks] request failed', {
 		requestId: event.locals.requestId,
 		path: event.url.pathname,

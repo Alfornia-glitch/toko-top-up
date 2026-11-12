@@ -1,5 +1,5 @@
 import type { RequestHandler } from './$types';
-import { addWishlist, listWishlist } from '#lib/server/modules/account/wishlist.ts';
+import { unwrap } from '#shared';
 import { customerErrorResponse, requireUser } from '#lib/server/modules/customer/http.ts';
 import { wishlistAddSchema } from '#lib/server/modules/customer/validation.ts';
 
@@ -8,7 +8,9 @@ export const GET: RequestHandler = async ({ locals }) => {
 	if (denied) return denied;
 
 	try {
-		return Response.json({ data: await listWishlist(locals.actor) });
+		return Response.json({
+			data: unwrap(await locals.services.storefront.storefront.listWishlist(locals.actor))
+		});
 	} catch (error) {
 		return customerErrorResponse(error, 'list wishlist');
 	}
@@ -34,7 +36,9 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 	}
 
 	try {
-		const created = await addWishlist(locals.actor, parsed.data.productId);
+		const created = unwrap(
+			await locals.services.storefront.storefront.addToWishlist(parsed.data.productId, locals.actor)
+		);
 		return Response.json({ data: created }, { status: 201 });
 	} catch (error) {
 		return customerErrorResponse(error, 'add wishlist item');

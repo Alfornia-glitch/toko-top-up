@@ -7,11 +7,13 @@ import { createCheckoutServices, type CheckoutServices } from '#modules/checkout
 import { createCartServices, type CartServices } from '#modules/cart/server.ts';
 import { createCustomersServices, type CustomersServices } from '#modules/customers/server.ts';
 import { createMarketingServices, type MarketingServices } from '#modules/marketing/server.ts';
+import { createStorefrontServices, type StorefrontServices } from '#modules/storefront/server.ts';
 import { createSupportServices, type SupportServices } from '#modules/support/server.ts';
 import { createOrdersServices, type OrdersServices } from '#modules/orders/server.ts';
 import { createReportingServices, type ReportingServices } from '#modules/reporting/server.ts';
 import { createCheckoutSettings } from './adapters/checkout-settings.ts';
 import { createCustomerDirectory } from './adapters/customer-directory.ts';
+import { createProductReviewReader } from './adapters/product-reviews.ts';
 import { createOrdersUserDirectory } from './adapters/orders-users.ts';
 import { createSupportUserDirectory } from './adapters/support-users.ts';
 import { loadConfig, type AppConfig } from './config.server.ts';
@@ -27,6 +29,7 @@ export interface RuntimeServices {
 	readonly cart: CartServices;
 	readonly orders: OrdersServices;
 	readonly checkout: CheckoutServices;
+	readonly storefront: StorefrontServices;
 }
 
 export interface Runtime {
@@ -70,6 +73,7 @@ export function createRuntime(
 	let cart: CartServices | undefined;
 	let orders: OrdersServices | undefined;
 	let checkout: CheckoutServices | undefined;
+	let storefront: StorefrontServices | undefined;
 	const registry = createModuleRegistry();
 
 	registry.register({
@@ -143,10 +147,26 @@ export function createRuntime(
 	});
 
 	registry.register({
-		name: 'checkout',
-		dependencies: ['cart', 'catalog', 'customers', 'marketing', 'orders'],
+		name: 'storefront',
+		dependencies: ['catalog', 'content', 'customers'],
 		initialize() {
-			if (!cart || !catalog || !customers || !marketing || !orders) {
+			if (!catalog || !content || !customers) {
+				throw new Error('Catalog, content and customers are required by storefront');
+			}
+			storefront = createStorefrontServices({
+				catalog,
+				content,
+				customers,
+				reviews: createProductReviewReader()
+			});
+		}
+	});
+
+	registry.register({
+		name: 'checkout',
+		dependencies: ['cart', 'catalog', 'customers', 'marketing', 'orders', 'storefront'],
+		initialize() {
+			if (!cart || !catalog || !customers || !marketing || !orders || !storefront) {
 				throw new Error('Cart, catalog, customers, marketing and orders are required by checkout');
 			}
 			checkout = createCheckoutServices({
@@ -155,7 +175,7 @@ export function createRuntime(
 				customers,
 				marketing,
 				orders,
-				settings: createCheckoutSettings()
+				settings: createCheckoutSettings(storefront.storefront)
 			});
 		}
 	});
@@ -171,7 +191,8 @@ export function createRuntime(
 		!marketing ||
 		!cart ||
 		!orders ||
-		!checkout
+		!checkout ||
+		!storefront
 	)
 		throw new Error('Modules failed to initialize');
 
@@ -179,7 +200,18 @@ export function createRuntime(
 		config,
 		db,
 		eventBus,
-		services: { catalog, reporting, content, customers, support, marketing, cart, orders, checkout }
+		services: {
+			catalog,
+			reporting,
+			content,
+			customers,
+			support,
+			marketing,
+			cart,
+			orders,
+			checkout,
+			storefront
+		}
 	};
 }
 

@@ -1,16 +1,19 @@
+import { unwrap } from '#shared';
 import type { CheckoutSettings } from '#modules/checkout/server.ts';
-import { getSiteSettings } from '#lib/server/modules/storefront/site.ts';
+import type { StorefrontService } from '#modules/storefront/server.ts';
 
 /** Reads shipping methods and currency from the storefront site settings. */
-export function createCheckoutSettings(): CheckoutSettings {
+export function createCheckoutSettings(storefront: StorefrontService): CheckoutSettings {
 	return {
 		async getShippingMethod(id) {
-			const method = (await getSiteSettings()).shipping.find((entry) => entry.id === id);
+			const method = unwrap(await storefront.getSiteSettings()).shipping.find(
+				(entry) => entry.id === id
+			);
 			return method ? { id: method.id, priceCents: method.priceCents } : null;
 		},
 
 		async getCurrency() {
-			return (await getSiteSettings()).currency;
+			return unwrap(await storefront.getSiteSettings()).currency;
 		}
 	};
 }

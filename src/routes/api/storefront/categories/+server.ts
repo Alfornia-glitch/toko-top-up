@@ -1,5 +1,7 @@
 import type { RequestHandler } from './$types';
-import { listPublicCategories } from '#lib/server/modules/storefront/catalog.ts';
+import { unwrap } from '#shared';
 
-export const GET: RequestHandler = async () =>
-	Response.json({ data: await listPublicCategories() });
+export const GET: RequestHandler = async ({ locals }) =>
+	Response.json({
+		data: unwrap(await locals.services.storefront.storefront.listCategories())
+	});

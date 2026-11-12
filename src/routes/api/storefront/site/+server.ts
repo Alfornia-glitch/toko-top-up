@@ -1,4 +1,7 @@
 import type { RequestHandler } from './$types';
-import { getSiteSettings } from '#lib/server/modules/storefront/site.ts';
+import { unwrap } from '#shared';
 
-export const GET: RequestHandler = async () => Response.json({ data: await getSiteSettings() });
+export const GET: RequestHandler = async ({ locals }) =>
+	Response.json({
+		data: unwrap(await locals.services.storefront.storefront.getSiteSettings())
+	});

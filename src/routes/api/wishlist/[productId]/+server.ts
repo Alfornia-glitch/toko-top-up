@@ -1,5 +1,5 @@
 import type { RequestHandler } from './$types';
-import { removeWishlist } from '#lib/server/modules/account/wishlist.ts';
+import { unwrap } from '#shared';
 import { customerErrorResponse, requireUser } from '#lib/server/modules/customer/http.ts';
 
 export const DELETE: RequestHandler = async ({ locals, params }) => {
@@ -7,7 +7,9 @@ export const DELETE: RequestHandler = async ({ locals, params }) => {
 	if (denied) return denied;
 
 	try {
-		await removeWishlist(locals.actor, params.productId);
+		unwrap(
+			await locals.services.storefront.storefront.removeFromWishlist(params.productId, locals.actor)
+		);
 
 		return Response.json({ ok: true });
 	} catch (error) {

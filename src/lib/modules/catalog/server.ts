@@ -1,5 +1,6 @@
 export { createCatalogServices } from './module.server.ts';
 export type { CatalogServices } from './module.server.ts';
+export type { BrowseService } from './modules/browse/server.ts';
 export type { BrandService } from './modules/brands/server.ts';
 export type { CategoryService } from './modules/categories/server.ts';
 export type { InventoryService } from './modules/inventory/server.ts';

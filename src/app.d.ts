@@ -1,6 +1,6 @@
 // See https://svelte.dev/docs/kit/types#app.d.ts
 // for information about these interfaces
-import type { Actor } from '#shared';
+import type { Actor, AppError } from '#shared';
 import type { auth } from '#lib/server/modules/auth/index.ts';
 import type { RuntimeServices } from '#lib/server/runtime.server.ts';
 
@@ -15,6 +15,8 @@ declare global {
 			user: Session['user'] | null;
 			actor: Actor | null;
 			services: RuntimeServices;
+			/** Set by `handleError` when an endpoint threw an `AppError`, so `handle` can answer with its status. */
+			appError?: AppError;
 		}
 		// interface PageData {}
 		// interface PageState {}

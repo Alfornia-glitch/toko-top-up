@@ -67,3 +67,19 @@ export type {
 	StockAdjustInput,
 	StockAdjustment
 } from './modules/inventory/index.ts';
+
+export type {
+	PublicBrand,
+	PublicCategory,
+	PublicFacets,
+	PublicProduct,
+	PublicProductDetail,
+	PublicProductImage,
+	PublicProductList,
+	PublicProductOption,
+	PublicProductOptionValue,
+	PublicProductQuery,
+	PublicProductRow,
+	PublicProductSort,
+	PublicProductVariant
+} from './modules/browse/index.ts';
