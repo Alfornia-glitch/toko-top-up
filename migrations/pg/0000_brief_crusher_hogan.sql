@@ -560,10 +560,6 @@ ALTER TABLE "shop"."reviews" ADD CONSTRAINT "reviews_user_id_user_id_fk" FOREIGN
 ALTER TABLE "auth_app"."session" ADD CONSTRAINT "session_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "auth_app"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "shop"."shipments" ADD CONSTRAINT "shipments_order_id_orders_id_fk" FOREIGN KEY ("order_id") REFERENCES "shop"."orders"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "shop"."support_ticket_messages" ADD CONSTRAINT "support_ticket_messages_ticket_id_support_tickets_id_fk" FOREIGN KEY ("ticket_id") REFERENCES "shop"."support_tickets"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "shop"."support_ticket_messages" ADD CONSTRAINT "support_ticket_messages_sender_user_id_user_id_fk" FOREIGN KEY ("sender_user_id") REFERENCES "auth_app"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "shop"."support_tickets" ADD CONSTRAINT "support_tickets_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "auth_app"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "shop"."support_tickets" ADD CONSTRAINT "support_tickets_order_id_orders_id_fk" FOREIGN KEY ("order_id") REFERENCES "shop"."orders"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "shop"."support_tickets" ADD CONSTRAINT "support_tickets_assigned_admin_id_user_id_fk" FOREIGN KEY ("assigned_admin_id") REFERENCES "auth_app"."user"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 CREATE INDEX "account_userId_idx" ON "auth_app"."account" USING btree ("user_id");--> statement-breakpoint
 CREATE INDEX "customers_addresses_user_idx" ON "shop"."customers_addresses" USING btree ("user_id");--> statement-breakpoint
 CREATE INDEX "content_announcements_position_idx" ON "shop"."content_announcements" USING btree ("position");--> statement-breakpoint
@@ -613,6 +609,7 @@ CREATE INDEX "shipments_order_idx" ON "shop"."shipments" USING btree ("order_id"
 CREATE INDEX "support_ticket_messages_ticket_idx" ON "shop"."support_ticket_messages" USING btree ("ticket_id");--> statement-breakpoint
 CREATE INDEX "support_tickets_status_idx" ON "shop"."support_tickets" USING btree ("status");--> statement-breakpoint
 CREATE INDEX "support_tickets_assigned_idx" ON "shop"."support_tickets" USING btree ("assigned_admin_id");--> statement-breakpoint
+CREATE INDEX "support_tickets_user_idx" ON "shop"."support_tickets" USING btree ("user_id");--> statement-breakpoint
 CREATE INDEX "verification_identifier_idx" ON "auth_app"."verification" USING btree ("identifier");--> statement-breakpoint
 CREATE UNIQUE INDEX "customers_wishlists_user_product_idx" ON "shop"."customers_wishlists" USING btree ("user_id","product_id");--> statement-breakpoint
 CREATE INDEX "customers_wishlists_product_idx" ON "shop"."customers_wishlists" USING btree ("product_id");

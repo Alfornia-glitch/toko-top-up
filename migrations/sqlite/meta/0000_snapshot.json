@@ -1,7 +1,7 @@
 {
 	"version": "6",
 	"dialect": "sqlite",
-	"id": "19a8ecd3-8764-4cb8-9743-baa3e545e98b",
+	"id": "a384c06f-6094-4d39-ba81-feed86bf5bd1",
 	"prevId": "00000000-0000-0000-0000-000000000000",
 	"tables": {
 		"account": {
@@ -3527,15 +3527,6 @@
 					"columnsTo": ["id"],
 					"onDelete": "cascade",
 					"onUpdate": "no action"
-				},
-				"support_ticket_messages_sender_user_id_user_id_fk": {
-					"name": "support_ticket_messages_sender_user_id_user_id_fk",
-					"tableFrom": "support_ticket_messages",
-					"tableTo": "user",
-					"columnsFrom": ["sender_user_id"],
-					"columnsTo": ["id"],
-					"onDelete": "cascade",
-					"onUpdate": "no action"
 				}
 			},
 			"compositePrimaryKeys": {},
@@ -3640,37 +3631,14 @@
 					"name": "support_tickets_assigned_idx",
 					"columns": ["assigned_admin_id"],
 					"isUnique": false
+				},
+				"support_tickets_user_idx": {
+					"name": "support_tickets_user_idx",
+					"columns": ["user_id"],
+					"isUnique": false
 				}
 			},
-			"foreignKeys": {
-				"support_tickets_user_id_user_id_fk": {
-					"name": "support_tickets_user_id_user_id_fk",
-					"tableFrom": "support_tickets",
-					"tableTo": "user",
-					"columnsFrom": ["user_id"],
-					"columnsTo": ["id"],
-					"onDelete": "cascade",
-					"onUpdate": "no action"
-				},
-				"support_tickets_order_id_orders_id_fk": {
-					"name": "support_tickets_order_id_orders_id_fk",
-					"tableFrom": "support_tickets",
-					"tableTo": "orders",
-					"columnsFrom": ["order_id"],
-					"columnsTo": ["id"],
-					"onDelete": "set null",
-					"onUpdate": "no action"
-				},
-				"support_tickets_assigned_admin_id_user_id_fk": {
-					"name": "support_tickets_assigned_admin_id_user_id_fk",
-					"tableFrom": "support_tickets",
-					"tableTo": "user",
-					"columnsFrom": ["assigned_admin_id"],
-					"columnsTo": ["id"],
-					"onDelete": "set null",
-					"onUpdate": "no action"
-				}
-			},
+			"foreignKeys": {},
 			"compositePrimaryKeys": {},
 			"uniqueConstraints": {},
 			"checkConstraints": {}

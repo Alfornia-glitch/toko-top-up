@@ -320,53 +320,6 @@ export const newsletterSubscriptions = shopSchema.table(
 	(table) => [index('newsletter_subscriptions_status_idx').on(table.status)]
 );
 
-export const supportTickets = shopSchema.table(
-	'support_tickets',
-	{
-		id: text('id').primaryKey(),
-		ticketNumber: text('ticket_number').notNull().unique(),
-		userId: text('user_id')
-			.notNull()
-			.references(() => user.id, { onDelete: 'cascade' }),
-		orderId: text('order_id').references(() => orders.id, { onDelete: 'set null' }),
-		subject: text('subject').notNull(),
-		category: text('category').notNull(),
-		priority: text('priority')
-			.$type<'low' | 'normal' | 'high' | 'urgent'>()
-			.notNull()
-			.default('normal'),
-		status: text('status')
-			.$type<'open' | 'pending' | 'resolved' | 'closed'>()
-			.notNull()
-			.default('open'),
-		assignedAdminId: text('assigned_admin_id').references(() => user.id, {
-			onDelete: 'set null'
-		}),
-		...timestamps
-	},
-	(table) => [
-		index('support_tickets_status_idx').on(table.status),
-		index('support_tickets_assigned_idx').on(table.assignedAdminId)
-	]
-);
-
-export const supportTicketMessages = shopSchema.table(
-	'support_ticket_messages',
-	{
-		id: text('id').primaryKey(),
-		ticketId: text('ticket_id')
-			.notNull()
-			.references(() => supportTickets.id, { onDelete: 'cascade' }),
-		senderUserId: text('sender_user_id')
-			.notNull()
-			.references(() => user.id, { onDelete: 'cascade' }),
-		body: text('body').notNull(),
-		attachmentsJson: jsonb('attachments_json').$type<unknown[]>(),
-		createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).notNull()
-	},
-	(table) => [index('support_ticket_messages_ticket_idx').on(table.ticketId)]
-);
-
 export const cartsRelations = relations(carts, ({ one, many }) => ({
 	user: one(user, { fields: [carts.userId], references: [user.id] }),
 	coupon: one(coupons, { fields: [carts.couponId], references: [coupons.id] }),
@@ -454,22 +407,4 @@ export const giftCardTransactionsRelations = relations(giftCardTransactions, ({ 
 
 export const newsletterSubscriptionsRelations = relations(newsletterSubscriptions, ({ one }) => ({
 	user: one(user, { fields: [newsletterSubscriptions.userId], references: [user.id] })
-}));
-
-export const supportTicketsRelations = relations(supportTickets, ({ one, many }) => ({
-	user: one(user, { fields: [supportTickets.userId], references: [user.id] }),
-	order: one(orders, { fields: [supportTickets.orderId], references: [orders.id] }),
-	assignedAdmin: one(user, {
-		fields: [supportTickets.assignedAdminId],
-		references: [user.id]
-	}),
-	messages: many(supportTicketMessages)
-}));
-
-export const supportTicketMessagesRelations = relations(supportTicketMessages, ({ one }) => ({
-	ticket: one(supportTickets, {
-		fields: [supportTicketMessages.ticketId],
-		references: [supportTickets.id]
-	}),
-	sender: one(user, { fields: [supportTicketMessages.senderUserId], references: [user.id] })
 }));

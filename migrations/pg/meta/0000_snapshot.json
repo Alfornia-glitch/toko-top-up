@@ -1,5 +1,5 @@
 {
-	"id": "bc6ddce1-a285-491e-9a6d-647ab0479e4c",
+	"id": "4133ac60-7e9d-4a4b-9d5b-06c00b612791",
 	"prevId": "00000000-0000-0000-0000-000000000000",
 	"version": "7",
 	"dialect": "postgresql",
@@ -3821,16 +3821,6 @@
 					"columnsTo": ["id"],
 					"onDelete": "cascade",
 					"onUpdate": "no action"
-				},
-				"support_ticket_messages_sender_user_id_user_id_fk": {
-					"name": "support_ticket_messages_sender_user_id_user_id_fk",
-					"tableFrom": "support_ticket_messages",
-					"tableTo": "user",
-					"schemaTo": "auth_app",
-					"columnsFrom": ["sender_user_id"],
-					"columnsTo": ["id"],
-					"onDelete": "cascade",
-					"onUpdate": "no action"
 				}
 			},
 			"compositePrimaryKeys": {},
@@ -3942,40 +3932,24 @@
 					"concurrently": false,
 					"method": "btree",
 					"with": {}
+				},
+				"support_tickets_user_idx": {
+					"name": "support_tickets_user_idx",
+					"columns": [
+						{
+							"expression": "user_id",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
 				}
 			},
-			"foreignKeys": {
-				"support_tickets_user_id_user_id_fk": {
-					"name": "support_tickets_user_id_user_id_fk",
-					"tableFrom": "support_tickets",
-					"tableTo": "user",
-					"schemaTo": "auth_app",
-					"columnsFrom": ["user_id"],
-					"columnsTo": ["id"],
-					"onDelete": "cascade",
-					"onUpdate": "no action"
-				},
-				"support_tickets_order_id_orders_id_fk": {
-					"name": "support_tickets_order_id_orders_id_fk",
-					"tableFrom": "support_tickets",
-					"tableTo": "orders",
-					"schemaTo": "shop",
-					"columnsFrom": ["order_id"],
-					"columnsTo": ["id"],
-					"onDelete": "set null",
-					"onUpdate": "no action"
-				},
-				"support_tickets_assigned_admin_id_user_id_fk": {
-					"name": "support_tickets_assigned_admin_id_user_id_fk",
-					"tableFrom": "support_tickets",
-					"tableTo": "user",
-					"schemaTo": "auth_app",
-					"columnsFrom": ["assigned_admin_id"],
-					"columnsTo": ["id"],
-					"onDelete": "set null",
-					"onUpdate": "no action"
-				}
-			},
+			"foreignKeys": {},
 			"compositePrimaryKeys": {},
 			"uniqueConstraints": {
 				"support_tickets_ticket_number_unique": {

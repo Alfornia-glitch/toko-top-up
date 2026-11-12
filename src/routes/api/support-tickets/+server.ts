@@ -1,14 +1,16 @@
 import type { RequestHandler } from './$types';
 import { customerErrorResponse, requireUser } from '#lib/server/modules/customer/http.ts';
 import { ticketCreateSchema } from '#lib/server/modules/customer/validation.ts';
-import { createTicket, listTickets } from '#lib/server/modules/account/tickets.ts';
+import { unwrap } from '#shared';
 
 export const GET: RequestHandler = async ({ locals }) => {
 	const denied = requireUser(locals.user);
 	if (denied) return denied;
 
 	try {
-		return Response.json({ data: await listTickets(locals.user!.id) });
+		return Response.json({
+			data: unwrap(await locals.services.support.support.listMyTickets(locals.actor))
+		});
 	} catch (error) {
 		return customerErrorResponse(error, 'list support tickets');
 	}
@@ -34,7 +36,9 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 	}
 
 	try {
-		const created = await createTicket(locals.user!.id, parsed.data);
+		const created = unwrap(
+			await locals.services.support.support.createTicket(parsed.data, locals.actor)
+		);
 		return Response.json({ data: created }, { status: 201 });
 	} catch (error) {
 		return customerErrorResponse(error, 'create support ticket');

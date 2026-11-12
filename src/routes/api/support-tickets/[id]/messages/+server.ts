@@ -1,7 +1,7 @@
 import type { RequestHandler } from './$types';
 import { customerErrorResponse, requireUser } from '#lib/server/modules/customer/http.ts';
 import { ticketMessageSchema } from '#lib/server/modules/customer/validation.ts';
-import { addMessage } from '#lib/server/modules/account/tickets.ts';
+import { unwrap } from '#shared';
 
 export const POST: RequestHandler = async ({ locals, params, request }) => {
 	const denied = requireUser(locals.user);
@@ -23,8 +23,9 @@ export const POST: RequestHandler = async ({ locals, params, request }) => {
 	}
 
 	try {
-		const message = await addMessage(locals.user!.id, params.id, parsed.data.body);
-		if (!message) return Response.json({ error: 'Support ticket not found' }, { status: 404 });
+		const message = unwrap(
+			await locals.services.support.support.addMyMessage(params.id, parsed.data.body, locals.actor)
+		);
 
 		return Response.json({ data: message }, { status: 201 });
 	} catch (error) {

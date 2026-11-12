@@ -542,8 +542,7 @@ CREATE TABLE `support_ticket_messages` (
 	`body` text NOT NULL,
 	`attachments_json` text,
 	`created_at` integer NOT NULL,
-	FOREIGN KEY (`ticket_id`) REFERENCES `support_tickets`(`id`) ON UPDATE no action ON DELETE cascade,
-	FOREIGN KEY (`sender_user_id`) REFERENCES `user`(`id`) ON UPDATE no action ON DELETE cascade
+	FOREIGN KEY (`ticket_id`) REFERENCES `support_tickets`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
 CREATE INDEX `support_ticket_messages_ticket_idx` ON `support_ticket_messages` (`ticket_id`);--> statement-breakpoint
@@ -558,15 +557,13 @@ CREATE TABLE `support_tickets` (
 	`status` text DEFAULT 'open' NOT NULL,
 	`assigned_admin_id` text,
 	`created_at` integer NOT NULL,
-	`updated_at` integer NOT NULL,
-	FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON UPDATE no action ON DELETE cascade,
-	FOREIGN KEY (`order_id`) REFERENCES `orders`(`id`) ON UPDATE no action ON DELETE set null,
-	FOREIGN KEY (`assigned_admin_id`) REFERENCES `user`(`id`) ON UPDATE no action ON DELETE set null
+	`updated_at` integer NOT NULL
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `support_tickets_ticket_number_unique` ON `support_tickets` (`ticket_number`);--> statement-breakpoint
 CREATE INDEX `support_tickets_status_idx` ON `support_tickets` (`status`);--> statement-breakpoint
 CREATE INDEX `support_tickets_assigned_idx` ON `support_tickets` (`assigned_admin_id`);--> statement-breakpoint
+CREATE INDEX `support_tickets_user_idx` ON `support_tickets` (`user_id`);--> statement-breakpoint
 CREATE TABLE `content_testimonials` (
 	`id` text PRIMARY KEY NOT NULL,
 	`image_url` text NOT NULL,
