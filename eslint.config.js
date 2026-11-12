@@ -11,13 +11,7 @@ const IGNORED = [
 	'static/**',
 	'tools/**',
 	'scripts/**',
-	'e2e/**',
-	'src/lib/frontend/**',
-	'src/routes/**',
-	'src/hooks.server.ts',
-	'src/hooks.client.ts',
-	'src/env.ts',
-	'src/app.d.ts'
+	'e2e/**'
 ];
 
 const moduleTsFiles = ['src/lib/modules/**/*.ts', 'src/lib/shared/**/*.ts'];
@@ -31,6 +25,8 @@ function scoped(configs) {
 }
 
 const boundariesSettings = {
+	// Resolves the `#modules`, `#shared`, `#db` and `#lib` subpath imports from package.json.
+	'import/resolver': { typescript: { project: './tsconfig.json' } },
 	'boundaries/elements': [
 		{ type: 'shared-ui', pattern: 'src/lib/shared/ui', partialMatch: false },
 		{ type: 'shared', pattern: 'src/lib/shared', partialMatch: false },
@@ -45,7 +41,8 @@ const boundariesSettings = {
 		{ pattern: 'src/lib/server/db/schema.pg.ts', category: 'db-aggregator' },
 		{ pattern: 'src/lib/server/db/schema.sqlite.ts', category: 'db-aggregator' },
 		{ pattern: 'src/lib/modules/**/infra/**', category: 'module-db-access' },
-		{ pattern: 'src/lib/modules/**/server.ts', category: 'module-db-access' }
+		{ pattern: 'src/lib/modules/**/server.ts', category: 'module-db-access' },
+		{ pattern: 'src/lib/modules/**/module.server.ts', category: 'module-db-access' }
 	]
 };
 
@@ -99,6 +96,11 @@ export default [
 		}
 	},
 	{
+		// Svelte rune modules (`*.svelte.ts`) are TypeScript, not Svelte markup.
+		files: ['**/*.svelte.ts'],
+		languageOptions: { parser: tseslint.parser }
+	},
+	{
 		files: ['**/*.{js,ts,svelte}'],
 		plugins: { local: moduleBoundariesPlugin },
 		rules: {
@@ -111,7 +113,8 @@ export default [
 		settings: boundariesSettings,
 		rules: {
 			'boundaries/dependencies': ['error', boundariesPolicy],
-			'boundaries/no-unknown-files': 'error'
+			'boundaries/no-unknown-files': 'error',
+			'boundaries/no-unknown-dependencies': 'error'
 		}
 	}
 ];

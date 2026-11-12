@@ -63,6 +63,7 @@
 		"dependency-cruiser": "^18.7.2",
 		"drizzle-kit": "^0.31.11",
 		"eslint": "^10.14.0",
+		"eslint-import-resolver-typescript": "^4.4.5",
 		"eslint-plugin-boundaries": "^7.4.2",
 		"eslint-plugin-svelte": "^3.24.1",
 		"globals": "^17.14.0",

@@ -24,11 +24,7 @@ const config = {
 			severity: 'error',
 			comment: "Code outside modules may import only a top-level module's index.ts or server.ts.",
 			from: {
-				pathNot: [
-					'^src/lib/modules/',
-					'^src/lib/server/db/schema\\.(pg|sqlite)\\.ts$',
-					'^src/lib/frontend/'
-				]
+				pathNot: ['^src/lib/modules/', '^src/lib/server/db/schema\\.(pg|sqlite)\\.ts$']
 			},
 			to: {
 				path: '^src/lib/modules/',
@@ -100,8 +96,7 @@ const config = {
 				'^static/',
 				'^tools/',
 				'^scripts/',
-				'^e2e/',
-				'^src/lib/frontend/'
+				'^e2e/'
 			]
 		},
 		tsConfig: { fileName: 'tsconfig.json' },
