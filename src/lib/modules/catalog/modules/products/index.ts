@@ -16,6 +16,7 @@ export {
 	productWriteSchema
 } from './domain/product.ts';
 export type {
+	VariantSnapshot,
 	Product,
 	ProductDetail,
 	ProductImage,

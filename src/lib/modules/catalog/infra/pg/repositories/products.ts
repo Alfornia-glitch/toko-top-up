@@ -9,7 +9,12 @@ import {
 	products,
 	productVariants
 } from '../schema.ts';
-import type { Product, ProductDetail, ProductStatus } from '../../../modules/products/index.ts';
+import type {
+	Product,
+	ProductDetail,
+	ProductStatus,
+	VariantSnapshot
+} from '../../../modules/products/index.ts';
 import type {
 	ProductCreateMeta,
 	ProductRepository,
@@ -313,6 +318,49 @@ export function createPostgresProductRepository(db: PostgresDb): ProductReposito
 
 			if (!row) return null;
 			return findDetail(id);
+		},
+
+		async findVariantSnapshots(variantIds): Promise<VariantSnapshot[]> {
+			if (!variantIds.length) return [];
+
+			const rows = await db
+				.select({
+					variantId: productVariants.id,
+					sku: productVariants.sku,
+					name: productVariants.name,
+					status: productVariants.status,
+					priceCents: productVariants.priceCents,
+					compareAtPriceCents: productVariants.compareAtPriceCents,
+					stock: productVariants.stock,
+					productId: products.id,
+					productSlug: products.slug,
+					productName: products.name,
+					productCurrency: products.currency,
+					brandName: brands.name
+				})
+				.from(productVariants)
+				.innerJoin(products, eq(productVariants.productId, products.id))
+				.leftJoin(brands, eq(products.brandId, brands.id))
+				.where(inArray(productVariants.id, variantIds));
+
+			const productIds = [...new Set(rows.map((row) => row.productId))];
+			const imageByProduct = new Map<string, string>();
+			if (productIds.length) {
+				const images = await db
+					.select({ productId: productImages.productId, url: productImages.url })
+					.from(productImages)
+					.where(inArray(productImages.productId, productIds))
+					.orderBy(asc(productImages.position), asc(productImages.id));
+				for (const image of images) {
+					if (!imageByProduct.has(image.productId)) imageByProduct.set(image.productId, image.url);
+				}
+			}
+
+			return rows.map((row) => ({
+				...row,
+				brandName: row.brandName ?? null,
+				imageUrl: imageByProduct.get(row.productId) ?? null
+			}));
 		}
 	};
 }

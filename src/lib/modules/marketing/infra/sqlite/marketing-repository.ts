@@ -60,8 +60,8 @@ export function createSqliteMarketingRepository(db: SqliteDb): MarketingReposito
 		},
 
 		async redeemCoupon(redemption, now) {
-			return db.transaction(async (tx) => {
-				const [existing] = await tx
+			return db.transaction((tx) => {
+				const [existing] = tx
 					.select({ id: couponRedemptions.id })
 					.from(couponRedemptions)
 					.where(
@@ -70,10 +70,11 @@ export function createSqliteMarketingRepository(db: SqliteDb): MarketingReposito
 							eq(couponRedemptions.orderId, redemption.orderId)
 						)
 					)
-					.limit(1);
+					.limit(1)
+					.all();
 				if (existing) return 'duplicate' as const;
 
-				const claimed = await tx
+				const claimed = tx
 					.update(coupons)
 					.set({ usedCount: sql`${coupons.usedCount} + 1`, updatedAt: now })
 					.where(
@@ -82,10 +83,11 @@ export function createSqliteMarketingRepository(db: SqliteDb): MarketingReposito
 							or(isNull(coupons.maxUses), lt(coupons.usedCount, coupons.maxUses))
 						)
 					)
-					.returning({ id: coupons.id });
+					.returning({ id: coupons.id })
+					.all();
 				if (!claimed.length) return 'exhausted' as const;
 
-				await tx.insert(couponRedemptions).values(redemption);
+				tx.insert(couponRedemptions).values(redemption).run();
 				return 'redeemed' as const;
 			});
 		},
@@ -143,9 +145,9 @@ export function createSqliteMarketingRepository(db: SqliteDb): MarketingReposito
 		},
 
 		async insertGiftCard(card, issued) {
-			await db.transaction(async (tx) => {
-				await tx.insert(giftCards).values(card);
-				await tx.insert(giftCardTransactions).values(issued);
+			db.transaction((tx) => {
+				tx.insert(giftCards).values(card).run();
+				tx.insert(giftCardTransactions).values(issued).run();
 			});
 		},
 

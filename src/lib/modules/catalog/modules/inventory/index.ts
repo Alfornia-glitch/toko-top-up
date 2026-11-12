@@ -9,5 +9,8 @@ export type {
 	MovementListResult,
 	MovementRow,
 	StockAdjustInput,
-	StockAdjustment
+	StockAdjustment,
+	StockLine,
+	StockReference,
+	StockReserveOutcome
 } from './domain/inventory.ts';

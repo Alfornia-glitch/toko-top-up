@@ -1,4 +1,4 @@
-import { and, asc, eq, inArray, sql } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { queryDb, tables } from '#db/query.ts';
 import { getCart, markCartConverted, type Cart } from '#lib/server/modules/cart/cart.ts';
 import { getSiteSettings } from '#lib/server/modules/storefront/site.ts';
@@ -119,39 +119,27 @@ export async function placeOrder(actor: Actor, cartId: string, input: CheckoutIn
 
 	const variantIds: string[] = Array.from(new Set(cart.items.map((item) => item.variantId)));
 
-	const variantRows: VariantRow[] = await queryDb
-		.select({
-			id: t.productVariants.id,
-			productId: t.productVariants.productId,
-			sku: t.productVariants.sku,
-			priceCents: t.productVariants.priceCents,
-			stock: t.productVariants.stock,
-			productName: t.products.name
-		})
-		.from(t.productVariants)
-		.innerJoin(t.products, eq(t.productVariants.productId, t.products.id))
-		.where(inArray(t.productVariants.id, variantIds));
-
-	const variantById = new Map<string, VariantRow>(
-		variantRows.map((variant) => [variant.id, variant])
+	const snapshots = unwrap(
+		await getRuntime().services.catalog.products.getVariantSnapshots(variantIds)
 	);
 
-	const productIds = Array.from(new Set(variantRows.map((variant) => variant.productId)));
-	const imageRows: Array<{ productId: string; url: string; position: number }> = productIds.length
-		? await queryDb
-				.select({
-					productId: t.productImages.productId,
-					url: t.productImages.url,
-					position: t.productImages.position
-				})
-				.from(t.productImages)
-				.where(inArray(t.productImages.productId, productIds))
-				.orderBy(asc(t.productImages.position), asc(t.productImages.id))
-		: [];
+	const variantById = new Map<string, VariantRow>(
+		snapshots.map((snapshot) => [
+			snapshot.variantId,
+			{
+				id: snapshot.variantId,
+				productId: snapshot.productId,
+				sku: snapshot.sku,
+				priceCents: snapshot.priceCents,
+				stock: snapshot.stock,
+				productName: snapshot.productName
+			}
+		])
+	);
 
 	const imageByProduct = new Map<string, string>();
-	for (const image of imageRows) {
-		if (!imageByProduct.has(image.productId)) imageByProduct.set(image.productId, image.url);
+	for (const snapshot of snapshots) {
+		if (snapshot.imageUrl) imageByProduct.set(snapshot.productId, snapshot.imageUrl);
 	}
 
 	const now = new Date();
@@ -177,74 +165,68 @@ export async function placeOrder(actor: Actor, cartId: string, input: CheckoutIn
 	const shippingAddress = addressSnapshot(address);
 	const billingAddress = addressSnapshot(address);
 
-	await queryDb.transaction(async (tx: any) => {
-		await tx.insert(t.orders).values({
-			id: orderId,
-			orderNumber,
-			userId,
-			status: 'paid',
-			paymentStatus: 'paid',
-			fulfillmentStatus: 'unfulfilled',
-			subtotalCents,
-			discountCents,
-			shippingCents,
-			taxCents,
-			grandTotalCents,
-			currency: cart.currency ?? settings.currency,
-			couponId,
-			shippingAddressJson: shippingAddress,
-			billingAddressJson: billingAddress,
-			placedAt: now,
-			notes: input.note ?? null,
-			createdAt: now,
-			updatedAt: now
-		});
+	const catalog = getRuntime().services.catalog;
+	const stockLines = items.map((item) => ({ variantId: item.variantId, quantity: item.quantity }));
+	const reference = { type: 'order', id: orderId };
 
-		await tx.insert(t.orderItems).values(items.map((item) => ({ ...item, orderId })));
+	// Interim saga: reserve stock first (guarded, so it cannot oversell), then create
+	// the order; give the stock back if the order cannot be created. The checkout
+	// module replaces this with the full flow.
+	unwrap(await catalog.inventory.reserve(stockLines, reference));
 
-		await tx.insert(t.orderEvents).values({
-			id: crypto.randomUUID(),
-			orderId,
-			type: 'placed',
-			message: 'Order placed',
-			actorUserId: userId,
-			createdAt: now
-		});
+	try {
+		await queryDb.transaction(async (tx: any) => {
+			await tx.insert(t.orders).values({
+				id: orderId,
+				orderNumber,
+				userId,
+				status: 'paid',
+				paymentStatus: 'paid',
+				fulfillmentStatus: 'unfulfilled',
+				subtotalCents,
+				discountCents,
+				shippingCents,
+				taxCents,
+				grandTotalCents,
+				currency: cart.currency ?? settings.currency,
+				couponId,
+				shippingAddressJson: shippingAddress,
+				billingAddressJson: billingAddress,
+				placedAt: now,
+				notes: input.note ?? null,
+				createdAt: now,
+				updatedAt: now
+			});
 
-		await tx.insert(t.payments).values({
-			id: crypto.randomUUID(),
-			orderId,
-			provider: 'mock',
-			providerRef: null,
-			amountCents: grandTotalCents,
-			status: 'succeeded',
-			paidAt: now,
-			failureReason: null,
-			createdAt: now,
-			updatedAt: now
-		});
+			await tx.insert(t.orderItems).values(items.map((item) => ({ ...item, orderId })));
 
-		for (const item of items) {
-			await tx
-				.update(t.productVariants)
-				.set({
-					stock: sql`${t.productVariants.stock} - ${item.quantity}`,
-					updatedAt: now
-				})
-				.where(eq(t.productVariants.id, item.variantId));
-
-			await tx.insert(t.inventoryMovements).values({
+			await tx.insert(t.orderEvents).values({
 				id: crypto.randomUUID(),
-				variantId: item.variantId,
-				delta: -item.quantity,
-				reason: 'order',
-				referenceType: 'order',
-				referenceId: orderId,
-				adminUserId: null,
+				orderId,
+				type: 'placed',
+				message: 'Order placed',
+				actorUserId: userId,
 				createdAt: now
 			});
-		}
-	});
+
+			await tx.insert(t.payments).values({
+				id: crypto.randomUUID(),
+				orderId,
+				provider: 'mock',
+				providerRef: null,
+				amountCents: grandTotalCents,
+				status: 'succeeded',
+				paidAt: now,
+				failureReason: null,
+				createdAt: now,
+				updatedAt: now
+			});
+		});
+	} catch (error) {
+		const released = await catalog.inventory.release(stockLines, reference);
+		if (!released.ok) console.error('[checkout] stock release failed', released.error);
+		throw error;
+	}
 
 	if (couponId) {
 		// Interim: redemption now runs after the order commits. The checkout saga

@@ -65,9 +65,9 @@ export function createSqliteSupportRepository(db: SqliteDb): SupportRepository {
 		},
 
 		async insertTicket(ticket, firstMessage) {
-			await db.transaction(async (tx) => {
-				await tx.insert(supportTickets).values(ticket);
-				await tx.insert(supportTicketMessages).values(firstMessage);
+			db.transaction((tx) => {
+				tx.insert(supportTickets).values(ticket).run();
+				tx.insert(supportTicketMessages).values(firstMessage).run();
 			});
 		},
 
@@ -76,12 +76,12 @@ export function createSqliteSupportRepository(db: SqliteDb): SupportRepository {
 		},
 
 		async insertMessage(message) {
-			await db.transaction(async (tx) => {
-				await tx.insert(supportTicketMessages).values(message);
-				await tx
-					.update(supportTickets)
+			db.transaction((tx) => {
+				tx.insert(supportTicketMessages).values(message).run();
+				tx.update(supportTickets)
 					.set({ updatedAt: message.createdAt })
-					.where(eq(supportTickets.id, message.ticketId));
+					.where(eq(supportTickets.id, message.ticketId))
+					.run();
 			});
 		}
 	};

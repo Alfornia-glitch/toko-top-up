@@ -86,3 +86,19 @@ export type StockAdjustOutcome =
 	| { kind: 'not_found' }
 	| { kind: 'negative'; currentStock: number }
 	| { kind: 'adjusted'; adjustment: StockAdjustment };
+
+export interface StockLine {
+	variantId: string;
+	quantity: number;
+}
+
+/** The business record a stock movement belongs to, for example an order. */
+export interface StockReference {
+	type: string;
+	id: string;
+}
+
+export type StockReserveOutcome =
+	| { kind: 'reserved'; stock: Array<{ variantId: string; stock: number; movementId: string }> }
+	| { kind: 'not_found'; variantId: string }
+	| { kind: 'insufficient'; variantId: string; available: number };

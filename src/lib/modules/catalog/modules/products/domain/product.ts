@@ -186,3 +186,20 @@ export interface ProductListResult {
 export interface ProductIdentity {
 	id: string;
 }
+
+/** Everything a cart or checkout needs to know about a variant, read in one call. */
+export interface VariantSnapshot {
+	variantId: string;
+	sku: string;
+	name: string;
+	status: 'active' | 'inactive';
+	priceCents: number;
+	compareAtPriceCents: number | null;
+	stock: number;
+	productId: string;
+	productSlug: string;
+	productName: string;
+	productCurrency: string;
+	brandName: string | null;
+	imageUrl: string | null;
+}

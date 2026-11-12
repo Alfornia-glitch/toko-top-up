@@ -22,7 +22,9 @@ import {
 	type MovementListQuery,
 	type MovementListResult,
 	type StockAdjustInput,
-	type StockAdjustment
+	type StockAdjustment,
+	type StockLine,
+	type StockReference
 } from '../domain/inventory.ts';
 import type { InventoryRepository } from './inventory-repository.ts';
 import { INVENTORY_EVENTS } from '../contracts.ts';
@@ -34,6 +36,13 @@ export interface InventoryService {
 		actor: Actor
 	): Promise<Result<MovementListResult, AppError>>;
 	adjust(input: StockAdjustInput, actor: Actor): Promise<Result<StockAdjustment, AppError>>;
+	/**
+	 * Service-to-service: takes stock for an order. All lines succeed or none do;
+	 * fails with 409 naming the variant when stock is insufficient. Needs no actor.
+	 */
+	reserve(lines: StockLine[], reference: StockReference): Promise<Result<void, AppError>>;
+	/** Service-to-service: gives reserved stock back, for example when an order fails or is cancelled. */
+	release(lines: StockLine[], reference: StockReference): Promise<Result<void, AppError>>;
 }
 
 export function createInventoryService(
@@ -41,6 +50,25 @@ export function createInventoryService(
 	clock: Clock = systemClock,
 	events?: EventBus
 ): InventoryService {
+	async function publishAdjustments(
+		lines: StockLine[],
+		stock: Array<{ variantId: string; stock: number; movementId: string }>,
+		sign: 1 | -1
+	): Promise<void> {
+		for (const entry of stock) {
+			const line = lines.find((candidate) => candidate.variantId === entry.variantId);
+			if (!line) continue;
+			await events?.publish(
+				createEvent(INVENTORY_EVENTS.adjusted, {
+					variantId: entry.variantId,
+					delta: sign * line.quantity,
+					stock: entry.stock,
+					movementId: entry.movementId
+				})
+			);
+		}
+	}
+
 	return {
 		async list(query, actor) {
 			try {
@@ -109,6 +137,47 @@ export function createInventoryService(
 					})
 				);
 				return ok(outcome.adjustment);
+			} catch (error) {
+				return err(toAppError(error));
+			}
+		},
+
+		async reserve(lines, reference) {
+			try {
+				if (!lines.length) return ok(undefined);
+				const outcome = await repository.reserveStock(lines, reference, {
+					now: clock.now(),
+					newId
+				});
+
+				if (outcome.kind === 'not_found') {
+					return err(new NotFoundError(`Variant ${outcome.variantId} not found`));
+				}
+				if (outcome.kind === 'insufficient') {
+					return err(
+						new ConflictError(
+							`Insufficient stock for variant ${outcome.variantId} (available: ${outcome.available})`,
+							{ details: { variantId: outcome.variantId, available: outcome.available } }
+						)
+					);
+				}
+
+				await publishAdjustments(lines, outcome.stock, -1);
+				return ok(undefined);
+			} catch (error) {
+				return err(toAppError(error));
+			}
+		},
+
+		async release(lines, reference) {
+			try {
+				if (!lines.length) return ok(undefined);
+				const stock = await repository.releaseStock(lines, reference, {
+					now: clock.now(),
+					newId
+				});
+				await publishAdjustments(lines, stock, 1);
+				return ok(undefined);
 			} catch (error) {
 				return err(toAppError(error));
 			}

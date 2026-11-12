@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, inArray } from 'drizzle-orm';
+import { and, asc, desc, eq } from 'drizzle-orm';
 import { queryDb, tables } from '#db/query.ts';
 import { NotFoundError, UnprocessableError, unwrap } from '#shared';
 import { discountFor, isCouponApplicable } from '#modules/marketing/index.ts';
@@ -40,21 +40,6 @@ export interface Cart {
 	coupon: CartCoupon | null;
 }
 
-type CartItemRow = {
-	id: string;
-	variantId: string;
-	quantity: number;
-	unitPriceCents: number;
-	productId: string;
-	productSlug: string;
-	productName: string;
-	productCurrency: string;
-	variantName: string;
-	compareAtPriceCents: number | null;
-	stock: number;
-	brandName: string | null;
-};
-
 function emptyCart(cartId: string, currency = 'USD'): Cart {
 	return {
 		id: cartId,
@@ -69,6 +54,13 @@ function emptyCart(cartId: string, currency = 'USD'): Cart {
 	};
 }
 
+async function variantSnapshots(variantIds: string[]) {
+	const snapshots = unwrap(
+		await getRuntime().services.catalog.products.getVariantSnapshots(variantIds)
+	);
+	return new Map(snapshots.map((snapshot) => [snapshot.variantId, snapshot]));
+}
+
 async function touchCart(cartId: string) {
 	await queryDb.update(t.carts).set({ updatedAt: new Date() }).where(eq(t.carts.id, cartId));
 }
@@ -77,61 +69,44 @@ export async function getCart(cartId: string): Promise<Cart> {
 	const [cart] = await queryDb.select().from(t.carts).where(eq(t.carts.id, cartId)).limit(1);
 	if (!cart) return emptyCart(cartId);
 
-	const rows: CartItemRow[] = await queryDb
+	const itemRows = await queryDb
 		.select({
 			id: t.cartItems.id,
 			variantId: t.cartItems.variantId,
 			quantity: t.cartItems.quantity,
-			unitPriceCents: t.cartItems.unitPriceCents,
-			productId: t.products.id,
-			productSlug: t.products.slug,
-			productName: t.products.name,
-			productCurrency: t.products.currency,
-			variantName: t.productVariants.name,
-			compareAtPriceCents: t.productVariants.compareAtPriceCents,
-			stock: t.productVariants.stock,
-			brandName: t.brands.name
+			unitPriceCents: t.cartItems.unitPriceCents
 		})
 		.from(t.cartItems)
-		.innerJoin(t.productVariants, eq(t.cartItems.variantId, t.productVariants.id))
-		.innerJoin(t.products, eq(t.productVariants.productId, t.products.id))
-		.leftJoin(t.brands, eq(t.products.brandId, t.brands.id))
 		.where(eq(t.cartItems.cartId, cartId))
 		.orderBy(asc(t.cartItems.createdAt));
 
-	const productIds = [...new Set(rows.map((row) => row.productId as string))];
-	const imageByProduct = new Map<string, string>();
-	if (productIds.length > 0) {
-		const images = await queryDb
-			.select({
-				productId: t.productImages.productId,
-				url: t.productImages.url,
-				position: t.productImages.position
-			})
-			.from(t.productImages)
-			.where(inArray(t.productImages.productId, productIds))
-			.orderBy(asc(t.productImages.position));
-		for (const image of images) {
-			if (!imageByProduct.has(image.productId)) {
-				imageByProduct.set(image.productId, image.url);
-			}
-		}
-	}
+	const snapshots = await variantSnapshots(
+		itemRows.map((row: { variantId: string }) => row.variantId)
+	);
 
-	const items: CartItem[] = rows.map((row) => ({
-		id: row.id,
-		variantId: row.variantId,
-		productId: row.productId,
-		productSlug: row.productSlug,
-		productName: row.productName,
-		variantName: row.variantName,
-		brandName: row.brandName ?? null,
-		imageUrl: imageByProduct.get(row.productId) ?? null,
-		unitPriceCents: row.unitPriceCents,
-		compareAtPriceCents: row.compareAtPriceCents ?? null,
-		quantity: row.quantity,
-		stock: row.stock
-	}));
+	// Items whose variant no longer exists are dropped from the view.
+	const items: CartItem[] = itemRows.flatMap(
+		(row: { id: string; variantId: string; quantity: number; unitPriceCents: number }) => {
+			const variant = snapshots.get(row.variantId);
+			if (!variant) return [];
+			return [
+				{
+					id: row.id,
+					variantId: row.variantId,
+					productId: variant.productId,
+					productSlug: variant.productSlug,
+					productName: variant.productName,
+					variantName: variant.name,
+					brandName: variant.brandName,
+					imageUrl: variant.imageUrl,
+					unitPriceCents: row.unitPriceCents,
+					compareAtPriceCents: variant.compareAtPriceCents,
+					quantity: row.quantity,
+					stock: variant.stock
+				}
+			];
+		}
+	);
 
 	const subtotalCents = items.reduce((sum, item) => sum + item.unitPriceCents * item.quantity, 0);
 	const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
@@ -152,7 +127,10 @@ export async function getCart(cartId: string): Promise<Cart> {
 
 	const shippingCents = 0;
 	const totalCents = subtotalCents - discountCents;
-	const currency = rows[0]?.productCurrency ?? cart.currency ?? 'USD';
+	const currency =
+		(itemRows[0] ? snapshots.get(itemRows[0].variantId)?.productCurrency : undefined) ??
+		cart.currency ??
+		'USD';
 
 	return {
 		id: cartId,
@@ -201,13 +179,10 @@ export async function mergeGuestCart(guestCartId: string, userId: string): Promi
 		.from(t.cartItems)
 		.where(eq(t.cartItems.cartId, guestCartId));
 
+	const snapshots = await variantSnapshots(guestItems.map((item) => item.variantId as string));
+
 	for (const item of guestItems) {
-		const [variant] = await queryDb
-			.select({ stock: t.productVariants.stock })
-			.from(t.productVariants)
-			.where(eq(t.productVariants.id, item.variantId))
-			.limit(1);
-		const stock = variant?.stock ?? 0;
+		const stock = snapshots.get(item.variantId)?.stock ?? 0;
 
 		const [existing] = await queryDb
 			.select()
@@ -253,11 +228,7 @@ export async function addItem(
 	cartId: string,
 	input: { variantId: string; quantity: number }
 ): Promise<Cart> {
-	const [variant] = await queryDb
-		.select()
-		.from(t.productVariants)
-		.where(eq(t.productVariants.id, input.variantId))
-		.limit(1);
+	const variant = (await variantSnapshots([input.variantId])).get(input.variantId);
 
 	if (!variant) throw new NotFoundError('Variant not found');
 	if (variant.status !== 'active') throw new UnprocessableError('Variant is not available');
@@ -305,11 +276,7 @@ export async function updateItem(cartId: string, itemId: string, quantity: numbe
 	if (quantity <= 0) {
 		await queryDb.delete(t.cartItems).where(eq(t.cartItems.id, itemId));
 	} else {
-		const [variant] = await queryDb
-			.select({ stock: t.productVariants.stock })
-			.from(t.productVariants)
-			.where(eq(t.productVariants.id, item.variantId))
-			.limit(1);
+		const variant = (await variantSnapshots([item.variantId])).get(item.variantId);
 		if (!variant) throw new NotFoundError('Variant not found');
 		if (quantity > variant.stock) throw new UnprocessableError('Insufficient stock');
 		await queryDb

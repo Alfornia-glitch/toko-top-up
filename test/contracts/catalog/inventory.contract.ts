@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, test } from 'vitest';
 import type { AppError, Result } from '#shared';
-import type { InventoryService } from '#modules/catalog/server.ts';
+import type { InventoryService, ProductService } from '#modules/catalog/server.ts';
 import type { StockAdjustInput } from '#modules/catalog/index.ts';
 import type {
 	ProductVariantFixture,
@@ -15,6 +15,7 @@ const UPDATED = new Date('2026-01-02T03:04:05.000Z');
 
 export interface InventoryContractContext {
 	service: InventoryService;
+	products: ProductService;
 	clock: TestClock;
 	reset(): Promise<void>;
 	createActor(): Promise<string>;
@@ -23,7 +24,8 @@ export interface InventoryContractContext {
 }
 
 export function runInventoryContract(context: InventoryContractContext): void {
-	const { service, clock, reset, createActor, createProductWithVariant, createVariant } = context;
+	const { service, products, clock, reset, createActor, createProductWithVariant, createVariant } =
+		context;
 	let actorId = '';
 	let actor = createAdminActor('pending');
 
@@ -288,6 +290,126 @@ export function runInventoryContract(context: InventoryContractContext): void {
 			);
 
 			expectError(result, 403, 'Forbidden');
+		});
+	});
+	describe('stock reservation contract', () => {
+		const reference = { type: 'order', id: 'order-1' };
+
+		async function stockOf(variantId: string): Promise<number> {
+			const result = await service.list(
+				{ page: 1, pageSize: 50, variantId, lowStock: false },
+				actor
+			);
+			if (!result.ok) throw result.error;
+			return result.value.data[0]?.stock ?? -1;
+		}
+
+		test('reserves every line atomically and records order movements', async () => {
+			const a = await createProductWithVariant({ variant: { stock: 5, sku: 'RES-A' } });
+			const b = await createProductWithVariant({
+				product: { sku: 'P-B', slug: 'p-b' },
+				variant: { stock: 3, sku: 'RES-B' }
+			});
+
+			const reserved = await service.reserve(
+				[
+					{ variantId: a.variantId, quantity: 2 },
+					{ variantId: b.variantId, quantity: 3 }
+				],
+				reference
+			);
+			expect(reserved.ok).toBe(true);
+			expect(await stockOf(a.variantId)).toBe(3);
+			expect(await stockOf(b.variantId)).toBe(0);
+
+			const movements = await service.listMovements(
+				{ page: 1, pageSize: 50, variantId: a.variantId },
+				actor
+			);
+			expect(movements.ok && movements.value.data[0]).toMatchObject({
+				delta: -2,
+				reason: 'order',
+				referenceType: 'order',
+				referenceId: 'order-1'
+			});
+		});
+
+		test('rejects the whole reservation when any line is short, changing nothing', async () => {
+			const a = await createProductWithVariant({ variant: { stock: 5, sku: 'RES-A' } });
+			const b = await createProductWithVariant({
+				product: { sku: 'P-B', slug: 'p-b' },
+				variant: { stock: 1, sku: 'RES-B' }
+			});
+
+			const result = await service.reserve(
+				[
+					{ variantId: a.variantId, quantity: 2 },
+					{ variantId: b.variantId, quantity: 2 }
+				],
+				reference
+			);
+			expect(result.ok).toBe(false);
+			if (!result.ok) {
+				expect(result.error.status).toBe(409);
+				expect(result.error.details).toMatchObject({ variantId: b.variantId, available: 1 });
+			}
+			expect(await stockOf(a.variantId)).toBe(5);
+			expect(await stockOf(b.variantId)).toBe(1);
+
+			const unknown = await service.reserve([{ variantId: 'missing', quantity: 1 }], reference);
+			expect(unknown.ok).toBe(false);
+			if (!unknown.ok) expect(unknown.error.status).toBe(404);
+		});
+
+		test('the last unit can only be reserved once', async () => {
+			const a = await createProductWithVariant({ variant: { stock: 1, sku: 'RES-A' } });
+			const line = [{ variantId: a.variantId, quantity: 1 }];
+
+			const outcomes = await Promise.all([
+				service.reserve(line, { type: 'order', id: 'o1' }),
+				service.reserve(line, { type: 'order', id: 'o2' })
+			]);
+			expect(outcomes.filter((outcome) => outcome.ok)).toHaveLength(1);
+			expect(await stockOf(a.variantId)).toBe(0);
+		});
+
+		test('release returns stock and records an order_cancelled movement', async () => {
+			const a = await createProductWithVariant({ variant: { stock: 5, sku: 'RES-A' } });
+			const line = [{ variantId: a.variantId, quantity: 4 }];
+			await service.reserve(line, reference);
+			expect(await stockOf(a.variantId)).toBe(1);
+
+			expect((await service.release(line, reference)).ok).toBe(true);
+			expect(await stockOf(a.variantId)).toBe(5);
+
+			const movements = await service.listMovements(
+				{ page: 1, pageSize: 50, variantId: a.variantId },
+				actor
+			);
+			expect(movements.ok && movements.value.data.map((m) => m.reason).sort()).toEqual([
+				'order',
+				'order_cancelled'
+			]);
+		});
+
+		test('variant snapshots expose price, stock, product and first image', async () => {
+			const a = await createProductWithVariant({
+				product: { name: 'Widget', slug: 'widget', status: 'active' },
+				variant: { stock: 7, sku: 'SNAP-A', priceCents: 2500 }
+			});
+
+			const result = await products.getVariantSnapshots([a.variantId, a.variantId, 'missing']);
+			expect(result.ok && result.value).toHaveLength(1);
+			expect(result.ok && result.value[0]).toMatchObject({
+				variantId: a.variantId,
+				stock: 7,
+				priceCents: 2500,
+				productName: 'Widget',
+				productSlug: 'widget',
+				brandName: null,
+				imageUrl: null
+			});
+			expect((await products.getVariantSnapshots([])).ok).toBe(true);
 		});
 	});
 }

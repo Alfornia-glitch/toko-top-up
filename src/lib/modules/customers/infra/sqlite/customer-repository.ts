@@ -23,31 +23,28 @@ export function createSqliteCustomerRepository(db: SqliteDb): CustomerRepository
 		},
 
 		async insertAddress(address: Address) {
-			await db.transaction(async (tx) => {
+			db.transaction((tx) => {
 				if (address.isDefaultShipping) {
-					await tx
-						.update(addresses)
+					tx.update(addresses)
 						.set({ isDefaultShipping: false, updatedAt: address.updatedAt })
-						.where(
-							and(eq(addresses.userId, address.userId), eq(addresses.isDefaultShipping, true))
-						);
+						.where(and(eq(addresses.userId, address.userId), eq(addresses.isDefaultShipping, true)))
+						.run();
 				}
 				if (address.isDefaultBilling) {
-					await tx
-						.update(addresses)
+					tx.update(addresses)
 						.set({ isDefaultBilling: false, updatedAt: address.updatedAt })
-						.where(and(eq(addresses.userId, address.userId), eq(addresses.isDefaultBilling, true)));
+						.where(and(eq(addresses.userId, address.userId), eq(addresses.isDefaultBilling, true)))
+						.run();
 				}
-				await tx.insert(addresses).values(address);
+				tx.insert(addresses).values(address).run();
 			});
 		},
 
 		async updateAddress(userId, id, patch) {
 			const updatedAt = patch.updatedAt ?? new Date();
-			await db.transaction(async (tx) => {
+			db.transaction((tx) => {
 				if (patch.isDefaultShipping) {
-					await tx
-						.update(addresses)
+					tx.update(addresses)
 						.set({ isDefaultShipping: false, updatedAt })
 						.where(
 							and(
@@ -55,11 +52,11 @@ export function createSqliteCustomerRepository(db: SqliteDb): CustomerRepository
 								eq(addresses.isDefaultShipping, true),
 								ne(addresses.id, id)
 							)
-						);
+						)
+						.run();
 				}
 				if (patch.isDefaultBilling) {
-					await tx
-						.update(addresses)
+					tx.update(addresses)
 						.set({ isDefaultBilling: false, updatedAt })
 						.where(
 							and(
@@ -67,9 +64,10 @@ export function createSqliteCustomerRepository(db: SqliteDb): CustomerRepository
 								eq(addresses.isDefaultBilling, true),
 								ne(addresses.id, id)
 							)
-						);
+						)
+						.run();
 				}
-				await tx.update(addresses).set(patch).where(ownedBy(userId, id));
+				tx.update(addresses).set(patch).where(ownedBy(userId, id)).run();
 			});
 		},
 
@@ -101,30 +99,30 @@ export function createSqliteCustomerRepository(db: SqliteDb): CustomerRepository
 		},
 
 		async insertPaymentMethod(method: PaymentMethod) {
-			await db.transaction(async (tx) => {
+			db.transaction((tx) => {
 				if (method.isDefault) {
-					await tx
-						.update(paymentMethods)
+					tx.update(paymentMethods)
 						.set({ isDefault: false, updatedAt: method.updatedAt })
-						.where(eq(paymentMethods.userId, method.userId));
+						.where(eq(paymentMethods.userId, method.userId))
+						.run();
 				}
-				await tx.insert(paymentMethods).values(method);
+				tx.insert(paymentMethods).values(method).run();
 			});
 		},
 
 		async updatePaymentMethod(userId, id, patch) {
 			const updatedAt = patch.updatedAt ?? new Date();
-			await db.transaction(async (tx) => {
+			db.transaction((tx) => {
 				if (patch.isDefault) {
-					await tx
-						.update(paymentMethods)
+					tx.update(paymentMethods)
 						.set({ isDefault: false, updatedAt })
-						.where(and(eq(paymentMethods.userId, userId), ne(paymentMethods.id, id)));
+						.where(and(eq(paymentMethods.userId, userId), ne(paymentMethods.id, id)))
+						.run();
 				}
-				await tx
-					.update(paymentMethods)
+				tx.update(paymentMethods)
 					.set(patch)
-					.where(and(eq(paymentMethods.id, id), eq(paymentMethods.userId, userId)));
+					.where(and(eq(paymentMethods.id, id), eq(paymentMethods.userId, userId)))
+					.run();
 			});
 		},
 

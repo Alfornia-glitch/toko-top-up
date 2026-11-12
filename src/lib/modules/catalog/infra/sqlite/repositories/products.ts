@@ -9,7 +9,12 @@ import {
 	products,
 	productVariants
 } from '../schema.ts';
-import type { Product, ProductDetail, ProductStatus } from '../../../modules/products/index.ts';
+import type {
+	Product,
+	ProductDetail,
+	ProductStatus,
+	VariantSnapshot
+} from '../../../modules/products/index.ts';
 import type {
 	ProductCreateMeta,
 	ProductRepository,
@@ -217,87 +222,91 @@ export function createSqliteProductRepository(db: SqliteDb): ProductRepository {
 		},
 
 		async create(input, meta: ProductCreateMeta) {
-			await db.transaction(async (tx) => {
-				await tx.insert(products).values({
-					id: meta.id,
-					...toProductValues(input, meta.slug),
-					createdBy: meta.createdBy,
-					createdAt: meta.now,
-					updatedAt: meta.now
-				});
+			db.transaction((tx) => {
+				tx.insert(products)
+					.values({
+						id: meta.id,
+						...toProductValues(input, meta.slug),
+						createdBy: meta.createdBy,
+						createdAt: meta.now,
+						updatedAt: meta.now
+					})
+					.run();
 
 				const images = toImageRecords(input.images, meta.id, meta.now);
-				if (images.length) await tx.insert(productImages).values(images);
+				if (images.length) tx.insert(productImages).values(images).run();
 
 				for (const record of toOptionRecords(input.options, meta.id, meta.now)) {
-					await tx.insert(productOptions).values(record.option);
+					tx.insert(productOptions).values(record.option).run();
 					if (record.values.length) {
-						await tx.insert(productOptionValues).values(record.values);
+						tx.insert(productOptionValues).values(record.values).run();
 					}
 				}
 
 				const variants = toVariantRecords(input.variants, meta.id, meta.now);
-				if (variants.length) await tx.insert(productVariants).values(variants);
+				if (variants.length) tx.insert(productVariants).values(variants).run();
 			});
 		},
 
 		async update(id, input, meta: ProductUpdateMeta) {
-			await db.transaction(async (tx) => {
-				const existingVariants = await tx
+			db.transaction((tx) => {
+				const existingVariants = tx
 					.select({ id: productVariants.id })
 					.from(productVariants)
-					.where(eq(productVariants.productId, id));
+					.where(eq(productVariants.productId, id))
+					.all();
 				const existingVariantIds = new Set(existingVariants.map((variant) => variant.id));
 
-				const existingOptions = await tx
+				const existingOptions = tx
 					.select({ id: productOptions.id })
 					.from(productOptions)
-					.where(eq(productOptions.productId, id));
+					.where(eq(productOptions.productId, id))
+					.all();
 				const existingOptionIds = existingOptions.map((option) => option.id);
 
-				await tx
-					.update(products)
+				tx.update(products)
 					.set({ ...toProductValues(input, meta.slug), updatedAt: meta.now })
-					.where(eq(products.id, id));
+					.where(eq(products.id, id))
+					.run();
 
-				await tx.delete(productImages).where(eq(productImages.productId, id));
+				tx.delete(productImages).where(eq(productImages.productId, id)).run();
 
 				if (existingOptionIds.length) {
-					await tx
-						.delete(productOptionValues)
-						.where(inArray(productOptionValues.optionId, existingOptionIds));
+					tx.delete(productOptionValues)
+						.where(inArray(productOptionValues.optionId, existingOptionIds))
+						.run();
 				}
 
-				await tx.delete(productOptions).where(eq(productOptions.productId, id));
+				tx.delete(productOptions).where(eq(productOptions.productId, id)).run();
 
 				const images = toImageRecords(input.images, id, meta.now);
-				if (images.length) await tx.insert(productImages).values(images);
+				if (images.length) tx.insert(productImages).values(images).run();
 
 				for (const record of toOptionRecords(input.options, id, meta.now)) {
-					await tx.insert(productOptions).values(record.option);
+					tx.insert(productOptions).values(record.option).run();
 					if (record.values.length) {
-						await tx.insert(productOptionValues).values(record.values);
+						tx.insert(productOptionValues).values(record.values).run();
 					}
 				}
 
 				const changes = toVariantChanges(input.variants, id, existingVariantIds, meta.now);
 
 				for (const change of changes.updates) {
-					await tx
-						.update(productVariants)
+					tx.update(productVariants)
 						.set(change.values)
-						.where(eq(productVariants.id, change.id));
+						.where(eq(productVariants.id, change.id))
+						.run();
 				}
 
 				if (changes.inserts.length) {
-					await tx.insert(productVariants).values(changes.inserts);
+					tx.insert(productVariants).values(changes.inserts).run();
 				}
 
 				if (changes.removedIds.length) {
-					await tx
-						.update(productVariants)
+					tx.update(productVariants)
 						.set({ status: 'inactive', stock: 0, updatedAt: meta.now })
-						.where(inArray(productVariants.id, changes.removedIds));
+						.where(inArray(productVariants.id, changes.removedIds))
+						.run();
 				}
 			});
 
@@ -313,6 +322,49 @@ export function createSqliteProductRepository(db: SqliteDb): ProductRepository {
 
 			if (!row) return null;
 			return findDetail(id);
+		},
+
+		async findVariantSnapshots(variantIds): Promise<VariantSnapshot[]> {
+			if (!variantIds.length) return [];
+
+			const rows = await db
+				.select({
+					variantId: productVariants.id,
+					sku: productVariants.sku,
+					name: productVariants.name,
+					status: productVariants.status,
+					priceCents: productVariants.priceCents,
+					compareAtPriceCents: productVariants.compareAtPriceCents,
+					stock: productVariants.stock,
+					productId: products.id,
+					productSlug: products.slug,
+					productName: products.name,
+					productCurrency: products.currency,
+					brandName: brands.name
+				})
+				.from(productVariants)
+				.innerJoin(products, eq(productVariants.productId, products.id))
+				.leftJoin(brands, eq(products.brandId, brands.id))
+				.where(inArray(productVariants.id, variantIds));
+
+			const productIds = [...new Set(rows.map((row) => row.productId))];
+			const imageByProduct = new Map<string, string>();
+			if (productIds.length) {
+				const images = await db
+					.select({ productId: productImages.productId, url: productImages.url })
+					.from(productImages)
+					.where(inArray(productImages.productId, productIds))
+					.orderBy(asc(productImages.position), asc(productImages.id));
+				for (const image of images) {
+					if (!imageByProduct.has(image.productId)) imageByProduct.set(image.productId, image.url);
+				}
+			}
+
+			return rows.map((row) => ({
+				...row,
+				brandName: row.brandName ?? null,
+				imageUrl: imageByProduct.get(row.productId) ?? null
+			}));
 		}
 	};
 }

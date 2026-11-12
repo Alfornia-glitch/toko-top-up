@@ -12,8 +12,11 @@ if (testDatabaseUrl) {
 		const clock = createTestClock(new Date('2026-01-01T00:00:00.000Z'));
 		const { db, context } = createPostgresCatalogTestContext(testDatabaseUrl);
 
+		const catalog = createCatalogServices({ provider: 'postgres', db, clock });
+
 		runInventoryContract({
-			service: createCatalogServices({ provider: 'postgres', db, clock }).inventory,
+			service: catalog.inventory,
+			products: catalog.products,
 			clock,
 			reset: context.reset,
 			createActor: context.createActor,

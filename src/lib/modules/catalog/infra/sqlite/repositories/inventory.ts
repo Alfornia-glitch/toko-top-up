@@ -1,8 +1,12 @@
-import { and, asc, count, desc, eq, like, lte, or, type SQL } from 'drizzle-orm';
+import { and, asc, count, desc, eq, gte, like, lte, or, sql, type SQL } from 'drizzle-orm';
 import type { SqliteDb } from '#db/core.ts';
 import { inventoryMovements, products, productVariants } from '../schema.ts';
 import type { InventoryRepository } from '../../../modules/inventory/server.ts';
-import type { InventoryListQuery, MovementListQuery } from '../../../modules/inventory/index.ts';
+import type {
+	InventoryListQuery,
+	MovementListQuery,
+	StockReserveOutcome
+} from '../../../modules/inventory/index.ts';
 
 export function createSqliteInventoryRepository(db: SqliteDb): InventoryRepository {
 	return {
@@ -85,8 +89,8 @@ export function createSqliteInventoryRepository(db: SqliteDb): InventoryReposito
 		},
 
 		async adjustStock(input, meta) {
-			return db.transaction(async (tx) => {
-				const [variant] = await tx
+			return db.transaction((tx) => {
+				const [variant] = tx
 					.select({
 						id: productVariants.id,
 						sku: productVariants.sku,
@@ -95,7 +99,8 @@ export function createSqliteInventoryRepository(db: SqliteDb): InventoryReposito
 					})
 					.from(productVariants)
 					.where(eq(productVariants.id, input.variantId))
-					.limit(1);
+					.limit(1)
+					.all();
 
 				if (!variant) return { kind: 'not_found' as const };
 
@@ -104,21 +109,23 @@ export function createSqliteInventoryRepository(db: SqliteDb): InventoryReposito
 					return { kind: 'negative' as const, currentStock: variant.stock };
 				}
 
-				await tx
-					.update(productVariants)
+				tx.update(productVariants)
 					.set({ stock: nextStock, updatedAt: meta.now })
-					.where(eq(productVariants.id, input.variantId));
+					.where(eq(productVariants.id, input.variantId))
+					.run();
 
-				await tx.insert(inventoryMovements).values({
-					id: meta.movementId,
-					variantId: input.variantId,
-					delta: input.delta,
-					reason: input.reason,
-					referenceType: input.referenceType ?? null,
-					referenceId: input.referenceId ?? null,
-					adminUserId: meta.actorId,
-					createdAt: meta.now
-				});
+				tx.insert(inventoryMovements)
+					.values({
+						id: meta.movementId,
+						variantId: input.variantId,
+						delta: input.delta,
+						reason: input.reason,
+						referenceType: input.referenceType ?? null,
+						referenceId: input.referenceId ?? null,
+						adminUserId: meta.actorId,
+						createdAt: meta.now
+					})
+					.run();
 
 				return {
 					kind: 'adjusted' as const,
@@ -130,6 +137,101 @@ export function createSqliteInventoryRepository(db: SqliteDb): InventoryReposito
 						movementId: meta.movementId
 					}
 				};
+			});
+		},
+
+		async reserveStock(lines, reference, meta) {
+			class Rejected extends Error {
+				constructor(readonly outcome: Exclude<StockReserveOutcome, { kind: 'reserved' }>) {
+					super('stock reservation rejected');
+				}
+			}
+
+			try {
+				return db.transaction((tx) => {
+					const stock: Array<{ variantId: string; stock: number; movementId: string }> = [];
+
+					for (const line of lines) {
+						const [updated] = tx
+							.update(productVariants)
+							.set({ stock: sql`${productVariants.stock} - ${line.quantity}`, updatedAt: meta.now })
+							.where(
+								and(
+									eq(productVariants.id, line.variantId),
+									gte(productVariants.stock, line.quantity)
+								)
+							)
+							.returning({ stock: productVariants.stock })
+							.all();
+
+						if (!updated) {
+							const [current] = tx
+								.select({ stock: productVariants.stock })
+								.from(productVariants)
+								.where(eq(productVariants.id, line.variantId))
+								.limit(1)
+								.all();
+							throw new Rejected(
+								current
+									? { kind: 'insufficient', variantId: line.variantId, available: current.stock }
+									: { kind: 'not_found', variantId: line.variantId }
+							);
+						}
+
+						const movementId = meta.newId();
+						tx.insert(inventoryMovements)
+							.values({
+								id: movementId,
+								variantId: line.variantId,
+								delta: -line.quantity,
+								reason: 'order',
+								referenceType: reference.type,
+								referenceId: reference.id,
+								adminUserId: null,
+								createdAt: meta.now
+							})
+							.run();
+						stock.push({ variantId: line.variantId, stock: updated.stock, movementId });
+					}
+
+					return { kind: 'reserved' as const, stock };
+				});
+			} catch (error) {
+				if (error instanceof Rejected) return error.outcome;
+				throw error;
+			}
+		},
+
+		async releaseStock(lines, reference, meta) {
+			return db.transaction((tx) => {
+				const stock: Array<{ variantId: string; stock: number; movementId: string }> = [];
+
+				for (const line of lines) {
+					const [updated] = tx
+						.update(productVariants)
+						.set({ stock: sql`${productVariants.stock} + ${line.quantity}`, updatedAt: meta.now })
+						.where(eq(productVariants.id, line.variantId))
+						.returning({ stock: productVariants.stock })
+						.all();
+					if (!updated) continue;
+
+					const movementId = meta.newId();
+					tx.insert(inventoryMovements)
+						.values({
+							id: movementId,
+							variantId: line.variantId,
+							delta: line.quantity,
+							reason: 'order_cancelled',
+							referenceType: reference.type,
+							referenceId: reference.id,
+							adminUserId: null,
+							createdAt: meta.now
+						})
+						.run();
+					stock.push({ variantId: line.variantId, stock: updated.stock, movementId });
+				}
+
+				return stock;
 			});
 		}
 	};

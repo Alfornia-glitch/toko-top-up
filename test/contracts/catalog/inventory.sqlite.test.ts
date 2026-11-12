@@ -13,8 +13,11 @@ if (!sqlitePath) {
 const clock = createTestClock(new Date('2026-01-01T00:00:00.000Z'));
 const { db, context } = createSqliteCatalogTestContext(sqlitePath);
 
+const catalog = createCatalogServices({ provider: 'sqlite', db, clock });
+
 runInventoryContract({
-	service: createCatalogServices({ provider: 'sqlite', db, clock }).inventory,
+	service: catalog.inventory,
+	products: catalog.products,
 	clock,
 	reset: context.reset,
 	createActor: context.createActor,

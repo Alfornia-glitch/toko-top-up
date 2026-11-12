@@ -22,7 +22,8 @@ import {
 	type ProductListQuery,
 	type ProductListResult,
 	type ProductStatus,
-	type ProductWriteInput
+	type ProductWriteInput,
+	type VariantSnapshot
 } from '../domain/product.ts';
 import type { ProductRepository } from './product-repository.ts';
 import { PRODUCT_EVENTS } from '../contracts.ts';
@@ -41,6 +42,8 @@ export interface ProductService {
 		status: ProductStatus,
 		actor: Actor
 	): Promise<Result<ProductDetail, AppError>>;
+	/** Service-to-service read for cart and checkout; needs no actor. Unknown ids are omitted. */
+	getVariantSnapshots(variantIds: string[]): Promise<Result<VariantSnapshot[], AppError>>;
 }
 
 export function createProductService(
@@ -182,6 +185,15 @@ export function createProductService(
 					})
 				);
 				return ok(product);
+			} catch (error) {
+				return err(toAppError(error));
+			}
+		},
+
+		async getVariantSnapshots(variantIds) {
+			try {
+				if (!variantIds.length) return ok([]);
+				return ok(await repository.findVariantSnapshots([...new Set(variantIds)]));
 			} catch (error) {
 				return err(toAppError(error));
 			}

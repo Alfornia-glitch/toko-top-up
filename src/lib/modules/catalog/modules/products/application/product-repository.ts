@@ -4,7 +4,8 @@ import type {
 	ProductListQuery,
 	ProductStatus,
 	ProductSummary,
-	ProductWrite
+	ProductWrite,
+	VariantSnapshot
 } from '../domain/product.ts';
 
 export interface ProductListRecord {
@@ -33,4 +34,5 @@ export interface ProductRepository {
 	create(input: ProductWrite, meta: ProductCreateMeta): Promise<void>;
 	update(id: string, input: ProductWrite, meta: ProductUpdateMeta): Promise<ProductDetail | null>;
 	setStatus(id: string, status: ProductStatus, updatedAt: Date): Promise<ProductDetail | null>;
+	findVariantSnapshots(variantIds: string[]): Promise<VariantSnapshot[]>;
 }

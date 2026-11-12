@@ -77,6 +77,7 @@ Bun-only repo (no pnpm/npm). Run `bun install` from `web/`. Requires **Bun >= 1.
 - Legacy modules still read `catalog_*` tables directly through `#db/query.ts` (`storefront`, `cart`, `checkout`, `account/wishlist`, `content/reviews`, `reports`, `super`); `check:data` does not scan `src/lib/server/modules`.
 - Tests need the Bun runtime (`bun --bun run test:sqlite`); plain `vitest` under Node fails with `Cannot find package 'bun'`.
 - `drizzle-kit push` baselines now live in `migrations/pg` and `migrations/sqlite`. Existing local databases must run `bun scripts/rename-catalog-tables.ts` once (it also renames the `content_*`, `customers_*` and `marketing_*` tables) before using the new schema; the app has not been deployed, so production migration is not required yet.
+- **SQLite transactions must be synchronous.** Drizzle's bun-sqlite `db.transaction` runs its callback synchronously and commits when it returns, so an `async` callback with `await` is not atomic (a throw does not roll back). In `infra/sqlite/` use `db.transaction((tx) => { … tx.insert(…).values(…).run(); const [row] = tx.select(…).all(); })` with no `await`; Postgres adapters use `async`/`await`. Legacy `queryDb.transaction(async …)` calls (`checkout`, `orders`, `super/users`) are not atomic on SQLite until those modules migrate.
 - Playwright smoke is configured but still not part of `verify`.
 - `eslint-plugin-boundaries` cannot resolve Node subpath imports (`#modules`, `#shared`, `#db`), so the local `local/module-boundaries` rule stays authoritative until that resolver gap is closed.
 
