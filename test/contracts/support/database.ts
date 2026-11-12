@@ -8,7 +8,7 @@ import {
 	productOptionValues as postgresProductOptionValues,
 	productVariants as postgresProductVariants,
 	products as postgresProducts
-} from '#db/schema/postgres/catalog.ts';
+} from '#modules/catalog/infra/pg/schema.ts';
 import {
 	brands as sqliteBrands,
 	categories as sqliteCategories,
@@ -18,7 +18,7 @@ import {
 	productOptionValues as sqliteProductOptionValues,
 	productVariants as sqliteProductVariants,
 	products as sqliteProducts
-} from '#db/schema/sqlite/catalog.ts';
+} from '#modules/catalog/infra/sqlite/schema.ts';
 import { user as postgresUser } from '#db/schema/postgres/auth.ts';
 import { user as sqliteUser } from '#db/schema/sqlite/auth.ts';
 import { newId } from '#shared';

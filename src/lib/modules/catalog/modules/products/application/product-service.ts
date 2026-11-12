@@ -3,6 +3,7 @@ import {
 	NotFoundError,
 	ValidationError,
 	assertPermission,
+	createEvent,
 	err,
 	newId,
 	ok,
@@ -12,6 +13,7 @@ import {
 	type Actor,
 	type AppError,
 	type Clock,
+	type EventBus,
 	type Result
 } from '#shared';
 import {
@@ -23,6 +25,7 @@ import {
 	type ProductWriteInput
 } from '../domain/product.ts';
 import type { ProductRepository } from './product-repository.ts';
+import { PRODUCT_EVENTS } from '../contracts.ts';
 
 export interface ProductService {
 	list(query: ProductListQuery, actor: Actor): Promise<Result<ProductListResult, AppError>>;
@@ -42,7 +45,8 @@ export interface ProductService {
 
 export function createProductService(
 	repository: ProductRepository,
-	clock: Clock = systemClock
+	clock: Clock = systemClock,
+	events?: EventBus
 ): ProductService {
 	async function nextSlug(value: string, excludeId?: string): Promise<string> {
 		const base = slugify(value) || 'item';
@@ -115,6 +119,13 @@ export function createProductService(
 
 				const product = await repository.findDetail(id);
 				if (!product) return err(new NotFoundError('Product not found'));
+				await events?.publish(
+					createEvent(PRODUCT_EVENTS.created, {
+						productId: product.id,
+						sku: product.sku,
+						status: product.status
+					})
+				);
 				return ok(product);
 			} catch (error) {
 				return err(toAppError(error));
@@ -145,6 +156,13 @@ export function createProductService(
 				});
 
 				if (!product) return err(new NotFoundError('Product not found'));
+				await events?.publish(
+					createEvent(PRODUCT_EVENTS.updated, {
+						productId: product.id,
+						sku: product.sku,
+						status: product.status
+					})
+				);
 				return ok(product);
 			} catch (error) {
 				return err(toAppError(error));
@@ -156,6 +174,13 @@ export function createProductService(
 				assertPermission(actor, 'catalog:write');
 				const product = await repository.setStatus(id, status, clock.now());
 				if (!product) return err(new NotFoundError('Product not found'));
+				await events?.publish(
+					createEvent(PRODUCT_EVENTS.statusChanged, {
+						productId: product.id,
+						sku: product.sku,
+						status: product.status
+					})
+				);
 				return ok(product);
 			} catch (error) {
 				return err(toAppError(error));

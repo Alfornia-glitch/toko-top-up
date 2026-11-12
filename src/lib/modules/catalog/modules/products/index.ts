@@ -1,3 +1,10 @@
+export { PRODUCT_EVENTS } from './contracts.ts';
+export type {
+	ProductCreatedPayload,
+	ProductEventMap,
+	ProductStatusChangedPayload,
+	ProductUpdatedPayload
+} from './contracts.ts';
 export {
 	productImageSchema,
 	productListSchema,

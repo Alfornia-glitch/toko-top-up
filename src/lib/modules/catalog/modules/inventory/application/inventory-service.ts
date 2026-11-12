@@ -3,6 +3,7 @@ import {
 	NotFoundError,
 	ValidationError,
 	assertPermission,
+	createEvent,
 	err,
 	newId,
 	ok,
@@ -11,6 +12,7 @@ import {
 	type Actor,
 	type AppError,
 	type Clock,
+	type EventBus,
 	type Result
 } from '#shared';
 import {
@@ -23,6 +25,7 @@ import {
 	type StockAdjustment
 } from '../domain/inventory.ts';
 import type { InventoryRepository } from './inventory-repository.ts';
+import { INVENTORY_EVENTS } from '../contracts.ts';
 
 export interface InventoryService {
 	list(query: InventoryListQuery, actor: Actor): Promise<Result<InventoryListResult, AppError>>;
@@ -35,7 +38,8 @@ export interface InventoryService {
 
 export function createInventoryService(
 	repository: InventoryRepository,
-	clock: Clock = systemClock
+	clock: Clock = systemClock,
+	events?: EventBus
 ): InventoryService {
 	return {
 		async list(query, actor) {
@@ -96,6 +100,14 @@ export function createInventoryService(
 					);
 				}
 
+				await events?.publish(
+					createEvent(INVENTORY_EVENTS.adjusted, {
+						variantId: outcome.adjustment.id,
+						delta: parsed.data.delta,
+						stock: outcome.adjustment.stock,
+						movementId: outcome.adjustment.movementId
+					})
+				);
 				return ok(outcome.adjustment);
 			} catch (error) {
 				return err(toAppError(error));

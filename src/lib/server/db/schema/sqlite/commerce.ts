@@ -1,7 +1,7 @@
 import { relations } from 'drizzle-orm';
 import { index, integer, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core';
 import { user } from './auth.ts';
-import { productVariants } from './catalog.ts';
+import { productVariants } from '#modules/catalog/infra/sqlite/schema.ts';
 
 const timestamps = {
 	createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull(),

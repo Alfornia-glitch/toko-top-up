@@ -12,7 +12,7 @@ Bun-only repo (no pnpm/npm). Run `bun install` from `web/`. Requires **Bun >= 1.
 - `bun run --bun build` — production build to `build/` (must run under Bun because adapter-bun calls `Bun.build`; `bunfig.toml` also forces Bun for `bun run build`)
 - `bun run start` / `bun run preview` — serve the built app with `bun ./build` (default port 3000)
 - `bun run check` — `svelte-kit sync` + `svelte-check` (must stay 0 errors / 0 warnings)
-- `bun run db:push` — `bun scripts/setup-db.ts` (creates the `auth_app` schema for Postgres, the data directory for SQLite) then `drizzle-kit push` (reads `DB_PROVIDER` and the matching credentials from `.env`)
+- `bun run db:push` — `bun scripts/setup-db.ts` (creates the `auth_app` schema for Postgres, the data directory for SQLite) then `bun scripts/db-tool.ts push` (a wrapper over drizzle-kit; reads `DB_PROVIDER` and picks `drizzle.pg.config.ts` or `drizzle.sqlite.config.ts`). Also `bun run db:generate` / `db:migrate`
 - `bun run storage:setup` — `bun scripts/setup-storage.ts` (creates or updates the public Supabase Storage bucket from `SUPABASE_STORAGE_BUCKET` with the 5 MiB/MIME limits; no-op when `STORAGE_PROVIDER=rustfs`)
 - `bun run lint` / `bun run format` — Prettier check / write (required before finishing)
 
@@ -22,7 +22,7 @@ Bun-only repo (no pnpm/npm). Run `bun install` from `web/`. Requires **Bun >= 1.
 
 - **No `svelte.config.ts`** — kit 3 rejects it (`kit/config_file_unsupported`). Config is inline in `vite.config.ts` via `sveltekit({ compilerOptions, adapter, paths })`. `paths.origin` is taken from the optional `ORIGIN` env var at build time; leave it empty behind TLS so adapter-bun can derive the host.
 - **`tsconfig.json` extends `"$app/tsconfig"`** (kit 3's preset: `paths: {}`, `types`, `noEmit`, `allowImportingTsExtensions`). Do not set `paths` for aliases. `compilerOptions.types` **replaces** the inherited array, so it must list both: `["$app/types", "bun"]` (the `bun` entry gives `bun:sqlite` / `Bun` global types to `src/lib/server`).
-- **Env vars live in `src/env.ts`** (`defineEnvVars` from `@sveltejs/kit/env`) and are read as `$app/env/private` — kit 3 removed `$env/dynamic/private`, and `$env/static/private` is deprecated. `DB_PROVIDER` (`sqlite` | `postgres`), `STORAGE_PROVIDER` (`supabase` | `rustfs`), `BETTER_AUTH_SECRET`, and `BETTER_AUTH_URL` are required; the provider values are validated by schema functions. Provider-specific vars (`SQLITE_PATH`, `DATABASE_URL`, `SUPABASE_*`, `RUSTFS_*`) are optional in `src/env.ts` and validated lazily by `createDb()` / `getStorageBackend()`, which throw a clear error when a var needed by the selected provider is missing. `GOOGLE_*` are optional. Bun auto-loads `.env` for both `vite dev` and `bun --bun vite build`; `drizzle.config.ts` is the exception (drizzle-kit loads `.env` itself). `ORIGIN` is read from `process.env` in `vite.config.ts` at build time.
+- **Env vars live in `src/env.ts`** (`defineEnvVars` from `@sveltejs/kit/env`) and are read as `$app/env/private` — kit 3 removed `$env/dynamic/private`, and `$env/static/private` is deprecated. `DB_PROVIDER` (`sqlite` | `postgres`), `STORAGE_PROVIDER` (`supabase` | `rustfs`), `BETTER_AUTH_SECRET`, and `BETTER_AUTH_URL` are required; the provider values are validated by schema functions. Provider-specific vars (`SQLITE_PATH`, `DATABASE_URL`, `SUPABASE_*`, `RUSTFS_*`) are optional in `src/env.ts` and validated lazily by `createDb()` / `getStorageBackend()`, which throw a clear error when a var needed by the selected provider is missing. `GOOGLE_*` are optional. Bun auto-loads `.env` for both `vite dev` and `bun --bun vite build`; the drizzle config files (`drizzle.pg.config.ts`, `drizzle.sqlite.config.ts`) are the exception (drizzle-kit loads `.env` itself). `ORIGIN` is read from `process.env` in `vite.config.ts` at build time.
 - **Two deployment profiles** (copy one to `.env`): `env.vps.example` = `DB_PROVIDER=sqlite` + `STORAGE_PROVIDER=rustfs`; `env.supabase.example` = `DB_PROVIDER=postgres` + `STORAGE_PROVIDER=supabase`. The two switches are independent, so mixed combinations work.
 - **Path aliases live in `package.json` `imports`** (Node subpath imports, no `kit.alias`):
   - `#lib` → `./src/lib/index.ts`; `#lib/*` → `./src/lib/*`
@@ -40,7 +40,7 @@ Bun-only repo (no pnpm/npm). Run `bun install` from `web/`. Requires **Bun >= 1.
 - `src/lib/frontend/shellAssets.ts` — header/footer asset paths
 - `src/lib/frontend/modules/landing/` — landing-page sections (`HeroSection`, `BrandsSection`, …)
 - `src/lib/server/modules/auth/` — better-auth server config (`index.ts`: `betterAuth` + `drizzleAdapter` + `sveltekitCookies`; lazy-imported by `src/hooks.server.ts`, typed in `src/app.d.ts`)
-- `src/lib/server/db/` — Drizzle client and schema for both providers (`drizzle-orm/bun-sqlite` + `schema/sqlite`, `drizzle-orm/bun-sql` + `schema/postgres`; better-auth tables only; env comes from `src/env.ts` via `$app/env/private`); `scripts/setup-db.ts` creates the `auth_app` schema for Postgres, then `bun run db:push` syncs the tables. Postgres tables are declared with `pgSchema('auth_app').table(…)` (drizzle 0.45 `pgTable` has no `schema` option), so queries are schema-qualified and need no `search_path`. The schema is deliberately not in Supabase's Exposed schemas.
+- `src/lib/server/db/` — Drizzle client and schema for both providers (`drizzle-orm/bun-sqlite` + `schema/sqlite`, `drizzle-orm/bun-sql` + `schema/postgres`; `schema.pg.ts` / `schema.sqlite.ts` aggregate the module-owned schemas plus legacy tables; env comes from `src/env.ts` via `$app/env/private`); `scripts/setup-db.ts` creates the `auth_app` schema for Postgres, then `bun run db:push` syncs the tables. Postgres tables are declared with `pgSchema('auth_app').table(…)` (drizzle 0.45 `pgTable` has no `schema` option), so queries are schema-qualified and need no `search_path`. The schema is deliberately not in Supabase's Exposed schemas.
 - `src/lib/server/modules/storage/` — pluggable media backends selected by `STORAGE_PROVIDER`: `supabase.ts` (`@supabase/storage-js` public bucket) and `rustfs.ts` (`Bun.S3Client` against a RustFS/S3-compatible endpoint, `public-read` ACL, permanent URLs from `RUSTFS_PUBLIC_URL`); `backend.ts` validates env lazily, `index.ts` keeps the shared validation and `uploadMedia()` API. Server-only (under `src/lib/server/`, and `$app/env/private` is guarded anyway) because `SUPABASE_SECRET_KEY` (the `sb_secret_…` key from the dashboard's Publishable and secret API keys tab) bypasses Storage RLS. Uploads are limited to `image/jpeg|png|webp|avif|gif` and 5 MiB; the extension comes from the MIME map, never from the client filename.
 - `src/routes/api/upload/+server.ts` — the only custom endpoint besides `/api/auth/*`. `POST` (multipart `file`, optional single-segment `folder`) returns `201 { path, url, contentType, size }`; `401` without a session, `400`/`413`/`415` on bad input, `502` when Storage rejects the write. Use `Response.json`, not kit 3's deprecated `json()`/`error()`.
 - `tools/convert.mjs` — JSX → Svelte converter (full-page and `--snippet` modes); strips `data-node-id`, keeps `data-name`, strips embedded `Header`/`Footer` sections
@@ -58,6 +58,28 @@ Bun-only repo (no pnpm/npm). Run `bun install` from `web/`. Requires **Bun >= 1.
 - Prettier formats everything; keep double quotes where the source has apostrophes.
 - Make each module both in server & client have the structure of `index.ts` (exports) + `<name>.ts` (implementation).
   models(types or interfaces), middleware, and services.
+
+## Modular monolith (in progress)
+
+- Modules live in `src/lib/modules/<module>/`. Public entries are `index.ts` (client-safe) and `server.ts` (server-only); everything else is private.
+- Nested modules live under `modules/<child>/` and may only be imported by their direct parent.
+- `shared/` never imports modules. Routes import only top-level module entries and `shared`.
+- Architecture is enforced by `bun run arch` (`dependency-cruiser` + `local/module-boundaries`), `bun run check:data` (table prefixes and foreign-table imports), and `bun run check:schema` (Postgres/SQLite parity).
+- New migration workflow: `bun run db:generate` writes to `migrations/pg` or `migrations/sqlite` based on `DB_PROVIDER`; `bun run db:migrate` applies it; `bun run db:push` remains the dev shortcut.
+- Admin UI routes are grouped as `src/routes/(admin)/admin/**` and `src/routes/(admin)/(super)/admin/super/**`; URLs are unchanged and super pages still render inside `AdminShell`.
+
+### Migration debt (tracked)
+
+- `src/lib/frontend/**`, most of `src/lib/server/modules/**`, and legacy routes are still excluded from ESLint/dependency-cruiser until the Phase 7 one-module-at-a-time migration deletes them.
+- Only `catalog` and `reporting` own module schemas today. Legacy modules still query through `#db/query.ts` and the shared legacy schema tree.
+- `reviews`, `review_images`, `wishlists`, and `commerce.ts` temporarily import the catalog module schema for foreign keys; remove those imports when `content` and `customers` migrate.
+- Catalog submodules (`brands`, `categories`, `products`, `inventory`) keep domain/application code but no own `infra/` folder. Catalog intentionally owns the aggregate schema and the repository adapters (`catalog/infra/{pg,sqlite}/repositories/`) so no submodule joins a sibling's tables.
+- Phase 6 (open): legacy modules and routes still use `CatalogError` / `catalogErrorResponse`; replace with shared `AppError` subclasses.
+- Legacy modules still read `catalog_*` tables directly through `#db/query.ts` (`storefront`, `cart`, `checkout`, `account/wishlist`, `content/reviews`, `reports`, `super`); `check:data` does not scan `src/lib/server/modules`.
+- Tests need the Bun runtime (`bun --bun run test:sqlite`); plain `vitest` under Node fails with `Cannot find package 'bun'`.
+- `drizzle-kit push` baselines now live in `migrations/pg` and `migrations/sqlite`. Existing local databases must run `bun scripts/rename-catalog-tables.ts` once before using the new schema; the app has not been deployed, so production migration is not required yet.
+- Playwright smoke is configured but still not part of `verify`.
+- `eslint-plugin-boundaries` cannot resolve Node subpath imports (`#modules`, `#shared`, `#db`), so the local `local/module-boundaries` rule stays authoritative until that resolver gap is closed.
 
 ## Verification
 

@@ -2,8 +2,8 @@ import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { drizzle as drizzlePostgres } from 'drizzle-orm/bun-sql';
 import { drizzle as drizzleSqlite } from 'drizzle-orm/bun-sqlite';
-import * as postgresSchema from './schema/postgres/index.ts';
-import * as sqliteSchema from './schema/sqlite/index.ts';
+import * as postgresSchema from './schema.pg.ts';
+import * as sqliteSchema from './schema.sqlite.ts';
 
 /** Local, file-backed SQLite database used by the VPS deployment profile. */
 export function createSqliteDb(path: string) {

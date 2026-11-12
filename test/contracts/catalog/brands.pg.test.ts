@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, test } from 'vitest';
-import { createBrandService } from '#modules/catalog/server.ts';
+import { createCatalogServices } from '#modules/catalog/server.ts';
 import { runBrandContract } from './brands.contract.ts';
 import { createTestClock } from '../support/clock.ts';
 import { createPostgresCatalogTestContext } from '../support/database.ts';
@@ -13,7 +13,7 @@ if (testDatabaseUrl) {
 		const { db, context } = createPostgresCatalogTestContext(testDatabaseUrl);
 
 		runBrandContract({
-			service: createBrandService({ provider: 'postgres', db, clock }),
+			service: createCatalogServices({ provider: 'postgres', db, clock }).brands,
 			clock,
 			reset: context.reset,
 			createProduct: context.createProduct

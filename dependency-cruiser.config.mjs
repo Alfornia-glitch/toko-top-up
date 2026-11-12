@@ -27,6 +27,7 @@ const config = {
 				pathNot: [
 					'^src/lib/modules/',
 					'^src/lib/server/db/schema\\.(pg|sqlite)\\.ts$',
+					'^src/lib/server/db/schema/(postgres|sqlite)/',
 					'^src/lib/frontend/',
 					'^src/lib/server/modules/'
 				]

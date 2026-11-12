@@ -1,3 +1,5 @@
+export { INVENTORY_EVENTS } from './contracts.ts';
+export type { InventoryAdjustedPayload, InventoryEventMap } from './contracts.ts';
 export { inventoryListSchema, movementListSchema, stockAdjustSchema } from './domain/inventory.ts';
 export type {
 	InventoryListQuery,

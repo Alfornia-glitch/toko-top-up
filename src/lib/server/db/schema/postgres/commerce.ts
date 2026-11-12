@@ -1,7 +1,7 @@
 import { relations } from 'drizzle-orm';
 import { boolean, index, integer, jsonb, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core';
 import { user } from './auth.ts';
-import { productVariants } from './catalog.ts';
+import { productVariants } from '#modules/catalog/infra/pg/schema.ts';
 import { shopSchema } from './schema.ts';
 
 const timestamps = {

@@ -1,6 +1,6 @@
 import { db, dbProvider } from './index.ts';
-import * as postgres from './schema/postgres/index.ts';
-import * as sqlite from './schema/sqlite/index.ts';
+import * as postgres from './schema.pg.ts';
+import * as sqlite from './schema.sqlite.ts';
 import type { PostgresDb } from './core.ts';
 
 // The pg and SQLite schemas are logically identical (timestamps are Date,

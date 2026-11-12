@@ -1,3 +1,14 @@
+export { INVENTORY_EVENTS, PRODUCT_EVENTS } from './contracts.ts';
+export type {
+	CatalogEventMap,
+	InventoryAdjustedPayload,
+	InventoryEventMap,
+	ProductCreatedPayload,
+	ProductEventMap,
+	ProductStatusChangedPayload,
+	ProductUpdatedPayload
+} from './contracts.ts';
+
 export { brandStatusSchema, brandWriteSchema, slugify } from './modules/brands/index.ts';
 export type {
 	Brand,

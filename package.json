@@ -21,7 +21,7 @@
 		"prepare": "svelte-kit sync || echo ''",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
-		"db:push": "bun scripts/setup-db.ts && drizzle-kit push",
+		"db:push": "bun scripts/setup-db.ts && bun scripts/db-tool.ts push",
 		"storage:setup": "bun scripts/setup-storage.ts",
 		"lint": "eslint . --cache --cache-location node_modules/.cache/eslint",
 		"format": "prettier --cache --write .",
@@ -34,7 +34,11 @@
 		"test:pg": "bun scripts/require-test-db.ts && DB_PROVIDER=postgres vitest run",
 		"test:sqlite": "TEST_DATABASE_URL= DB_PROVIDER=sqlite vitest run",
 		"test:e2e": "playwright test",
-		"verify": "bun run format:check && bun run lint && bun run check && bun run arch && bun run test"
+		"verify": "bun run format:check && bun run lint && bun run check && bun run arch && bun run check:data && bun run check:schema && bun run test",
+		"db:generate": "bun scripts/db-tool.ts generate",
+		"db:migrate": "bun scripts/db-tool.ts migrate",
+		"check:data": "bun scripts/check-data-ownership.ts",
+		"check:schema": "bun scripts/check-schema-parity.ts"
 	},
 	"dependencies": {
 		"@supabase/storage-js": "^2.118.0",

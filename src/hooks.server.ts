@@ -1,4 +1,4 @@
-import { error, redirect } from '@sveltejs/kit';
+import { error, isHttpError, isRedirect, redirect } from '@sveltejs/kit';
 import { sequence, type Handle, type HandleServerError } from '@sveltejs/kit/hooks';
 import { building } from '$app/env';
 import { svelteKitHandler } from 'better-auth/svelte-kit';
@@ -25,12 +25,21 @@ const requestContextHandle: Handle = async ({ event, resolve }) => {
 		);
 		return response;
 	} catch (cause) {
-		console.error(
+		const status = isAppError(cause)
+			? cause.status
+			: isHttpError(cause)
+				? cause.status
+				: isRedirect(cause)
+					? cause.status
+					: 500;
+		const log = isRedirect(cause) ? console.info : console.error;
+
+		log(
 			JSON.stringify({
 				requestId,
 				method: event.request.method,
 				path: event.url.pathname,
-				status: isAppError(cause) ? cause.status : 500,
+				status,
 				durationMs: Math.round(performance.now() - startedAt),
 				error: cause instanceof Error ? cause.message : String(cause)
 			})
