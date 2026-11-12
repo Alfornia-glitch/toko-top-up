@@ -1,9 +1,8 @@
 import type { RequestHandler } from './$types';
-import { placeOrder } from '#lib/server/modules/checkout/checkout.ts';
 import { resolveCartId } from '#lib/server/http/session-cart.ts';
 import { customerErrorResponse, requireUser } from '#lib/server/modules/customer/http.ts';
 import { checkoutSchema } from '#lib/server/modules/customer/validation.ts';
-import { ConflictError } from '#shared';
+import { ConflictError, unwrap } from '#shared';
 
 export const POST: RequestHandler = async ({ locals, request, cookies }) => {
 	const denied = requireUser(locals.user);
@@ -29,7 +28,9 @@ export const POST: RequestHandler = async ({ locals, request, cookies }) => {
 		const cartId = await resolveCartId(cookies, locals.user!.id);
 		if (!cartId) throw new ConflictError('Your cart is empty');
 
-		const data = await placeOrder(locals.actor!, cartId, parsed.data);
+		const data = unwrap(
+			await locals.services.checkout.checkout.placeOrder(cartId, parsed.data, locals.actor)
+		);
 
 		return Response.json({ data }, { status: 201 });
 	} catch (error) {

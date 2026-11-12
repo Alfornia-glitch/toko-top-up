@@ -3,12 +3,14 @@ import { db as sharedDb, dbProvider } from '#db/index.ts';
 import type { Db, PostgresDb, SqliteDb } from '#db/core.ts';
 import { createCatalogServices, type CatalogServices } from '#modules/catalog/server.ts';
 import { createContentServices, type ContentServices } from '#modules/content/server.ts';
+import { createCheckoutServices, type CheckoutServices } from '#modules/checkout/server.ts';
 import { createCartServices, type CartServices } from '#modules/cart/server.ts';
 import { createCustomersServices, type CustomersServices } from '#modules/customers/server.ts';
 import { createMarketingServices, type MarketingServices } from '#modules/marketing/server.ts';
 import { createSupportServices, type SupportServices } from '#modules/support/server.ts';
 import { createOrdersServices, type OrdersServices } from '#modules/orders/server.ts';
 import { createReportingServices, type ReportingServices } from '#modules/reporting/server.ts';
+import { createCheckoutSettings } from './adapters/checkout-settings.ts';
 import { createCustomerDirectory } from './adapters/customer-directory.ts';
 import { createOrdersUserDirectory } from './adapters/orders-users.ts';
 import { createSupportUserDirectory } from './adapters/support-users.ts';
@@ -24,6 +26,7 @@ export interface RuntimeServices {
 	readonly marketing: MarketingServices;
 	readonly cart: CartServices;
 	readonly orders: OrdersServices;
+	readonly checkout: CheckoutServices;
 }
 
 export interface Runtime {
@@ -66,6 +69,7 @@ export function createRuntime(
 	let marketing: MarketingServices | undefined;
 	let cart: CartServices | undefined;
 	let orders: OrdersServices | undefined;
+	let checkout: CheckoutServices | undefined;
 	const registry = createModuleRegistry();
 
 	registry.register({
@@ -138,6 +142,24 @@ export function createRuntime(
 		}
 	});
 
+	registry.register({
+		name: 'checkout',
+		dependencies: ['cart', 'catalog', 'customers', 'marketing', 'orders'],
+		initialize() {
+			if (!cart || !catalog || !customers || !marketing || !orders) {
+				throw new Error('Cart, catalog, customers, marketing and orders are required by checkout');
+			}
+			checkout = createCheckoutServices({
+				cart,
+				catalog,
+				customers,
+				marketing,
+				orders,
+				settings: createCheckoutSettings()
+			});
+		}
+	});
+
 	registry.initialize();
 
 	if (
@@ -148,7 +170,8 @@ export function createRuntime(
 		!support ||
 		!marketing ||
 		!cart ||
-		!orders
+		!orders ||
+		!checkout
 	)
 		throw new Error('Modules failed to initialize');
 
@@ -156,7 +179,7 @@ export function createRuntime(
 		config,
 		db,
 		eventBus,
-		services: { catalog, reporting, content, customers, support, marketing, cart, orders }
+		services: { catalog, reporting, content, customers, support, marketing, cart, orders, checkout }
 	};
 }
 
