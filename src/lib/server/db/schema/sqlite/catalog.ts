@@ -46,24 +46,6 @@ export const reviewImages = sqliteTable(
 	(table) => [index('review_images_review_idx').on(table.reviewId)]
 );
 
-export const wishlists = sqliteTable(
-	'wishlists',
-	{
-		id: text('id').primaryKey(),
-		userId: text('user_id')
-			.notNull()
-			.references(() => user.id, { onDelete: 'cascade' }),
-		productId: text('product_id')
-			.notNull()
-			.references(() => products.id, { onDelete: 'cascade' }),
-		createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull()
-	},
-	(table) => [
-		uniqueIndex('wishlists_user_product_idx').on(table.userId, table.productId),
-		index('wishlists_product_idx').on(table.productId)
-	]
-);
-
 export const reviewsRelations = relations(reviews, ({ one, many }) => ({
 	product: one(products, { fields: [reviews.productId], references: [products.id] }),
 	user: one(user, { fields: [reviews.userId], references: [user.id] }),
@@ -72,9 +54,4 @@ export const reviewsRelations = relations(reviews, ({ one, many }) => ({
 
 export const reviewImagesRelations = relations(reviewImages, ({ one }) => ({
 	review: one(reviews, { fields: [reviewImages.reviewId], references: [reviews.id] })
-}));
-
-export const wishlistsRelations = relations(wishlists, ({ one }) => ({
-	user: one(user, { fields: [wishlists.userId], references: [user.id] }),
-	product: one(products, { fields: [wishlists.productId], references: [products.id] })
 }));

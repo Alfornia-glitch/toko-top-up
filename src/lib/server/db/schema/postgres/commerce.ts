@@ -11,29 +11,6 @@ const timestamps = {
 		.notNull()
 };
 
-export const addresses = shopSchema.table(
-	'addresses',
-	{
-		id: text('id').primaryKey(),
-		userId: text('user_id')
-			.notNull()
-			.references(() => user.id, { onDelete: 'cascade' }),
-		label: text('label'),
-		recipientName: text('recipient_name').notNull(),
-		phone: text('phone'),
-		line1: text('line1').notNull(),
-		line2: text('line2'),
-		city: text('city').notNull(),
-		region: text('region'),
-		postalCode: text('postal_code'),
-		country: text('country').notNull(),
-		isDefaultShipping: boolean('is_default_shipping').notNull().default(false),
-		isDefaultBilling: boolean('is_default_billing').notNull().default(false),
-		...timestamps
-	},
-	(table) => [index('addresses_user_idx').on(table.userId)]
-);
-
 export const coupons = shopSchema.table(
 	'coupons',
 	{
@@ -389,10 +366,6 @@ export const supportTicketMessages = shopSchema.table(
 	},
 	(table) => [index('support_ticket_messages_ticket_idx').on(table.ticketId)]
 );
-
-export const addressesRelations = relations(addresses, ({ one }) => ({
-	user: one(user, { fields: [addresses.userId], references: [user.id] })
-}));
 
 export const cartsRelations = relations(carts, ({ one, many }) => ({
 	user: one(user, { fields: [carts.userId], references: [user.id] }),

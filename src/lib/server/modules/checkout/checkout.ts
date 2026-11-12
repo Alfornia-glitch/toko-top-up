@@ -3,7 +3,9 @@ import { queryDb, tables } from '#db/query.ts';
 import { getCart, markCartConverted, type Cart } from '#lib/server/modules/cart/cart.ts';
 import { getSiteSettings } from '#lib/server/modules/storefront/site.ts';
 import type { CheckoutInput } from '#lib/server/modules/customer/validation.ts';
-import { ConflictError, NotFoundError, UnprocessableError } from '#shared';
+import type { Address } from '#modules/customers/index.ts';
+import { ConflictError, UnprocessableError, unwrap, type Actor } from '#shared';
+import { getRuntime } from '#lib/server/runtime.server.ts';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const t = tables as any;
@@ -74,7 +76,7 @@ function resolveItems(
 	return { items, subtotalCents };
 }
 
-function addressSnapshot(address: Record<string, unknown>): Record<string, unknown> {
+function addressSnapshot(address: Address): Record<string, unknown> {
 	return {
 		id: address.id,
 		label: address.label,
@@ -96,22 +98,17 @@ function generateOrderNumber() {
 		.toUpperCase()}`;
 }
 
-export async function placeOrder(userId: string, cartId: string, input: CheckoutInput) {
+export async function placeOrder(actor: Actor, cartId: string, input: CheckoutInput) {
+	const userId = actor.id;
 	const cart = await getCart(cartId);
 
 	if (!cart || cart.items.length === 0) {
 		throw new ConflictError('Your cart is empty');
 	}
 
-	const [address] = await queryDb
-		.select()
-		.from(t.addresses)
-		.where(and(eq(t.addresses.id, input.addressId), eq(t.addresses.userId, userId)))
-		.limit(1);
-
-	if (!address) {
-		throw new NotFoundError('Address not found');
-	}
+	const address = unwrap(
+		await getRuntime().services.customers.customers.getAddress(input.addressId, actor)
+	);
 
 	const settings = await getSiteSettings();
 	const shipping = settings.shipping.find((method) => method.id === input.shippingId);

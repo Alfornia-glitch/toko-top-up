@@ -1,5 +1,5 @@
 import type { RequestHandler } from './$types';
-import { deleteAddress, updateAddress } from '#lib/server/modules/account/addresses.ts';
+import { unwrap } from '#shared';
 import { customerErrorResponse, requireUser } from '#lib/server/modules/customer/http.ts';
 import { addressWriteSchema } from '#lib/server/modules/customer/validation.ts';
 
@@ -24,8 +24,9 @@ export const PATCH: RequestHandler = async ({ locals, params, request }) => {
 	}
 
 	try {
-		const data = await updateAddress(locals.user!.id, params.id, parsed.data);
-		if (!data) return Response.json({ error: 'Address not found' }, { status: 404 });
+		const data = unwrap(
+			await locals.services.customers.customers.updateAddress(params.id, parsed.data, locals.actor)
+		);
 
 		return Response.json({ data });
 	} catch (error) {
@@ -38,8 +39,7 @@ export const DELETE: RequestHandler = async ({ locals, params }) => {
 	if (denied) return denied;
 
 	try {
-		const deleted = await deleteAddress(locals.user!.id, params.id);
-		if (!deleted) return Response.json({ error: 'Address not found' }, { status: 404 });
+		unwrap(await locals.services.customers.customers.deleteAddress(params.id, locals.actor));
 
 		return Response.json({ ok: true });
 	} catch (error) {

@@ -8,7 +8,7 @@ export const GET: RequestHandler = async ({ locals }) => {
 	if (denied) return denied;
 
 	try {
-		return Response.json({ data: await listWishlist(locals.user!.id) });
+		return Response.json({ data: await listWishlist(locals.actor) });
 	} catch (error) {
 		return customerErrorResponse(error, 'list wishlist');
 	}
@@ -34,7 +34,7 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 	}
 
 	try {
-		const created = await addWishlist(locals.user!.id, parsed.data.productId);
+		const created = await addWishlist(locals.actor, parsed.data.productId);
 		return Response.json({ data: created }, { status: 201 });
 	} catch (error) {
 		return customerErrorResponse(error, 'add wishlist item');

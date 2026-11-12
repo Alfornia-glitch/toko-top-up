@@ -16,7 +16,7 @@ CREATE TABLE `account` (
 );
 --> statement-breakpoint
 CREATE INDEX `account_userId_idx` ON `account` (`user_id`);--> statement-breakpoint
-CREATE TABLE `addresses` (
+CREATE TABLE `customers_addresses` (
 	`id` text PRIMARY KEY NOT NULL,
 	`user_id` text NOT NULL,
 	`label` text,
@@ -31,11 +31,10 @@ CREATE TABLE `addresses` (
 	`is_default_shipping` integer DEFAULT false NOT NULL,
 	`is_default_billing` integer DEFAULT false NOT NULL,
 	`created_at` integer NOT NULL,
-	`updated_at` integer NOT NULL,
-	FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON UPDATE no action ON DELETE cascade
+	`updated_at` integer NOT NULL
 );
 --> statement-breakpoint
-CREATE INDEX `addresses_user_idx` ON `addresses` (`user_id`);--> statement-breakpoint
+CREATE INDEX `customers_addresses_user_idx` ON `customers_addresses` (`user_id`);--> statement-breakpoint
 CREATE TABLE `content_announcements` (
 	`id` text PRIMARY KEY NOT NULL,
 	`text` text NOT NULL,
@@ -604,14 +603,12 @@ CREATE TABLE `verification` (
 );
 --> statement-breakpoint
 CREATE INDEX `verification_identifier_idx` ON `verification` (`identifier`);--> statement-breakpoint
-CREATE TABLE `wishlists` (
+CREATE TABLE `customers_wishlists` (
 	`id` text PRIMARY KEY NOT NULL,
 	`user_id` text NOT NULL,
 	`product_id` text NOT NULL,
-	`created_at` integer NOT NULL,
-	FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON UPDATE no action ON DELETE cascade,
-	FOREIGN KEY (`product_id`) REFERENCES `catalog_products`(`id`) ON UPDATE no action ON DELETE cascade
+	`created_at` integer NOT NULL
 );
 --> statement-breakpoint
-CREATE UNIQUE INDEX `wishlists_user_product_idx` ON `wishlists` (`user_id`,`product_id`);--> statement-breakpoint
-CREATE INDEX `wishlists_product_idx` ON `wishlists` (`product_id`);
+CREATE UNIQUE INDEX `customers_wishlists_user_product_idx` ON `customers_wishlists` (`user_id`,`product_id`);--> statement-breakpoint
+CREATE INDEX `customers_wishlists_product_idx` ON `customers_wishlists` (`product_id`);

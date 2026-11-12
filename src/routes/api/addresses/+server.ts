@@ -1,5 +1,5 @@
 import type { RequestHandler } from './$types';
-import { createAddress, listAddresses } from '#lib/server/modules/account/addresses.ts';
+import { unwrap } from '#shared';
 import { customerErrorResponse, requireUser } from '#lib/server/modules/customer/http.ts';
 import { addressWriteSchema } from '#lib/server/modules/customer/validation.ts';
 
@@ -8,7 +8,7 @@ export const GET: RequestHandler = async ({ locals }) => {
 	if (denied) return denied;
 
 	try {
-		const data = await listAddresses(locals.user!.id);
+		const data = unwrap(await locals.services.customers.customers.listAddresses(locals.actor));
 		return Response.json({ data });
 	} catch (error) {
 		return customerErrorResponse(error, 'list addresses');
@@ -36,7 +36,9 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 	}
 
 	try {
-		const data = await createAddress(locals.user!.id, parsed.data);
+		const data = unwrap(
+			await locals.services.customers.customers.createAddress(parsed.data, locals.actor)
+		);
 		return Response.json({ data }, { status: 201 });
 	} catch (error) {
 		return customerErrorResponse(error, 'create address');

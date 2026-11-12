@@ -3,7 +3,9 @@ import { db as sharedDb, dbProvider } from '#db/index.ts';
 import type { Db, PostgresDb, SqliteDb } from '#db/core.ts';
 import { createCatalogServices, type CatalogServices } from '#modules/catalog/server.ts';
 import { createContentServices, type ContentServices } from '#modules/content/server.ts';
+import { createCustomersServices, type CustomersServices } from '#modules/customers/server.ts';
 import { createReportingServices, type ReportingServices } from '#modules/reporting/server.ts';
+import { createCustomerDirectory } from './adapters/customer-directory.ts';
 import { loadConfig, type AppConfig } from './config.server.ts';
 import { createModuleRegistry } from './registry.server.ts';
 
@@ -11,6 +13,7 @@ export interface RuntimeServices {
 	readonly catalog: CatalogServices;
 	readonly reporting: ReportingServices;
 	readonly content: ContentServices;
+	readonly customers: CustomersServices;
 }
 
 export interface Runtime {
@@ -48,6 +51,7 @@ export function createRuntime(
 	let catalog: CatalogServices | undefined;
 	let reporting: ReportingServices | undefined;
 	let content: ContentServices | undefined;
+	let customers: CustomersServices | undefined;
 	const registry = createModuleRegistry();
 
 	registry.register({
@@ -77,15 +81,26 @@ export function createRuntime(
 		}
 	});
 
+	registry.register({
+		name: 'customers',
+		initialize() {
+			customers = createCustomersServices({
+				...serviceOptions(),
+				directory: createCustomerDirectory()
+			});
+		}
+	});
+
 	registry.initialize();
 
-	if (!catalog || !reporting || !content) throw new Error('Modules failed to initialize');
+	if (!catalog || !reporting || !content || !customers)
+		throw new Error('Modules failed to initialize');
 
 	return {
 		config,
 		db,
 		eventBus,
-		services: { catalog, reporting, content }
+		services: { catalog, reporting, content, customers }
 	};
 }
 

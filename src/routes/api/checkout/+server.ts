@@ -29,7 +29,7 @@ export const POST: RequestHandler = async ({ locals, request, cookies }) => {
 		const cartId = await resolveCartId(cookies, locals.user!.id);
 		if (!cartId) throw new ConflictError('Your cart is empty');
 
-		const data = await placeOrder(locals.user!.id, cartId, parsed.data);
+		const data = await placeOrder(locals.actor!, cartId, parsed.data);
 
 		return Response.json({ data }, { status: 201 });
 	} catch (error) {

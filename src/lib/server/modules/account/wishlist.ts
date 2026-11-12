@@ -1,27 +1,18 @@
-import { and, desc, eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { queryDb, tables } from '#db/query.ts';
+import { getRuntime } from '#lib/server/runtime.server.ts';
 import { listPublicProductsByIds } from '#lib/server/modules/storefront/catalog.ts';
-import { NotFoundError } from '#shared';
+import { NotFoundError, unwrap, type Actor } from '#shared';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const t = tables as any;
 
-async function findOwnedWishlist(userId: string, productId: string) {
-	const [row] = await queryDb
-		.select()
-		.from(t.wishlists)
-		.where(and(eq(t.wishlists.userId, userId), eq(t.wishlists.productId, productId)))
-		.limit(1);
-
-	return row ?? null;
+function customers() {
+	return getRuntime().services.customers.customers;
 }
 
-export async function listWishlist(userId: string) {
-	const rows = await queryDb
-		.select({ productId: t.wishlists.productId, createdAt: t.wishlists.createdAt })
-		.from(t.wishlists)
-		.where(eq(t.wishlists.userId, userId))
-		.orderBy(desc(t.wishlists.createdAt));
+export async function listWishlist(actor: Actor | null) {
+	const rows = unwrap(await customers().listWishlist(actor));
 
 	const products = await listPublicProductsByIds(rows.map((row) => row.productId));
 	const byId = new Map(products.map((product) => [product.id, product]));
@@ -32,7 +23,7 @@ export async function listWishlist(userId: string) {
 	});
 }
 
-export async function addWishlist(userId: string, productId: string) {
+export async function addWishlist(actor: Actor | null, productId: string) {
 	const [product] = await queryDb
 		.select({ id: t.products.id })
 		.from(t.products)
@@ -41,29 +32,9 @@ export async function addWishlist(userId: string, productId: string) {
 
 	if (!product) throw new NotFoundError('Product not found');
 
-	const existing = await findOwnedWishlist(userId, productId);
-	if (existing) return existing;
-
-	const now = new Date();
-	const values = {
-		id: crypto.randomUUID(),
-		userId,
-		productId,
-		createdAt: now
-	};
-
-	await queryDb.insert(t.wishlists).values(values).onConflictDoNothing();
-
-	return findOwnedWishlist(userId, productId);
+	return unwrap(await customers().addWishlist(productId, actor));
 }
 
-export async function removeWishlist(userId: string, productId: string) {
-	const existing = await findOwnedWishlist(userId, productId);
-	if (!existing) return false;
-
-	await queryDb
-		.delete(t.wishlists)
-		.where(and(eq(t.wishlists.userId, userId), eq(t.wishlists.productId, productId)));
-
-	return true;
+export async function removeWishlist(actor: Actor | null, productId: string) {
+	unwrap(await customers().removeWishlist(productId, actor));
 }

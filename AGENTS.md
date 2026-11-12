@@ -71,12 +71,12 @@ Bun-only repo (no pnpm/npm). Run `bun install` from `web/`. Requires **Bun >= 1.
 ### Migration debt (tracked)
 
 - `src/lib/frontend/**`, most of `src/lib/server/modules/**`, and legacy routes are still excluded from ESLint/dependency-cruiser until the Phase 7 one-module-at-a-time migration deletes them.
-- Only `catalog`, `reporting` and `content` own module schemas today (`content_*` tables: banners, announcements, testimonials, media assets, site settings). Reviews still live in the legacy schema and the legacy `content/reviews.ts`. Legacy modules still query through `#db/query.ts` and the shared legacy schema tree.
-- `reviews`, `review_images`, `wishlists`, and `commerce.ts` temporarily import the catalog module schema for foreign keys; remove those imports when reviews (content) and `customers` migrate.
+- Only `catalog`, `reporting`, `content` and `customers` own module schemas today (`content_*`: banners, announcements, testimonials, media assets, site settings; `customers_*`: addresses, wishlists). Reviews still live in the legacy schema and the legacy `content/reviews.ts`. Legacy modules still query through `#db/query.ts` and the shared legacy schema tree.
+- `reviews`, `review_images`, and `commerce.ts` temporarily import the catalog module schema for foreign keys; remove those imports when reviews and the commerce modules migrate.
 - Catalog submodules (`brands`, `categories`, `products`, `inventory`) keep domain/application code but no own `infra/` folder. Catalog intentionally owns the aggregate schema and the repository adapters (`catalog/infra/{pg,sqlite}/repositories/`) so no submodule joins a sibling's tables.
 - Legacy modules still read `catalog_*` tables directly through `#db/query.ts` (`storefront`, `cart`, `checkout`, `account/wishlist`, `content/reviews`, `reports`, `super`); `check:data` does not scan `src/lib/server/modules`.
 - Tests need the Bun runtime (`bun --bun run test:sqlite`); plain `vitest` under Node fails with `Cannot find package 'bun'`.
-- `drizzle-kit push` baselines now live in `migrations/pg` and `migrations/sqlite`. Existing local databases must run `bun scripts/rename-catalog-tables.ts` once (it also renames the `content_*` tables) before using the new schema; the app has not been deployed, so production migration is not required yet.
+- `drizzle-kit push` baselines now live in `migrations/pg` and `migrations/sqlite`. Existing local databases must run `bun scripts/rename-catalog-tables.ts` once (it also renames the `content_*` and `customers_*` tables) before using the new schema; the app has not been deployed, so production migration is not required yet.
 - Playwright smoke is configured but still not part of `verify`.
 - `eslint-plugin-boundaries` cannot resolve Node subpath imports (`#modules`, `#shared`, `#db`), so the local `local/module-boundaries` rule stays authoritative until that resolver gap is closed.
 

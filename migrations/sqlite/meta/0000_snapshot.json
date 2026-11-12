@@ -1,7 +1,7 @@
 {
 	"version": "6",
 	"dialect": "sqlite",
-	"id": "4886ee59-1263-4051-8449-51e402032796",
+	"id": "19a8ecd3-8764-4cb8-9743-baa3e545e98b",
 	"prevId": "00000000-0000-0000-0000-000000000000",
 	"tables": {
 		"account": {
@@ -121,8 +121,8 @@
 			"uniqueConstraints": {},
 			"checkConstraints": {}
 		},
-		"addresses": {
-			"name": "addresses",
+		"customers_addresses": {
+			"name": "customers_addresses",
 			"columns": {
 				"id": {
 					"name": "id",
@@ -233,23 +233,13 @@
 				}
 			},
 			"indexes": {
-				"addresses_user_idx": {
-					"name": "addresses_user_idx",
+				"customers_addresses_user_idx": {
+					"name": "customers_addresses_user_idx",
 					"columns": ["user_id"],
 					"isUnique": false
 				}
 			},
-			"foreignKeys": {
-				"addresses_user_id_user_id_fk": {
-					"name": "addresses_user_id_user_id_fk",
-					"tableFrom": "addresses",
-					"tableTo": "user",
-					"columnsFrom": ["user_id"],
-					"columnsTo": ["id"],
-					"onDelete": "cascade",
-					"onUpdate": "no action"
-				}
-			},
+			"foreignKeys": {},
 			"compositePrimaryKeys": {},
 			"uniqueConstraints": {},
 			"checkConstraints": {}
@@ -3907,8 +3897,8 @@
 			"uniqueConstraints": {},
 			"checkConstraints": {}
 		},
-		"wishlists": {
-			"name": "wishlists",
+		"customers_wishlists": {
+			"name": "customers_wishlists",
 			"columns": {
 				"id": {
 					"name": "id",
@@ -3940,37 +3930,18 @@
 				}
 			},
 			"indexes": {
-				"wishlists_user_product_idx": {
-					"name": "wishlists_user_product_idx",
+				"customers_wishlists_user_product_idx": {
+					"name": "customers_wishlists_user_product_idx",
 					"columns": ["user_id", "product_id"],
 					"isUnique": true
 				},
-				"wishlists_product_idx": {
-					"name": "wishlists_product_idx",
+				"customers_wishlists_product_idx": {
+					"name": "customers_wishlists_product_idx",
 					"columns": ["product_id"],
 					"isUnique": false
 				}
 			},
-			"foreignKeys": {
-				"wishlists_user_id_user_id_fk": {
-					"name": "wishlists_user_id_user_id_fk",
-					"tableFrom": "wishlists",
-					"tableTo": "user",
-					"columnsFrom": ["user_id"],
-					"columnsTo": ["id"],
-					"onDelete": "cascade",
-					"onUpdate": "no action"
-				},
-				"wishlists_product_id_catalog_products_id_fk": {
-					"name": "wishlists_product_id_catalog_products_id_fk",
-					"tableFrom": "wishlists",
-					"tableTo": "catalog_products",
-					"columnsFrom": ["product_id"],
-					"columnsTo": ["id"],
-					"onDelete": "cascade",
-					"onUpdate": "no action"
-				}
-			},
+			"foreignKeys": {},
 			"compositePrimaryKeys": {},
 			"uniqueConstraints": {},
 			"checkConstraints": {}

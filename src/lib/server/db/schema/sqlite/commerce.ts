@@ -10,29 +10,6 @@ const timestamps = {
 		.notNull()
 };
 
-export const addresses = sqliteTable(
-	'addresses',
-	{
-		id: text('id').primaryKey(),
-		userId: text('user_id')
-			.notNull()
-			.references(() => user.id, { onDelete: 'cascade' }),
-		label: text('label'),
-		recipientName: text('recipient_name').notNull(),
-		phone: text('phone'),
-		line1: text('line1').notNull(),
-		line2: text('line2'),
-		city: text('city').notNull(),
-		region: text('region'),
-		postalCode: text('postal_code'),
-		country: text('country').notNull(),
-		isDefaultShipping: integer('is_default_shipping', { mode: 'boolean' }).notNull().default(false),
-		isDefaultBilling: integer('is_default_billing', { mode: 'boolean' }).notNull().default(false),
-		...timestamps
-	},
-	(table) => [index('addresses_user_idx').on(table.userId)]
-);
-
 export const coupons = sqliteTable(
 	'coupons',
 	{
@@ -394,10 +371,6 @@ export const supportTicketMessages = sqliteTable(
 	},
 	(table) => [index('support_ticket_messages_ticket_idx').on(table.ticketId)]
 );
-
-export const addressesRelations = relations(addresses, ({ one }) => ({
-	user: one(user, { fields: [addresses.userId], references: [user.id] })
-}));
 
 export const cartsRelations = relations(carts, ({ one, many }) => ({
 	user: one(user, { fields: [carts.userId], references: [user.id] }),

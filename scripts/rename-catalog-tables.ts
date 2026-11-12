@@ -14,7 +14,9 @@ const TABLES: Array<[string, string]> = [
 	['announcements', 'content_announcements'],
 	['testimonials', 'content_testimonials'],
 	['media_assets', 'content_media_assets'],
-	['site_settings', 'content_site_settings']
+	['site_settings', 'content_site_settings'],
+	['addresses', 'customers_addresses'],
+	['wishlists', 'customers_wishlists']
 ];
 
 const INDEXES: Array<[string, string]> = [
@@ -33,7 +35,10 @@ const INDEXES: Array<[string, string]> = [
 	['banners_key_idx', 'content_banners_key_idx'],
 	['announcements_position_idx', 'content_announcements_position_idx'],
 	['media_assets_folder_idx', 'content_media_assets_folder_idx'],
-	['media_assets_created_idx', 'content_media_assets_created_idx']
+	['media_assets_created_idx', 'content_media_assets_created_idx'],
+	['addresses_user_idx', 'customers_addresses_user_idx'],
+	['wishlists_user_product_idx', 'customers_wishlists_user_product_idx'],
+	['wishlists_product_idx', 'customers_wishlists_product_idx']
 ];
 
 const provider = process.env.DB_PROVIDER;

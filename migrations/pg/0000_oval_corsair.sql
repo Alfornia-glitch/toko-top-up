@@ -18,7 +18,7 @@ CREATE TABLE "auth_app"."account" (
 	"updated_at" timestamp with time zone NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "shop"."addresses" (
+CREATE TABLE "shop"."customers_addresses" (
 	"id" text PRIMARY KEY NOT NULL,
 	"user_id" text NOT NULL,
 	"label" text,
@@ -511,7 +511,7 @@ CREATE TABLE "auth_app"."verification" (
 	"updated_at" timestamp with time zone NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "shop"."wishlists" (
+CREATE TABLE "shop"."customers_wishlists" (
 	"id" text PRIMARY KEY NOT NULL,
 	"user_id" text NOT NULL,
 	"product_id" text NOT NULL,
@@ -519,7 +519,6 @@ CREATE TABLE "shop"."wishlists" (
 );
 --> statement-breakpoint
 ALTER TABLE "auth_app"."account" ADD CONSTRAINT "account_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "auth_app"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "shop"."addresses" ADD CONSTRAINT "addresses_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "auth_app"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "shop"."audit_log" ADD CONSTRAINT "audit_log_actor_user_id_user_id_fk" FOREIGN KEY ("actor_user_id") REFERENCES "auth_app"."user"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "shop"."cart_items" ADD CONSTRAINT "cart_items_cart_id_carts_id_fk" FOREIGN KEY ("cart_id") REFERENCES "shop"."carts"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "shop"."cart_items" ADD CONSTRAINT "cart_items_variant_id_catalog_product_variants_id_fk" FOREIGN KEY ("variant_id") REFERENCES "shop"."catalog_product_variants"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
@@ -565,10 +564,8 @@ ALTER TABLE "shop"."support_ticket_messages" ADD CONSTRAINT "support_ticket_mess
 ALTER TABLE "shop"."support_tickets" ADD CONSTRAINT "support_tickets_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "auth_app"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "shop"."support_tickets" ADD CONSTRAINT "support_tickets_order_id_orders_id_fk" FOREIGN KEY ("order_id") REFERENCES "shop"."orders"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "shop"."support_tickets" ADD CONSTRAINT "support_tickets_assigned_admin_id_user_id_fk" FOREIGN KEY ("assigned_admin_id") REFERENCES "auth_app"."user"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "shop"."wishlists" ADD CONSTRAINT "wishlists_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "auth_app"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "shop"."wishlists" ADD CONSTRAINT "wishlists_product_id_catalog_products_id_fk" FOREIGN KEY ("product_id") REFERENCES "shop"."catalog_products"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 CREATE INDEX "account_userId_idx" ON "auth_app"."account" USING btree ("user_id");--> statement-breakpoint
-CREATE INDEX "addresses_user_idx" ON "shop"."addresses" USING btree ("user_id");--> statement-breakpoint
+CREATE INDEX "customers_addresses_user_idx" ON "shop"."customers_addresses" USING btree ("user_id");--> statement-breakpoint
 CREATE INDEX "content_announcements_position_idx" ON "shop"."content_announcements" USING btree ("position");--> statement-breakpoint
 CREATE INDEX "audit_log_actor_idx" ON "shop"."audit_log" USING btree ("actor_user_id");--> statement-breakpoint
 CREATE INDEX "audit_log_entity_idx" ON "shop"."audit_log" USING btree ("entity_type","entity_id");--> statement-breakpoint
@@ -617,5 +614,5 @@ CREATE INDEX "support_ticket_messages_ticket_idx" ON "shop"."support_ticket_mess
 CREATE INDEX "support_tickets_status_idx" ON "shop"."support_tickets" USING btree ("status");--> statement-breakpoint
 CREATE INDEX "support_tickets_assigned_idx" ON "shop"."support_tickets" USING btree ("assigned_admin_id");--> statement-breakpoint
 CREATE INDEX "verification_identifier_idx" ON "auth_app"."verification" USING btree ("identifier");--> statement-breakpoint
-CREATE UNIQUE INDEX "wishlists_user_product_idx" ON "shop"."wishlists" USING btree ("user_id","product_id");--> statement-breakpoint
-CREATE INDEX "wishlists_product_idx" ON "shop"."wishlists" USING btree ("product_id");
+CREATE UNIQUE INDEX "customers_wishlists_user_product_idx" ON "shop"."customers_wishlists" USING btree ("user_id","product_id");--> statement-breakpoint
+CREATE INDEX "customers_wishlists_product_idx" ON "shop"."customers_wishlists" USING btree ("product_id");

@@ -1,5 +1,5 @@
 {
-	"id": "ea34b746-5090-492f-aac9-1b507cec90ea",
+	"id": "bc6ddce1-a285-491e-9a6d-647ab0479e4c",
 	"prevId": "00000000-0000-0000-0000-000000000000",
 	"version": "7",
 	"dialect": "postgresql",
@@ -122,8 +122,8 @@
 			"checkConstraints": {},
 			"isRLSEnabled": false
 		},
-		"shop.addresses": {
-			"name": "addresses",
+		"shop.customers_addresses": {
+			"name": "customers_addresses",
 			"schema": "shop",
 			"columns": {
 				"id": {
@@ -220,8 +220,8 @@
 				}
 			},
 			"indexes": {
-				"addresses_user_idx": {
-					"name": "addresses_user_idx",
+				"customers_addresses_user_idx": {
+					"name": "customers_addresses_user_idx",
 					"columns": [
 						{
 							"expression": "user_id",
@@ -236,18 +236,7 @@
 					"with": {}
 				}
 			},
-			"foreignKeys": {
-				"addresses_user_id_user_id_fk": {
-					"name": "addresses_user_id_user_id_fk",
-					"tableFrom": "addresses",
-					"tableTo": "user",
-					"schemaTo": "auth_app",
-					"columnsFrom": ["user_id"],
-					"columnsTo": ["id"],
-					"onDelete": "cascade",
-					"onUpdate": "no action"
-				}
-			},
+			"foreignKeys": {},
 			"compositePrimaryKeys": {},
 			"uniqueConstraints": {},
 			"policies": {},
@@ -4215,8 +4204,8 @@
 			"checkConstraints": {},
 			"isRLSEnabled": false
 		},
-		"shop.wishlists": {
-			"name": "wishlists",
+		"shop.customers_wishlists": {
+			"name": "customers_wishlists",
 			"schema": "shop",
 			"columns": {
 				"id": {
@@ -4245,8 +4234,8 @@
 				}
 			},
 			"indexes": {
-				"wishlists_user_product_idx": {
-					"name": "wishlists_user_product_idx",
+				"customers_wishlists_user_product_idx": {
+					"name": "customers_wishlists_user_product_idx",
 					"columns": [
 						{
 							"expression": "user_id",
@@ -4266,8 +4255,8 @@
 					"method": "btree",
 					"with": {}
 				},
-				"wishlists_product_idx": {
-					"name": "wishlists_product_idx",
+				"customers_wishlists_product_idx": {
+					"name": "customers_wishlists_product_idx",
 					"columns": [
 						{
 							"expression": "product_id",
@@ -4282,28 +4271,7 @@
 					"with": {}
 				}
 			},
-			"foreignKeys": {
-				"wishlists_user_id_user_id_fk": {
-					"name": "wishlists_user_id_user_id_fk",
-					"tableFrom": "wishlists",
-					"tableTo": "user",
-					"schemaTo": "auth_app",
-					"columnsFrom": ["user_id"],
-					"columnsTo": ["id"],
-					"onDelete": "cascade",
-					"onUpdate": "no action"
-				},
-				"wishlists_product_id_catalog_products_id_fk": {
-					"name": "wishlists_product_id_catalog_products_id_fk",
-					"tableFrom": "wishlists",
-					"tableTo": "catalog_products",
-					"schemaTo": "shop",
-					"columnsFrom": ["product_id"],
-					"columnsTo": ["id"],
-					"onDelete": "cascade",
-					"onUpdate": "no action"
-				}
-			},
+			"foreignKeys": {},
 			"compositePrimaryKeys": {},
 			"uniqueConstraints": {},
 			"policies": {},
