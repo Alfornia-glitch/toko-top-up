@@ -67,10 +67,7 @@
 	}
 </script>
 
-<div
-	class="relative flex w-full max-w-[1440px] shrink-0 flex-col content-stretch items-start"
-	data-name="Header"
->
+<div class="relative flex w-full shrink-0 flex-col content-stretch items-start" data-name="Header">
 	<div
 		class="relative flex w-full shrink-0 content-stretch items-center justify-center gap-[28px] overflow-x-auto bg-black py-[6px]"
 		data-name="Flex horizontal"
