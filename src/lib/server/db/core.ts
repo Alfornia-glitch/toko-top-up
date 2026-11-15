@@ -1,27 +1,15 @@
-import { mkdirSync } from 'node:fs';
-import { dirname } from 'node:path';
-import { drizzle as drizzlePostgres } from 'drizzle-orm/bun-sql';
-import { drizzle as drizzleSqlite } from 'drizzle-orm/bun-sqlite';
+import { drizzle as drizzlePostgres } from 'drizzle-orm/postgres-js';
+import postgres from 'postgres';
 import * as postgresSchema from './schema.pg.ts';
-import * as sqliteSchema from './schema.sqlite.ts';
-
-/** Local, file-backed SQLite database used by the VPS deployment profile. */
-export function createSqliteDb(path: string) {
-	mkdirSync(dirname(path), { recursive: true });
-	const db = drizzleSqlite(path, { schema: sqliteSchema });
-
-	return { db };
-}
+import type { SqliteDb } from './sqlite.ts';
 
 /** Supabase Postgres connection used by the managed deployment profile. */
 export function createPostgresDb(url: string) {
-	const db = drizzlePostgres({
-		// Transaction-pooler connections (pgbouncer/port 6543) cannot use
-		// server-side prepared statements; session-pooler and direct
-		// connections can.
-		connection: { url, prepare: !isTransactionPooler(url) },
-		schema: postgresSchema
-	});
+	// Transaction-pooler connections (pgbouncer/port 6543) cannot use
+	// server-side prepared statements; session-pooler and direct
+	// connections can.
+	const client = postgres(url, { prepare: !isTransactionPooler(url) });
+	const db = drizzlePostgres(client, { schema: postgresSchema });
 
 	return { db };
 }
@@ -36,6 +24,6 @@ function isTransactionPooler(url: string): boolean {
 	}
 }
 
-export type SqliteDb = ReturnType<typeof createSqliteDb>['db'];
+export type { SqliteDb };
 export type PostgresDb = ReturnType<typeof createPostgresDb>['db'];
 export type Db = SqliteDb | PostgresDb;

@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { createContentServices } from '#modules/content/server.ts';
-import { createSqliteDb } from '#db/core.ts';
+import { createSqliteDb } from '#db/sqlite.ts';
 import {
 	announcements,
 	banners,

@@ -1,5 +1,5 @@
 import { DATABASE_URL, DB_PROVIDER, SQLITE_PATH } from '$app/env/private';
-import { createPostgresDb, createSqliteDb, type Db } from './core.ts';
+import { createPostgresDb, type Db } from './core.ts';
 
 export type DbProvider = typeof DB_PROVIDER;
 
@@ -13,7 +13,8 @@ function requireValue(name: string, value: string | undefined): string {
 	return value;
 }
 
+// The SQLite driver is Bun-only, so load it lazily and only for the VPS profile.
 export const db: Db =
 	dbProvider === 'postgres'
 		? createPostgresDb(requireValue('DATABASE_URL', DATABASE_URL)).db
-		: createSqliteDb(SQLITE_PATH).db;
+		: (await import('./sqlite.ts')).createSqliteDb(SQLITE_PATH).db;

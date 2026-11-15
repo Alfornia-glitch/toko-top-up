@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { createSqliteDb } from '#db/core.ts';
+import { createSqliteDb } from '#db/sqlite.ts';
 import { createSupportServices } from '#modules/support/server.ts';
 import { supportTicketMessages, supportTickets } from '#modules/support/infra/sqlite/schema.ts';
 import { runSupportContract } from './support.contract.ts';

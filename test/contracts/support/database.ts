@@ -1,4 +1,5 @@
-import { createPostgresDb, createSqliteDb, type PostgresDb, type SqliteDb } from '#db/core.ts';
+import { createPostgresDb, type PostgresDb } from '#db/core.ts';
+import { createSqliteDb, type SqliteDb } from '#db/sqlite.ts';
 import {
 	brands as postgresBrands,
 	categories as postgresCategories,

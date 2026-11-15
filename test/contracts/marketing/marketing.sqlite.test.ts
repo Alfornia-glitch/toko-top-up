@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { createSqliteDb } from '#db/core.ts';
+import { createSqliteDb } from '#db/sqlite.ts';
 import { createMarketingServices } from '#modules/marketing/server.ts';
 import {
 	couponRedemptions,

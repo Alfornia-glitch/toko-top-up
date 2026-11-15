@@ -1,6 +1,7 @@
 import { and, eq } from 'drizzle-orm';
 import { hashPassword } from 'better-auth/crypto';
-import { createPostgresDb, createSqliteDb } from '#lib/server/db/core.ts';
+import { createPostgresDb } from '#lib/server/db/core.ts';
+import { createSqliteDb } from '#lib/server/db/sqlite.ts';
 import * as postgres from '#lib/server/db/schema.pg.ts';
 import * as sqlite from '#lib/server/db/schema.sqlite.ts';
 

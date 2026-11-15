@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { createSqliteDb } from '#db/core.ts';
+import { createSqliteDb } from '#db/sqlite.ts';
 import { createEventBus } from '#shared';
 import { createCatalogServices } from '#modules/catalog/server.ts';
 import { createCustomersServices } from '#modules/customers/server.ts';

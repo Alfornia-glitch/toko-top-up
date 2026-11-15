@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { createSqliteDb } from '#db/core.ts';
+import { createSqliteDb } from '#db/sqlite.ts';
 import { createAuditServices } from '#modules/audit/server.ts';
 import { auditLog } from '#modules/audit/infra/sqlite/schema.ts';
 import { runAuditContract } from './audit.contract.ts';
