@@ -33,7 +33,7 @@ export async function systemInfo(actor: Actor | null) {
 	]);
 
 	return {
-		bunVersion: Bun.version,
+		bunVersion: typeof Bun === 'undefined' ? process.version : Bun.version,
 		uptimeSeconds: Math.round(process.uptime()),
 		nodeEnv: process.env.NODE_ENV ?? 'development',
 		dbProvider: DB_PROVIDER,
