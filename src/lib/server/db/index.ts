@@ -14,16 +14,10 @@ function requireValue(name: string, value: string | undefined): string {
 }
 
 async function loadSqliteDb(): Promise<Db> {
-	if (typeof Bun === 'undefined') {
-		throw new Error(
-			'DB_PROVIDER=sqlite needs the Bun runtime (bun:sqlite). Set DB_PROVIDER=postgres on Node hosts such as Netlify.'
-		);
-	}
-
 	return (await import('./sqlite.ts')).createSqliteDb(SQLITE_PATH).db;
 }
 
-// The SQLite driver is Bun-only, so load it lazily and only for the VPS profile.
+// Load the native SQLite driver lazily so the Postgres profile (e.g. Netlify) never touches it.
 export const db: Db =
 	dbProvider === 'postgres'
 		? createPostgresDb(requireValue('DATABASE_URL', DATABASE_URL)).db

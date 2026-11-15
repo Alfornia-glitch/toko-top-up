@@ -3,7 +3,7 @@
 	"include": ["src", "test", "*"],
 	"exclude": ["src/service-worker"],
 	"compilerOptions": {
-		"types": ["$app/types", "bun"],
+		"types": ["$app/types", "node"],
 		"sourceMap": true,
 		"strict": true
 	}

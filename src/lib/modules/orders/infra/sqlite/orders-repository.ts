@@ -127,7 +127,7 @@ export function createSqliteOrdersRepository(db: SqliteDb): OrdersRepository {
 				.orderBy(desc(payments.createdAt));
 		},
 
-		// bun-sqlite transactions are synchronous: no async callback, no await.
+		// better-sqlite3 transactions are synchronous: no async callback, no await.
 		async insertOrder(bundle) {
 			db.transaction((tx) => {
 				tx.insert(orders).values(bundle.order).run();

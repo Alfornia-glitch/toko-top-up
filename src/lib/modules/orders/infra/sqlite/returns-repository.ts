@@ -104,7 +104,7 @@ export function createSqliteReturnsRepository(db: SqliteDb): ReturnsRepository {
 		},
 
 		async updateReturn(id, patch, event) {
-			// bun-sqlite transactions are synchronous: no async callback, no await.
+			// better-sqlite3 transactions are synchronous: no async callback, no await.
 			db.transaction((tx) => {
 				tx.update(returnRequests).set(patch).where(eq(returnRequests.id, id)).run();
 				tx.insert(orderEvents).values(event).run();

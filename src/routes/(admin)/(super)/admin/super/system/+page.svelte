@@ -7,7 +7,7 @@
 	import StatCard from '#lib/frontend/components/admin/StatCard.svelte';
 
 	type SystemInfo = {
-		bunVersion: string;
+		runtimeVersion: string;
 		uptimeSeconds: number;
 		nodeEnv: string;
 		dbProvider: string;
@@ -86,7 +86,7 @@
 		<Skeleton class="h-64 w-full rounded-xl" />
 	{:else if system}
 		<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-			<StatCard title="Bun version" value={system.bunVersion} hint="Runtime" icon={Cpu} />
+			<StatCard title="Node version" value={system.runtimeVersion} hint="Runtime" icon={Cpu} />
 			<StatCard
 				title="Uptime"
 				value={formatUptime(system.uptimeSeconds)}

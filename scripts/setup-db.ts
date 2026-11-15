@@ -1,6 +1,6 @@
 import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
-import { SQL } from 'bun';
+import postgres from 'postgres';
 
 const provider = process.env.DB_PROVIDER;
 
@@ -15,13 +15,13 @@ if (provider === 'postgres') {
 
 	// Transaction-pooler connections (pgbouncer/port 6543) cannot use
 	// server-side prepared statements, matching `createPostgresDb` in core.ts.
-	const sql = new SQL(url, { prepare: !isTransactionPooler(url) });
+	const sql = postgres(url, { prepare: !isTransactionPooler(url) });
 
 	try {
 		await sql`CREATE SCHEMA IF NOT EXISTS auth_app`;
 		await sql`CREATE SCHEMA IF NOT EXISTS shop`;
 	} finally {
-		await sql.close();
+		await sql.end();
 	}
 
 	console.log('auth_app and shop schemas ready');

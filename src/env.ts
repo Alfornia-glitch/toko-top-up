@@ -16,7 +16,7 @@ function provider<const T extends readonly string[]>(name: string, allowed: T) {
 
 export const variables = defineEnvVars({
 	DB_PROVIDER: {
-		description: 'Database backend: "sqlite" (local bun:sqlite) or "postgres" (Supabase)',
+		description: 'Database backend: "sqlite" (local better-sqlite3 file) or "postgres" (Supabase)',
 		schema: provider('DB_PROVIDER', ['sqlite', 'postgres'] as const)
 	},
 	STORAGE_PROVIDER: {

@@ -4,7 +4,7 @@ import path from 'node:path';
 const command = process.argv[2];
 
 if (command !== 'generate' && command !== 'migrate' && command !== 'push') {
-	throw new Error('Usage: bun scripts/db-tool.ts <generate|migrate|push>');
+	throw new Error('Usage: tsx scripts/db-tool.ts <generate|migrate|push>');
 }
 
 const provider = process.env.DB_PROVIDER;

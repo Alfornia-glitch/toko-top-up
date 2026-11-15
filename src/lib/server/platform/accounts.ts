@@ -103,7 +103,7 @@ export async function banUser(id: string, reason: string, expiresAt?: string | n
 		.where(eq(userTable.id, id))
 		.limit(1);
 	if (!user) return null;
-	// Two plain statements instead of a transaction: bun-sqlite transactions must be
+	// Two plain statements instead of a transaction: better-sqlite3 transactions must be
 	// synchronous, and a banned user is refused at sign-in even if the session
 	// delete were to fail.
 	await queryDb

@@ -71,7 +71,7 @@ export function createSqliteCartRepository(db: SqliteDb): CartRepository {
 		},
 
 		async applyMerge(plan) {
-			// bun-sqlite transactions are synchronous: no async callback, no await.
+			// better-sqlite3 transactions are synchronous: no async callback, no await.
 			db.transaction((tx) => {
 				if (plan.inserts.length) tx.insert(cartItems).values(plan.inserts).run();
 				for (const update of plan.updates) {

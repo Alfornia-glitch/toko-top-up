@@ -1,5 +1,5 @@
-import { Database } from 'bun:sqlite';
-import { SQL } from 'bun';
+import Database from 'better-sqlite3';
+import postgres from 'postgres';
 
 const TABLES: Array<[string, string]> = [
 	['brands', 'catalog_brands'],
@@ -95,36 +95,36 @@ function renameSqlite(file: string): void {
 	const db = new Database(file);
 
 	try {
-		db.run('PRAGMA foreign_keys = ON');
-		db.run('BEGIN');
+		db.exec('PRAGMA foreign_keys = ON');
+		db.exec('BEGIN');
 
 		for (const [from, to] of TABLES) {
 			if (hasSqliteTable(db, from) && !hasSqliteTable(db, to)) {
-				db.run(`ALTER TABLE "${from}" RENAME TO "${to}"`);
+				db.exec(`ALTER TABLE "${from}" RENAME TO "${to}"`);
 				console.log(`renamed ${from} -> ${to}`);
 			}
 		}
 
-		db.run('COMMIT');
+		db.exec('COMMIT');
 	} catch (error) {
-		db.run('ROLLBACK');
+		db.exec('ROLLBACK');
 		throw error;
 	} finally {
 		db.close();
 	}
 }
 
-function hasSqliteTable(db: Database, name: string): boolean {
+function hasSqliteTable(db: Database.Database, name: string): boolean {
 	const row = db
-		.query("SELECT 1 AS present FROM sqlite_master WHERE type = 'table' AND name = ?")
+		.prepare("SELECT 1 AS present FROM sqlite_master WHERE type = 'table' AND name = ?")
 		.get(name);
-	return row !== null;
+	return row !== undefined;
 }
 
 async function renamePostgres(): Promise<void> {
 	const url = process.env.DIRECT_URL ?? process.env.DATABASE_URL;
 	if (!url) throw new Error('DIRECT_URL or DATABASE_URL is required when DB_PROVIDER=postgres');
-	const sql = new SQL(url, { prepare: false });
+	const sql = postgres(url, { prepare: false });
 
 	try {
 		await sql.begin(async (tx) => {
@@ -151,6 +151,6 @@ async function renamePostgres(): Promise<void> {
 			}
 		});
 	} finally {
-		await sql.close();
+		await sql.end();
 	}
 }

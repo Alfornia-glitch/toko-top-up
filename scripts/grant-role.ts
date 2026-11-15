@@ -1,5 +1,5 @@
-import { Database } from 'bun:sqlite';
-import { SQL } from 'bun';
+import Database from 'better-sqlite3';
+import postgres from 'postgres';
 
 const VALID_ROLES = ['customer', 'admin', 'superadmin'] as const;
 type Role = (typeof VALID_ROLES)[number];
@@ -7,7 +7,7 @@ type Role = (typeof VALID_ROLES)[number];
 const [email, role] = process.argv.slice(2);
 
 if (!email || !role) {
-	console.error('Usage: bun scripts/grant-role.ts <email> <role>');
+	console.error('Usage: tsx scripts/grant-role.ts <email> <role>');
 	process.exit(1);
 }
 
@@ -25,7 +25,7 @@ if (provider === 'postgres') {
 		throw new Error('DIRECT_URL or DATABASE_URL is required when DB_PROVIDER=postgres');
 	}
 
-	const sql = new SQL(url, { prepare: !isTransactionPooler(url) });
+	const sql = postgres(url, { prepare: !isTransactionPooler(url) });
 
 	try {
 		const rows = await sql`
@@ -37,7 +37,7 @@ if (provider === 'postgres') {
 
 		report(rows);
 	} finally {
-		await sql.close();
+		await sql.end();
 	}
 } else if (provider === 'sqlite') {
 	const path = process.env.SQLITE_PATH || './data/ecommerce.sqlite';
@@ -45,7 +45,7 @@ if (provider === 'postgres') {
 
 	try {
 		const rows = sqlite
-			.query('UPDATE user SET role = ? WHERE email = ? RETURNING id, email, role')
+			.prepare('UPDATE user SET role = ? WHERE email = ? RETURNING id, email, role')
 			.all(role, email);
 
 		report(rows);

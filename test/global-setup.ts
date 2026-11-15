@@ -25,7 +25,7 @@ export default function setup(): () => void {
 }
 
 function runPush(overrides: Record<string, string>): void {
-	execFileSync('bun', ['run', 'db:push'], {
+	execFileSync('pnpm', ['run', 'db:push'], {
 		cwd: process.cwd(),
 		env: { ...process.env, ...overrides },
 		stdio: 'inherit'

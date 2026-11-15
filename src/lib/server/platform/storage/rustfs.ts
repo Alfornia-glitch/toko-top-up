@@ -1,3 +1,4 @@
+import { DeleteObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { MediaError, type StorageBackend } from './types.ts';
 
 /**
@@ -13,28 +14,30 @@ export function createRustfsBackend(config: {
 	secretAccessKey: string;
 	publicUrl: string;
 }): StorageBackend {
-	// `bun` only exists under the Bun runtime (VPS profile). Import it lazily through a
-	// variable specifier so Node-based builds (e.g. Netlify) do not try to resolve it.
-	const bunModule = 'bun';
-	let client: Promise<import('bun').S3Client> | undefined;
-	const getClient = () =>
-		(client ??= import(/* @vite-ignore */ bunModule).then(
-			({ S3Client }: typeof import('bun')) =>
-				new S3Client({
-					endpoint: config.endpoint,
-					region: config.region,
-					bucket: config.bucket,
-					accessKeyId: config.accessKeyId,
-					secretAccessKey: config.secretAccessKey
-				})
-		));
+	const client = new S3Client({
+		endpoint: config.endpoint,
+		region: config.region,
+		forcePathStyle: true,
+		credentials: {
+			accessKeyId: config.accessKeyId,
+			secretAccessKey: config.secretAccessKey
+		}
+	});
 
 	const publicUrl = config.publicUrl.replace(/\/+$/, '');
 
 	return {
 		async upload(path, file) {
 			try {
-				await (await getClient()).file(path).write(file, { type: file.type, acl: 'public-read' });
+				await client.send(
+					new PutObjectCommand({
+						Bucket: config.bucket,
+						Key: path,
+						Body: new Uint8Array(await file.arrayBuffer()),
+						ContentType: file.type,
+						ACL: 'public-read'
+					})
+				);
 			} catch (error) {
 				throw toMediaError(error);
 			}
@@ -44,7 +47,7 @@ export function createRustfsBackend(config: {
 
 		async delete(path) {
 			try {
-				await (await getClient()).file(path).delete();
+				await client.send(new DeleteObjectCommand({ Bucket: config.bucket, Key: path }));
 			} catch (error) {
 				throw toMediaError(error);
 			}
@@ -53,9 +56,15 @@ export function createRustfsBackend(config: {
 }
 
 function toMediaError(error: unknown): MediaError {
-	const candidate = error as { code?: string; status?: number; message?: string };
-	const code = candidate?.code;
-	const status = candidate?.status;
+	const candidate = error as {
+		code?: string;
+		name?: string;
+		status?: number;
+		$metadata?: { httpStatusCode?: number };
+		message?: string;
+	};
+	const code = candidate?.code ?? candidate?.name;
+	const status = candidate?.status ?? candidate?.$metadata?.httpStatusCode;
 
 	console.error('[storage] rustfs request failed', {
 		code,
