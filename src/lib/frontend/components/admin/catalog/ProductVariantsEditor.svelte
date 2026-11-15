@@ -129,13 +129,22 @@
 						</label>
 						<label class="grid gap-1 text-xs font-medium text-muted-foreground">
 							Stock
-							<Input
-								type="number"
-								min="0"
-								step="1"
-								bind:value={variant.stock}
-								aria-label="Variant stock"
-							/>
+							{#if variant.id}
+								<span
+									class="flex h-9 items-center text-sm text-foreground"
+									aria-label="Variant stock"
+								>
+									{variant.stock}
+								</span>
+							{:else}
+								<Input
+									type="number"
+									min="0"
+									step="1"
+									bind:value={variant.stock}
+									aria-label="Variant stock"
+								/>
+							{/if}
 						</label>
 						<label class="grid gap-1 text-xs font-medium text-muted-foreground">
 							Weight (g)

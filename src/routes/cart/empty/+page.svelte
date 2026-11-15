@@ -2,7 +2,6 @@
 	import SiteHeader from '#lib/frontend/components/SiteHeader.svelte';
 	import SiteFooter from '#lib/frontend/components/SiteFooter.svelte';
 	import { cart } from '#lib/frontend/modules/commerce/cart.svelte.ts';
-	const imgPic = '/assets/d94d6.png';
 	const imgOrnament54 = '/assets/c7bb1.svg';
 	const imgOrnament51 = '/assets/ddcaa.svg';
 	const imgOrnament52 = '/assets/658ce.svg';
@@ -19,11 +18,7 @@
 	const imgLeftIcon4 = '/assets/dad92.svg';
 	const imgIcon2 = '/assets/303ae.svg';
 	const imgIcon3 = '/assets/bf68c.svg';
-	const imgImage27 = '/assets/37571.png';
-	const imgImage19 = '/assets/3cc20.png';
-	const imgImage13 = '/assets/ad1bf.png';
-	const imgImage11 = '/assets/c2747.png';
-	const imgImage12 = '/assets/d5a5f.png';
+	const imgImage27 = '/assets/empty-cart.svg';
 	const imgGroup2 = '/assets/bf7d8.svg';
 	const imgIcon4 = '/assets/f7856.svg';
 	const imgIcon5 = '/assets/008f3.svg';

@@ -53,7 +53,7 @@
 			</div>
 			{#each categories as category (category.id)}
 				<div
-					class="relative flex min-w-px flex-[1_0_0] flex-col content-stretch items-center gap-[16px]"
+					class="relative flex min-w-px flex-[1_0_0] flex-col content-stretch items-start gap-[16px]"
 					data-name="Flex Vertical"
 				>
 					<a

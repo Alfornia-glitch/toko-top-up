@@ -1,4 +1,10 @@
 <script lang="ts">
+	import {
+		listOrders,
+		getOrder,
+		type TimelineEntry,
+		isUnauthorized
+	} from '#lib/frontend/modules/account/index.ts';
 	import { onMount } from 'svelte';
 	import { afterNavigate, goto } from '$app/navigation';
 	import { page } from '$app/state';
@@ -19,14 +25,8 @@
 		formatDateTime,
 		formatMoney
 	} from '#lib/frontend/modules/commerce/format.ts';
-	import { api, ApiError, unwrap } from '#lib/frontend/modules/shared/http.ts';
-	import type { OrderDetail, OrderSummary } from '#lib/frontend/modules/commerce/models.ts';
 
-	interface TimelineEntry {
-		id: string;
-		label: string;
-		date: string | null;
-	}
+	import type { OrderDetail, OrderSummary } from '#lib/frontend/modules/commerce/models.ts';
 
 	let orders = $state<OrderSummary[]>([]);
 	let order = $state<OrderDetail | null>(null);
@@ -69,7 +69,7 @@
 	}
 
 	function handleError(cause: unknown) {
-		if (cause instanceof ApiError && cause.status === 401) {
+		if (isUnauthorized(cause)) {
 			redirectToLogin();
 			return;
 		}
@@ -82,8 +82,7 @@
 		error = '';
 
 		try {
-			const payload = await api.get<{ data: OrderSummary[] }>('/api/orders?page=1&pageSize=50');
-			orders = unwrap(payload);
+			orders = (await listOrders(1, 50)).data;
 
 			let target = requested;
 			if (!target && orders.length > 0) target = orders[0].orderNumber;
@@ -94,17 +93,11 @@
 			}
 
 			try {
-				const detail = await api.get<{ data: OrderDetail }>(
-					`/api/orders/${encodeURIComponent(target)}`
-				);
-				order = unwrap(detail);
+				order = await getOrder(target);
 			} catch (cause) {
-				if (cause instanceof ApiError && cause.status === 401) throw cause;
+				if (isUnauthorized(cause)) throw cause;
 				if (orders.length > 0 && target !== orders[0].orderNumber) {
-					const fallback = await api.get<{ data: OrderDetail }>(
-						`/api/orders/${encodeURIComponent(orders[0].orderNumber)}`
-					);
-					order = unwrap(fallback);
+					order = await getOrder(orders[0].orderNumber);
 				} else {
 					order = null;
 				}

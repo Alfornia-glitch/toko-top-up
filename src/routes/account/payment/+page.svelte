@@ -1,4 +1,13 @@
 <script lang="ts">
+	import {
+		listPaymentMethods,
+		createPaymentMethod,
+		updatePaymentMethod,
+		deletePaymentMethod,
+		type PaymentForm,
+		isUnauthorized,
+		messageFrom
+	} from '#lib/frontend/modules/account/index.ts';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
@@ -10,19 +19,8 @@
 	import { Input } from '#lib/frontend/components/ui/input/index.ts';
 	import { Label } from '#lib/frontend/components/ui/label/index.ts';
 	import { Spinner } from '#lib/frontend/components/ui/spinner/index.ts';
-	import { api, ApiError, unwrap } from '#lib/frontend/modules/shared/http.ts';
+
 	import type { PaymentMethod } from '#frontend/modules/commerce/models.ts';
-
-	type PaymentForm = {
-		brand: string;
-		last4: string;
-		expMonth: string;
-		expYear: string;
-		isDefault: boolean;
-	};
-
-	type MethodsPayload = { data: PaymentMethod[] };
-	type MethodPayload = { data: PaymentMethod };
 
 	const emptyForm = (): PaymentForm => ({
 		brand: '',
@@ -53,12 +51,12 @@
 	}
 
 	function failureMessage(cause: unknown): string {
-		if (cause instanceof ApiError && cause.status === 401) {
+		if (isUnauthorized(cause)) {
 			redirectToLogin();
 			return '';
 		}
 
-		return cause instanceof Error ? cause.message : 'Something went wrong';
+		return messageFrom(cause, 'Something went wrong');
 	}
 
 	function expiry(method: PaymentMethod): string {
@@ -70,7 +68,7 @@
 		loadError = '';
 
 		try {
-			methods = unwrap(await api.get<MethodsPayload>('/api/payment-methods'));
+			methods = await listPaymentMethods();
 		} catch (cause) {
 			loadError = failureMessage(cause);
 		} finally {
@@ -139,9 +137,9 @@
 			};
 
 			if (editingId) {
-				await api.patch<MethodPayload>(`/api/payment-methods/${editingId}`, body);
+				await updatePaymentMethod(editingId, body);
 			} else {
-				await api.post<MethodPayload>('/api/payment-methods', body);
+				await createPaymentMethod(body);
 			}
 
 			closeForm();
@@ -158,7 +156,7 @@
 		loadError = '';
 
 		try {
-			await api.patch<MethodPayload>(`/api/payment-methods/${method.id}`, {
+			await updatePaymentMethod(method.id, {
 				brand: method.brand,
 				last4: method.last4,
 				expMonth: method.expMonth,
@@ -180,7 +178,7 @@
 		loadError = '';
 
 		try {
-			await api.delete(`/api/payment-methods/${method.id}`);
+			await deletePaymentMethod(method.id);
 			await loadMethods();
 		} catch (cause) {
 			loadError = failureMessage(cause);

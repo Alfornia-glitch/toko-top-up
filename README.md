@@ -31,29 +31,19 @@ bun run dev --open
 
 ## Building
 
-Requires Bun >= 1.4 (adapter-bun uses `Bun.build`). Build and run the production server:
+Requires Bun >= 1.4.2. The build uses `@sveltejs/adapter-vercel`, which writes `.vercel/output/`. Run it under Bun so the adapter selects the Bun runtime:
 
 ```sh
 bun run --bun build
-bun ./build
+bun run preview
 ```
 
-`bun run preview` is an alias for `bun ./build`. The server listens on port 3000 by default (`HOST` / `PORT` override it) and serves both the SPA shell and `/api/auth/*`.
+## Deploying (Vercel)
 
-## Deploying
+The app deploys to Vercel from git. `vercel.json` sets `bunVersion` to `1.4.x`, so Vercel runs the server functions on Bun (beta runtime).
 
-Copy `build/`, `package.json`, and `bun.lock` to the server, install production dependencies, then start the server:
+Use the Supabase profile (`env.supabase.example`) in the Vercel project settings. SQLite needs a persistent disk, and Vercel's disk is ephemeral. Set `DB_PROVIDER=postgres`, `STORAGE_PROVIDER=supabase`, `DATABASE_URL`, the `SUPABASE_*` variables, `BETTER_AUTH_SECRET`, and `BETTER_AUTH_URL` (the public Vercel origin).
 
-```sh
-bun install --production --frozen-lockfile
-bun ./build
-```
+Run `bun run db:push` once against the Supabase database from a local machine. The build does not migrate.
 
-Set the environment from one of the two profiles, then run the one-time schema sync:
-
-- **VPS** — copy `env.vps.example` to `.env` (`DB_PROVIDER=sqlite`, `STORAGE_PROVIDER=rustfs`). The database is a local SQLite file at `SQLITE_PATH`; media goes to a RustFS/S3-compatible endpoint.
-- **Supabase** — copy `env.supabase.example` to `.env` (`DB_PROVIDER=postgres`, `STORAGE_PROVIDER=supabase`). `DATABASE_URL` is the Supabase session-pooler connection string (`sslmode=require`); Better Auth tables are created in the private `auth_app` schema, which `bun run db:push` creates without opening the dashboard.
-
-Both profiles need `BETTER_AUTH_SECRET` and `BETTER_AUTH_URL`. Run `bun run db:push` once to create the database/schema and tables.
-
-When serving plain HTTP directly (for example a local preview), build with `ORIGIN=http://localhost:3000 bun run --bun build`; behind TLS, leave `ORIGIN` unset.
+The VPS profile is not supported on Vercel.

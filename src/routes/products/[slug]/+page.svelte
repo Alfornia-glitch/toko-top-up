@@ -4,7 +4,7 @@
 	import { LoaderCircle, Minus, Plus, RotateCcw, Star, Truck } from '@lucide/svelte';
 	import SiteHeader from '#lib/frontend/components/SiteHeader.svelte';
 	import SiteFooter from '#lib/frontend/components/SiteFooter.svelte';
-	import { WishlistButton } from '#lib/frontend/components/account/index.ts';
+	import WishlistButton from '#lib/frontend/components/shared/WishlistButton.svelte';
 	import ImagePlaceholder from '#lib/frontend/components/ui/ImagePlaceholder.svelte';
 	import { cart } from '#lib/frontend/modules/commerce/cart.svelte.ts';
 	import { Badge } from '#lib/frontend/components/ui/badge/index.ts';

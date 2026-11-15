@@ -1,10 +1,5 @@
 const assetPathPrefix = '/assets';
 
-export const imgPic = `${assetPathPrefix}/d94d6.png`;
-export const imgImage19 = `${assetPathPrefix}/3cc20.png`;
-export const imgImage13 = `${assetPathPrefix}/ad1bf.png`;
-export const imgImage11 = `${assetPathPrefix}/c2747.png`;
-export const imgImage12 = `${assetPathPrefix}/d5a5f.png`;
 export const imgOrnament54 = `${assetPathPrefix}/c7bb1.svg`;
 export const imgOrnament51 = `${assetPathPrefix}/ddcaa.svg`;
 export const imgOrnament52 = `${assetPathPrefix}/658ce.svg`;

@@ -78,6 +78,7 @@
 	import { LoaderCircle } from '@lucide/svelte';
 	import ProductImagesField from '#lib/frontend/components/admin/catalog/ProductImagesField.svelte';
 	import ProductOptionsEditor from '#lib/frontend/components/admin/catalog/ProductOptionsEditor.svelte';
+	import ProductStockPanel from '#lib/frontend/components/admin/catalog/ProductStockPanel.svelte';
 	import ProductVariantsEditor from '#lib/frontend/components/admin/catalog/ProductVariantsEditor.svelte';
 	import type { ProductImageRow } from '#lib/frontend/components/admin/catalog/ProductImagesField.svelte';
 	import type { ProductOptionRow } from '#lib/frontend/components/admin/catalog/ProductOptionsEditor.svelte';
@@ -326,6 +327,15 @@
 		return '';
 	}
 
+	// Stock changes go through inventory adjustments, so keep the form's
+	// stock in step with the server to avoid saving a stale value back.
+	function syncStock(stocks: Array<{ id: string; stock: number }>) {
+		for (const { id, stock } of stocks) {
+			const row = variants.find((variant) => variant.id === id);
+			if (row) row.stock = String(stock);
+		}
+	}
+
 	async function handleSubmit(event: SubmitEvent) {
 		event.preventDefault();
 		error = '';
@@ -400,6 +410,9 @@
 			<Tabs.Trigger value="variants">
 				Variants{variants.length ? ` (${variants.length})` : ''}
 			</Tabs.Trigger>
+			{#if editing && product}
+				<Tabs.Trigger value="stock">Stock</Tabs.Trigger>
+			{/if}
 		</Tabs.List>
 
 		<Tabs.Content value="general" class="mt-4">
@@ -638,6 +651,16 @@
 				</Card.Content>
 			</Card.Root>
 		</Tabs.Content>
+
+		{#if editing && product}
+			<Tabs.Content value="stock" class="mt-4">
+				<Card.Root>
+					<Card.Content>
+						<ProductStockPanel productId={product.id} onstockchange={syncStock} />
+					</Card.Content>
+				</Card.Root>
+			</Tabs.Content>
+		{/if}
 	</Tabs.Root>
 
 	<div class="flex justify-end gap-2 border-t pt-4">

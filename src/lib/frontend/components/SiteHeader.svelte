@@ -16,7 +16,6 @@
 		HEADER_TOP_LINKS
 	} from '#lib/frontend/content/navigation.ts';
 	import {
-		imgPic,
 		imgOrnament54,
 		imgOrnament51,
 		imgOrnament52,

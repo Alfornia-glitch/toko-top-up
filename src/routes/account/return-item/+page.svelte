@@ -1,4 +1,12 @@
 <script lang="ts">
+	import {
+		listOrders,
+		getOrder,
+		createReturn,
+		isUnauthorized,
+		type ReturnItemForm,
+		messageFrom
+	} from '#lib/frontend/modules/account/index.ts';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
@@ -18,19 +26,12 @@
 		statusLabel
 	} from '#lib/frontend/content/status.ts';
 	import { formatDate, formatMoney } from '#lib/frontend/modules/commerce/format.ts';
-	import { api, ApiError, unwrap } from '#lib/frontend/modules/shared/http.ts';
+
 	import type {
 		OrderDetail,
 		OrderSummary,
 		ReturnDetail
 	} from '#lib/frontend/modules/commerce/models.ts';
-
-	interface ReturnForm {
-		orderItemId: string;
-		reason: string;
-		note: string;
-		resolution: string;
-	}
 
 	const reasonOptions = [
 		'Wrong size',
@@ -56,7 +57,7 @@
 	let submitting = $state(false);
 	let error = $state('');
 	let formError = $state('');
-	let form = $state<ReturnForm>({
+	let form = $state<ReturnItemForm>({
 		orderItemId: '',
 		reason: '',
 		note: '',
@@ -68,8 +69,8 @@
 		void goto(`/login?redirectTo=${encodeURIComponent(target)}`, { replaceState: true });
 	}
 
-	function isUnauthorized(cause: unknown): boolean {
-		if (cause instanceof ApiError && cause.status === 401) {
+	function redirectIfUnauthorized(cause: unknown): boolean {
+		if (isUnauthorized(cause)) {
 			redirectToLogin();
 			return true;
 		}
@@ -78,7 +79,7 @@
 	}
 
 	function errorMessage(cause: unknown, fallback: string): string {
-		return cause instanceof Error ? cause.message : fallback;
+		return messageFrom(cause, fallback);
 	}
 
 	async function selectOrder(value: string) {
@@ -92,16 +93,13 @@
 		orderLoading = true;
 
 		try {
-			const payload = await api.get<{ data: OrderDetail }>(
-				`/api/orders/${encodeURIComponent(value)}`
-			);
-			selectedOrder = unwrap(payload);
+			selectedOrder = await getOrder(value);
 
 			if (selectedOrder.items.length > 0) {
 				form.orderItemId = selectedOrder.items[0].id;
 			}
 		} catch (cause) {
-			if (!isUnauthorized(cause)) {
+			if (!redirectIfUnauthorized(cause)) {
 				formError = errorMessage(cause, 'Could not load the items for this order');
 			}
 		} finally {
@@ -114,12 +112,11 @@
 		error = '';
 
 		try {
-			const payload = await api.get<{ data: OrderSummary[] }>('/api/orders?page=1&pageSize=50');
-			orders = unwrap(payload);
+			orders = (await listOrders(1, 50)).data;
 
 			if (orders.length > 0) await selectOrder(orders[0].orderNumber);
 		} catch (cause) {
-			if (!isUnauthorized(cause)) {
+			if (!redirectIfUnauthorized(cause)) {
 				error = errorMessage(cause, 'Could not load your orders');
 			}
 		} finally {
@@ -144,16 +141,15 @@
 		submitting = true;
 
 		try {
-			const payload = await api.post<{ data: ReturnDetail }>('/api/returns', {
+			created = await createReturn({
 				orderItemId: form.orderItemId,
 				type: 'return',
 				reason: form.reason.trim(),
 				note: form.note.trim() || null,
 				resolution: form.resolution === 'none' ? null : form.resolution
 			});
-			created = unwrap(payload);
 		} catch (cause) {
-			if (!isUnauthorized(cause)) {
+			if (!redirectIfUnauthorized(cause)) {
 				formError = errorMessage(cause, 'Could not submit your return request');
 			}
 		} finally {

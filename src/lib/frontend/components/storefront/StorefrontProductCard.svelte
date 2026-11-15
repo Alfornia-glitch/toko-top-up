@@ -23,7 +23,7 @@
 
 <script lang="ts">
 	import { Star } from '@lucide/svelte';
-	import { WishlistButton } from '#lib/frontend/components/account/index.ts';
+	import WishlistButton from '#lib/frontend/components/shared/WishlistButton.svelte';
 	import ImagePlaceholder from '#lib/frontend/components/ui/ImagePlaceholder.svelte';
 	import { Badge } from '#lib/frontend/components/ui/badge/index.ts';
 

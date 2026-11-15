@@ -13,7 +13,7 @@
 		Truck
 	} from '@lucide/svelte';
 	import StorefrontProductCard from '#lib/frontend/components/storefront/StorefrontProductCard.svelte';
-	import { WishlistButton } from '#lib/frontend/components/account/index.ts';
+	import WishlistButton from '#lib/frontend/components/shared/WishlistButton.svelte';
 	import ImagePlaceholder from '#lib/frontend/components/ui/ImagePlaceholder.svelte';
 	import { Badge } from '#lib/frontend/components/ui/badge/index.ts';
 	import { Button } from '#lib/frontend/components/ui/button/index.ts';

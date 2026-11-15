@@ -1,13 +1,15 @@
 <script lang="ts">
+	import {
+		listOrders,
+		EmptyState,
+		OrderStatusBadge,
+		isUnauthorized
+	} from '#lib/frontend/modules/account/index.ts';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { page as appPage } from '$app/state';
 	import { ArrowRight, Package } from '@lucide/svelte';
-	import {
-		AccountPageShell,
-		EmptyState,
-		OrderStatusBadge
-	} from '#lib/frontend/components/account/index.ts';
+	import AccountPageShell from '#lib/frontend/modules/account/components/AccountPageShell.svelte';
 	import { Button } from '#lib/frontend/components/ui/button/index.ts';
 	import * as Card from '#lib/frontend/components/ui/card/index.ts';
 	import * as Pagination from '#lib/frontend/components/ui/pagination/index.ts';
@@ -15,14 +17,6 @@
 	import * as Table from '#lib/frontend/components/ui/table/index.ts';
 	import { formatDate, formatMoney } from '#lib/frontend/modules/commerce/format.ts';
 	import type { OrderSummary } from '#lib/frontend/modules/commerce/models.ts';
-	import { api, ApiError, unwrap } from '#lib/frontend/modules/shared/http.ts';
-
-	interface OrdersResponse {
-		data: OrderSummary[];
-		page: number;
-		pageSize: number;
-		total: number;
-	}
 
 	let orders = $state<OrderSummary[]>([]);
 	let loading = $state(true);
@@ -46,13 +40,11 @@
 		error = '';
 
 		try {
-			const payload = await api.get<OrdersResponse>(
-				`/api/orders?page=${page}&pageSize=${pageSize}`
-			);
-			orders = unwrap(payload);
+			const payload = await listOrders(page, pageSize);
+			orders = payload.data;
 			total = payload.total;
 		} catch (cause) {
-			if (cause instanceof ApiError && cause.status === 401) {
+			if (isUnauthorized(cause)) {
 				const target = `${appPage.url.pathname}${appPage.url.search}`;
 				void goto(`/login?redirectTo=${encodeURIComponent(target)}`, { replaceState: true });
 				return;

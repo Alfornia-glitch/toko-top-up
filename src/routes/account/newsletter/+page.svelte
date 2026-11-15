@@ -1,4 +1,11 @@
 <script lang="ts">
+	import {
+		getSubscription,
+		setSubscriptionStatus,
+		subscribeNewsletter,
+		isUnauthorized,
+		messageFrom
+	} from '#lib/frontend/modules/account/index.ts';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
@@ -9,14 +16,11 @@
 	import { Input } from '#lib/frontend/components/ui/input/index.ts';
 	import { Label } from '#lib/frontend/components/ui/label/index.ts';
 	import { Spinner } from '#lib/frontend/components/ui/spinner/index.ts';
-	import { api, ApiError, unwrap } from '#lib/frontend/modules/shared/http.ts';
+
 	import { formatDate } from '#frontend/modules/commerce/format.ts';
 	import type { NewsletterSubscription } from '#frontend/modules/commerce/models.ts';
 
-	type SubscriptionPayload = { data: NewsletterSubscription | null };
-	type StatusPayload = { data: NewsletterSubscription };
-
-	const imgHeroImage = '/assets/072c7.png';
+	const imgHeroImage = '/assets/newsletter-hero.svg';
 	const imgRightIcon = '/assets/c6b74.svg';
 
 	let subscription = $state<NewsletterSubscription | null>(null);
@@ -32,12 +36,12 @@
 	}
 
 	function failureMessage(cause: unknown): string {
-		if (cause instanceof ApiError && cause.status === 401) {
+		if (isUnauthorized(cause)) {
 			redirectToLogin();
 			return '';
 		}
 
-		return cause instanceof Error ? cause.message : 'Something went wrong';
+		return messageFrom(cause, 'Something went wrong');
 	}
 
 	async function loadSubscription(): Promise<void> {
@@ -45,7 +49,7 @@
 		loadError = '';
 
 		try {
-			subscription = unwrap(await api.get<SubscriptionPayload>('/api/account/newsletter'));
+			subscription = await getSubscription();
 		} catch (cause) {
 			loadError = failureMessage(cause);
 		} finally {
@@ -61,9 +65,7 @@
 		loadError = '';
 
 		try {
-			subscription = unwrap(
-				await api.patch<StatusPayload>('/api/account/newsletter', { status: nextStatus })
-			);
+			subscription = await setSubscriptionStatus(nextStatus);
 		} catch (cause) {
 			loadError = failureMessage(cause);
 		} finally {
@@ -84,7 +86,7 @@
 		saving = true;
 
 		try {
-			await api.post<StatusPayload>('/api/newsletter', { email: value });
+			await subscribeNewsletter(value);
 			email = '';
 			await loadSubscription();
 		} catch (cause) {

@@ -1,38 +1,28 @@
 <script lang="ts">
+	import {
+		listAddresses,
+		createAddress,
+		updateAddress,
+		deleteAddress,
+		type AddressInput,
+		AddressForm,
+		EmptyState,
+		isUnauthorized,
+		messageFrom
+	} from '#lib/frontend/modules/account/index.ts';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { MapPin, Plus } from '@lucide/svelte';
-	import {
-		AccountPageShell,
-		AddressForm,
-		EmptyState
-	} from '#lib/frontend/components/account/index.ts';
+	import AccountPageShell from '#lib/frontend/modules/account/components/AccountPageShell.svelte';
 	import * as AlertDialog from '#lib/frontend/components/ui/alert-dialog/index.ts';
 	import { Badge } from '#lib/frontend/components/ui/badge/index.ts';
 	import { Button } from '#lib/frontend/components/ui/button/index.ts';
 	import * as Card from '#lib/frontend/components/ui/card/index.ts';
 	import * as Dialog from '#lib/frontend/components/ui/dialog/index.ts';
 	import { Skeleton } from '#lib/frontend/components/ui/skeleton/index.ts';
-	import { api, ApiError, unwrap } from '#lib/frontend/modules/shared/http.ts';
+
 	import type { Address } from '#lib/frontend/modules/commerce/models.ts';
-
-	type AddressesPayload = { data: Address[] };
-	type AddressPayload = { data: Address };
-
-	type AddressInput = {
-		label: string | null;
-		recipientName: string;
-		phone: string | null;
-		line1: string;
-		line2: string | null;
-		city: string;
-		region: string | null;
-		postalCode: string | null;
-		country: string;
-		isDefaultShipping: boolean;
-		isDefaultBilling: boolean;
-	};
 
 	let addresses = $state<Address[]>([]);
 	let loading = $state(true);
@@ -48,12 +38,12 @@
 	}
 
 	function failureMessage(cause: unknown): string {
-		if (cause instanceof ApiError && cause.status === 401) {
+		if (isUnauthorized(cause)) {
 			redirectToLogin();
 			return '';
 		}
 
-		return cause instanceof Error ? cause.message : 'Something went wrong';
+		return messageFrom(cause, 'Something went wrong');
 	}
 
 	async function loadAddresses(): Promise<void> {
@@ -61,7 +51,7 @@
 		error = '';
 
 		try {
-			addresses = unwrap(await api.get<AddressesPayload>('/api/addresses'));
+			addresses = await listAddresses();
 		} catch (cause) {
 			error = failureMessage(cause);
 		} finally {
@@ -89,15 +79,15 @@
 
 		try {
 			if (editing) {
-				await api.patch<AddressPayload>(`/api/addresses/${editing.id}`, value);
+				await updateAddress(editing.id, value);
 			} else {
-				await api.post<AddressPayload>('/api/addresses', value);
+				await createAddress(value);
 			}
 
 			closeForm();
 			await loadAddresses();
 		} catch (cause) {
-			if (cause instanceof ApiError && cause.status === 401) {
+			if (isUnauthorized(cause)) {
 				redirectToLogin();
 				return;
 			}
@@ -112,7 +102,7 @@
 		error = '';
 
 		try {
-			await api.patch<AddressPayload>(`/api/addresses/${address.id}`, {
+			await updateAddress(address.id, {
 				label: address.label,
 				recipientName: address.recipientName,
 				phone: address.phone,
@@ -143,7 +133,7 @@
 		error = '';
 
 		try {
-			await api.delete(`/api/addresses/${id}`);
+			await deleteAddress(id);
 			await loadAddresses();
 		} catch (cause) {
 			error = failureMessage(cause);

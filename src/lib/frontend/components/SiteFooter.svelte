@@ -20,10 +20,6 @@
 		imgIcon7,
 		imgIcon8,
 		imgIcon9,
-		imgImage19,
-		imgImage13,
-		imgImage11,
-		imgImage12,
 		imgCardBody14,
 		imgCardBody15,
 		imgCardBody16
@@ -561,36 +557,6 @@
 					>
 						Secure Payment
 					</p>
-				</div>
-				<div class="relative h-[24px] w-[170.581px] shrink-0" data-name="image 19">
-					<div class="pointer-events-none absolute inset-0 overflow-hidden">
-						<img
-							alt=""
-							class="absolute top-[-297.85%] left-[-15.44%] h-[698.92%] w-[131.04%] max-w-none"
-							src={imgImage19}
-						/>
-					</div>
-				</div>
-				<div class="relative h-[20px] w-[61.745px] shrink-0" data-name="image 13">
-					<img
-						alt=""
-						class="pointer-events-none absolute inset-0 size-full max-w-none object-cover"
-						src={imgImage13}
-					/>
-				</div>
-				<div class="relative size-[20px] shrink-0" data-name="image 11">
-					<img
-						alt=""
-						class="pointer-events-none absolute inset-0 size-full max-w-none object-cover"
-						src={imgImage11}
-					/>
-				</div>
-				<div class="relative h-[20px] w-[35.556px] shrink-0" data-name="image 12">
-					<img
-						alt=""
-						class="pointer-events-none absolute inset-0 size-full max-w-none object-cover"
-						src={imgImage12}
-					/>
 				</div>
 			</div>
 		</div>

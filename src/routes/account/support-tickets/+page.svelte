@@ -1,4 +1,14 @@
 <script lang="ts">
+	import {
+		listOrders,
+		listTickets,
+		getTicket,
+		createTicket,
+		addTicketMessage,
+		isUnauthorized,
+		type TicketForm,
+		messageFrom
+	} from '#lib/frontend/modules/account/index.ts';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
@@ -14,20 +24,12 @@
 	import { Textarea } from '#lib/frontend/components/ui/textarea/index.ts';
 	import { TICKET_STATUS_LABELS, statusLabel } from '#lib/frontend/content/status.ts';
 	import { formatDateTime } from '#lib/frontend/modules/commerce/format.ts';
-	import { api, ApiError, unwrap } from '#lib/frontend/modules/shared/http.ts';
+	import { unwrap } from '#lib/frontend/modules/shared/http.ts';
 	import type {
 		OrderSummary,
 		SupportTicketDetail,
 		SupportTicketSummary
 	} from '#lib/frontend/modules/commerce/models.ts';
-
-	interface TicketForm {
-		subject: string;
-		category: string;
-		priority: string;
-		message: string;
-		orderId: string;
-	}
 
 	const priorityOptions = ['low', 'normal', 'high', 'urgent'] as const;
 
@@ -56,8 +58,8 @@
 		void goto(`/login?redirectTo=${encodeURIComponent(target)}`, { replaceState: true });
 	}
 
-	function isUnauthorized(cause: unknown): boolean {
-		if (cause instanceof ApiError && cause.status === 401) {
+	function redirectIfUnauthorized(cause: unknown): boolean {
+		if (isUnauthorized(cause)) {
 			redirectToLogin();
 			return true;
 		}
@@ -66,7 +68,7 @@
 	}
 
 	function errorMessage(cause: unknown, fallback: string): string {
-		return cause instanceof Error ? cause.message : fallback;
+		return messageFrom(cause, fallback);
 	}
 
 	function priorityLabel(priority: string): string {
@@ -82,12 +84,9 @@
 		detailError = '';
 
 		try {
-			const payload = await api.get<{ data: SupportTicketDetail }>(
-				`/api/support-tickets/${encodeURIComponent(id)}`
-			);
-			selected = unwrap(payload);
+			selected = await getTicket(id);
 		} catch (cause) {
-			if (!isUnauthorized(cause)) {
+			if (!redirectIfUnauthorized(cause)) {
 				selected = null;
 				detailError = errorMessage(cause, 'Could not load this support ticket');
 			}
@@ -97,8 +96,7 @@
 	}
 
 	async function refreshTickets() {
-		const payload = await api.get<{ data: SupportTicketSummary[] }>('/api/support-tickets');
-		tickets = unwrap(payload);
+		tickets = await listTickets();
 	}
 
 	async function initialize() {
@@ -107,16 +105,16 @@
 
 		try {
 			const [ticketsPayload, ordersPayload] = await Promise.all([
-				api.get<{ data: SupportTicketSummary[] }>('/api/support-tickets'),
-				api.get<{ data: OrderSummary[] }>('/api/orders?page=1&pageSize=100')
+				listTickets(),
+				listOrders(1, 100)
 			]);
 
-			tickets = unwrap(ticketsPayload);
-			orders = unwrap(ordersPayload);
+			tickets = ticketsPayload;
+			orders = ordersPayload.data;
 
 			if (tickets.length > 0) await loadTicket(tickets[0].id);
 		} catch (cause) {
-			if (!isUnauthorized(cause)) {
+			if (!redirectIfUnauthorized(cause)) {
 				error = errorMessage(cause, 'Could not load your support tickets');
 			}
 		} finally {
@@ -136,21 +134,20 @@
 		submitting = true;
 
 		try {
-			const payload = await api.post<{ data: SupportTicketDetail }>('/api/support-tickets', {
+			const created = await createTicket({
 				subject: form.subject.trim(),
 				category: form.category.trim(),
 				priority: form.priority,
 				message: form.message.trim(),
 				orderId: form.orderId === 'none' ? null : form.orderId
 			});
-			const created = unwrap(payload);
 
 			await refreshTickets();
 			selected = created;
 			reply = '';
 			form = { subject: '', category: '', priority: 'normal', message: '', orderId: 'none' };
 		} catch (cause) {
-			if (!isUnauthorized(cause)) {
+			if (!redirectIfUnauthorized(cause)) {
 				formError = errorMessage(cause, 'Could not create your support ticket');
 			}
 		} finally {
@@ -173,15 +170,13 @@
 		const ticketId = selected.id;
 
 		try {
-			await api.post(`/api/support-tickets/${encodeURIComponent(ticketId)}/messages`, {
-				body: reply.trim()
-			});
+			await addTicketMessage(ticketId, reply.trim());
 
 			reply = '';
 			await loadTicket(ticketId);
 			await refreshTickets();
 		} catch (cause) {
-			if (!isUnauthorized(cause)) {
+			if (!redirectIfUnauthorized(cause)) {
 				replyError = errorMessage(cause, 'Could not send your message');
 			}
 		} finally {

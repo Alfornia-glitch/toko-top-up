@@ -14,11 +14,17 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import UserAvatar from '#lib/frontend/components/UserAvatar.svelte';
+	import AccountPageShell from '#lib/frontend/modules/account/components/AccountPageShell.svelte';
 	import {
-		AccountPageShell,
 		EmptyState,
-		OrderStatusBadge
-	} from '#lib/frontend/components/account/index.ts';
+		OrderStatusBadge,
+		listAddresses,
+		listOrders,
+		listPaymentMethods,
+		listWishlist,
+		isUnauthorized,
+		messageFrom
+	} from '#lib/frontend/modules/account/index.ts';
 	import { Badge } from '#lib/frontend/components/ui/badge/index.ts';
 	import { Button } from '#lib/frontend/components/ui/button/index.ts';
 	import * as Card from '#lib/frontend/components/ui/card/index.ts';
@@ -32,12 +38,7 @@
 		WishlistItem
 	} from '#lib/frontend/modules/commerce/models.ts';
 	import { authClient } from '#lib/frontend/modules/auth/index.ts';
-	import { api, ApiError, unwrap } from '#lib/frontend/modules/shared/http.ts';
-
-	type OrdersPayload = { data: OrderSummary[]; total?: number };
-	type AddressesPayload = { data: Address[] };
-	type PaymentMethodsPayload = { data: PaymentMethod[] };
-	type WishlistPayload = { data: WishlistItem[] };
+	import { api, unwrap } from '#lib/frontend/modules/shared/http.ts';
 
 	const session = authClient.useSession();
 
@@ -84,12 +85,12 @@
 	}
 
 	function failureMessage(cause: unknown, fallback: string): string {
-		if (cause instanceof ApiError && cause.status === 401) {
+		if (isUnauthorized(cause)) {
 			redirectToLogin();
 			return '';
 		}
 
-		return cause instanceof Error ? cause.message : fallback;
+		return messageFrom(cause, fallback);
 	}
 
 	async function loadDashboard(): Promise<void> {
@@ -101,14 +102,14 @@
 
 		const [ordersResult, addressesResult, paymentMethodsResult, wishlistResult] =
 			await Promise.allSettled([
-				api.get<OrdersPayload>('/api/orders?page=1&pageSize=5'),
-				api.get<AddressesPayload>('/api/addresses'),
-				api.get<PaymentMethodsPayload>('/api/payment-methods'),
-				api.get<WishlistPayload>('/api/wishlist')
+				listOrders(1, 5),
+				listAddresses(),
+				listPaymentMethods(),
+				listWishlist()
 			]);
 
 		if (ordersResult.status === 'fulfilled') {
-			orders = unwrap(ordersResult.value);
+			orders = ordersResult.value.data;
 			ordersTotal = ordersResult.value.total ?? orders.length;
 		} else {
 			orders = [];
@@ -116,14 +117,14 @@
 		}
 
 		if (addressesResult.status === 'fulfilled') {
-			addresses = unwrap(addressesResult.value);
+			addresses = addressesResult.value;
 		} else {
 			addresses = [];
 			addressesError = failureMessage(addressesResult.reason, 'Could not load your addresses.');
 		}
 
 		if (paymentMethodsResult.status === 'fulfilled') {
-			paymentMethods = unwrap(paymentMethodsResult.value);
+			paymentMethods = paymentMethodsResult.value;
 		} else {
 			paymentMethods = [];
 			paymentMethodsError = failureMessage(
@@ -133,7 +134,7 @@
 		}
 
 		if (wishlistResult.status === 'fulfilled') {
-			wishlist = unwrap(wishlistResult.value);
+			wishlist = wishlistResult.value;
 		} else {
 			wishlist = [];
 			wishlistError = failureMessage(wishlistResult.reason, 'Could not load your wishlist.');

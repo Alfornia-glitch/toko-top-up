@@ -1,4 +1,9 @@
 <script lang="ts">
+	import {
+		listGiftCards,
+		isUnauthorized,
+		messageFrom
+	} from '#lib/frontend/modules/account/index.ts';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
@@ -6,13 +11,11 @@
 	import SiteFooter from '#lib/frontend/components/SiteFooter.svelte';
 	import AccountSidebar from '#lib/frontend/components/AccountSidebar.svelte';
 	import { Spinner } from '#lib/frontend/components/ui/spinner/index.ts';
-	import { api, ApiError, unwrap } from '#lib/frontend/modules/shared/http.ts';
+
 	import { formatDate, formatMoney } from '#frontend/modules/commerce/format.ts';
 	import type { GiftCardSummary } from '#frontend/modules/commerce/models.ts';
 
-	type GiftCardsPayload = { data: GiftCardSummary[] };
-
-	const imgHeroImage = '/assets/12bee.png';
+	const imgHeroImage = '/assets/gift-card-hero.svg';
 	const imgRightIcon = '/assets/c6b74.svg';
 
 	let cards = $state<GiftCardSummary[]>([]);
@@ -25,12 +28,12 @@
 	}
 
 	function failureMessage(cause: unknown): string {
-		if (cause instanceof ApiError && cause.status === 401) {
+		if (isUnauthorized(cause)) {
 			redirectToLogin();
 			return '';
 		}
 
-		return cause instanceof Error ? cause.message : 'Something went wrong';
+		return messageFrom(cause, 'Something went wrong');
 	}
 
 	async function loadCards(): Promise<void> {
@@ -38,7 +41,7 @@
 		loadError = '';
 
 		try {
-			cards = unwrap(await api.get<GiftCardsPayload>('/api/account/gift-cards'));
+			cards = await listGiftCards();
 		} catch (cause) {
 			loadError = failureMessage(cause);
 		} finally {

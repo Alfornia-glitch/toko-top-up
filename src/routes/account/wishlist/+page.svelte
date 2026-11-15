@@ -3,14 +3,13 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { Heart } from '@lucide/svelte';
-	import { AccountPageShell, EmptyState } from '#lib/frontend/components/account/index.ts';
+	import AccountPageShell from '#lib/frontend/modules/account/components/AccountPageShell.svelte';
+	import { EmptyState, wishlist, isUnauthorized } from '#lib/frontend/modules/account/index.ts';
 	import StorefrontProductCard from '#lib/frontend/components/storefront/StorefrontProductCard.svelte';
 	import { Badge } from '#lib/frontend/components/ui/badge/index.ts';
 	import { Button } from '#lib/frontend/components/ui/button/index.ts';
 	import { Skeleton } from '#lib/frontend/components/ui/skeleton/index.ts';
-	import { wishlist } from '#lib/frontend/modules/account/index.ts';
 	import { formatDate } from '#lib/frontend/modules/commerce/format.ts';
-	import { ApiError } from '#lib/frontend/modules/shared/http.ts';
 
 	let loading = $state(true);
 	let error = $state('');
@@ -24,7 +23,7 @@
 		void wishlist
 			.refresh()
 			.catch((cause) => {
-				if (cause instanceof ApiError && cause.status === 401) {
+				if (isUnauthorized(cause)) {
 					redirectToLogin();
 				} else {
 					error = cause instanceof Error ? cause.message : 'Could not load your wishlist.';

@@ -1,13 +1,17 @@
 <script lang="ts">
+	import {
+		listOrders,
+		getOrder,
+		type TimelineEntry,
+		EmptyState,
+		OrderStatusBadge,
+		isUnauthorized
+	} from '#lib/frontend/modules/account/index.ts';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { ChevronLeft, Clock, LifeBuoy, MapPin, Package, RotateCcw, Truck } from '@lucide/svelte';
-	import {
-		AccountPageShell,
-		EmptyState,
-		OrderStatusBadge
-	} from '#lib/frontend/components/account/index.ts';
+	import AccountPageShell from '#lib/frontend/modules/account/components/AccountPageShell.svelte';
 	import ImagePlaceholder from '#lib/frontend/components/ui/ImagePlaceholder.svelte';
 	import { Button } from '#lib/frontend/components/ui/button/index.ts';
 	import * as Card from '#lib/frontend/components/ui/card/index.ts';
@@ -19,14 +23,8 @@
 		formatDateTime,
 		formatMoney
 	} from '#lib/frontend/modules/commerce/format.ts';
-	import type { OrderDetail, OrderSummary } from '#lib/frontend/modules/commerce/models.ts';
-	import { api, ApiError, unwrap } from '#lib/frontend/modules/shared/http.ts';
-
-	interface TimelineEntry {
-		id: string;
-		label: string;
-		date: string | null;
-	}
+	import type { OrderDetail } from '#lib/frontend/modules/commerce/models.ts';
+	import { ApiError } from '#lib/frontend/modules/shared/http.ts';
 
 	const number = $derived((page.params as { number?: string }).number);
 
@@ -104,10 +102,7 @@
 
 		try {
 			if (number === 'latest') {
-				const summaryPayload = await api.get<{ data: OrderSummary[] }>(
-					'/api/orders?page=1&pageSize=1'
-				);
-				const summaries = unwrap(summaryPayload);
+				const summaries = (await listOrders(1, 1)).data;
 				const first = summaries[0];
 
 				if (!first) {
@@ -115,10 +110,7 @@
 					return;
 				}
 
-				const detailPayload = await api.get<{ data: OrderDetail }>(
-					`/api/orders/${encodeURIComponent(first.orderNumber)}`
-				);
-				order = unwrap(detailPayload);
+				order = await getOrder(first.orderNumber);
 				return;
 			}
 
@@ -127,12 +119,9 @@
 				return;
 			}
 
-			const detailPayload = await api.get<{ data: OrderDetail }>(
-				`/api/orders/${encodeURIComponent(number)}`
-			);
-			order = unwrap(detailPayload);
+			order = await getOrder(number);
 		} catch (cause) {
-			if (cause instanceof ApiError && cause.status === 401) {
+			if (isUnauthorized(cause)) {
 				redirectToLogin();
 				return;
 			}
