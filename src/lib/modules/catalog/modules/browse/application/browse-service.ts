@@ -23,6 +23,8 @@ const MAX_PAGE_SIZE = 60;
 /** Public, read-only catalog browsing. Needs no actor. */
 export interface BrowseService {
 	listProducts(query?: PublicProductQuery): Outcome<PublicProductList>;
+	/** Just the matching page of products: no total and no facets, so far fewer queries. */
+	listProductCards(query?: PublicProductQuery): Outcome<PublicProduct[]>;
 	/** Active products by id, in the order requested; unknown or inactive ids are omitted. */
 	listProductsByIds(ids: string[]): Outcome<PublicProduct[]>;
 	/** The catalog-owned part of an active product's page, or null. */
@@ -72,23 +74,35 @@ export function createBrowseService(repository: BrowseRepository): BrowseService
 		};
 	}
 
+	function filterOf(query: PublicProductQuery): PublicProductFilter {
+		return {
+			q: query.q,
+			categoryId: query.categoryId,
+			brandId: query.brandId,
+			featured: query.featured,
+			deal: query.deal,
+			newArrival: query.newArrival,
+			minPrice: query.minPrice,
+			maxPrice: query.maxPrice,
+			minRating: query.minRating
+		};
+	}
+
 	return {
+		listProductCards: (query = {}) =>
+			run(async () => {
+				const pageSize = Math.min(query.pageSize ?? 24, MAX_PAGE_SIZE);
+				const offset = ((query.page ?? 1) - 1) * pageSize;
+				const rows = await repository.selectProducts(filterOf(query), query.sort, pageSize, offset);
+				return (await withExtras(rows)).data;
+			}),
+
 		listProducts: (query = {}) =>
 			run(async () => {
 				const page = query.page ?? 1;
 				const pageSize = Math.min(query.pageSize ?? 24, MAX_PAGE_SIZE);
 				const offset = (page - 1) * pageSize;
-				const filter: PublicProductFilter = {
-					q: query.q,
-					categoryId: query.categoryId,
-					brandId: query.brandId,
-					featured: query.featured,
-					deal: query.deal,
-					newArrival: query.newArrival,
-					minPrice: query.minPrice,
-					maxPrice: query.maxPrice,
-					minRating: query.minRating
-				};
+				const filter = filterOf(query);
 				const postFilter = Boolean(query.color) || query.inStock === true;
 
 				let data: PublicProduct[];
@@ -115,9 +129,14 @@ export function createBrowseService(repository: BrowseRepository): BrowseService
 					total = filtered.length;
 					data = filtered.slice(offset, offset + pageSize);
 				} else {
-					const rows = await repository.selectProducts(filter, query.sort, pageSize, offset);
+					const [rows, count, facetData] = await Promise.all([
+						repository.selectProducts(filter, query.sort, pageSize, offset),
+						repository.countProducts(filter),
+						facets()
+					]);
 					data = (await withExtras(rows)).data;
-					total = await repository.countProducts(filter);
+					total = count;
+					return { data, page, pageSize, total, facets: facetData };
 				}
 
 				return { data, page, pageSize, total, facets: await facets() };

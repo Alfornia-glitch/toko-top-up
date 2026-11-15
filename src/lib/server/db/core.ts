@@ -8,7 +8,15 @@ export function createPostgresDb(url: string) {
 	// Transaction-pooler connections (pgbouncer/port 6543) cannot use
 	// server-side prepared statements; session-pooler and direct
 	// connections can.
-	const client = postgres(url, { prepare: !isTransactionPooler(url) });
+	const transactionPooler = isTransactionPooler(url);
+	const client = postgres(url, {
+		prepare: !transactionPooler,
+		// Pipelined queries on one connection hang behind a transaction pooler
+		// (Supavisor/pgbouncer), so send one at a time per connection there.
+		...(transactionPooler ? { max_pipeline: 1 } : {}),
+		connect_timeout: 15,
+		idle_timeout: 30
+	});
 	const db = drizzlePostgres(client, { schema: postgresSchema });
 
 	return { db };

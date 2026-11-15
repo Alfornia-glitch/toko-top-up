@@ -94,10 +94,10 @@ export function createStorefrontService(dependencies: StorefrontDependencies): S
 						content.content.getPublicContent().then(unwrap),
 						browse.listCategories().then(unwrap),
 						browse.listBrands().then(unwrap),
-						browse.listProducts({ deal: true, pageSize: 8 }).then(unwrap),
-						browse.listProducts({ newArrival: true, pageSize: 8 }).then(unwrap),
-						browse.listProducts({ featured: true, pageSize: 8 }).then(unwrap),
-						browse.listProducts({ sort: 'popular', pageSize: 8 }).then(unwrap)
+						browse.listProductCards({ deal: true, pageSize: 8 }).then(unwrap),
+						browse.listProductCards({ newArrival: true, pageSize: 8 }).then(unwrap),
+						browse.listProductCards({ featured: true, pageSize: 8 }).then(unwrap),
+						browse.listProductCards({ sort: 'popular', pageSize: 8 }).then(unwrap)
 					]);
 
 				return {
@@ -106,10 +106,10 @@ export function createStorefrontService(dependencies: StorefrontDependencies): S
 					testimonials: publicContent.testimonials,
 					categories,
 					brands,
-					deals: deals.data,
-					newArrivals: newArrivals.data,
-					featured: featured.data,
-					popular: popular.data
+					deals,
+					newArrivals,
+					featured,
+					popular
 				};
 			}),
 
@@ -125,19 +125,22 @@ export function createStorefrontService(dependencies: StorefrontDependencies): S
 					content.reviews.getRatingBuckets(product.id).then(unwrap),
 					product.categoryId
 						? browse
-								.listProducts({ categoryId: product.categoryId, pageSize: RELATED_CANDIDATE_LIMIT })
+								.listProductCards({
+									categoryId: product.categoryId,
+									pageSize: RELATED_CANDIDATE_LIMIT
+								})
 								.then(unwrap)
 						: Promise.resolve(null),
 					product.brandId
 						? browse
-								.listProducts({ brandId: product.brandId, pageSize: RELATED_CANDIDATE_LIMIT })
+								.listProductCards({ brandId: product.brandId, pageSize: RELATED_CANDIDATE_LIMIT })
 								.then(unwrap)
 						: Promise.resolve(null)
 				]);
 
 				const seen = new Set<string>([product.id]);
 				const related: PublicProduct[] = [];
-				for (const row of [...(byCategory?.data ?? []), ...(byBrand?.data ?? [])]) {
+				for (const row of [...(byCategory ?? []), ...(byBrand ?? [])]) {
 					if (seen.has(row.id)) continue;
 					seen.add(row.id);
 					related.push(row);
