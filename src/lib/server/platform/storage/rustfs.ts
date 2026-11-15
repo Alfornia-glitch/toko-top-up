@@ -1,4 +1,3 @@
-import { S3Client } from 'bun';
 import { MediaError, type StorageBackend } from './types.ts';
 
 /**
@@ -14,20 +13,28 @@ export function createRustfsBackend(config: {
 	secretAccessKey: string;
 	publicUrl: string;
 }): StorageBackend {
-	const client = new S3Client({
-		endpoint: config.endpoint,
-		region: config.region,
-		bucket: config.bucket,
-		accessKeyId: config.accessKeyId,
-		secretAccessKey: config.secretAccessKey
-	});
+	// `bun` only exists under the Bun runtime (VPS profile). Import it lazily through a
+	// variable specifier so Node-based builds (e.g. Netlify) do not try to resolve it.
+	const bunModule = 'bun';
+	let client: Promise<import('bun').S3Client> | undefined;
+	const getClient = () =>
+		(client ??= import(/* @vite-ignore */ bunModule).then(
+			({ S3Client }: typeof import('bun')) =>
+				new S3Client({
+					endpoint: config.endpoint,
+					region: config.region,
+					bucket: config.bucket,
+					accessKeyId: config.accessKeyId,
+					secretAccessKey: config.secretAccessKey
+				})
+		));
 
 	const publicUrl = config.publicUrl.replace(/\/+$/, '');
 
 	return {
 		async upload(path, file) {
 			try {
-				await client.file(path).write(file, { type: file.type, acl: 'public-read' });
+				await (await getClient()).file(path).write(file, { type: file.type, acl: 'public-read' });
 			} catch (error) {
 				throw toMediaError(error);
 			}
@@ -37,7 +44,7 @@ export function createRustfsBackend(config: {
 
 		async delete(path) {
 			try {
-				await client.file(path).delete();
+				await (await getClient()).file(path).delete();
 			} catch (error) {
 				throw toMediaError(error);
 			}
