@@ -4,6 +4,9 @@ import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vite';
 
 export default defineConfig({
+	// Inline better-auth and its @better-auth/* packages so the deployed function never resolves
+	// a second, mismatched copy of @better-auth/core at runtime.
+	ssr: { noExternal: ['better-auth', /^@better-auth\//] },
 	plugins: [
 		tailwindcss(),
 		sveltekit({
