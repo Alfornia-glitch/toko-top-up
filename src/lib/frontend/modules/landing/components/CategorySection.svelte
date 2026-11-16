@@ -1,97 +1,51 @@
 <script lang="ts">
+	import * as Card from '#lib/frontend/components/ui/card/index.ts';
 	import ImagePlaceholder from '#lib/frontend/components/ui/ImagePlaceholder.svelte';
 	import { home } from '#lib/frontend/modules/commerce/home.svelte.ts';
 
-	const imgIcon4 = '/assets/b9233.svg';
-	const imgIcon5 = '/assets/785e8.svg';
-
-	const categories = $derived(home.categories.slice(0, 6));
+	const categories = $derived(home.categories);
 </script>
 
-<div
-	class="relative flex w-full shrink-0 flex-col content-stretch items-center justify-center bg-white pt-[96px]"
-	data-name="Category"
->
-	<div
-		class="relative flex w-full max-w-[1280px] shrink-0 flex-col content-stretch items-center gap-[32px] px-[32px]"
-		data-name="Flex Vertical"
-	>
-		<div
-			class="relative flex w-full shrink-0 content-stretch items-start gap-[32px] [word-break:break-word] text-[#0a0a0a]"
-			data-name="Flex Horizontal"
-		>
-			<p
-				class="relative min-w-px flex-[1_0_0] font-['Geist:Bold'] text-[30px] leading-[36px] font-bold"
-			>
-				Shop by Category
-			</p>
-			<a
-				href="/categories"
-				class="relative min-w-px flex-[1_0_0] text-right font-['Geist:Medium'] text-[18px] leading-[28px] font-medium transition hover:text-[#525252]"
-			>
-				View All
-			</a>
-		</div>
-		<div
-			class="relative flex w-full shrink-0 content-stretch items-start gap-[16px]"
-			data-name="Flex Horizontal"
-		>
-			<div
-				class="absolute top-1/2 left-[-16px] flex w-[1247px] -translate-y-1/2 content-stretch items-center justify-between"
-				data-name="Arrow Icon"
-			>
-				<div class="relative flex shrink-0 items-center justify-center">
-					<div class="flex-none -scale-y-100 rotate-180">
-						<div class="relative size-[30px]" data-name="ICON">
-							<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgIcon4} />
-						</div>
-					</div>
-				</div>
-				<div class="relative size-[30px] shrink-0" data-name="ICON">
-					<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgIcon5} />
-				</div>
-			</div>
+<section class="mx-auto w-full max-w-7xl px-4" data-name="Category" aria-labelledby="game-populer">
+	<div class="mt-10 mb-4 flex items-center justify-between">
+		<h3 id="game-populer" class="text-xl font-semibold">Kategori Game</h3>
+		<a href="/categories" class="text-sm font-medium text-muted-foreground hover:text-foreground">
+			Lihat semua
+		</a>
+	</div>
+
+	{#if categories.length === 0}
+		<p class="text-sm text-muted-foreground">Belum ada game.</p>
+	{:else}
+		<div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
 			{#each categories as category (category.id)}
-				<div
-					class="relative flex min-w-px flex-[1_0_0] flex-col content-stretch items-start gap-[16px]"
-					data-name="Flex Vertical"
+				<a
+					href={`/products?categoryId=${category.id}`}
+					class="group rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring"
 				>
-					<a
-						href={`/products?categoryId=${category.id}`}
-						class="flex flex-col items-center gap-[16px]"
+					<Card.Root
+						class="gap-0 overflow-hidden py-0 transition group-hover:-translate-y-0.5 group-hover:border-primary"
 					>
-						<div
-							class="relative size-[124px] shrink-0 overflow-hidden rounded-full bg-[#f5f5f5]"
-							data-name="Image"
-						>
+						<div class="relative aspect-square bg-muted">
 							{#if category.imageUrl}
 								<img
 									src={category.imageUrl}
-									alt={category.name}
+									alt=""
 									loading="lazy"
+									draggable="false"
 									class="absolute inset-0 size-full object-cover"
 								/>
 							{:else}
-								<ImagePlaceholder
-									class="absolute inset-0 rounded-full"
-									variant="ghost"
-									label={category.name}
-								/>
+								<ImagePlaceholder class="absolute inset-0" variant="ghost" label={category.name} />
 							{/if}
 						</div>
-						<p
-							class="relative w-[min-content] min-w-full shrink-0 text-center font-['Geist:Medium'] text-[18px] leading-[28px] font-medium [word-break:break-word] text-[#0a0a0a]"
-						>
-							{category.name}
-						</p>
-						<p
-							class="relative w-full shrink-0 text-center font-['Geist:Regular'] text-[14px] leading-[20px] font-normal text-[#737373]"
-						>
-							{category.productCount} products
-						</p>
-					</a>
-				</div>
+						<div class="p-3">
+							<p class="truncate text-sm font-semibold">{category.name}</p>
+							<p class="mt-0.5 text-xs text-muted-foreground">{category.productCount} produk</p>
+						</div>
+					</Card.Root>
+				</a>
 			{/each}
 		</div>
-	</div>
-</div>
+	{/if}
+</section>

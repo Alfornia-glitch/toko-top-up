@@ -1,37 +1,20 @@
-export const HEADER_TOP_LINKS = [
-	{ label: 'Shipping & Returns', href: '/account/returns-refunds' },
-	{ label: 'Payment', href: '/account/payment' },
-	{ label: 'Warranty', href: '/account/order-tracking' },
-	{ label: 'Location', href: '/checkout/address' },
-	{ label: 'Contact', href: '/account/support-tickets' }
+export const BRAND_NAME = 'Top Up Store';
+
+export const HEADER_NAV_LINKS = [
+	{ label: 'Home', href: '/', icon: 'home' },
+	{ label: 'Cek Invoice', href: '/account/order-tracking', icon: 'receipt' },
+	{ label: 'Daftar Harga', href: '/products', icon: 'tag' },
+	{ label: 'Semua Game', href: '/categories', icon: 'gamepad' },
+	{ label: 'Bantuan', href: '/help', icon: 'help' },
+	{ label: 'Kontak', href: '/account/support-tickets', icon: 'headset' }
+] as const;
+
+export const FOOTER_LINKS = [
+	{ label: 'Cek Invoice', href: '/account/order-tracking' },
+	{ label: 'Daftar Harga', href: '/products' },
+	{ label: 'Bantuan', href: '/help' },
+	{ label: 'Kebijakan Privasi', href: '/privacy-policy' },
+	{ label: 'Perlindungan Pembelian', href: '/help/purchase-protection' }
 ];
 
-export const HEADER_MENU_LABELS = ['Shops', 'Today’s Deal', 'New Arrivals', 'Pages'];
-
-export const HEADER_QUICK_LINKS = [
-	{ label: 'Product Grid', href: '/products' },
-	{ label: 'Product List', href: '/products?view=list' },
-	{ label: 'Categories', href: '/categories' },
-	{ label: 'Prototype Pages', href: '/components' }
-];
-
-export const FOOTER_EXPLORE = ['Product Listing', 'My Profile', 'Category Listing'];
-
-export const FOOTER_TERMS = ['Privacy Policy', 'Purchase Protection', 'Help'];
-
-export const FOOTER_FEATURES = [
-	{
-		title: 'Free delivery',
-		text: 'Get your orders delivered to your doorstep for free.'
-	},
-	{
-		title: 'Online Payment',
-		text: 'Experience hassle-free online payments with secure.'
-	},
-	{
-		title: 'Easy Return',
-		text: 'Enjoy easy returns within 30 days of purchase.'
-	}
-];
-
-export const FOOTER_LEGAL = '© 2026 Shopix, Made with ❤ for a better web.';
+export const FOOTER_LEGAL = `© ${new Date().getFullYear()} ${BRAND_NAME}. Top up aman, gaming nyaman.`;

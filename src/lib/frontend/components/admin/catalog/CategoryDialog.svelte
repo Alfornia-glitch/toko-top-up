@@ -21,6 +21,7 @@
 </script>
 
 <script lang="ts">
+	import { Image as ImageIcon } from '@lucide/svelte';
 	import { SvelteSet } from 'svelte/reactivity';
 	import * as Dialog from '#lib/frontend/components/ui/dialog/index.ts';
 	import * as Field from '#lib/frontend/components/ui/field/index.ts';
@@ -28,6 +29,7 @@
 	import { Button } from '#lib/frontend/components/ui/button/index.ts';
 	import { Input } from '#lib/frontend/components/ui/input/index.ts';
 	import { Textarea } from '#lib/frontend/components/ui/textarea/index.ts';
+	import MediaPicker from '#lib/frontend/components/admin/MediaPicker.svelte';
 
 	let {
 		open = $bindable(false),
@@ -49,6 +51,7 @@
 			slug: value?.slug ?? '',
 			parentId: value?.parentId ?? 'none',
 			description: value?.description ?? '',
+			imageUrl: value?.imageUrl ?? '',
 			position: String(value?.position ?? 0),
 			status: value?.status ?? 'active'
 		};
@@ -59,8 +62,10 @@
 	let slug = $state(initial.slug);
 	let parentId = $state(initial.parentId);
 	let description = $state(initial.description);
+	let imageUrl = $state(initial.imageUrl);
 	let position = $state(initial.position);
 	let status = $state(initial.status);
+	let mediaOpen = $state(false);
 	let saving = $state(false);
 	let error = $state('');
 
@@ -106,7 +111,7 @@
 				...(trimmedSlug ? { slug: trimmedSlug } : {}),
 				parentId: parentId === 'none' ? null : parentId,
 				description: description.trim() ? description.trim() : null,
-				imageUrl: category?.imageUrl ?? null,
+				imageUrl: imageUrl.trim() ? imageUrl.trim() : null,
 				position: Math.max(0, Math.trunc(Number(position) || 0)),
 				status
 			};
@@ -136,7 +141,7 @@
 			<Dialog.Title>{category ? 'Edit category' : 'New category'}</Dialog.Title>
 			<Dialog.Description>
 				{category
-					? 'Update the category details and hierarchy.'
+					? 'Update the category details, image and hierarchy.'
 					: 'Add a category to organise the catalog.'}
 			</Dialog.Description>
 		</Dialog.Header>
@@ -167,6 +172,44 @@
 							{/each}
 						</Select.Content>
 					</Select.Root>
+				</Field.Field>
+
+				<Field.Field>
+					<Field.Label for="category-image">Image</Field.Label>
+					<div class="flex items-center gap-3">
+						{#if imageUrl}
+							<img
+								src={imageUrl}
+								alt="Category preview"
+								class="size-14 rounded-full border bg-muted object-cover"
+							/>
+						{:else}
+							<div
+								class="flex size-14 items-center justify-center rounded-full border bg-muted text-muted-foreground"
+							>
+								<ImageIcon class="size-5" />
+							</div>
+						{/if}
+						<div class="flex flex-wrap items-center gap-2">
+							<Button
+								id="category-image"
+								type="button"
+								variant="outline"
+								size="sm"
+								onclick={() => (mediaOpen = true)}
+							>
+								{imageUrl ? 'Change image' : 'Choose image'}
+							</Button>
+							{#if imageUrl}
+								<Button type="button" variant="ghost" size="sm" onclick={() => (imageUrl = '')}>
+									Remove
+								</Button>
+							{/if}
+						</div>
+					</div>
+					<Field.Description>
+						Shown on the storefront category carousel. Pick or upload an image.
+					</Field.Description>
 				</Field.Field>
 
 				<Field.Field>
@@ -215,3 +258,9 @@
 		</form>
 	</Dialog.Content>
 </Dialog.Root>
+
+<MediaPicker
+	bind:open={mediaOpen}
+	folder="categories"
+	onSelect={(asset) => (imageUrl = asset.url)}
+/>

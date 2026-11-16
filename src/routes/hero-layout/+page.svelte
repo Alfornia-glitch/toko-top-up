@@ -115,5 +115,5 @@
 		</div>
 	</section>
 
-	<SiteFooter features={true} />
+	<SiteFooter />
 </div>

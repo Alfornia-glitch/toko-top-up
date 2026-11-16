@@ -10,5 +10,5 @@
 >
 	<SiteHeader />
 	<PrototypeProductDetail slug="everyday-cotton-shirt" />
-	<SiteFooter features={true} />
+	<SiteFooter />
 </div>

@@ -10,5 +10,5 @@
 >
 	<SiteHeader />
 	<PrototypeProductDetail slug="shield-phone-case" />
-	<SiteFooter features={true} />
+	<SiteFooter />
 </div>

@@ -1,96 +1,81 @@
 <script lang="ts">
+	import { Button } from '#lib/frontend/components/ui/button/index.ts';
+	import * as Carousel from '#lib/frontend/components/ui/carousel/index.ts';
 	import ImagePlaceholder from '#lib/frontend/components/ui/ImagePlaceholder.svelte';
 	import { home } from '#lib/frontend/modules/commerce/home.svelte.ts';
 	import { site } from '#lib/frontend/modules/commerce/site.svelte.ts';
+	import type { Testimonial } from '#lib/frontend/modules/commerce/models.ts';
 
 	const imgLeftIcon5 = '/assets/d8cda.svg';
 
 	const instagram = $derived(site.social.instagram);
+
+	const controlClass =
+		'static size-10 translate-y-0 bg-background hover:bg-accent disabled:opacity-40';
 </script>
 
-{#snippet followContent()}
-	<div class="relative size-[16px] shrink-0" data-name="Left icon">
-		<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgLeftIcon5} />
-	</div>
-	<div
-		class="relative flex shrink-0 flex-col justify-center font-['Geist:Medium'] text-[14px] leading-[0] font-medium [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
+{#snippet tile(testimonial: Testimonial)}
+	{@const label = testimonial.caption ?? 'Foto pelanggan'}
+	<svelte:element
+		this={testimonial.link ? 'a' : 'div'}
+		href={testimonial.link ?? undefined}
+		class="group relative block aspect-square overflow-hidden rounded-lg bg-muted outline-none focus-visible:ring-2 focus-visible:ring-ring"
+		data-name="Image"
 	>
-		<p class="leading-[20px]">Follow Us @shopix</p>
-	</div>
+		{#if testimonial.imageUrl}
+			<img
+				src={testimonial.imageUrl}
+				alt={label}
+				loading="lazy"
+				draggable="false"
+				class="absolute inset-0 size-full object-cover transition duration-300 group-hover:scale-105"
+			/>
+		{:else}
+			<ImagePlaceholder class="pointer-events-none absolute inset-0 rounded-lg" {label} />
+		{/if}
+		{#if testimonial.caption}
+			<p
+				class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-3 pt-8 text-sm text-white opacity-0 transition group-hover:opacity-100 group-focus-visible:opacity-100"
+			>
+				{testimonial.caption}
+			</p>
+		{/if}
+	</svelte:element>
 {/snippet}
 
 <div
-	class="relative flex w-full shrink-0 flex-col content-stretch items-center justify-center gap-[32px] overflow-clip bg-white py-[96px]"
+	class="relative flex w-full shrink-0 flex-col items-center justify-center gap-[32px] py-[64px]"
 	data-name="Testimonials"
 >
-	<p
-		class="relative w-[min-content] min-w-full shrink-0 text-center font-['Geist:Bold'] text-[30px] leading-[36px] font-bold [word-break:break-word] text-[#0a0a0a]"
+	<Carousel.Root
+		opts={{ align: 'start', slidesToScroll: 'auto' }}
+		class="flex w-full max-w-[1280px] flex-col gap-[32px] px-[32px]"
 	>
-		Inspired by Our Community
-	</p>
-	<div
-		class="relative flex w-[1600px] shrink-0 content-stretch items-center gap-[16px]"
-		data-name="Flex Horizontal"
-	>
-		{#each home.testimonials as testimonial (testimonial.id)}
-			{#if testimonial.link}
-				<a
-					href={testimonial.link}
-					class="group relative aspect-[240/240] min-w-px flex-[1_0_0] overflow-hidden rounded-[8px]"
-					data-name="Image"
-				>
-					{#if testimonial.imageUrl}
-						<img
-							src={testimonial.imageUrl}
-							alt={testimonial.caption ?? 'Community photo'}
-							loading="lazy"
-							class="absolute inset-0 size-full object-cover transition duration-300 group-hover:scale-105"
-						/>
-					{:else}
-						<ImagePlaceholder
-							class="pointer-events-none absolute inset-0 rounded-[8px]"
-							label={testimonial.caption ?? 'Community photo'}
-						/>
-					{/if}
-				</a>
-			{:else}
-				<div
-					class="relative aspect-[240/240] min-w-px flex-[1_0_0] overflow-hidden rounded-[8px]"
-					data-name="Image"
-				>
-					{#if testimonial.imageUrl}
-						<img
-							src={testimonial.imageUrl}
-							alt={testimonial.caption ?? 'Community photo'}
-							loading="lazy"
-							class="absolute inset-0 size-full object-cover"
-						/>
-					{:else}
-						<ImagePlaceholder
-							class="pointer-events-none absolute inset-0 rounded-[8px]"
-							label={testimonial.caption ?? 'Community photo'}
-						/>
-					{/if}
+		<div class="flex w-full items-center gap-[16px]">
+			<p class="min-w-px flex-1 font-['Geist:Bold'] text-[30px] leading-[36px] font-bold">
+				Ulasan Pelanggan
+			</p>
+			{#if home.testimonials.length}
+				<div class="flex items-center gap-[8px]">
+					<Carousel.Previous variant="outline" size="icon" class={controlClass} />
+					<Carousel.Next variant="outline" size="icon" class={controlClass} />
 				</div>
 			{/if}
-		{/each}
-	</div>
-	{#if instagram}
-		<a
-			href={instagram}
-			target="_blank"
-			rel="noreferrer"
-			class="relative flex shrink-0 content-stretch items-center justify-center gap-[6px] overflow-clip rounded-[10px] border border-solid border-[#e5e5e5] bg-white px-[16px] py-[8px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.1),0px_1px_2px_-1px_rgba(0,0,0,0.1)]"
-			data-name="Outline Button"
-		>
-			{@render followContent()}
-		</a>
-	{:else}
-		<div
-			class="relative flex shrink-0 content-stretch items-center justify-center gap-[6px] overflow-clip rounded-[10px] border border-solid border-[#e5e5e5] bg-white px-[16px] py-[8px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.1),0px_1px_2px_-1px_rgba(0,0,0,0.1)]"
-			data-name="Outline Button"
-		>
-			{@render followContent()}
 		</div>
+		{#if home.testimonials.length}
+			<Carousel.Content class="-ms-[16px]">
+				{#each home.testimonials as testimonial (testimonial.id)}
+					<Carousel.Item class="basis-1/2 ps-[16px] sm:basis-1/3 lg:basis-1/5">
+						{@render tile(testimonial)}
+					</Carousel.Item>
+				{/each}
+			</Carousel.Content>
+		{/if}
+	</Carousel.Root>
+	{#if instagram}
+		<Button variant="outline" href={instagram} target="_blank" rel="noreferrer" class="h-9 px-4">
+			<img alt="" class="size-4" src={imgLeftIcon5} />
+			Ikuti kami di Instagram
+		</Button>
 	{/if}
 </div>

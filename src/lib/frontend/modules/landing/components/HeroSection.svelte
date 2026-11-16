@@ -1,161 +1,116 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
+	import * as Carousel from '#lib/frontend/components/ui/carousel/index.ts';
+	import type { CarouselAPI } from '#lib/frontend/components/ui/carousel/context.ts';
+	import { Badge } from '#lib/frontend/components/ui/badge/index.ts';
+	import { Button } from '#lib/frontend/components/ui/button/index.ts';
+	import { Skeleton } from '#lib/frontend/components/ui/skeleton/index.ts';
 	import ImagePlaceholder from '#lib/frontend/components/ui/ImagePlaceholder.svelte';
 	import { home } from '#lib/frontend/modules/commerce/home.svelte.ts';
 
-	const imgRightIcon = '/assets/30a38.svg';
+	const AUTOPLAY_MS = 5000;
 
-	const heroBanners = $derived(home.banners.filter((banner) => banner.key === 'hero'));
-	const mainBanner = $derived(heroBanners[0]);
-	const sideBanners = $derived(heroBanners.slice(1, 4));
+	const banners = $derived(home.banners.filter((banner) => banner.key === 'hero'));
+
+	let api = $state<CarouselAPI>();
+	let selected = $state(0);
+	let paused = $state(false);
+
+	function setApi(next: CarouselAPI | undefined) {
+		api = next;
+	}
+
+	$effect(() => {
+		const current = api;
+		if (!current) return;
+		const onSelect = () => (selected = current.selectedScrollSnap());
+		onSelect();
+		current.on('select', onSelect);
+		current.on('reInit', onSelect);
+		return () => {
+			current.off('select', onSelect);
+			current.off('reInit', onSelect);
+		};
+	});
+
+	onMount(() => {
+		const timer = setInterval(() => {
+			if (!paused && api) api.scrollNext();
+		}, AUTOPLAY_MS);
+		return () => clearInterval(timer);
+	});
 </script>
 
-<div
-	class="relative flex w-full max-w-[1440px] shrink-0 flex-col content-stretch items-center justify-center bg-white pt-[56px]"
+<section
+	class="mx-auto mt-8 w-full max-w-7xl px-4"
 	data-name="Hero"
+	aria-label="Promo"
+	onmouseenter={() => (paused = true)}
+	onmouseleave={() => (paused = false)}
+	onfocusin={() => (paused = true)}
+	onfocusout={() => (paused = false)}
 >
-	{#if mainBanner}
-		<div
-			class="relative flex w-[1280px] max-w-[1280px] shrink-0 flex-col content-stretch items-start gap-[16px] px-[32px] lg:flex-row lg:items-start"
-			data-name="Flex Horizontal"
+	{#if banners.length === 0}
+		{#if home.loading}
+			<Skeleton class="aspect-[16/9] w-full rounded-2xl md:aspect-[21/9]" />
+		{:else}
+			<ImagePlaceholder class="aspect-[16/9] w-full rounded-2xl md:aspect-[21/9]" label="Promo" />
+		{/if}
+	{:else}
+		<Carousel.Root
+			opts={{ loop: true }}
+			{setApi}
+			class="relative overflow-hidden rounded-2xl border"
 		>
-			<div
-				class="relative flex min-w-px flex-auto flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-[#f5f5f5] py-[24px] lg:h-full lg:flex-[1_0_0]"
-				data-name="Card"
-			>
-				<div
-					class="relative flex w-full shrink-0 flex-col content-stretch items-start px-[24px]"
-					data-name="card-body"
-				>
-					<div
-						class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[16px]"
-						data-name="Flex Vertical"
-					>
-						<div
-							class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[8px] [word-break:break-word] text-[#0a0a0a]"
-							data-name="Flex Vertical"
-						>
-							<p
-								class="relative w-full shrink-0 font-['Geist:Bold'] text-[36px] leading-[40px] font-bold"
-							>
-								{mainBanner.title}
-							</p>
-							{#if mainBanner.subtitle}
-								<p
-									class="relative w-full shrink-0 font-['Geist:Regular'] text-[18px] leading-[28px] font-normal"
-								>
-									{mainBanner.subtitle}
-								</p>
-							{/if}
-						</div>
-						{#if mainBanner.ctaLabel}
-							<a
-								href={mainBanner.ctaUrl ?? '/products'}
-								class="relative flex shrink-0 content-stretch items-center justify-center gap-[6px] rounded-[10px] border border-solid border-[#e5e5e5] bg-white px-[16px] py-[8px]"
-								data-name="Solid button"
-							>
-								<div
-									class="relative flex shrink-0 flex-col justify-center font-['Geist:Medium'] text-[14px] leading-[0] font-medium [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
-								>
-									<p class="leading-[20px]">{mainBanner.ctaLabel}</p>
-								</div>
-								<div class="relative size-[16px] shrink-0" data-name="Right icon">
-									<img
-										alt=""
-										class="absolute inset-0 block size-full max-w-none"
-										src={imgRightIcon}
-									/>
-								</div>
-							</a>
-						{/if}
-					</div>
-					<div
-						class="relative mt-[8px] h-[240px] w-full shrink-0 lg:absolute lg:top-[239px] lg:left-[96px] lg:mt-0 lg:h-[282px] lg:w-[361px]"
-						data-name="image"
-					>
-						{#if mainBanner.imageUrl}
-							<img
-								src={mainBanner.imageUrl}
-								alt={mainBanner.title}
-								class="absolute inset-0 size-full object-contain"
-							/>
-						{:else}
-							<ImagePlaceholder class="absolute inset-0" label={mainBanner.title} />
-						{/if}
-					</div>
-				</div>
-			</div>
-			{#if sideBanners.length > 0}
-				<div
-					class="relative flex w-full shrink-0 flex-col content-stretch items-start justify-center gap-[16px] lg:h-[581px] lg:w-[329px]"
-					data-name="Flex Vertical"
-				>
-					{#each sideBanners as banner (banner.id)}
-						<div
-							class="relative flex min-h-px w-full flex-auto flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-[rgba(2,132,199,0.1)] py-[24px] lg:flex-[1_0_0]"
-							data-name="Card"
-						>
+			<Carousel.Content class="ms-0">
+				{#each banners as banner (banner.id)}
+					<Carousel.Item class="ps-0">
+						<div class="relative aspect-[16/9] w-full overflow-hidden bg-muted md:aspect-[21/9]">
+							<picture>
+								{#if banner.mobileImageUrl}
+									<source media="(max-width: 767px)" srcset={banner.mobileImageUrl} />
+								{/if}
+								<img
+									src={banner.imageUrl}
+									alt={banner.title}
+									draggable="false"
+									class="absolute inset-0 size-full object-cover"
+								/>
+							</picture>
 							<div
-								class="relative flex w-full shrink-0 flex-col content-stretch items-start px-[24px]"
-								data-name="card-body"
+								class="absolute inset-0 flex flex-col justify-center gap-3 bg-gradient-to-r from-background/90 via-background/50 to-transparent p-6 md:p-12"
 							>
-								<div
-									class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[16px]"
-									data-name="Flex Vertical"
-								>
-									<div
-										class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[8px] [word-break:break-word] text-[#0a0a0a]"
-										data-name="Flex Vertical"
-									>
-										<p
-											class="relative w-full shrink-0 font-['Geist:Bold'] text-[24px] leading-[30px] font-bold"
-										>
-											{banner.title}
-										</p>
-										{#if banner.subtitle}
-											<p
-												class="relative w-full shrink-0 font-['Geist:Regular'] text-[14px] leading-[20px] font-normal"
-											>
-												{banner.subtitle}
-											</p>
-										{/if}
-									</div>
-									{#if banner.ctaLabel}
-										<a
-											href={banner.ctaUrl ?? '/products'}
-											class="relative flex shrink-0 content-stretch items-center justify-center gap-[6px] rounded-[10px] border border-solid border-[#e5e5e5] bg-white px-[12px] py-[6px]"
-											data-name="Solid button"
-										>
-											<div
-												class="relative flex shrink-0 flex-col justify-center font-['Geist:Medium'] text-[14px] leading-[0] font-medium [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
-											>
-												<p class="leading-[20px]">{banner.ctaLabel}</p>
-											</div>
-											<div class="relative size-[16px] shrink-0" data-name="Right icon">
-												<img
-													alt=""
-													class="absolute inset-0 block size-full max-w-none"
-													src={imgRightIcon}
-												/>
-											</div>
-										</a>
-									{/if}
-								</div>
-								<div class="relative mt-[8px] h-[160px] w-full shrink-0" data-name="image">
-									{#if banner.imageUrl}
-										<img
-											src={banner.imageUrl}
-											alt={banner.title}
-											class="absolute inset-0 size-full object-contain"
-										/>
-									{:else}
-										<ImagePlaceholder class="absolute inset-0" label={banner.title} />
-									{/if}
-								</div>
+								<Badge class="w-fit">#TOPUP AMAN GAMING NYAMAN</Badge>
+								<h2 class="max-w-xl text-2xl leading-tight font-bold italic md:text-5xl">
+									{banner.title}
+								</h2>
+								{#if banner.subtitle}
+									<p class="max-w-md text-sm text-muted-foreground">{banner.subtitle}</p>
+								{/if}
+								{#if banner.ctaLabel && banner.ctaUrl}
+									<Button href={banner.ctaUrl} class="w-fit">{banner.ctaLabel}</Button>
+								{/if}
 							</div>
 						</div>
+					</Carousel.Item>
+				{/each}
+			</Carousel.Content>
+
+			{#if banners.length > 1}
+				<Carousel.Previous class="start-3 end-auto bg-background/70" />
+				<Carousel.Next class="start-auto end-3 bg-background/70" />
+				<div class="absolute bottom-3 left-1/2 flex -translate-x-1/2 gap-1.5">
+					{#each banners as banner, index (banner.id)}
+						<button
+							type="button"
+							aria-label={`Slide ${index + 1}`}
+							aria-current={index === selected}
+							onclick={() => api?.scrollTo(index)}
+							class="size-2 rounded-full {index === selected ? 'bg-primary' : 'bg-foreground/30'}"
+						></button>
 					{/each}
 				</div>
 			{/if}
-		</div>
+		</Carousel.Root>
 	{/if}
-</div>
+</section>

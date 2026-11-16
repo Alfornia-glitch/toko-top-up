@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { Pencil, Plus, Trash2 } from '@lucide/svelte';
+	import { Image as ImageIcon, Pencil, Plus, Trash2 } from '@lucide/svelte';
 	import DataTable from '#lib/frontend/components/admin/DataTable.svelte';
 	import StatusBadge from '#lib/frontend/components/admin/StatusBadge.svelte';
 	import ConfirmDialog from '#lib/frontend/components/admin/ConfirmDialog.svelte';
@@ -189,7 +189,23 @@
 	>
 		{#snippet cell(row, column)}
 			{#if column.key === 'name'}
-				<span class="font-medium">{String(row.name ?? '')}</span>
+				<div class="flex items-center gap-3">
+					{#if row.imageUrl}
+						<img
+							src={String(row.imageUrl)}
+							alt=""
+							class="size-9 shrink-0 rounded-full border bg-muted object-cover"
+							loading="lazy"
+						/>
+					{:else}
+						<div
+							class="flex size-9 shrink-0 items-center justify-center rounded-full border bg-muted text-muted-foreground"
+						>
+							<ImageIcon class="size-4" />
+						</div>
+					{/if}
+					<span class="font-medium">{String(row.name ?? '')}</span>
+				</div>
 			{:else if column.key === 'slug'}
 				<code class="text-xs text-muted-foreground">{String(row.slug ?? '')}</code>
 			{:else if column.key === 'parentName'}
