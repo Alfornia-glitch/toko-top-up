@@ -75,6 +75,11 @@ export interface OrdersService {
 	createOrder(input: CreateOrderInput): Outcome<CreatedOrder>;
 	/** Service-to-service compensation: cancels an order and refunds its payment record. Idempotent. */
 	cancelOrder(orderId: string, reason: string): Outcome<void>;
+	/**
+	 * Service-to-service fulfilment hook: a verified payment moves the order to paid.
+	 * Idempotent: an order that is already paid (or further along) is left untouched.
+	 */
+	markPaid(orderId: string, actorUserId: string | null, note?: string): Outcome<void>;
 }
 
 export function createOrdersService(
@@ -433,6 +438,29 @@ export function createOrdersService(
 				});
 
 				return { orderId, orderNumber };
+			}),
+
+		markPaid: (orderId, actorUserId, note) =>
+			run(async () => {
+				const order = await requireOrder(orderId);
+				if (order.status !== 'pending') {
+					if (order.status === 'cancelled') {
+						throw new UnprocessableError('Cannot mark a cancelled order as paid');
+					}
+					return;
+				}
+
+				const now = clock.now();
+				await repository.updateOrder(
+					orderId,
+					{ status: 'paid', paymentStatus: 'paid', updatedAt: now },
+					[event(orderId, 'payment_verified', note ?? 'Payment verified', actorUserId, now)]
+				);
+				await repository.updatePayments(orderId, {
+					status: 'succeeded',
+					paidAt: now,
+					updatedAt: now
+				});
 			}),
 
 		cancelOrder: (orderId, reason) =>
