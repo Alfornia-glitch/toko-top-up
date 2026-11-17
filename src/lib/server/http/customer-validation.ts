@@ -46,7 +46,7 @@ export const checkoutSchema = z.object({
 	couponCode: z.string().trim().max(64).optional().nullable(),
 	note: z.string().max(500).optional().nullable(),
 	payment: z.object({
-		mode: z.enum(['card', 'cod', 'gift']),
+		mode: z.enum(['card', 'cod', 'gift', 'qris']),
 		paymentMethodId: z.string().optional().nullable(),
 		brand: z.string().max(40).optional().nullable(),
 		last4: z

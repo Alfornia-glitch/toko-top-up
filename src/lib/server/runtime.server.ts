@@ -11,11 +11,18 @@ import { createMarketingServices, type MarketingServices } from '#modules/market
 import { createStorefrontServices, type StorefrontServices } from '#modules/storefront/server.ts';
 import { createSupportServices, type SupportServices } from '#modules/support/server.ts';
 import { createOrdersServices, type OrdersServices } from '#modules/orders/server.ts';
+import {
+	createLocalProofStorage,
+	createPaymentsServices,
+	type PaymentsServices
+} from '#modules/payments/server.ts';
 import { createReportingServices, type ReportingServices } from '#modules/reporting/server.ts';
 import { createCheckoutSettings } from './adapters/checkout-settings.ts';
 import { createCustomerDirectory } from './adapters/customer-directory.ts';
 import { createReviewDirectory } from './adapters/review-directory.ts';
 import { createOrdersUserDirectory } from './adapters/orders-users.ts';
+import { createPaymentsHooks } from './adapters/payments-hooks.ts';
+import { loadPaymentsConfig } from './payments-config.server.ts';
 import { createSupportUserDirectory } from './adapters/support-users.ts';
 import { loadConfig, type AppConfig } from './config.server.ts';
 import { createModuleRegistry } from './registry.server.ts';
@@ -30,6 +37,7 @@ export interface RuntimeServices {
 	readonly cart: CartServices;
 	readonly orders: OrdersServices;
 	readonly checkout: CheckoutServices;
+	readonly payments: PaymentsServices;
 	readonly storefront: StorefrontServices;
 	readonly audit: AuditServices;
 }
@@ -75,6 +83,7 @@ export function createRuntime(
 	let cart: CartServices | undefined;
 	let orders: OrdersServices | undefined;
 	let checkout: CheckoutServices | undefined;
+	let payments: PaymentsServices | undefined;
 	let storefront: StorefrontServices | undefined;
 	let audit: AuditServices | undefined;
 	const registry = createModuleRegistry();
@@ -195,6 +204,22 @@ export function createRuntime(
 	});
 
 	registry.register({
+		name: 'payments',
+		dependencies: ['orders', 'catalog'],
+		initialize() {
+			if (!orders || !catalog) throw new Error('Orders and catalog are required by payments');
+			const { proofDirectory, ...paymentsConfig } = loadPaymentsConfig();
+			payments = createPaymentsServices({
+				...serviceOptions(),
+				orders,
+				storage: createLocalProofStorage(proofDirectory),
+				config: paymentsConfig,
+				hooks: createPaymentsHooks(orders, catalog)
+			});
+		}
+	});
+
+	registry.register({
 		name: 'audit',
 		initialize() {
 			audit = createAuditServices(serviceOptions());
@@ -213,6 +238,7 @@ export function createRuntime(
 		!cart ||
 		!orders ||
 		!checkout ||
+		!payments ||
 		!storefront ||
 		!audit
 	)
@@ -232,6 +258,7 @@ export function createRuntime(
 			cart,
 			orders,
 			checkout,
+			payments,
 			storefront,
 			audit
 		}

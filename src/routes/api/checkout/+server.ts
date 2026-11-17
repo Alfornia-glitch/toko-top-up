@@ -28,11 +28,23 @@ export const POST: RequestHandler = async ({ locals, request, cookies }) => {
 		const cartId = await resolveCartId(cookies, locals.user!.id);
 		if (!cartId) throw new ConflictError('Your cart is empty');
 
-		const data = unwrap(
-			await locals.services.checkout.checkout.placeOrder(cartId, parsed.data, locals.actor)
+		const placed = unwrap(
+			await locals.services.checkout.checkout.placeOrder(
+				cartId,
+				{ ...parsed.data, paymentMode: parsed.data.payment.mode },
+				locals.actor
+			)
 		);
 
-		return Response.json({ data }, { status: 201 });
+		// QRIS orders stay pending: open the payment so the client can show the QR and exact total.
+		if (parsed.data.payment.mode === 'qris') {
+			const payment = unwrap(
+				await locals.services.payments.payments.createPayment(placed.orderId, locals.actor)
+			);
+			return Response.json({ data: { ...placed, payment } }, { status: 201 });
+		}
+
+		return Response.json({ data: placed }, { status: 201 });
 	} catch (error) {
 		return customerErrorResponse(error, 'place order');
 	}

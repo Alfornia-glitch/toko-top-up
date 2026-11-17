@@ -72,5 +72,22 @@ export const variables = defineEnvVars({
 	RUSTFS_PUBLIC_URL: {
 		description: 'Public base URL used to build permanent media URLs (no trailing slash)',
 		schema: (value) => value
+	},
+	QRIS_IMAGE_URL: {
+		description:
+			'Merchant QRIS image shown at payment time (URL or /static path); required for QRIS',
+		schema: (value) => value
+	},
+	PAYMENT_PROOF_DIR: {
+		description: 'Private directory for payment proof images (must not be publicly served)',
+		schema: (value) => value || './data/payment-proofs'
+	},
+	PAYMENT_WINDOW_MINUTES: {
+		description: 'Minutes a customer has to pay and upload proof before the order expires',
+		schema: (value) => value
+	},
+	PAYMENT_EXPIRE_SECRET: {
+		description: 'Shared secret for the scheduled POST /api/internal/payments/expire endpoint',
+		schema: (value) => value
 	}
 });

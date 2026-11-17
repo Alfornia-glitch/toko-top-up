@@ -169,14 +169,15 @@ export function createCheckoutService(dependencies: CheckoutDependencies): Check
 					throw cause;
 				}
 
+				const manual = input.paymentMode === 'qris';
 				let placed: PlacedOrder;
 				try {
 					placed = unwrap(
 						await orders.orders.createOrder({
 							orderId,
 							userId: buyer.id,
-							status: 'paid',
-							paymentStatus: 'paid',
+							status: manual ? 'pending' : 'paid',
+							paymentStatus: manual ? 'pending' : 'paid',
 							subtotalCents,
 							discountCents,
 							shippingCents,
@@ -188,7 +189,9 @@ export function createCheckoutService(dependencies: CheckoutDependencies): Check
 							billingAddress: addressSnapshot(address),
 							notes: input.note ?? null,
 							items: lines,
-							payment: { provider: 'mock', status: 'succeeded' }
+							payment: manual
+								? { provider: 'qris', status: 'pending' }
+								: { provider: 'mock', status: 'succeeded' }
 						})
 					);
 				} catch (error) {
