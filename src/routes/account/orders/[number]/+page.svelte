@@ -147,6 +147,9 @@
 	description={order ? `Placed ${formatDate(order.placedAt)}` : 'View your order details.'}
 >
 	{#snippet actions()}
+		{#if order && order.status === 'pending' && order.paymentStatus === 'pending'}
+			<Button href={`/account/payments/${order.id}`}>Complete payment</Button>
+		{/if}
 		<Button variant="outline" href="/account/orders">
 			<ChevronLeft class="size-4" aria-hidden="true" />
 			Back to orders

@@ -32,3 +32,29 @@ Use the Supabase profile (`env.supabase.example`) in the Netlify site settings. 
 Run `pnpm run db:push` once against the Supabase database from a local machine. The build does not migrate.
 
 The VPS profile (SQLite + RustFS) is not supported on Netlify, but runs on any Node host.
+
+## Manual QRIS payments
+
+Customers pay a static merchant QRIS in their banking/e-wallet app, upload a screenshot, and an admin
+verifies it against the real bank mutation before the order becomes `paid`. No gateway is involved.
+
+**Config** (`src/env.ts`, see `env.vps.example`): `QRIS_IMAGE_URL` (merchant QR image), `PAYMENT_PROOF_DIR`
+(private proof directory, default `./data/payment-proofs`, needs a writable filesystem so it suits the VPS
+deployment, not Netlify), `PAYMENT_WINDOW_MINUTES` (default 30), `PAYMENT_EXPIRE_SECRET` (cron secret).
+Currency must be IDR; amounts are whole rupiah.
+
+**Flow**: checkout with the QRIS tab creates a `pending` order and a `payments_orders` row
+(`total = base + unique code 1-999`, unique among open payments via a partial unique index) ->
+`/account/payments/:id` shows QR, exact total and countdown -> proof upload (JPG/PNG/WebP, 5 MB, type sniffed
+from bytes, metadata stripped, SHA-256 de-duplicated, 5 per hour) -> `awaiting_verification` ->
+admin at `/admin/payments` approves (atomic, idempotent; calls `orders.markPaid`) or rejects with a reason
+(customer may re-upload while the window is open). Unpaid payments expire after the window: the order is
+cancelled and stock released. Run `POST /api/internal/payments/expire` with header `x-cron-secret` every few
+minutes; reads also expire lazily.
+
+Proofs are never public: they are streamed only through `/api/payments/:id/proof` (owner or admin) and
+`/api/admin/payments/:id/proof` (admin).
+
+**Swapping in a gateway**: a webhook handler (after verifying signature and amount) calls
+`payments.payments.markPaid(paymentId, null)`. That is the same function admin approval uses (see the
+`GATEWAY WEBHOOK EXTENSION POINT` comment in `payments-service.ts`), so the order model is unchanged.

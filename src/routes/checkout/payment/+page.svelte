@@ -1,7 +1,16 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
-	import { Banknote, CreditCard, Gift, Lock, MapPin, ShoppingCart, Truck } from '@lucide/svelte';
+	import {
+		Banknote,
+		CreditCard,
+		Gift,
+		Lock,
+		MapPin,
+		QrCode,
+		ShoppingCart,
+		Truck
+	} from '@lucide/svelte';
 	import SiteHeader from '#lib/frontend/components/SiteHeader.svelte';
 	import SiteFooter from '#lib/frontend/components/SiteFooter.svelte';
 	import ImagePlaceholder from '#lib/frontend/components/ui/ImagePlaceholder.svelte';
@@ -23,7 +32,7 @@
 	import { formatMoney } from '#lib/frontend/modules/commerce/format.ts';
 	import type { Address, PaymentMethod } from '#lib/frontend/modules/commerce/models.ts';
 
-	type PaymentMode = 'card' | 'cod' | 'gift';
+	type PaymentMode = 'card' | 'cod' | 'gift' | 'qris';
 	type CardType = 'debit' | 'credit';
 
 	interface PaymentPayload {
@@ -67,7 +76,7 @@
 		if (value === 'debit' || value === 'credit') {
 			mode = 'card';
 			cardType = value;
-		} else if (value === 'cod' || value === 'gift') {
+		} else if (value === 'cod' || value === 'gift' || value === 'qris') {
 			mode = value;
 		}
 
@@ -235,7 +244,9 @@
 
 		try {
 			const result = unwrap(
-				await api.post<{ data: { orderId: string; orderNumber: string } }>('/api/checkout', {
+				await api.post<{
+					data: { orderId: string; orderNumber: string; payment?: { id: string } };
+				}>('/api/checkout', {
 					addressId: checkout.addressId,
 					shippingId: checkout.shippingId,
 					couponCode: cart.cart?.coupon?.code ?? null,
@@ -246,6 +257,10 @@
 
 			checkout.clear();
 			await cart.refresh();
+			if (mode === 'qris') {
+				await goto('/account/payments/' + encodeURIComponent(result.payment?.id ?? result.orderId));
+				return;
+			}
 			await goto('/account/order-tracking?order=' + encodeURIComponent(result.orderNumber));
 		} catch (cause) {
 			if (cause instanceof ApiError && cause.status === 401) {
@@ -412,6 +427,9 @@
 										<Tabs.Trigger value="credit" class="h-8 flex-1 whitespace-nowrap">
 											Credit Card
 										</Tabs.Trigger>
+										<Tabs.Trigger value="qris" class="h-8 flex-1 whitespace-nowrap">
+											QRIS
+										</Tabs.Trigger>
 										<Tabs.Trigger value="cod" class="h-8 flex-1 whitespace-nowrap">
 											Cash on delivery
 										</Tabs.Trigger>
@@ -528,6 +546,21 @@
 											</div>
 										</div>
 									{/if}
+								{:else if mode === 'qris'}
+									<div class="flex items-start gap-3 rounded-xl border bg-muted/40 p-4">
+										<span
+											class="flex size-9 shrink-0 items-center justify-center rounded-full bg-background text-muted-foreground"
+										>
+											<QrCode class="size-4" />
+										</span>
+										<div class="flex flex-col gap-0.5">
+											<p class="text-sm font-medium text-foreground">QRIS transfer</p>
+											<p class="text-sm text-muted-foreground">
+												After placing your order you will get a QR code and an exact amount to pay
+												within 30 minutes. Upload your payment proof and we will verify it.
+											</p>
+										</div>
+									</div>
 								{:else if mode === 'cod'}
 									<div class="flex items-start gap-3 rounded-xl border bg-muted/40 p-4">
 										<span
