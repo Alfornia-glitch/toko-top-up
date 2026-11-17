@@ -284,7 +284,7 @@ export function runStorefrontContract(context: StorefrontContractContext): void 
 	describe('site settings', () => {
 		test('layers stored settings over the defaults', async () => {
 			const defaults = unwrap(await storefront.getSiteSettings());
-			expect(defaults.currency).toBe('USD');
+			expect(defaults.currency).toBe('IDR');
 			expect(defaults.shipping.map((m) => m.id)).toEqual(['standard', 'express', 'basic']);
 
 			unwrap(

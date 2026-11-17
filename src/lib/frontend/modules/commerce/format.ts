@@ -1,8 +1,14 @@
-export function formatMoney(cents: number, currency = 'USD'): string {
-	return new Intl.NumberFormat('en-US', {
+/** Currencies whose amounts are stored as whole units, not hundredths. */
+const ZERO_DECIMAL = new Set(['IDR', 'JPY', 'KRW', 'VND']);
+
+export function formatMoney(cents: number, currency = 'IDR'): string {
+	const code = currency || 'IDR';
+	const zero = ZERO_DECIMAL.has(code);
+	return new Intl.NumberFormat(code === 'IDR' ? 'id-ID' : 'en-US', {
 		style: 'currency',
-		currency: currency || 'USD'
-	}).format(cents / 100);
+		currency: code,
+		maximumFractionDigits: zero ? 0 : 2
+	}).format(zero ? cents : cents / 100);
 }
 
 export function ratingValue(value: number): number {

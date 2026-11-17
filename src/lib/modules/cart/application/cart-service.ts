@@ -120,7 +120,7 @@ export function createCartService(
 		const currency =
 			(firstRecord ? variants.get(firstRecord.variantId)?.productCurrency : undefined) ??
 			cart.currency ??
-			'USD';
+			'IDR';
 
 		return {
 			id: cartId,
@@ -142,7 +142,7 @@ export function createCartService(
 			id,
 			userId,
 			status: 'active',
-			currency: 'USD',
+			currency: 'IDR',
 			couponId: null,
 			createdAt: now,
 			updatedAt: now

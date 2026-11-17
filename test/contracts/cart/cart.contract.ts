@@ -165,7 +165,7 @@ export function runCartContract(context: CartContractContext): void {
 		test('unknown carts read as empty', async () => {
 			const cartId = await guestCart();
 			const cart = unwrap(await service.getCart('unknown-cart'));
-			expect(cart).toMatchObject({ id: 'unknown-cart', items: [], currency: 'USD' });
+			expect(cart).toMatchObject({ id: 'unknown-cart', items: [], currency: 'IDR' });
 			expect(unwrap(await service.getCart(cartId)).items).toEqual([]);
 		});
 	});

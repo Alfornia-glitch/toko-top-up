@@ -50,7 +50,7 @@ const defaultSettings: SiteSettings = {
 			maxDays: 4
 		}
 	],
-	currency: 'USD'
+	currency: 'IDR'
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {

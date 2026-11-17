@@ -11,7 +11,7 @@ const DEFAULTS: SiteSettings = {
 	social: { instagram: '', facebook: '', twitter: '' },
 	downloads: { appStore: '', googlePlay: '' },
 	shipping: [],
-	currency: 'USD'
+	currency: 'IDR'
 };
 
 class SiteStore {

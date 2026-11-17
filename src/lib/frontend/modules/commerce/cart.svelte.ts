@@ -13,7 +13,7 @@ class CartStore {
 	readonly subtotalCents = $derived(this.cart?.subtotalCents ?? 0);
 	readonly discountCents = $derived(this.cart?.discountCents ?? 0);
 	readonly totalCents = $derived(this.cart?.totalCents ?? 0);
-	readonly currency = $derived(this.cart?.currency ?? 'USD');
+	readonly currency = $derived(this.cart?.currency ?? 'IDR');
 
 	async refresh(): Promise<void> {
 		await this.run(async () => {

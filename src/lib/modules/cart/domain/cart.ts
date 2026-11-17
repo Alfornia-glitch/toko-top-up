@@ -79,7 +79,7 @@ export interface CartRepository {
 	applyMerge(plan: MergePlan): Promise<void>;
 }
 
-export function emptyCart(cartId: string, currency = 'USD'): Cart {
+export function emptyCart(cartId: string, currency = 'IDR'): Cart {
 	return {
 		id: cartId,
 		items: [],
