@@ -120,7 +120,9 @@
 				class="flex flex-col items-start gap-5 rounded-[14px] border bg-[#f5f5f5] p-6 sm:p-10"
 			>
 				<Badge variant="secondary">Buyer protection</Badge>
-				<h1 class="font-['Geist:Bold'] text-3xl leading-tight text-[#0a0a0a] sm:text-4xl">
+				<h1
+					class="font-['Geist:Bold'] text-3xl leading-tight text-[#0a0a0a] max-[480px]:text-2xl max-[480px]:leading-8 sm:text-4xl"
+				>
 					Purchase protection
 				</h1>
 				<p class="max-w-2xl text-base text-muted-foreground sm:text-lg">

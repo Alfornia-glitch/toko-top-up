@@ -133,11 +133,11 @@
 >
 	<SiteHeader />
 	<div
-		class="relative flex w-full max-w-[1440px] shrink-0 flex-col content-stretch items-center justify-center bg-white py-[56px]"
+		class="relative flex w-full max-w-[1440px] shrink-0 flex-col content-stretch items-center justify-center bg-white py-[56px] max-[480px]:py-9"
 		data-name="Timeline"
 	>
 		<div
-			class="relative flex w-full max-w-[1280px] min-w-[328px] shrink-0 content-stretch items-start gap-[24px] px-[32px]"
+			class="relative flex w-full max-w-[1280px] min-w-[328px] shrink-0 content-stretch items-start gap-[24px] px-[32px] max-[480px]:px-3.5"
 			data-name="Flex Horizontal"
 		>
 			<AccountSidebar />
@@ -356,7 +356,7 @@
 							</div>
 
 							<div
-								class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[8px] rounded-[8px] bg-[#f5f5f5] p-[16px]"
+								class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[8px] rounded-[8px] bg-[#f5f5f5] p-[16px] max-md:max-w-full"
 								data-name="Pricing Details"
 							>
 								<div class="flex w-full items-center justify-between gap-[12px]">

@@ -50,7 +50,7 @@
 	"devDependencies": {
 		"@eslint/js": "^10.0.1",
 		"@internationalized/date": "^3.12.0",
-		"@lucide/svelte": "^1.67.0",
+		"@lucide/svelte": "^1.74.0",
 		"@playwright/test": "^1.65.0",
 		"@sveltejs/adapter-netlify": "^7.0.1",
 		"@sveltejs/kit": "^3.0.0",
@@ -66,6 +66,7 @@
 		"cn": "^0.5.0",
 		"dependency-cruiser": "^18.7.2",
 		"drizzle-kit": "^0.31.11",
+		"embla-carousel-svelte": "^8.6.0",
 		"eslint": "^10.14.0",
 		"eslint-import-resolver-typescript": "^4.4.5",
 		"eslint-plugin-boundaries": "^7.4.2",

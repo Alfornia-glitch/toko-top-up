@@ -69,7 +69,7 @@
 	>
 		{#each blocks as block (block.label)}
 			<div
-				class="relative flex min-w-px flex-[1_0_0] flex-col content-stretch items-center gap-[4.921px]"
+				class="relative flex min-w-px flex-[1_0_0] flex-col content-stretch items-center gap-[4.921px] max-[480px]:min-w-[60px]"
 				data-name="Timer Blocks"
 			>
 				<div

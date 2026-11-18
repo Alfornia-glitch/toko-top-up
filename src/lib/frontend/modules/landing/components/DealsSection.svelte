@@ -44,11 +44,11 @@
 </script>
 
 <div
-	class="relative flex w-full shrink-0 flex-col content-stretch items-center justify-center bg-white py-[96px]"
+	class="relative flex w-full shrink-0 flex-col content-stretch items-center justify-center bg-white py-[96px] max-[480px]:py-9"
 	data-name="Feature"
 >
 	<div
-		class="relative flex w-full max-w-[1280px] shrink-0 flex-col content-stretch items-center justify-center gap-[32px] px-[32px]"
+		class="relative flex w-full max-w-[1280px] shrink-0 flex-col content-stretch items-center justify-center gap-[32px] px-[32px] max-[480px]:px-3.5"
 		data-name="Flex Vertical"
 	>
 		<div
@@ -56,7 +56,7 @@
 			data-name="Flex Horizontal"
 		>
 			<p
-				class="relative min-w-px flex-[1_0_0] font-['Geist:Bold'] text-[30px] leading-[36px] font-bold [word-break:break-word] text-[#0a0a0a]"
+				class="relative min-w-px flex-[1_0_0] font-['Geist:Bold'] text-[30px] leading-[36px] font-bold [word-break:break-word] text-[#0a0a0a] max-[480px]:text-2xl max-[480px]:leading-8"
 			>
 				Deals of the Day 🔥
 			</p>
@@ -115,7 +115,7 @@
 							data-name="Flex Vertical"
 						>
 							<p
-								class="relative min-w-px flex-[1_0_0] font-['Geist:Bold'] text-[36px] leading-[40px] font-bold [word-break:break-word] text-white"
+								class="relative min-w-px flex-[1_0_0] font-['Geist:Bold'] text-[36px] leading-[40px] font-bold [word-break:break-word] text-white max-[480px]:text-2xl max-[480px]:leading-8"
 							>
 								{featuredTitle}
 							</p>
@@ -146,7 +146,7 @@
 										data-name="Flex Horizontal"
 									>
 										<div
-											class="relative flex min-w-px flex-[1_0_0] flex-col content-stretch items-center gap-[4.921px]"
+											class="relative flex min-w-px flex-[1_0_0] flex-col content-stretch items-center gap-[4.921px] max-[480px]:min-w-[60px]"
 											data-name="Timer Blocks"
 										>
 											<div
@@ -166,7 +166,7 @@
 											</p>
 										</div>
 										<div
-											class="relative flex min-w-px flex-[1_0_0] flex-col content-stretch items-center gap-[4.921px]"
+											class="relative flex min-w-px flex-[1_0_0] flex-col content-stretch items-center gap-[4.921px] max-[480px]:min-w-[60px]"
 											data-name="Timer Blocks"
 										>
 											<div
@@ -186,7 +186,7 @@
 											</p>
 										</div>
 										<div
-											class="relative flex min-w-px flex-[1_0_0] flex-col content-stretch items-center gap-[4.921px]"
+											class="relative flex min-w-px flex-[1_0_0] flex-col content-stretch items-center gap-[4.921px] max-[480px]:min-w-[60px]"
 											data-name="Timer Blocks"
 										>
 											<div
@@ -206,7 +206,7 @@
 											</p>
 										</div>
 										<div
-											class="relative flex min-w-px flex-[1_0_0] flex-col content-stretch items-center gap-[4.921px]"
+											class="relative flex min-w-px flex-[1_0_0] flex-col content-stretch items-center gap-[4.921px] max-[480px]:min-w-[60px]"
 											data-name="Timer Blocks"
 										>
 											<div

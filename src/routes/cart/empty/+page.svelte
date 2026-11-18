@@ -37,7 +37,7 @@
 >
 	<SiteHeader />
 	<div
-		class="relative flex w-full max-w-[1440px] shrink-0 flex-col content-stretch items-center justify-center bg-white py-[56px]"
+		class="relative flex w-full max-w-[1440px] shrink-0 flex-col content-stretch items-center justify-center bg-white py-[56px] max-[480px]:py-9"
 		data-name="Error"
 	>
 		<div
@@ -56,7 +56,7 @@
 				data-name="Product details"
 			>
 				<p
-					class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[30px] leading-[36px] font-semibold text-[#0a0a0a]"
+					class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[30px] leading-[36px] font-semibold text-[#0a0a0a] max-[480px]:text-2xl max-[480px]:leading-8"
 				>
 					Your cart is currently empty
 				</p>

@@ -182,10 +182,13 @@
 
 <div class="relative flex w-full flex-col items-center bg-white" data-name="Product detail">
 	<div
-		class="relative flex w-full max-w-[1440px] flex-col items-center justify-center gap-[14px] bg-white py-[56px]"
+		class="relative flex w-full max-w-[1440px] flex-col items-center justify-center gap-[14px] bg-white py-[56px] max-[480px]:py-9"
 		data-name="Product overview"
 	>
-		<div class="relative flex w-full max-w-[1280px] items-center px-[32px]" data-name="Breadcrumbs">
+		<div
+			class="relative flex w-full max-w-[1280px] items-center px-[32px] max-[480px]:px-3.5"
+			data-name="Breadcrumbs"
+		>
 			<nav
 				aria-label="Breadcrumb"
 				class="relative flex max-h-[28px] flex-wrap items-center gap-[6px] text-[14px] leading-[20px] text-[#737373]"
@@ -202,7 +205,9 @@
 		</div>
 
 		{#if loading}
-			<div class="flex w-full max-w-[1280px] flex-col gap-[32px] px-[32px] lg:flex-row">
+			<div
+				class="flex w-full max-w-[1280px] flex-col gap-[32px] px-[32px] max-[480px]:px-3.5 lg:flex-row"
+			>
 				<div class="flex w-full flex-col gap-[14px] lg:flex-1">
 					<Skeleton class="aspect-square w-full rounded-[8px]" />
 					<div class="flex gap-[14px]">
@@ -223,7 +228,7 @@
 				</div>
 			</div>
 		{:else if notFound}
-			<div class="flex w-full max-w-[1280px] justify-center px-[32px]">
+			<div class="flex w-full max-w-[1280px] justify-center px-[32px] max-[480px]:px-3.5">
 				<Card.Root class="mx-auto w-full max-w-lg">
 					<Card.Content class="flex flex-col items-center gap-[16px] py-[48px] text-center">
 						<p class="text-[18px] font-semibold text-[#0a0a0a]">Product not found</p>
@@ -235,7 +240,7 @@
 				</Card.Root>
 			</div>
 		{:else if error}
-			<div class="flex w-full max-w-[1280px] justify-center px-[32px]">
+			<div class="flex w-full max-w-[1280px] justify-center px-[32px] max-[480px]:px-3.5">
 				<Card.Root class="mx-auto w-full max-w-lg">
 					<Card.Content class="flex flex-col items-center gap-[16px] py-[48px] text-center">
 						<p class="text-[14px] text-[#dc2626]">{error}</p>
@@ -245,12 +250,12 @@
 			</div>
 		{:else if product}
 			<div
-				class="relative flex w-full max-w-[1280px] min-w-[328px] flex-col items-start justify-center gap-[32px] px-[32px] lg:flex-row"
+				class="relative flex w-full max-w-[1280px] min-w-[328px] flex-col items-start justify-center gap-[32px] px-[32px] max-[480px]:px-3.5 max-md:flex-col lg:flex-row"
 				data-node-id="I1:21686;31919:11168"
 				data-name="Flex Horizontal"
 			>
 				<div
-					class="relative flex w-full flex-col items-start justify-center gap-[14px] lg:h-[720px] lg:flex-1"
+					class="relative flex w-full flex-col items-start justify-center gap-[14px] max-md:h-auto max-md:w-full max-md:min-w-0 lg:h-[720px] lg:flex-1"
 					data-node-id="I1:21686;31919:11169"
 					data-name="Flex Vertical"
 				>
@@ -309,7 +314,9 @@
 							</div>
 
 							<div class="flex w-full flex-col items-start gap-[6px]">
-								<h1 class="text-[30px] leading-[36px] font-semibold text-[#0a0a0a]">
+								<h1
+									class="text-[30px] leading-[36px] font-semibold text-[#0a0a0a] max-[480px]:text-2xl max-[480px]:leading-8"
+								>
 									{product.name}
 								</h1>
 								<div class="flex w-full flex-wrap items-center gap-[6px]">
@@ -533,11 +540,11 @@
 	{#if product && !loading}
 		{#if product.description}
 			<div
-				class="relative flex w-full flex-col items-center justify-center bg-white py-[56px]"
+				class="relative flex w-full flex-col items-center justify-center bg-white py-[56px] max-[480px]:py-9"
 				data-name="Data table"
 			>
 				<div
-					class="flex w-full max-w-[1280px] flex-col items-start gap-[24px] px-[32px]"
+					class="flex w-full max-w-[1280px] flex-col items-start gap-[24px] px-[32px] max-[480px]:px-3.5"
 					data-name="Flex Vertical"
 				>
 					<h2 class="text-[24px] leading-[32px] font-semibold text-[#0a0a0a]">Key Highlights</h2>
@@ -549,23 +556,26 @@
 		{/if}
 
 		<div
-			class="relative flex w-full flex-col items-center justify-center py-[56px]"
+			class="relative flex w-full flex-col items-center justify-center py-[56px] max-[480px]:py-9"
 			data-name="Product reviews"
 		>
 			<div
-				class="flex w-full max-w-[1280px] flex-col items-center gap-[24px] px-[32px]"
+				class="flex w-full max-w-[1280px] flex-col items-center gap-[24px] px-[32px] max-[480px]:px-3.5"
 				data-name="Flex Vertical"
 			>
 				<h2 class="w-full text-[24px] leading-[32px] font-semibold text-[#0a0a0a]">Reviews</h2>
 				<div class="flex w-full flex-col items-start gap-[48px] lg:flex-row">
 					<div
-						class="flex w-full max-w-[361px] shrink-0 flex-col items-start gap-[16px] overflow-clip rounded-[14px] bg-[#f5f5f5] py-[24px]"
+						class="flex w-full max-w-[361px] shrink-0 flex-col items-start gap-[16px] overflow-clip rounded-[14px] bg-[#f5f5f5] py-[24px] max-md:max-w-full"
 						data-name="Card"
 					>
 						<div class="flex w-full flex-col items-start gap-[24px] px-[24px]">
 							<div class="flex w-full flex-col items-center justify-center gap-[8px]">
 								<p class="text-[60px] leading-none font-semibold text-[#0a0a0a]">
-									{rating.toFixed(1)}<span class="text-[36px] leading-[40px]">/5</span>
+									{rating.toFixed(1)}<span
+										class="text-[36px] leading-[40px] max-[480px]:text-2xl max-[480px]:leading-8"
+										>/5</span
+									>
 								</p>
 								<div
 									class="flex items-center gap-0.5"
@@ -665,11 +675,11 @@
 
 		{#if product.related.length > 0}
 			<div
-				class="relative flex w-full flex-col items-center justify-center bg-white py-[56px]"
+				class="relative flex w-full flex-col items-center justify-center bg-white py-[56px] max-[480px]:py-9"
 				data-name="Product list"
 			>
 				<div
-					class="flex w-full max-w-[1280px] flex-col items-start gap-[24px] px-[32px]"
+					class="flex w-full max-w-[1280px] flex-col items-start gap-[24px] px-[32px] max-[480px]:px-3.5"
 					data-name="Flex Vertical"
 				>
 					<h2 class="text-[24px] leading-[32px] font-semibold text-[#0a0a0a]">Related products</h2>

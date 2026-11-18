@@ -20,11 +20,11 @@
 {/snippet}
 
 <div
-	class="relative flex w-full shrink-0 flex-col content-stretch items-center justify-center gap-[32px] overflow-clip bg-white py-[96px]"
+	class="relative flex w-full shrink-0 flex-col content-stretch items-center justify-center gap-[32px] overflow-clip bg-white py-[96px] max-[480px]:py-9"
 	data-name="Testimonials"
 >
 	<p
-		class="relative w-[min-content] min-w-full shrink-0 text-center font-['Geist:Bold'] text-[30px] leading-[36px] font-bold [word-break:break-word] text-[#0a0a0a]"
+		class="relative w-[min-content] min-w-full shrink-0 text-center font-['Geist:Bold'] text-[30px] leading-[36px] font-bold [word-break:break-word] text-[#0a0a0a] max-[480px]:text-2xl max-[480px]:leading-8"
 	>
 		Inspired by Our Community
 	</p>

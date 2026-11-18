@@ -195,11 +195,11 @@
 >
 	<SiteHeader />
 	<div
-		class="relative flex w-full max-w-[1440px] shrink-0 flex-col content-stretch items-center justify-center bg-white py-[56px]"
+		class="relative flex w-full max-w-[1440px] shrink-0 flex-col content-stretch items-center justify-center bg-white py-[56px] max-[480px]:py-9"
 		data-name="Support tickets"
 	>
 		<div
-			class="relative flex w-full max-w-[1280px] min-w-[328px] shrink-0 content-stretch items-start gap-[24px] overflow-clip px-[32px]"
+			class="relative flex w-full max-w-[1280px] min-w-[328px] shrink-0 content-stretch items-start gap-[24px] overflow-clip px-[32px] max-[480px]:px-3.5"
 			data-name="Flex Horizontal"
 		>
 			<AccountSidebar />

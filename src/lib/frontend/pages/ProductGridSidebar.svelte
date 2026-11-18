@@ -236,11 +236,11 @@
 	<SiteHeader />
 	{@render before?.()}
 	<div
-		class="relative flex w-full max-w-[1440px] shrink-0 flex-col content-stretch items-center justify-center gap-[14px] bg-white py-[56px]"
+		class="relative flex w-full max-w-[1440px] shrink-0 flex-col content-stretch items-center justify-center gap-[14px] bg-white py-[56px] max-[480px]:py-9"
 		data-name="Category filter"
 	>
 		<div
-			class="relative flex w-full max-w-[1280px] shrink-0 content-stretch items-center px-[32px]"
+			class="relative flex w-full max-w-[1280px] shrink-0 content-stretch items-center px-[32px] max-[480px]:px-3.5"
 			data-name="Breadcrumbs"
 		>
 			<div
@@ -291,11 +291,11 @@
 			</div>
 		</div>
 		<div
-			class="relative flex w-full max-w-[1280px] min-w-[328px] shrink-0 content-stretch items-start gap-[16px] px-[32px]"
+			class="relative flex w-full max-w-[1280px] min-w-[328px] shrink-0 content-stretch items-start gap-[16px] px-[32px] max-[480px]:px-3.5"
 			data-name="Flex Horizontal"
 		>
 			<div
-				class="relative flex max-w-[323px] min-w-[299px] flex-[1_0_0] flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-white py-[16px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)]"
+				class="relative flex max-w-[323px] min-w-[299px] flex-[1_0_0] flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-white py-[16px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)] max-md:max-w-full"
 				data-name="Card"
 			>
 				<div

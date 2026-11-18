@@ -168,11 +168,11 @@
 	<SiteHeader />
 	{#if banner}
 		<div
-			class="relative flex w-full shrink-0 content-stretch items-center justify-center overflow-clip py-[56px]"
+			class="relative flex w-full shrink-0 content-stretch items-center justify-center overflow-clip py-[56px] max-[480px]:py-9"
 			data-name="Hero"
 		>
 			<div
-				class="relative flex max-w-[1280px] min-w-px flex-[1_0_0] content-stretch items-start px-[32px]"
+				class="relative flex max-w-[1280px] min-w-px flex-[1_0_0] content-stretch items-start px-[32px] max-[480px]:px-3.5"
 				data-name="Flex Horizontal"
 			>
 				<div
@@ -232,11 +232,11 @@
 		</div>
 	{/if}
 	<div
-		class="relative flex w-full max-w-[1440px] shrink-0 flex-col content-stretch items-center justify-center bg-white py-[56px]"
+		class="relative flex w-full max-w-[1440px] shrink-0 flex-col content-stretch items-center justify-center bg-white py-[56px] max-[480px]:py-9"
 		data-name="Category filter"
 	>
 		<div
-			class="relative flex w-full max-w-[1280px] min-w-[328px] shrink-0 flex-col content-stretch items-start overflow-clip px-[32px]"
+			class="relative flex w-full max-w-[1280px] min-w-[328px] shrink-0 flex-col content-stretch items-start overflow-clip px-[32px] max-[480px]:px-3.5"
 			data-name="Flex Vertical"
 		>
 			<div

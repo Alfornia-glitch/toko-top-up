@@ -10,7 +10,11 @@
 			<div class="flex flex-col gap-6">
 				<div class="flex items-end justify-between gap-4">
 					<div>
-						<h2 class="text-[30px] leading-[36px] font-bold text-[#0a0a0a]">Featured Products</h2>
+						<h2
+							class="text-[30px] leading-[36px] font-bold text-[#0a0a0a] max-[480px]:text-2xl max-[480px]:leading-8"
+						>
+							Featured Products
+						</h2>
 						<p class="text-sm text-[#737373]">Hand-picked favourites from the live catalog</p>
 					</div>
 					<a

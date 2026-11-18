@@ -51,7 +51,9 @@
 					<Badge variant="secondary" class="border-white/20 bg-white/15 text-white">
 						Featured collection
 					</Badge>
-					<h1 class="text-4xl font-bold text-white sm:text-6xl">
+					<h1
+						class="text-4xl font-bold text-white max-[480px]:text-2xl max-[480px]:leading-8 sm:text-6xl"
+					>
 						{banner?.title ?? 'Everything you need, all in one place'}
 					</h1>
 					<p class="text-base text-white/80 sm:text-lg">

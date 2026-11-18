@@ -255,7 +255,11 @@
 								<span class="font-medium text-[#0a0a0a]">{product.brandName}</span>
 							{/if}
 						</div>
-						<h1 class="text-3xl leading-tight font-bold text-[#0a0a0a]">{product.name}</h1>
+						<h1
+							class="text-3xl leading-tight font-bold text-[#0a0a0a] max-[480px]:text-2xl max-[480px]:leading-8"
+						>
+							{product.name}
+						</h1>
 						<div class="flex flex-wrap items-center gap-2">
 							<div class="flex items-center gap-0.5">
 								{#each [0, 1, 2, 3, 4] as index (index)}

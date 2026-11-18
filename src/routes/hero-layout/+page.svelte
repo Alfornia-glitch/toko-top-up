@@ -24,11 +24,13 @@
 	<SiteHeader />
 	<HeroSection />
 
-	<section class="flex w-full flex-col items-center py-[56px]">
-		<div class="flex w-full max-w-[1280px] flex-col gap-[24px] px-[32px]">
+	<section class="flex w-full flex-col items-center py-[56px] max-[480px]:py-9">
+		<div class="flex w-full max-w-[1280px] flex-col gap-[24px] px-[32px] max-[480px]:px-3.5">
 			<div class="flex flex-wrap items-end justify-between gap-[16px]">
 				<div class="flex flex-col gap-[4px]">
-					<h2 class="font-['Geist:Bold'] text-[30px] leading-[36px] font-bold text-[#0a0a0a]">
+					<h2
+						class="font-['Geist:Bold'] text-[30px] leading-[36px] font-bold text-[#0a0a0a] max-[480px]:text-2xl max-[480px]:leading-8"
+					>
 						Shop by category
 					</h2>
 					<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">

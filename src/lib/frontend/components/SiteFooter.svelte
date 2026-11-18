@@ -74,11 +74,11 @@
 >
 	{#if features}
 		<div
-			class="relative flex w-full max-w-[1280px] shrink-0 content-stretch items-start gap-[24px] px-[32px]"
+			class="relative flex w-full max-w-[1280px] shrink-0 content-stretch items-start gap-[24px] px-[32px] max-md:flex-col max-md:gap-3 max-md:px-4"
 			data-name="Flex Horizontal"
 		>
 			<div
-				class="relative flex min-w-px flex-[1_0_0] flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-white py-[16px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)]"
+				class="relative flex min-w-px flex-[1_0_0] flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-white py-[16px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)] max-md:w-full"
 				data-name="Card"
 			>
 				<div
@@ -117,7 +117,7 @@
 				</div>
 			</div>
 			<div
-				class="relative flex min-w-px flex-[1_0_0] flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-white py-[16px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)]"
+				class="relative flex min-w-px flex-[1_0_0] flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-white py-[16px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)] max-md:w-full"
 				data-name="Card"
 			>
 				<div
@@ -156,7 +156,7 @@
 				</div>
 			</div>
 			<div
-				class="relative flex min-w-px flex-[1_0_0] flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-white py-[16px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)]"
+				class="relative flex min-w-px flex-[1_0_0] flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-white py-[16px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)] max-md:w-full"
 				data-name="Card"
 			>
 				<div
@@ -205,7 +205,7 @@
 		data-name="Flex Vertical"
 	>
 		<div
-			class="relative flex w-full max-w-[1280px] shrink-0 flex-wrap content-start items-start gap-[32px] px-[32px] py-[56px]"
+			class="relative flex w-full max-w-[1280px] shrink-0 flex-wrap content-start items-start gap-[32px] px-[32px] py-[56px] max-[480px]:px-3.5 max-[480px]:py-9 max-md:flex-col max-md:gap-6"
 			data-name="Flex Horizontal"
 		>
 			<div
@@ -389,7 +389,7 @@
 						data-name="Subscribe"
 					>
 						<div
-							class="relative flex min-w-px flex-[1_0_0] flex-col content-stretch items-start gap-[8px]"
+							class="relative flex min-w-px flex-[1_0_0] flex-col content-stretch items-start gap-[8px] max-md:hidden"
 							data-name="Default Input"
 						>
 							<form
@@ -561,14 +561,14 @@
 			</div>
 		</div>
 		<div
-			class="relative flex w-full shrink-0 content-stretch items-start justify-center py-[24px]"
+			class="relative flex w-full shrink-0 content-stretch items-start justify-center py-[24px] max-md:flex-col max-md:gap-6"
 			data-name="Flex Horizontal"
 		>
 			<div
-				class="relative flex max-w-[1280px] min-w-px flex-[1_0_0] content-stretch items-start justify-center gap-[24px] px-[32px]"
+				class="relative flex max-w-[1280px] min-w-px flex-[1_0_0] content-stretch items-start justify-center gap-[24px] px-[32px] max-[480px]:px-3.5"
 			>
 				<div
-					class="relative flex min-w-px flex-[1_0_0] content-stretch items-center justify-center"
+					class="relative flex min-w-px flex-[1_0_0] content-stretch items-center justify-center max-md:hidden"
 					data-name="Row"
 				>
 					<p

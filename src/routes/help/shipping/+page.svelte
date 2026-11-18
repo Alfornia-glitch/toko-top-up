@@ -97,7 +97,9 @@
 				class="mt-6 flex flex-col gap-6 rounded-2xl border border-[#e5e5e5] bg-[#f5f5f5] p-6 sm:p-10 md:flex-row md:items-center md:justify-between"
 			>
 				<div class="flex max-w-2xl flex-col gap-3">
-					<h1 class="text-3xl font-bold tracking-tight text-[#0a0a0a] sm:text-4xl">
+					<h1
+						class="text-3xl font-bold tracking-tight text-[#0a0a0a] max-[480px]:text-2xl max-[480px]:leading-8 sm:text-4xl"
+					>
 						Shipping &amp; delivery
 					</h1>
 					<p class="text-base leading-relaxed text-[#737373]">

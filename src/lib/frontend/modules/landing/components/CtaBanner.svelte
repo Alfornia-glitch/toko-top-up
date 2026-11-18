@@ -13,7 +13,7 @@
 >
 	{#if banner}
 		<div
-			class="relative flex h-[400px] w-full max-w-[1280px] shrink-0 flex-col content-stretch items-start px-[32px]"
+			class="relative flex h-[400px] w-full max-w-[1280px] shrink-0 flex-col content-stretch items-start px-[32px] max-[480px]:px-3.5"
 			data-name="Flex Vertrical"
 		>
 			<div
