@@ -155,6 +155,8 @@
 							</div>
 							<div class="relative size-[16px] shrink-0" data-name="Right-icon">
 								<img
+									loading="lazy"
+									decoding="async"
 									alt=""
 									class="absolute inset-0 block size-full max-w-none"
 									src={imgRightIcon}
@@ -168,6 +170,8 @@
 						<div class="flex-none rotate-[10.52deg]">
 							<div class="relative h-[224.693px] w-[206.003px]" data-name="Hero Image">
 								<img
+									loading="lazy"
+									decoding="async"
 									alt=""
 									class="pointer-events-none absolute inset-0 size-full max-w-none object-bottom"
 									src={imgHeroImage}

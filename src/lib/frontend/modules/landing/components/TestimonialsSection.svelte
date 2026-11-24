@@ -74,7 +74,7 @@
 	</Carousel.Root>
 	{#if instagram}
 		<Button variant="outline" href={instagram} target="_blank" rel="noreferrer" class="h-9 px-4">
-			<img alt="" class="size-4" src={imgLeftIcon5} />
+			<img loading="lazy" decoding="async" alt="" class="size-4" src={imgLeftIcon5} />
 			Ikuti kami di Instagram
 		</Button>
 	{/if}

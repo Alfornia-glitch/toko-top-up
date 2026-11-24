@@ -564,6 +564,8 @@
 										<div class="grid grid-cols-2 gap-[8px] sm:grid-cols-4">
 											{#each selected.images as image (image.id)}
 												<img
+													loading="lazy"
+													decoding="async"
 													src={image.url}
 													alt=""
 													class="aspect-square w-full rounded-[8px] object-cover"

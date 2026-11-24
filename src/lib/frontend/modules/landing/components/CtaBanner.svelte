@@ -23,6 +23,8 @@
 				<div class="absolute top-0 left-0 h-[400px] w-full" data-name="Background Image">
 					{#if banner.imageUrl}
 						<img
+							loading="lazy"
+							decoding="async"
 							src={banner.imageUrl}
 							alt={banner.title}
 							class="absolute inset-0 size-full object-cover"
@@ -74,6 +76,8 @@
 							</div>
 							<div class="relative size-[16px] shrink-0" data-name="Right icon">
 								<img
+									loading="lazy"
+									decoding="async"
 									alt=""
 									class="absolute inset-0 block size-full max-w-none"
 									src={imgRightIcon}

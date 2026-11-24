@@ -1,5 +1,5 @@
 /** Currencies whose amounts are stored as whole units, not hundredths. */
-const ZERO_DECIMAL = new Set(['IDR', 'JPY', 'KRW', 'VND']);
+export const ZERO_DECIMAL = new Set(['IDR', 'JPY', 'KRW', 'VND']);
 
 export function formatMoney(cents: number, currency = 'IDR'): string {
 	const code = currency || 'IDR';

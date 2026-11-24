@@ -3,6 +3,8 @@
 	import { page } from '$app/state';
 	import SiteHeader from '#lib/frontend/components/SiteHeader.svelte';
 	import SiteFooter from '#lib/frontend/components/SiteFooter.svelte';
+	import Seo from '#lib/frontend/components/Seo.svelte';
+	import { categoryMeta } from '#lib/frontend/modules/seo/index.ts';
 	import ProductGridSidebar from '#lib/frontend/pages/ProductGridSidebar.svelte';
 	import ImagePlaceholder from '#lib/frontend/components/ui/ImagePlaceholder.svelte';
 	import { Badge } from '#lib/frontend/components/ui/badge/index.ts';
@@ -20,6 +22,10 @@
 		void home.ensure();
 	});
 </script>
+
+{#if category}
+	<Seo meta={categoryMeta(category)} />
+{/if}
 
 {#if home.loading && !home.data}
 	<div

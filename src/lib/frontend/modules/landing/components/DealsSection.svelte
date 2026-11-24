@@ -74,12 +74,24 @@
 					<div class="relative flex shrink-0 items-center justify-center">
 						<div class="flex-none -scale-y-100 rotate-180">
 							<div class="relative size-[30px]" data-name="ICON">
-								<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgIcon4} />
+								<img
+									loading="lazy"
+									decoding="async"
+									alt=""
+									class="absolute inset-0 block size-full max-w-none"
+									src={imgIcon4}
+								/>
 							</div>
 						</div>
 					</div>
 					<div class="relative size-[30px] shrink-0" data-name="ICON">
-						<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgIcon5} />
+						<img
+							loading="lazy"
+							decoding="async"
+							alt=""
+							class="absolute inset-0 block size-full max-w-none"
+							src={imgIcon5}
+						/>
 					</div>
 				</div>
 			</div>
@@ -95,6 +107,8 @@
 				>
 					{#if featuredImage}
 						<img
+							loading="lazy"
+							decoding="async"
 							src={featuredImage}
 							alt={featuredTitle}
 							class="pointer-events-none absolute inset-0 size-full rounded-[14px] object-cover"
@@ -240,6 +254,8 @@
 								</div>
 								<div class="relative size-[16px] shrink-0" data-name="Right-icon">
 									<img
+										loading="lazy"
+										decoding="async"
 										alt=""
 										class="absolute inset-0 block size-full max-w-none"
 										src={imgRightIcon1}

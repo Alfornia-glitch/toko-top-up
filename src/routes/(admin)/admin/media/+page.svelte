@@ -21,6 +21,7 @@
 	import * as Select from '#lib/frontend/components/ui/select/index.ts';
 	import * as Tabs from '#lib/frontend/components/ui/tabs/index.ts';
 	import { Badge } from '#lib/frontend/components/ui/badge/index.ts';
+	import { compressImage } from '#lib/frontend/modules/shared/image.ts';
 
 	type MediaAsset = {
 		id: string;
@@ -146,7 +147,7 @@
 
 		try {
 			const body = new FormData();
-			body.append('file', file);
+			body.append('file', await compressImage(file));
 			body.append('folder', uploadFolder);
 
 			const response = await fetch('/api/upload', { method: 'POST', body });

@@ -4,6 +4,8 @@
 	import { LoaderCircle, Minus, Plus, RotateCcw, Star, Truck } from '@lucide/svelte';
 	import SiteHeader from '#lib/frontend/components/SiteHeader.svelte';
 	import SiteFooter from '#lib/frontend/components/SiteFooter.svelte';
+	import Seo from '#lib/frontend/components/Seo.svelte';
+	import { productMeta } from '#lib/frontend/modules/seo/index.ts';
 	import WishlistButton from '#lib/frontend/components/shared/WishlistButton.svelte';
 	import ImagePlaceholder from '#lib/frontend/components/ui/ImagePlaceholder.svelte';
 	import { cart } from '#lib/frontend/modules/commerce/cart.svelte.ts';
@@ -173,6 +175,9 @@
 	class="relative flex min-h-screen w-full flex-col items-center bg-white"
 	data-name="Shopix - Product Detail"
 >
+	{#if product}
+		<Seo meta={productMeta(product)} />
+	{/if}
 	<SiteHeader />
 	<main class="mx-auto w-full max-w-[1280px] px-4 py-10 lg:px-8">
 		{#if loading}

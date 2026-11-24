@@ -382,6 +382,8 @@
 													>
 														{#if item.imageUrl}
 															<img
+																loading="lazy"
+																decoding="async"
 																alt={item.productName}
 																class="size-full object-cover"
 																src={item.imageUrl}

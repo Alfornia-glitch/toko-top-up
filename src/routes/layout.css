@@ -2,6 +2,16 @@
 @import 'tw-animate-css';
 @import 'shadcn-svelte/tailwind.css';
 
+/* Only app code ships; keep logs, docs and tooling out of Tailwind's class scan. */
+@source not '../../AI_Logs';
+@source not '../../docs';
+@source not '../../tools';
+@source not '../../scripts';
+@source not '../../e2e';
+@source not '../../test';
+@source not '../../migrations';
+@source not '../../*.md';
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -124,6 +134,7 @@
 	font-family: 'Geist:Regular';
 	src: url('https://static.figma.com/font/Geist_wght__1') format('woff2');
 	font-style: normal;
+	font-display: swap;
 	font-weight: 400;
 }
 
@@ -131,6 +142,7 @@
 	font-family: 'Geist:Light';
 	src: url('https://static.figma.com/font/Geist_wght__1') format('woff2');
 	font-style: normal;
+	font-display: swap;
 	font-weight: 300;
 }
 
@@ -138,6 +150,7 @@
 	font-family: 'Geist:Medium';
 	src: url('https://static.figma.com/font/Geist_wght__1') format('woff2');
 	font-style: normal;
+	font-display: swap;
 	font-weight: 500;
 }
 
@@ -145,6 +158,7 @@
 	font-family: 'Geist:SemiBold';
 	src: url('https://static.figma.com/font/Geist_wght__1') format('woff2');
 	font-style: normal;
+	font-display: swap;
 	font-weight: 600;
 }
 
@@ -152,6 +166,7 @@
 	font-family: 'Geist:Bold';
 	src: url('https://static.figma.com/font/Geist_wght__1') format('woff2');
 	font-style: normal;
+	font-display: swap;
 	font-weight: 700;
 }
 
@@ -159,6 +174,7 @@
 	font-family: 'Inter:Semi Bold';
 	src: url('https://static.figma.com/font/Inter_1') format('woff2');
 	font-style: normal;
+	font-display: swap;
 	font-weight: 600;
 }
 
@@ -166,6 +182,7 @@
 	font-family: 'Roboto:Regular';
 	src: url('https://static.figma.com/font/Roboto_wdth_wght__3') format('woff2');
 	font-style: normal;
+	font-display: swap;
 	font-weight: 400;
 }
 

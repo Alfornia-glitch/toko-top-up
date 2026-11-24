@@ -212,6 +212,8 @@
 								</div>
 								<div class="relative size-[16px] shrink-0" data-name="Right-icon">
 									<img
+										loading="lazy"
+										decoding="async"
 										alt=""
 										class="absolute inset-0 block size-full max-w-none"
 										src={imgRightIcon}
@@ -222,6 +224,8 @@
 					</div>
 					<div class="absolute top-[85px] left-[712px] h-[285px] w-[443px]" data-name="image 121">
 						<img
+							loading="lazy"
+							decoding="async"
 							src={banner.imageUrl}
 							alt={banner.title}
 							class="pointer-events-none absolute inset-0 size-full max-w-none object-bottom"
@@ -273,6 +277,8 @@
 									</p>
 									<div class="relative size-[16px] shrink-0" data-name="Left-icon">
 										<img
+											loading="lazy"
+											decoding="async"
 											alt=""
 											class="absolute inset-0 block size-full max-w-none"
 											src={imgMenuIcon}
@@ -304,6 +310,8 @@
 										>
 											<div class="relative size-[16px] shrink-0" data-name="left-icon">
 												<img
+													loading="lazy"
+													decoding="async"
 													alt=""
 													class="absolute inset-0 block size-full max-w-none"
 													src={imgGridIcon}
@@ -322,6 +330,8 @@
 										>
 											<div class="relative size-[16px] shrink-0" data-name="left-icon">
 												<img
+													loading="lazy"
+													decoding="async"
 													alt=""
 													class="absolute inset-0 block size-full max-w-none"
 													src={imgListIcon}
@@ -358,6 +368,8 @@
 										</select>
 										<div class="relative size-[16px] shrink-0" data-name="chevron-down">
 											<img
+												loading="lazy"
+												decoding="async"
 												alt=""
 												class="absolute inset-0 block size-full max-w-none"
 												src={imgSelectIcon}
@@ -386,7 +398,13 @@
 									{selectedCategory}
 								</p>
 								<div class="relative size-[12px] shrink-0" data-name="x">
-									<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgX} />
+									<img
+										loading="lazy"
+										decoding="async"
+										alt=""
+										class="absolute inset-0 block size-full max-w-none"
+										src={imgX}
+									/>
 								</div>
 							</button>
 						{/if}
@@ -408,7 +426,13 @@
 									{brandName}
 								</p>
 								<div class="relative size-[12px] shrink-0" data-name="x">
-									<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgX} />
+									<img
+										loading="lazy"
+										decoding="async"
+										alt=""
+										class="absolute inset-0 block size-full max-w-none"
+										src={imgX}
+									/>
 								</div>
 							</button>
 						{/if}
@@ -426,7 +450,13 @@
 									{priceLabel}
 								</p>
 								<div class="relative size-[12px] shrink-0" data-name="x">
-									<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgX} />
+									<img
+										loading="lazy"
+										decoding="async"
+										alt=""
+										class="absolute inset-0 block size-full max-w-none"
+										src={imgX}
+									/>
 								</div>
 							</button>
 						{/if}
@@ -448,7 +478,13 @@
 									{filters.color}
 								</p>
 								<div class="relative size-[12px] shrink-0" data-name="x">
-									<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgX} />
+									<img
+										loading="lazy"
+										decoding="async"
+										alt=""
+										class="absolute inset-0 block size-full max-w-none"
+										src={imgX}
+									/>
 								</div>
 							</button>
 						{/if}
@@ -507,7 +543,13 @@
 							data-name="Ghost Button"
 						>
 							<div class="relative size-[16px] shrink-0" data-name="Left icon">
-								<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgLeftIcon} />
+								<img
+									loading="lazy"
+									decoding="async"
+									alt=""
+									class="absolute inset-0 block size-full max-w-none"
+									src={imgLeftIcon}
+								/>
 							</div>
 							<p
 								class="font-['Geist:Medium'] text-[14px] leading-[20px] font-medium text-[#0a0a0a]"
@@ -545,6 +587,8 @@
 							</p>
 							<div class="relative size-[16px] shrink-0" data-name="Left icon">
 								<img
+									loading="lazy"
+									decoding="async"
 									alt=""
 									class="absolute inset-0 block size-full max-w-none"
 									src={imgLeftIcon1}

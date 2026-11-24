@@ -83,6 +83,8 @@
 			>
 				{#if heroBanner.imageUrl}
 					<img
+						loading="lazy"
+						decoding="async"
 						src={heroBanner.imageUrl}
 						alt={heroBanner.title}
 						class="pointer-events-none absolute inset-0 size-full object-cover"
@@ -281,6 +283,8 @@
 				>
 					{#if firstDeal.imageUrl}
 						<img
+							loading="lazy"
+							decoding="async"
 							src={firstDeal.imageUrl}
 							alt={firstDeal.name}
 							class="pointer-events-none absolute inset-0 size-full object-cover"

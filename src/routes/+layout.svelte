@@ -1,6 +1,9 @@
 <script lang="ts">
 	import './layout.css';
+	import { page } from '$app/state';
 	import favicon from '#lib/assets/favicon.svg';
+	import Seo from '#lib/frontend/components/Seo.svelte';
+	import { DYNAMIC_SEO_ROUTES, metaForRoute } from '#lib/frontend/modules/seo/index.ts';
 
 	let { children } = $props();
 
@@ -22,6 +25,10 @@
 </script>
 
 <svelte:head><link rel="icon" href={favicon} /></svelte:head>
+
+{#if !DYNAMIC_SEO_ROUTES.has(page.route.id ?? '')}
+	<Seo meta={metaForRoute(page.route.id)} />
+{/if}
 
 <div class="commerce-app min-h-screen w-full">
 	{@render children()}

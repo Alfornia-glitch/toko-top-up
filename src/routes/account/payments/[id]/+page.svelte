@@ -237,6 +237,8 @@
 
 					{#if payment.qrisImageUrl}
 						<img
+							loading="lazy"
+							decoding="async"
 							src={payment.qrisImageUrl}
 							alt="Merchant QRIS code"
 							class="size-64 rounded-lg border bg-white object-contain p-2"
@@ -270,6 +272,8 @@
 
 					{#if preview}
 						<img
+							loading="lazy"
+							decoding="async"
 							src={preview}
 							alt="Preview of your proof"
 							class="max-h-80 rounded-lg border object-contain"

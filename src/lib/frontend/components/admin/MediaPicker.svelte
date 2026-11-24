@@ -5,6 +5,7 @@
 	import { Button } from '#lib/frontend/components/ui/button/index.ts';
 	import { Input } from '#lib/frontend/components/ui/input/index.ts';
 	import { cn } from '#lib/frontend/utils.ts';
+	import { compressImage } from '#lib/frontend/modules/shared/image.ts';
 
 	export type MediaAsset = {
 		id: string;
@@ -64,7 +65,7 @@
 
 		try {
 			const body = new FormData();
-			body.append('file', file);
+			body.append('file', await compressImage(file));
 			body.append('folder', folder);
 
 			const response = await fetch('/api/upload', { method: 'POST', body });

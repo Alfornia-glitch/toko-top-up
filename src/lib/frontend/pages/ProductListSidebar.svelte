@@ -243,7 +243,13 @@
 					</p>
 				</a>
 				<div class="relative size-[14px] shrink-0" data-name="Breadcrumb icon placeholder">
-					<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgBreadcrumb} />
+					<img
+						loading="lazy"
+						decoding="async"
+						alt=""
+						class="absolute inset-0 block size-full max-w-none"
+						src={imgBreadcrumb}
+					/>
 				</div>
 				<div
 					class="relative flex shrink-0 content-stretch items-center justify-center"
@@ -259,7 +265,13 @@
 				</div>
 				{#if selectedBrand}
 					<div class="relative size-[14px] shrink-0" data-name="Breadcrumb icon placeholder">
-						<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgBreadcrumb} />
+						<img
+							loading="lazy"
+							decoding="async"
+							alt=""
+							class="absolute inset-0 block size-full max-w-none"
+							src={imgBreadcrumb}
+						/>
 					</div>
 					<div
 						class="relative flex h-[20px] shrink-0 content-stretch items-center justify-center"
@@ -310,7 +322,13 @@
 				>
 					<div class="relative h-0 w-full shrink-0" data-name="Separator">
 						<div class="absolute inset-[-1px_0_0_0]">
-							<img alt="" class="block size-full max-w-none" src={imgSeparator} />
+							<img
+								loading="lazy"
+								decoding="async"
+								alt=""
+								class="block size-full max-w-none"
+								src={imgSeparator}
+							/>
 						</div>
 					</div>
 					<div
@@ -345,6 +363,8 @@
 									{#if filters.brandId === brand.id}
 										<div class="relative size-[16px] shrink-0" data-name="check">
 											<img
+												loading="lazy"
+												decoding="async"
 												alt=""
 												class="absolute inset-0 block size-full max-w-none"
 												src={imgCheck}
@@ -367,7 +387,13 @@
 					</div>
 					<div class="relative h-0 w-full shrink-0" data-name="Separator">
 						<div class="absolute inset-[-1px_0_0_0]">
-							<img alt="" class="block size-full max-w-none" src={imgSeparator} />
+							<img
+								loading="lazy"
+								decoding="async"
+								alt=""
+								class="block size-full max-w-none"
+								src={imgSeparator}
+							/>
 						</div>
 					</div>
 					<div
@@ -412,7 +438,13 @@
 					</div>
 					<div class="relative h-0 w-full shrink-0" data-name="Separator">
 						<div class="absolute inset-[-1px_0_0_0]">
-							<img alt="" class="block size-full max-w-none" src={imgSeparator} />
+							<img
+								loading="lazy"
+								decoding="async"
+								alt=""
+								class="block size-full max-w-none"
+								src={imgSeparator}
+							/>
 						</div>
 					</div>
 					<div
@@ -486,6 +518,8 @@
 									</p>
 									<div class="relative size-[16px] shrink-0" data-name="Left-icon">
 										<img
+											loading="lazy"
+											decoding="async"
 											alt=""
 											class="absolute inset-0 block size-full max-w-none"
 											src={imgMenuIcon}
@@ -517,6 +551,8 @@
 										>
 											<div class="relative size-[16px] shrink-0" data-name="left-icon">
 												<img
+													loading="lazy"
+													decoding="async"
 													alt=""
 													class="absolute inset-0 block size-full max-w-none"
 													src={imgGridIcon}
@@ -535,6 +571,8 @@
 										>
 											<div class="relative size-[16px] shrink-0" data-name="left-icon">
 												<img
+													loading="lazy"
+													decoding="async"
 													alt=""
 													class="absolute inset-0 block size-full max-w-none"
 													src={imgListIcon}
@@ -571,6 +609,8 @@
 										</select>
 										<div class="relative size-[16px] shrink-0" data-name="chevron-down">
 											<img
+												loading="lazy"
+												decoding="async"
 												alt=""
 												class="absolute inset-0 block size-full max-w-none"
 												src={imgSelectIcon}
@@ -599,7 +639,13 @@
 									{selectedCategory}
 								</p>
 								<div class="relative size-[12px] shrink-0" data-name="x">
-									<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgX} />
+									<img
+										loading="lazy"
+										decoding="async"
+										alt=""
+										class="absolute inset-0 block size-full max-w-none"
+										src={imgX}
+									/>
 								</div>
 							</button>
 						{/if}
@@ -617,7 +663,13 @@
 									{selectedBrand}
 								</p>
 								<div class="relative size-[12px] shrink-0" data-name="x">
-									<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgX} />
+									<img
+										loading="lazy"
+										decoding="async"
+										alt=""
+										class="absolute inset-0 block size-full max-w-none"
+										src={imgX}
+									/>
 								</div>
 							</button>
 						{/if}
@@ -646,7 +698,13 @@
 											: `Up to ${formatMoney(filters.maxPrice ?? 0)}`}
 								</p>
 								<div class="relative size-[12px] shrink-0" data-name="x">
-									<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgX} />
+									<img
+										loading="lazy"
+										decoding="async"
+										alt=""
+										class="absolute inset-0 block size-full max-w-none"
+										src={imgX}
+									/>
 								</div>
 							</button>
 						{/if}
@@ -664,7 +722,13 @@
 									{filters.color}
 								</p>
 								<div class="relative size-[12px] shrink-0" data-name="x">
-									<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgX} />
+									<img
+										loading="lazy"
+										decoding="async"
+										alt=""
+										class="absolute inset-0 block size-full max-w-none"
+										src={imgX}
+									/>
 								</div>
 							</button>
 						{/if}
@@ -723,7 +787,13 @@
 							data-name="Ghost Button"
 						>
 							<div class="relative size-[16px] shrink-0" data-name="Left icon">
-								<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgLeftIcon} />
+								<img
+									loading="lazy"
+									decoding="async"
+									alt=""
+									class="absolute inset-0 block size-full max-w-none"
+									src={imgLeftIcon}
+								/>
 							</div>
 							<p
 								class="font-['Geist:Medium'] text-[14px] leading-[20px] font-medium text-[#0a0a0a]"
@@ -761,6 +831,8 @@
 							</p>
 							<div class="relative size-[16px] shrink-0" data-name="Left icon">
 								<img
+									loading="lazy"
+									decoding="async"
 									alt=""
 									class="absolute inset-0 block size-full max-w-none"
 									src={imgLeftIcon1}

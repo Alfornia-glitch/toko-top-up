@@ -86,6 +86,15 @@ export const variables = defineEnvVars({
 		description: 'Minutes a customer has to pay and upload proof before the order expires',
 		schema: (value) => value
 	},
+	NETLIFY_PURGE_API_TOKEN: {
+		description:
+			'Injected by Netlify into functions; lets admin writes purge the CDN-cached storefront',
+		schema: (value) => value
+	},
+	SITE_ID: {
+		description: 'Netlify site id, injected by Netlify; used with NETLIFY_PURGE_API_TOKEN',
+		schema: (value) => value
+	},
 	PAYMENT_EXPIRE_SECRET: {
 		description: 'Shared secret for the scheduled POST /api/internal/payments/expire endpoint',
 		schema: (value) => value
