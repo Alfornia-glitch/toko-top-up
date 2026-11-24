@@ -4,3 +4,6 @@
 
 [build.environment]
   NODE_VERSION = "22"
+  # Non-credential config (provider names, bucket name, public URLs) whose values
+  # also appear in code/lockfile; exclude them from Netlify's secrets scanner.
+  SECRETS_SCAN_OMIT_KEYS = "DB_PROVIDER,STORAGE_PROVIDER,SUPABASE_STORAGE_BUCKET,QRIS_IMAGE_URL,BETTER_AUTH_URL"
