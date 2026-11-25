@@ -28,12 +28,10 @@
 
 	{#if categoryBanners.length > 1}
 		<section
-			class="relative flex w-full max-w-[1440px] shrink-0 content-stretch items-center justify-center py-[56px]"
+			class="relative flex w-full shrink-0 content-stretch items-center justify-center px-4 py-[56px] sm:px-8"
 			data-name="Hero"
 		>
-			<div
-				class="grid w-full max-w-[1280px] grid-cols-1 gap-[16px] px-[32px] sm:grid-cols-2 lg:grid-cols-3"
-			>
+			<div class="grid w-full grid-cols-1 gap-[16px] sm:grid-cols-2 lg:grid-cols-3">
 				{#each categoryBanners as banner (banner.id)}
 					<a
 						href={banner.ctaUrl ?? '/products'}
@@ -75,11 +73,11 @@
 		</section>
 	{:else if heroBanner}
 		<section
-			class="relative flex w-full max-w-[1440px] shrink-0 content-stretch items-center justify-center overflow-clip py-[56px]"
+			class="relative flex w-full items-center justify-center overflow-clip px-4 py-4 sm:px-8"
 			data-name="Hero"
 		>
 			<div
-				class="relative flex min-h-[336px] w-full max-w-[1280px] items-center overflow-clip rounded-[8px] bg-[#171717]"
+				class="relative flex min-h-[336px] w-full items-center overflow-clip rounded-[8px] bg-[#171717]"
 			>
 				{#if heroBanner.imageUrl}
 					<img
@@ -127,11 +125,11 @@
 		{@const children = home.categories.filter((category) => category.parentId === root.id)}
 		{@const cards = children.length > 0 ? children : [root]}
 		<section
-			class="relative flex w-full shrink-0 flex-col content-stretch items-center justify-center py-[56px]"
+			class="relative flex w-full shrink-0 flex-col content-stretch items-center justify-center px-4 py-[56px] sm:px-8"
 			data-name="Product category"
 		>
 			<div
-				class="relative flex w-full max-w-[1280px] shrink-0 flex-col content-stretch items-start gap-[24px] overflow-clip px-[32px]"
+				class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[24px] overflow-clip"
 				data-name="Flex Vertical"
 			>
 				<div
@@ -194,11 +192,11 @@
 
 	{#if home.brands.length > 0}
 		<section
-			class="relative flex w-full shrink-0 flex-col content-stretch items-center justify-center py-[56px]"
+			class="relative flex w-full shrink-0 flex-col content-stretch items-center justify-center px-4 py-[56px] sm:px-8"
 			data-name="Product category"
 		>
 			<div
-				class="relative flex w-full max-w-[1280px] shrink-0 flex-col content-stretch items-center justify-center gap-[32px] overflow-clip px-[32px]"
+				class="relative flex w-full shrink-0 flex-col content-stretch items-center justify-center gap-[32px] overflow-clip"
 				data-name="Flex Vertical"
 			>
 				<div
@@ -254,11 +252,11 @@
 	{#if firstDeal}
 		{@const discount = discountPercent(firstDeal.priceCents, firstDeal.compareAtPriceCents)}
 		<section
-			class="relative flex w-full shrink-0 flex-col content-stretch items-center justify-center py-[56px]"
+			class="relative flex w-full shrink-0 flex-col content-stretch items-center justify-center px-4 py-[56px] sm:px-8"
 			data-name="Feature"
 		>
 			<div
-				class="relative flex w-full max-w-[1280px] shrink-0 flex-col content-stretch items-center justify-center gap-[32px] px-[32px]"
+				class="relative flex w-full shrink-0 flex-col content-stretch items-center justify-center gap-[32px]"
 				data-name="Flex Vertical"
 			>
 				<div

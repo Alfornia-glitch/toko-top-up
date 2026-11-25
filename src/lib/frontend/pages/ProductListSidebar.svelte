@@ -774,7 +774,7 @@
 								class="relative flex w-full shrink-0 flex-col content-stretch items-start"
 								data-name="lisitng Product Card"
 							>
-								<StorefrontProductCard {product} />
+								<StorefrontProductCard {product} layout="list" />
 							</div>
 						{/each}
 					</div>

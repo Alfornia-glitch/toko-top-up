@@ -33,7 +33,7 @@
 		data-name="Shopix - Category"
 	>
 		<SiteHeader />
-		<div class="mx-auto w-full max-w-[1280px] px-4 py-10 lg:px-8">
+		<div class="w-full px-4 py-10 sm:px-8">
 			<Skeleton class="mb-6 h-5 w-64" />
 			<Skeleton class="mb-8 h-[220px] w-full rounded-[14px]" />
 			<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -50,7 +50,7 @@
 		data-name="Shopix - Category"
 	>
 		<SiteHeader />
-		<div class="flex min-h-[60vh] w-full items-center justify-center px-4 py-16">
+		<div class="flex min-h-[60vh] w-full items-center justify-center px-4 py-16 sm:px-8">
 			<Card.Root class="w-full max-w-lg">
 				<Card.Content class="flex flex-col items-center gap-4 py-12 text-center">
 					<p class="text-lg font-semibold text-[#0a0a0a]">Category not found</p>
@@ -70,8 +70,8 @@
 		lockedCategoryId={category.id}
 	>
 		{#snippet before()}
-			<div class="flex w-full flex-col gap-6 pt-8">
-				<div class="mx-auto w-full max-w-[1280px] px-[32px]">
+			<div class="flex w-full flex-col gap-6 px-4 pt-8 sm:px-8">
+				<div class="w-full">
 					<Breadcrumb.Root>
 						<Breadcrumb.List>
 							<Breadcrumb.Item>
@@ -88,7 +88,7 @@
 						</Breadcrumb.List>
 					</Breadcrumb.Root>
 				</div>
-				<div class="mx-auto w-full max-w-[1280px] px-[32px]">
+				<div class="w-full">
 					<div
 						class="grid gap-6 overflow-hidden rounded-[14px] border bg-[#f5f5f5] p-6 sm:p-10 md:grid-cols-[1.2fr_1fr]"
 					>

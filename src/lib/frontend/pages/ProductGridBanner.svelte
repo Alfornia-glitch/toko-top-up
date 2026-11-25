@@ -497,16 +497,16 @@
 				</div>
 				{#if loading}
 					<div
-						class="relative flex w-full shrink-0 flex-wrap content-start items-start gap-[16px]"
+						class="grid w-full shrink-0 grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
 						data-name="Flex Horizontal"
 					>
 						{#each [0, 1, 2, 3, 4, 5, 6, 7] as skeleton (skeleton)}
 							<div
-								class="relative flex min-w-[280px] flex-[1_0_0] flex-col content-stretch items-start"
+								class="relative flex flex-col content-stretch items-start"
 								data-name="Product Card"
 							>
 								<div
-									class="h-[360px] w-full shrink-0 animate-pulse rounded-[14px] bg-[#f5f5f5]"
+									class="h-[448px] w-full shrink-0 animate-pulse rounded-[14px] bg-[#f5f5f5]"
 									data-name="Card"
 								></div>
 							</div>
@@ -522,12 +522,12 @@
 					</p>
 				{:else if result}
 					<div
-						class="relative flex w-full shrink-0 flex-wrap content-start items-start gap-[16px]"
+						class="grid w-full shrink-0 grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
 						data-name="Flex Horizontal"
 					>
 						{#each result.data as product (product.id)}
 							<div
-								class="relative flex min-w-[280px] flex-[1_0_0] flex-col content-stretch items-start"
+								class="relative flex flex-col content-stretch items-start"
 								data-name="Product Card"
 							>
 								<StorefrontProductCard {product} />

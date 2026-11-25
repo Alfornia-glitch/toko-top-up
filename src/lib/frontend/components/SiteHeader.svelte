@@ -60,9 +60,9 @@
 	}
 </script>
 
-<header class="sticky top-0 z-40 w-full border-b bg-background" data-name="Header">
-	<div class="mx-auto w-full max-w-7xl px-4">
-		<div class="flex h-16 items-center gap-3 md:gap-5">
+<header class="sticky top-0 z-40 w-full bg-background" data-name="Header">
+	<div class="w-full">
+		<div class="flex h-16 items-center gap-3 px-8 md:gap-5">
 			<Sheet.Root bind:open={mobileOpen}>
 				<Sheet.Trigger>
 					{#snippet child({ props })}
@@ -173,7 +173,7 @@
 		</div>
 
 		<nav
-			class="hidden [scrollbar-width:none] gap-1 overflow-x-auto border-t py-2 md:flex"
+			class="hidden [scrollbar-width:none] gap-1 overflow-x-auto border-t px-8 py-2 md:flex"
 			aria-label="Navigasi utama"
 		>
 			{#each HEADER_NAV_LINKS as link (link.href)}

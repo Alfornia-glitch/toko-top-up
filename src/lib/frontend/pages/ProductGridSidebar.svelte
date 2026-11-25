@@ -236,13 +236,10 @@
 	<SiteHeader />
 	{@render before?.()}
 	<div
-		class="relative flex w-full max-w-[1440px] shrink-0 flex-col content-stretch items-center justify-center gap-[14px] bg-white py-[56px]"
+		class="relative flex w-full shrink-0 flex-col content-stretch items-center justify-center gap-[14px] bg-white px-4 py-[56px] sm:px-8"
 		data-name="Category filter"
 	>
-		<div
-			class="relative flex w-full max-w-[1280px] shrink-0 content-stretch items-center px-[32px]"
-			data-name="Breadcrumbs"
-		>
+		<div class="relative flex w-full shrink-0 content-stretch items-center" data-name="Breadcrumbs">
 			<div
 				class="relative flex max-h-[28px] shrink-0 content-stretch items-center gap-[6px]"
 				data-name="Items"
@@ -303,7 +300,7 @@
 			</div>
 		</div>
 		<div
-			class="relative flex w-full max-w-[1280px] min-w-[328px] shrink-0 content-stretch items-start gap-[16px] px-[32px]"
+			class="relative flex w-full min-w-[328px] shrink-0 content-stretch items-start gap-[16px]"
 			data-name="Flex Horizontal"
 		>
 			<div
@@ -501,7 +498,7 @@
 				</div>
 			</div>
 			<div
-				class="relative flex w-[901px] shrink-0 flex-col content-stretch items-center justify-center gap-[32px]"
+				class="relative flex min-w-0 flex-1 flex-col content-stretch items-center justify-center gap-[32px]"
 				data-name="Flex Vertical"
 			>
 				<div
@@ -759,16 +756,16 @@
 				</div>
 				{#if loading}
 					<div
-						class="relative flex w-full shrink-0 flex-wrap content-start items-start gap-[16px]"
+						class="grid w-full shrink-0 grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3"
 						data-name="Flex Horizontal"
 					>
 						{#each [0, 1, 2, 3, 4, 5, 6, 7] as skeleton (skeleton)}
 							<div
-								class="relative flex min-w-[280px] flex-[1_0_0] flex-col content-stretch items-start"
+								class="relative flex flex-col content-stretch items-start"
 								data-name="Product Card"
 							>
 								<div
-									class="h-[360px] w-full shrink-0 animate-pulse rounded-[14px] bg-[#f5f5f5]"
+									class="h-[448px] w-full shrink-0 animate-pulse rounded-[14px] bg-[#f5f5f5]"
 									data-name="Card"
 								></div>
 							</div>
@@ -784,12 +781,12 @@
 					</p>
 				{:else if result}
 					<div
-						class="relative flex w-full shrink-0 flex-wrap content-start items-start gap-[16px]"
+						class="grid w-full shrink-0 grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3"
 						data-name="Flex Horizontal"
 					>
 						{#each result.data as product (product.id)}
 							<div
-								class="relative flex min-w-[280px] flex-[1_0_0] flex-col content-stretch items-start"
+								class="relative flex flex-col content-stretch items-start"
 								data-name="Product Card"
 							>
 								<StorefrontProductCard {product} />

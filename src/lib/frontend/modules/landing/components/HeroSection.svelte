@@ -42,7 +42,7 @@
 </script>
 
 <section
-	class="mx-auto mt-8 w-full max-w-7xl px-4"
+	class="mx-auto mt-8 w-full px-8"
 	data-name="Hero"
 	aria-label="Promo"
 	onmouseenter={() => (paused = true)}

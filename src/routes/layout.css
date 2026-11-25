@@ -266,7 +266,6 @@ button {
 	.commerce-app [data-name='Category filter'],
 	.commerce-app [data-name='Checkout'],
 	.commerce-app [data-name='Feature'],
-	.commerce-app [data-name='Category'],
 	.commerce-app [data-name='Hero'] {
 		padding-inline: 16px !important;
 	}

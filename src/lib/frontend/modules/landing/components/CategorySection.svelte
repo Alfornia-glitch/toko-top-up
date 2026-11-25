@@ -6,7 +6,7 @@
 	const categories = $derived(home.categories);
 </script>
 
-<section class="mx-auto w-full max-w-7xl px-4" data-name="Category" aria-labelledby="game-populer">
+<section class="w-full px-8" data-name="Category" aria-labelledby="game-populer">
 	<div class="mt-10 mb-4 flex items-center justify-between">
 		<h3 id="game-populer" class="text-xl font-semibold">Kategori Game</h3>
 		<a href="/categories" class="text-sm font-medium text-muted-foreground hover:text-foreground">

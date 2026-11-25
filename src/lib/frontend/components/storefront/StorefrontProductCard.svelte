@@ -27,7 +27,10 @@
 	import ImagePlaceholder from '#lib/frontend/components/ui/ImagePlaceholder.svelte';
 	import { Badge } from '#lib/frontend/components/ui/badge/index.ts';
 
-	let { product }: { product: StorefrontProduct } = $props();
+	let {
+		product,
+		layout = 'grid'
+	}: { product: StorefrontProduct; layout?: 'grid' | 'list' } = $props();
 
 	let failedUrl = $state<string | null>(null);
 
@@ -58,9 +61,15 @@
 	<a
 		href={`/products/${product.slug}`}
 		data-name="Product Card"
-		class="flex h-full flex-col overflow-hidden rounded-[14px] border border-[#e5e5e5] bg-white transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(10,10,10,0.12)]"
+		class={`flex h-full overflow-hidden rounded-[14px] border border-[#e5e5e5] bg-white transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(10,10,10,0.12)] ${
+			layout === 'list' ? 'flex-col sm:flex-row' : 'flex-col'
+		}`}
 	>
-		<div class="relative aspect-square w-full overflow-hidden bg-[#f5f5f5]">
+		<div
+			class={`relative shrink-0 overflow-hidden bg-[#f5f5f5] ${
+				layout === 'list' ? 'h-[200px] w-full sm:h-[220px] sm:w-[201px]' : 'h-[280px] w-full'
+			}`}
+		>
 			{#if product.imageUrl && failedUrl !== product.imageUrl}
 				<img
 					src={product.imageUrl}
@@ -81,7 +90,7 @@
 				{/if}
 			</div>
 		</div>
-		<div class="flex flex-1 flex-col gap-3 px-4 py-4">
+		<div class="flex min-w-0 flex-1 flex-col gap-3 px-4 py-4">
 			<div class="flex flex-col gap-1">
 				{#if product.brandName}
 					<p class="text-xs font-medium tracking-wide text-[#737373] uppercase">

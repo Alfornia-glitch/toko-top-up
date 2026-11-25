@@ -49,12 +49,10 @@
 >
 	<Carousel.Root
 		opts={{ align: 'start', slidesToScroll: 'auto' }}
-		class="flex w-full max-w-[1280px] flex-col gap-[32px] px-[32px]"
+		class="flex w-full flex-col px-8"
 	>
 		<div class="flex w-full items-center gap-[16px]">
-			<p class="min-w-px flex-1 font-['Geist:Bold'] text-[30px] leading-[36px] font-bold">
-				Ulasan Pelanggan
-			</p>
+			<p class="min-w-px flex-1 font-['Geist:Bold'] text-xl font-bold">Ulasan Pelanggan</p>
 			{#if home.testimonials.length}
 				<div class="flex items-center gap-[8px]">
 					<Carousel.Previous variant="outline" size="icon" class={controlClass} />

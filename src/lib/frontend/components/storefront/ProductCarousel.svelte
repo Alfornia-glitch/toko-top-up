@@ -17,11 +17,11 @@
 </script>
 
 <div
-	class="relative flex w-full shrink-0 flex-col content-stretch items-center justify-center bg-white py-[96px]"
+	class="relative flex w-full shrink-0 flex-col content-stretch items-center justify-center bg-white px-4 py-[96px] sm:px-8"
 	data-name="Product list"
 >
 	<div
-		class="relative flex w-full max-w-[1280px] shrink-0 flex-col content-stretch items-center justify-center gap-[32px] px-[32px]"
+		class="relative flex w-full shrink-0 flex-col content-stretch items-center justify-center gap-[32px]"
 		data-name="Flex Vertical"
 	>
 		<div
