@@ -27,10 +27,8 @@
 	import ImagePlaceholder from '#lib/frontend/components/ui/ImagePlaceholder.svelte';
 	import { Badge } from '#lib/frontend/components/ui/badge/index.ts';
 
-	let {
-		product,
-		layout = 'grid'
-	}: { product: StorefrontProduct; layout?: 'grid' | 'list' } = $props();
+	let { product, layout = 'grid' }: { product: StorefrontProduct; layout?: 'grid' | 'list' } =
+		$props();
 
 	let failedUrl = $state<string | null>(null);
 
@@ -57,11 +55,11 @@
 	);
 </script>
 
-<div class="group relative h-full">
+<div class="group relative h-full w-full">
 	<a
 		href={`/products/${product.slug}`}
 		data-name="Product Card"
-		class={`flex h-full overflow-hidden rounded-[14px] border border-[#e5e5e5] bg-white transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(10,10,10,0.12)] ${
+		class={`flex h-full w-full overflow-hidden rounded-[14px] border border-[#e5e5e5] bg-white transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(10,10,10,0.12)] ${
 			layout === 'list' ? 'flex-col sm:flex-row' : 'flex-col'
 		}`}
 	>
@@ -123,7 +121,11 @@
 			</div>
 		</div>
 	</a>
-	<div class="absolute top-3 right-3 z-10">
+	<div
+		class={`absolute top-3 z-10 ${
+			layout === 'list' ? 'right-3 sm:right-auto sm:left-[157px]' : 'right-3'
+		}`}
+	>
 		<WishlistButton productId={product.id} />
 	</div>
 </div>
