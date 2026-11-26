@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { formatMoney } from '#lib/frontend/modules/commerce/format.ts';
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
 	import {
@@ -27,7 +28,7 @@
 		orderNumber: string;
 		status: string;
 		paymentStatus: string;
-		grandTotalCents: number;
+		grandTotal: number;
 		currency: string;
 		placedAt: string;
 	};
@@ -56,7 +57,7 @@
 		createdAt: string;
 		updatedAt: string;
 		orderCount: number;
-		spentCents: number;
+		spent: number;
 		orders: CustomerOrder[];
 		addresses: CustomerAddress[];
 	};
@@ -65,7 +66,7 @@
 		{ key: 'orderNumber', label: 'Order' },
 		{ key: 'status', label: 'Status' },
 		{ key: 'paymentStatus', label: 'Payment' },
-		{ key: 'grandTotalCents', label: 'Total', class: 'text-right' },
+		{ key: 'grandTotal', label: 'Total', class: 'text-right' },
 		{ key: 'placedAt', label: 'Placed' }
 	];
 
@@ -118,16 +119,6 @@
 		if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
 
 		return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
-	}
-
-	function currency() {
-		return customer?.orders[0]?.currency ?? 'USD';
-	}
-
-	function formatMoney(cents: number, code = currency()) {
-		return new Intl.NumberFormat('en-US', { style: 'currency', currency: code }).format(
-			cents / 100
-		);
 	}
 
 	function formatDate(value: string) {
@@ -250,7 +241,7 @@
 			<StatCard title="Orders" value={customer.orderCount} hint="All time" icon={ShoppingCart} />
 			<StatCard
 				title="Lifetime spend"
-				value={formatMoney(customer.spentCents)}
+				value={formatMoney(customer.spent)}
 				hint="Across all orders"
 				icon={DollarSign}
 			/>
@@ -279,9 +270,9 @@
 						<StatusBadge status={String(row.status ?? '')} />
 					{:else if column.key === 'paymentStatus'}
 						<StatusBadge status={String(row.paymentStatus ?? '')} />
-					{:else if column.key === 'grandTotalCents'}
+					{:else if column.key === 'grandTotal'}
 						<span class="font-medium">
-							{formatMoney(Number(row.grandTotalCents ?? 0), String(row.currency ?? 'USD'))}
+							{formatMoney(Number(row.grandTotal ?? 0), String(row.currency ?? 'IDR'))}
 						</span>
 					{:else if column.key === 'placedAt'}
 						<span class="text-muted-foreground">{formatDateTime(String(row.placedAt ?? ''))}</span>

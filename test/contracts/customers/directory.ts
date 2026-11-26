@@ -19,7 +19,7 @@ export function createFakeCustomerDirectory(): CustomerDirectory {
 			orderNumber: 'SO-1',
 			status: 'paid',
 			paymentStatus: 'paid',
-			grandTotalCents: 2500,
+			grandTotal: 2500,
 			currency: 'USD',
 			placedAt: created
 		}
@@ -36,7 +36,7 @@ export function createFakeCustomerDirectory(): CustomerDirectory {
 						image: null,
 						createdAt: created,
 						orderCount: 1,
-						spentCents: 2500
+						spent: 2500
 					}
 				],
 				total: 1

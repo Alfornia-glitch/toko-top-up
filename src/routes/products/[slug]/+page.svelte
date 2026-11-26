@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { formatMoney } from '#lib/frontend/modules/commerce/format.ts';
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
 	import { LoaderCircle, Minus, Plus, RotateCcw, Star, Truck } from '@lucide/svelte';
@@ -40,8 +41,8 @@
 		id: string;
 		sku: string;
 		name: string;
-		priceCents: number;
-		compareAtPriceCents: number | null;
+		price: number;
+		compareAtPrice: number | null;
 		stock: number;
 		optionValuesJson: Record<string, string> | null;
 	}
@@ -53,8 +54,8 @@
 		slug: string;
 		description: string | null;
 		shortDescription: string | null;
-		priceCents: number;
-		compareAtPriceCents: number | null;
+		price: number;
+		compareAtPrice: number | null;
 		currency: string;
 		ratingAvg: number;
 		ratingCount: number;
@@ -130,13 +131,6 @@
 		return initial;
 	}
 
-	function formatMoney(cents: number, currency: string) {
-		return new Intl.NumberFormat('en-US', {
-			style: 'currency',
-			currency: currency || 'USD'
-		}).format(cents / 100);
-	}
-
 	function ratingValue(value: number) {
 		if (!Number.isFinite(value) || value <= 0) return 0;
 		return Math.min(5, value > 5 ? value / 100 : value);
@@ -163,9 +157,9 @@
 			}) ?? null
 		);
 	});
-	const displayPrice = $derived(selectedVariant?.priceCents ?? product?.priceCents ?? 0);
+	const displayPrice = $derived(selectedVariant?.price ?? product?.price ?? 0);
 	const compareAt = $derived.by(() => {
-		const value = selectedVariant?.compareAtPriceCents ?? product?.compareAtPriceCents ?? null;
+		const value = selectedVariant?.compareAtPrice ?? product?.compareAtPrice ?? null;
 		return value && value > displayPrice ? value : null;
 	});
 	const displayStock = $derived(selectedVariant?.stock ?? 0);

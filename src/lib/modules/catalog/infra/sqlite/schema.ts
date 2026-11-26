@@ -61,8 +61,8 @@ export const products = sqliteTable(
 		status: text('status', { enum: ['draft', 'active', 'archived'] })
 			.notNull()
 			.default('draft'),
-		priceCents: integer('price_cents').notNull(),
-		compareAtPriceCents: integer('compare_at_price_cents'),
+		price: integer('price').notNull(),
+		compareAtPrice: integer('compare_at_price'),
 		currency: text('currency').notNull().default('USD'),
 		ratingAvg: integer('rating_avg').notNull().default(0),
 		ratingCount: integer('rating_count').notNull().default(0),
@@ -140,8 +140,8 @@ export const productVariants = sqliteTable(
 			.references(() => products.id, { onDelete: 'cascade' }),
 		sku: text('sku').notNull().unique(),
 		name: text('name').notNull(),
-		priceCents: integer('price_cents').notNull(),
-		compareAtPriceCents: integer('compare_at_price_cents'),
+		price: integer('price').notNull(),
+		compareAtPrice: integer('compare_at_price'),
 		stock: integer('stock').notNull().default(0),
 		weightGrams: integer('weight_grams'),
 		status: text('status', { enum: ['active', 'inactive'] })

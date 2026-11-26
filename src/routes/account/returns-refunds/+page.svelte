@@ -452,9 +452,7 @@
 											<p
 												class="font-['Geist:Medium'] text-[14px] leading-[20px] font-medium text-[#0a0a0a]"
 											>
-												{entry.refundAmountCents === null
-													? '—'
-													: formatMoney(entry.refundAmountCents)}
+												{entry.refundAmount === null ? '—' : formatMoney(entry.refundAmount)}
 											</p>
 											<p class="font-['Geist:Regular'] text-[12px] leading-[16px] text-[#737373]">
 												{formatDate(entry.createdAt)}
@@ -512,9 +510,7 @@
 											<p
 												class="font-['Geist:SemiBold'] text-[16px] leading-[24px] font-semibold text-[#0a0a0a]"
 											>
-												{selected.refundAmountCents === null
-													? '—'
-													: formatMoney(selected.refundAmountCents)}
+												{selected.refundAmount === null ? '—' : formatMoney(selected.refundAmount)}
 											</p>
 										</div>
 									</div>

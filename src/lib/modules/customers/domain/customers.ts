@@ -81,7 +81,7 @@ export interface CustomerSummary {
 	image: string | null;
 	createdAt: Date;
 	orderCount: number;
-	spentCents: number;
+	spent: number;
 }
 
 export interface CustomerOrderSummary {
@@ -89,7 +89,7 @@ export interface CustomerOrderSummary {
 	orderNumber: string;
 	status: string;
 	paymentStatus: string;
-	grandTotalCents: number;
+	grandTotal: number;
 	currency: string;
 	placedAt: Date;
 }
@@ -108,7 +108,7 @@ export interface CustomerDetail extends CustomerProfile {
 	orders: CustomerOrderSummary[];
 	addresses: Address[];
 	orderCount: number;
-	spentCents: number;
+	spent: number;
 }
 
 /**

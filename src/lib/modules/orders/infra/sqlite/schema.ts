@@ -20,11 +20,11 @@ export const orders = sqliteTable(
 			.default('pending'),
 		paymentStatus: text('payment_status').notNull().default('pending'),
 		fulfillmentStatus: text('fulfillment_status').notNull().default('unfulfilled'),
-		subtotalCents: integer('subtotal_cents').notNull().default(0),
-		discountCents: integer('discount_cents').notNull().default(0),
-		shippingCents: integer('shipping_cents').notNull().default(0),
-		taxCents: integer('tax_cents').notNull().default(0),
-		grandTotalCents: integer('grand_total_cents').notNull().default(0),
+		subtotal: integer('subtotal').notNull().default(0),
+		discount: integer('discount').notNull().default(0),
+		shipping: integer('shipping').notNull().default(0),
+		tax: integer('tax').notNull().default(0),
+		grandTotal: integer('grand_total').notNull().default(0),
 		currency: text('currency').notNull().default('USD'),
 		couponId: text('coupon_id'),
 		shippingAddressJson: text('shipping_address_json', { mode: 'json' }).$type<
@@ -60,8 +60,8 @@ export const orderItems = sqliteTable(
 		skuSnapshot: text('sku_snapshot').notNull(),
 		imageUrlSnapshot: text('image_url_snapshot'),
 		quantity: integer('quantity').notNull().default(1),
-		unitPriceCents: integer('unit_price_cents').notNull(),
-		totalCents: integer('total_cents').notNull(),
+		unitPrice: integer('unit_price').notNull(),
+		total: integer('total').notNull(),
 		status: text('status').notNull().default('pending'),
 		...timestamps
 	},
@@ -110,7 +110,7 @@ export const payments = sqliteTable(
 			.references(() => orders.id, { onDelete: 'cascade' }),
 		provider: text('provider').notNull(),
 		providerRef: text('provider_ref'),
-		amountCents: integer('amount_cents').notNull(),
+		amount: integer('amount').notNull(),
 		status: text('status', { enum: ['pending', 'succeeded', 'failed', 'refunded'] })
 			.notNull()
 			.default('pending'),
@@ -141,7 +141,7 @@ export const returnRequests = sqliteTable(
 			.notNull()
 			.default('requested'),
 		resolution: text('resolution', { enum: ['original_payment', 'gift_card', 'card'] }),
-		refundAmountCents: integer('refund_amount_cents'),
+		refundAmount: integer('refund_amount'),
 		exchangeVariantId: text('exchange_variant_id'),
 		pickupAddressJson: text('pickup_address_json', { mode: 'json' }).$type<
 			Record<string, unknown>

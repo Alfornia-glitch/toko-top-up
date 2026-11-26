@@ -76,7 +76,7 @@ export function createCommerceReportsService(
 					products,
 					orders: totals.orderCount,
 					customers,
-					revenueCents: totals.revenueCents,
+					revenue: totals.revenue,
 					pendingOrders: totals.pendingCount,
 					lowStockVariants: low.total,
 					recentOrders,

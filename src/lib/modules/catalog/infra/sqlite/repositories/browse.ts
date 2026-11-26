@@ -34,8 +34,8 @@ const rowSelection = {
 	name: products.name,
 	slug: products.slug,
 	shortDescription: products.shortDescription,
-	priceCents: products.priceCents,
-	compareAtPriceCents: products.compareAtPriceCents,
+	price: products.price,
+	compareAtPrice: products.compareAtPrice,
 	currency: products.currency,
 	ratingAvg: products.ratingAvg,
 	ratingCount: products.ratingCount,
@@ -62,10 +62,8 @@ function whereFor(filter: PublicProductFilter): SQL | undefined {
 	if (filter.featured) conditions.push(eq(products.isFeatured, true));
 	if (filter.deal) conditions.push(eq(products.isDeal, true));
 	if (filter.newArrival) conditions.push(eq(products.isNewArrival, true));
-	if (typeof filter.minPrice === 'number')
-		conditions.push(gte(products.priceCents, filter.minPrice));
-	if (typeof filter.maxPrice === 'number')
-		conditions.push(lte(products.priceCents, filter.maxPrice));
+	if (typeof filter.minPrice === 'number') conditions.push(gte(products.price, filter.minPrice));
+	if (typeof filter.maxPrice === 'number') conditions.push(lte(products.price, filter.maxPrice));
 	if (typeof filter.minRating === 'number') {
 		conditions.push(gte(products.ratingAvg, filter.minRating * 100));
 	}
@@ -79,9 +77,9 @@ function orderFor(sort: PublicProductSort | undefined): SQL[] {
 		case 'popular':
 			return [desc(products.soldCount), desc(products.createdAt)];
 		case 'price_asc':
-			return [asc(products.priceCents), desc(products.createdAt)];
+			return [asc(products.price), desc(products.createdAt)];
 		case 'price_desc':
-			return [desc(products.priceCents), desc(products.createdAt)];
+			return [desc(products.price), desc(products.createdAt)];
 		case 'newest':
 			return [desc(products.createdAt)];
 		case 'recommended':
@@ -169,16 +167,16 @@ export function createSqliteBrowseRepository(db: SqliteDb): BrowseRepository {
 					.where(eq(categories.status, 'active'))
 					.orderBy(asc(categories.position), asc(categories.name)),
 				db
-					.select({ minCents: min(products.priceCents), maxCents: max(products.priceCents) })
+					.select({ min: min(products.price), max: max(products.price) })
 					.from(products)
 					.where(eq(products.status, 'active')),
 				db
 					.select({
-						priceCents: products.priceCents,
-						compareAtPriceCents: products.compareAtPriceCents
+						price: products.price,
+						compareAtPrice: products.compareAtPrice
 					})
 					.from(products)
-					.where(and(eq(products.status, 'active'), isNotNull(products.compareAtPriceCents))),
+					.where(and(eq(products.status, 'active'), isNotNull(products.compareAtPrice))),
 				db
 					.select({ optionValuesJson: productVariants.optionValuesJson })
 					.from(productVariants)
@@ -189,8 +187,8 @@ export function createSqliteBrowseRepository(db: SqliteDb): BrowseRepository {
 			return {
 				brands: brandRows,
 				categories: categoryRows,
-				minCents: Number(priceRows[0]?.minCents ?? 0),
-				maxCents: Number(priceRows[0]?.maxCents ?? 0),
+				min: Number(priceRows[0]?.min ?? 0),
+				max: Number(priceRows[0]?.max ?? 0),
 				discountRows,
 				colorRows: colorRows.map((row) => row.optionValuesJson)
 			};
@@ -205,8 +203,8 @@ export function createSqliteBrowseRepository(db: SqliteDb): BrowseRepository {
 					slug: products.slug,
 					description: products.description,
 					shortDescription: products.shortDescription,
-					priceCents: products.priceCents,
-					compareAtPriceCents: products.compareAtPriceCents,
+					price: products.price,
+					compareAtPrice: products.compareAtPrice,
 					currency: products.currency,
 					ratingAvg: products.ratingAvg,
 					ratingCount: products.ratingCount,
@@ -244,7 +242,7 @@ export function createSqliteBrowseRepository(db: SqliteDb): BrowseRepository {
 					.where(
 						and(eq(productVariants.productId, productId), eq(productVariants.status, 'active'))
 					)
-					.orderBy(asc(productVariants.priceCents))
+					.orderBy(asc(productVariants.price))
 			]);
 
 			const optionIds = options.map((option) => option.id);

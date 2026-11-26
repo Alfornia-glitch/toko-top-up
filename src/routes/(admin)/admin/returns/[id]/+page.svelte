@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { formatMoney } from '#lib/frontend/modules/commerce/format.ts';
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
 	import { ArrowLeft, LoaderCircle, Package, Save } from '@lucide/svelte';
@@ -24,7 +25,7 @@
 		productName: string;
 		sku: string;
 		quantity: number;
-		unitPriceCents: number;
+		unitPrice: number;
 		userId: string | null;
 		customerName: string | null;
 		customerEmail: string | null;
@@ -33,7 +34,7 @@
 		note: string | null;
 		status: string;
 		resolution: string | null;
-		refundAmountCents: number | null;
+		refundAmount: number | null;
 		exchangeVariantId: string | null;
 		pickupAddressJson: unknown;
 		resolvedBy: string | null;
@@ -120,26 +121,25 @@
 
 	function syncForm(value: ReturnDetail) {
 		resolution = value.resolution ?? 'none';
-		refundAmount =
-			value.refundAmountCents === null ? '' : (value.refundAmountCents / 100).toFixed(2);
+		refundAmount = value.refundAmount === null ? '' : String(value.refundAmount);
 		note = value.note ?? '';
 		exchangeVariantId = value.exchangeVariantId ?? '';
 	}
 
-	function parseRefundCents(raw: string): number | null {
+	function parseRefund(raw: string): number | null {
 		const trimmed = raw.trim();
 		if (!trimmed) return null;
 
 		const value = Number(trimmed);
 		if (!Number.isFinite(value) || value < 0) return null;
 
-		return Math.round(value * 100);
+		return Math.round(value);
 	}
 
 	function buildResolutionBody() {
 		return {
 			resolution: resolution === 'none' ? null : resolution,
-			refundAmountCents: parseRefundCents(refundAmount),
+			refundAmount: parseRefund(refundAmount),
 			note: note.trim() || null,
 			...(request?.type === 'exchange'
 				? { exchangeVariantId: exchangeVariantId.trim() || null }
@@ -153,7 +153,7 @@
 
 		actionError = '';
 
-		if (refundAmount.trim() && parseRefundCents(refundAmount) === null) {
+		if (refundAmount.trim() && parseRefund(refundAmount) === null) {
 			actionError = 'Enter a valid refund amount.';
 			return;
 		}
@@ -183,12 +183,12 @@
 
 		actionError = '';
 
-		let refundAmountCents: number | null = null;
+		let refundValue: number | null = null;
 
 		if (next === 'refunded') {
-			refundAmountCents = parseRefundCents(refundAmount);
+			refundValue = parseRefund(refundAmount);
 
-			if (refundAmountCents === null || !refundAmount.trim()) {
+			if (refundValue === null) {
 				actionError = 'Enter a refund amount before marking this return as refunded.';
 				return;
 			}
@@ -200,7 +200,7 @@
 			const body: Record<string, unknown> = { status: next };
 
 			if (next === 'refunded') {
-				body.refundAmountCents = refundAmountCents;
+				body.refundAmount = refundValue;
 				body.resolution = resolution === 'none' ? null : resolution;
 
 				if (note.trim()) body.note = note.trim();
@@ -247,10 +247,6 @@
 
 	function addressLine(address: AddressShape) {
 		return [address.city, address.region, address.postalCode].filter(Boolean).join(', ');
-	}
-
-	function formatMoney(cents: number, currency = 'USD') {
-		return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(cents / 100);
 	}
 
 	function formatDate(value: string | null) {
@@ -343,7 +339,7 @@
 					<div class="flex items-center justify-between gap-2">
 						<span class="text-muted-foreground">Refund</span>
 						<span class="font-medium">
-							{request.refundAmountCents === null ? '—' : formatMoney(request.refundAmountCents)}
+							{request.refundAmount === null ? '—' : formatMoney(request.refundAmount)}
 						</span>
 					</div>
 					<Separator />
@@ -427,12 +423,12 @@
 						</div>
 						<div>
 							<p class="text-muted-foreground">Unit price</p>
-							<p class="font-medium">{formatMoney(request.unitPriceCents)}</p>
+							<p class="font-medium">{formatMoney(request.unitPrice)}</p>
 						</div>
 						<div>
 							<p class="text-muted-foreground">Refund</p>
 							<p class="font-medium">
-								{request.refundAmountCents === null ? '—' : formatMoney(request.refundAmountCents)}
+								{request.refundAmount === null ? '—' : formatMoney(request.refundAmount)}
 							</p>
 						</div>
 					</div>

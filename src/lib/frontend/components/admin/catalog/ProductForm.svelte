@@ -27,8 +27,8 @@
 		id: string;
 		sku: string;
 		name: string;
-		priceCents: number;
-		compareAtPriceCents?: number | null;
+		price: number;
+		compareAtPrice?: number | null;
 		stock: number;
 		weightGrams?: number | null;
 		status: 'active' | 'inactive';
@@ -45,8 +45,8 @@
 		brandId: string | null;
 		categoryId: string | null;
 		status: AdminProductStatus;
-		priceCents: number;
-		compareAtPriceCents: number | null;
+		price: number;
+		compareAtPrice: number | null;
 		currency: string;
 		isFeatured: boolean;
 		isNewArrival: boolean;
@@ -115,10 +115,9 @@
 			status: current?.status ?? 'draft',
 			brandId: current?.brandId ?? 'none',
 			categoryId: current?.categoryId ?? 'none',
-			price: current ? centsToInput(current.priceCents) : '',
-			compareAtPrice:
-				current?.compareAtPriceCents != null ? centsToInput(current.compareAtPriceCents) : '',
-			currency: current?.currency ?? 'USD',
+			price: current ? String(current.price) : '',
+			compareAtPrice: current?.compareAtPrice != null ? String(current.compareAtPrice) : '',
+			currency: current?.currency ?? 'IDR',
 			isFeatured: current?.isFeatured ?? false,
 			isNewArrival: current?.isNewArrival ?? false,
 			isDeal: current?.isDeal ?? false,
@@ -152,9 +151,8 @@
 				id: variant.id,
 				sku: variant.sku,
 				name: variant.name,
-				price: centsToInput(variant.priceCents),
-				compareAtPrice:
-					variant.compareAtPriceCents != null ? centsToInput(variant.compareAtPriceCents) : '',
+				price: String(variant.price),
+				compareAtPrice: variant.compareAtPrice != null ? String(variant.compareAtPrice) : '',
 				stock: String(variant.stock),
 				weightGrams: variant.weightGrams != null ? String(variant.weightGrams) : '',
 				status: variant.status === 'inactive' ? 'inactive' : 'active',
@@ -191,16 +189,6 @@
 	let error = $state('');
 
 	const editing = $derived(Boolean(product?.id));
-
-	function centsToInput(value: number) {
-		return (value / 100).toFixed(2);
-	}
-
-	function toCents(value: string) {
-		const amount = Number(value);
-
-		return Number.isFinite(amount) && amount >= 0 ? Math.round(Number(value) * 100) : 0;
-	}
 
 	function toInt(value: string) {
 		const amount = Number(value);
@@ -246,9 +234,9 @@
 			brandId: brandId === 'none' ? null : brandId,
 			categoryId: categoryId === 'none' ? null : categoryId,
 			status: status as AdminProductStatus,
-			priceCents: toCents(price),
-			compareAtPriceCents: compareAtPrice.trim() ? toCents(compareAtPrice) : null,
-			currency: currency.trim().toUpperCase() || 'USD',
+			price: toInt(price),
+			compareAtPrice: compareAtPrice.trim() ? toInt(compareAtPrice) : null,
+			currency: currency.trim().toUpperCase() || 'IDR',
 			isFeatured,
 			isNewArrival,
 			isDeal,
@@ -278,8 +266,8 @@
 				...(variant.id ? { id: variant.id } : {}),
 				sku: variant.sku.trim(),
 				name: variant.name.trim(),
-				priceCents: toCents(variant.price),
-				compareAtPriceCents: variant.compareAtPrice.trim() ? toCents(variant.compareAtPrice) : null,
+				price: toInt(variant.price),
+				compareAtPrice: variant.compareAtPrice.trim() ? toInt(variant.compareAtPrice) : null,
 				stock: toInt(variant.stock),
 				weightGrams: variant.weightGrams.trim() ? toInt(variant.weightGrams) : null,
 				status: variant.status,
@@ -492,7 +480,7 @@
 									id="product-currency"
 									bind:value={currency}
 									maxlength={3}
-									placeholder="USD"
+									placeholder="IDR"
 									class="uppercase"
 								/>
 							</Field.Field>
@@ -509,7 +497,7 @@
 									bind:value={price}
 									placeholder="0.00"
 								/>
-								<Field.Description>Amount in dollars, stored as integer cents.</Field.Description>
+								<Field.Description>Amount in rupiah.</Field.Description>
 							</Field.Field>
 
 							<Field.Field>

@@ -414,7 +414,7 @@
 									<div class="flex flex-wrap items-center gap-3 sm:justify-end">
 										<OrderStatusBadge status={order.status} />
 										<span class="text-sm font-medium text-foreground tabular-nums">
-											{formatMoney(order.grandTotalCents, order.currency)}
+											{formatMoney(order.grandTotal, order.currency)}
 										</span>
 									</div>
 								</a>

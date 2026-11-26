@@ -32,10 +32,10 @@
 	});
 
 	const itemLabel = $derived(cart.count === 1 ? 'item' : 'items');
-	const discountAmount = $derived(cart.discountCents > 0 ? -cart.discountCents : 0);
-	const shippingCents = $derived(cart.cart?.shippingCents ?? 0);
+	const discountAmount = $derived(cart.discount > 0 ? -cart.discount : 0);
+	const shipping = $derived(cart.cart?.shipping ?? 0);
 	const shippingLabel = $derived(
-		shippingCents > 0 ? formatMoney(shippingCents, cart.currency) : 'Calculated at checkout'
+		shipping > 0 ? formatMoney(shipping, cart.currency) : 'Calculated at checkout'
 	);
 
 	async function applyCoupon() {
@@ -209,11 +209,11 @@
 												<div class="mt-auto flex flex-wrap items-end justify-between gap-3 pt-2">
 													<div class="flex flex-col">
 														<span class="text-sm font-semibold text-foreground sm:text-base">
-															{formatMoney(item.unitPriceCents, cart.currency)}
+															{formatMoney(item.unitPrice, cart.currency)}
 														</span>
-														{#if item.compareAtPriceCents && item.compareAtPriceCents > item.unitPriceCents}
+														{#if item.compareAtPrice && item.compareAtPrice > item.unitPrice}
 															<span class="text-xs text-muted-foreground line-through">
-																{formatMoney(item.compareAtPriceCents, cart.currency)}
+																{formatMoney(item.compareAtPrice, cart.currency)}
 															</span>
 														{/if}
 													</div>
@@ -255,7 +255,7 @@
 																Line total
 															</span>
 															<span class="text-sm font-semibold text-foreground">
-																{formatMoney(item.unitPriceCents * item.quantity, cart.currency)}
+																{formatMoney(item.unitPrice * item.quantity, cart.currency)}
 															</span>
 														</div>
 													</div>
@@ -343,7 +343,7 @@
 								<div class="flex items-start justify-between gap-4">
 									<dt class="text-muted-foreground">Subtotal</dt>
 									<dd class="font-medium text-foreground">
-										{formatMoney(cart.subtotalCents, cart.currency)}
+										{formatMoney(cart.subtotal, cart.currency)}
 									</dd>
 								</div>
 								<div class="flex items-start justify-between gap-4">
@@ -364,7 +364,7 @@
 								class="flex items-start justify-between gap-4 text-base font-semibold text-foreground"
 							>
 								<span>Total Payable</span>
-								<span>{formatMoney(cart.totalCents, cart.currency)}</span>
+								<span>{formatMoney(cart.total, cart.currency)}</span>
 							</div>
 						</Card.Content>
 

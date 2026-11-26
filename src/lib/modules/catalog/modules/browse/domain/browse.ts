@@ -38,8 +38,8 @@ export interface PublicProductRow {
 	name: string;
 	slug: string;
 	shortDescription: string | null;
-	priceCents: number;
-	compareAtPriceCents: number | null;
+	price: number;
+	compareAtPrice: number | null;
 	currency: string;
 	ratingAvg: number;
 	ratingCount: number;
@@ -79,7 +79,7 @@ export interface PublicCategory {
 export interface PublicFacets {
 	brands: PublicBrand[];
 	categories: Array<{ id: string; name: string; slug: string }>;
-	price: { minCents: number; maxCents: number };
+	price: { min: number; max: number };
 	colors: string[];
 	discounts: number[];
 }
@@ -120,8 +120,8 @@ export interface PublicProductVariant {
 	productId: string;
 	sku: string;
 	name: string;
-	priceCents: number;
-	compareAtPriceCents: number | null;
+	price: number;
+	compareAtPrice: number | null;
 	stock: number;
 	status: string;
 	optionValuesJson: Record<string, string> | null;
@@ -135,8 +135,8 @@ export interface PublicProductDetail {
 	slug: string;
 	description: string | null;
 	shortDescription: string | null;
-	priceCents: number;
-	compareAtPriceCents: number | null;
+	price: number;
+	compareAtPrice: number | null;
 	currency: string;
 	ratingAvg: number;
 	ratingCount: number;
@@ -162,9 +162,9 @@ export interface ProductExtras {
 export interface FacetSource {
 	brands: PublicBrand[];
 	categories: Array<{ id: string; name: string; slug: string }>;
-	minCents: number;
-	maxCents: number;
-	discountRows: Array<{ priceCents: number; compareAtPriceCents: number | null }>;
+	min: number;
+	max: number;
+	discountRows: Array<{ price: number; compareAtPrice: number | null }>;
 	colorRows: Array<Record<string, string> | null>;
 }
 
@@ -223,12 +223,12 @@ export function distinctColors(values: Iterable<unknown>): string[] {
 
 /** Whole-percent discounts present across products, ascending. */
 export function discountPercents(
-	rows: Array<{ priceCents: number; compareAtPriceCents: number | null }>
+	rows: Array<{ price: number; compareAtPrice: number | null }>
 ): number[] {
 	const set = new Set<number>();
 	for (const row of rows) {
-		const price = Number(row.priceCents ?? 0);
-		const compareAt = Number(row.compareAtPriceCents ?? 0);
+		const price = Number(row.price ?? 0);
+		const compareAt = Number(row.compareAtPrice ?? 0);
 		if (!compareAt || compareAt <= price) continue;
 		const percent = Math.round(((compareAt - price) / compareAt) * 100);
 		if (percent > 0) set.add(percent);

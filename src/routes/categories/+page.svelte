@@ -250,7 +250,7 @@
 	{/if}
 
 	{#if firstDeal}
-		{@const discount = discountPercent(firstDeal.priceCents, firstDeal.compareAtPriceCents)}
+		{@const discount = discountPercent(firstDeal.price, firstDeal.compareAtPrice)}
 		<section
 			class="relative flex w-full shrink-0 flex-col content-stretch items-center justify-center px-4 py-[56px] sm:px-8"
 			data-name="Feature"
@@ -311,11 +311,11 @@
 						</div>
 						<div class="flex flex-wrap items-baseline gap-[8px]">
 							<span class="text-[24px] leading-[32px] font-semibold">
-								{formatMoney(firstDeal.priceCents, firstDeal.currency)}
+								{formatMoney(firstDeal.price, firstDeal.currency)}
 							</span>
-							{#if firstDeal.compareAtPriceCents && firstDeal.compareAtPriceCents > firstDeal.priceCents}
+							{#if firstDeal.compareAtPrice && firstDeal.compareAtPrice > firstDeal.price}
 								<span class="text-[18px] leading-[28px] text-white/70 line-through">
-									{formatMoney(firstDeal.compareAtPriceCents, firstDeal.currency)}
+									{formatMoney(firstDeal.compareAtPrice, firstDeal.currency)}
 								</span>
 								<span
 									class="rounded-full bg-[#dc2626] px-[10px] py-[2px] text-[14px] leading-[20px] font-medium"

@@ -58,7 +58,7 @@ interface Snapshot {
 	variantId: string;
 	productId: string;
 	sku: string;
-	priceCents: number;
+	price: number;
 	stock: number;
 	productName: string;
 	imageUrl: string | null;
@@ -66,7 +66,7 @@ interface Snapshot {
 
 function resolveLines(cart: Cart, snapshots: Map<string, Snapshot>) {
 	const lines: OrderLine[] = [];
-	let subtotalCents = 0;
+	let subtotal = 0;
 
 	for (const item of cart.items) {
 		const variant = snapshots.get(item.variantId);
@@ -75,8 +75,8 @@ function resolveLines(cart: Cart, snapshots: Map<string, Snapshot>) {
 			throw new ConflictError(`Insufficient stock for ${variant.productName}`);
 		}
 
-		const totalCents = variant.priceCents * item.quantity;
-		subtotalCents += totalCents;
+		const total = variant.price * item.quantity;
+		subtotal += total;
 		lines.push({
 			productId: variant.productId,
 			variantId: variant.variantId,
@@ -84,12 +84,12 @@ function resolveLines(cart: Cart, snapshots: Map<string, Snapshot>) {
 			skuSnapshot: variant.sku,
 			imageUrlSnapshot: variant.imageUrl,
 			quantity: item.quantity,
-			unitPriceCents: variant.priceCents,
-			totalCents
+			unitPrice: variant.price,
+			total
 		});
 	}
 
-	return { lines, subtotalCents };
+	return { lines, subtotal };
 }
 
 function addressSnapshot(address: Address): Record<string, unknown> {
@@ -119,8 +119,8 @@ export function createCheckoutService(dependencies: CheckoutDependencies): Check
 
 				const address = unwrap(await customers.customers.getAddress(input.addressId, buyer));
 
-				const shipping = await settings.getShippingMethod(input.shippingId);
-				if (!shipping) throw new UnprocessableError('Unknown shipping method');
+				const method = await settings.getShippingMethod(input.shippingId);
+				if (!method) throw new UnprocessableError('Unknown shipping method');
 
 				const variantIds = [...new Set(current.items.map((item) => item.variantId))];
 				const rows = unwrap(await catalog.products.getVariantSnapshots(variantIds));
@@ -131,21 +131,21 @@ export function createCheckoutService(dependencies: CheckoutDependencies): Check
 							variantId: row.variantId,
 							productId: row.productId,
 							sku: row.sku,
-							priceCents: row.priceCents,
+							price: row.price,
 							stock: row.stock,
 							productName: row.productName,
 							imageUrl: row.imageUrl
 						}
 					])
 				);
-				const { lines, subtotalCents } = resolveLines(current, snapshots);
+				const { lines, subtotal } = resolveLines(current, snapshots);
 
-				const discountCents = Math.max(0, Math.min(current.discountCents, subtotalCents));
-				const shippingCents = shipping.priceCents;
-				const grandTotalCents = subtotalCents - discountCents + shippingCents;
+				const discount = Math.max(0, Math.min(current.discount, subtotal));
+				const shipping = method.price;
+				const grandTotal = subtotal - discount + shipping;
 
 				let couponId: string | null = null;
-				if (discountCents > 0 && current.coupon) {
+				if (discount > 0 && current.coupon) {
 					const coupon = unwrap(await marketing.marketing.getCouponByCode(current.coupon.code));
 					couponId = coupon?.id ?? null;
 				}
@@ -178,11 +178,11 @@ export function createCheckoutService(dependencies: CheckoutDependencies): Check
 							userId: buyer.id,
 							status: manual ? 'pending' : 'paid',
 							paymentStatus: manual ? 'pending' : 'paid',
-							subtotalCents,
-							discountCents,
-							shippingCents,
-							taxCents: 0,
-							grandTotalCents,
+							subtotal,
+							discount,
+							shipping,
+							tax: 0,
+							grandTotal,
 							currency: current.currency ?? (await settings.getCurrency()),
 							couponId,
 							shippingAddress: addressSnapshot(address),
@@ -205,7 +205,7 @@ export function createCheckoutService(dependencies: CheckoutDependencies): Check
 								couponId,
 								orderId,
 								userId: buyer.id,
-								amountCents: discountCents
+								amount: discount
 							})
 						);
 					} catch (error) {

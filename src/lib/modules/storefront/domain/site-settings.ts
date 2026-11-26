@@ -2,7 +2,7 @@ export interface SiteShippingMethod {
 	id: string;
 	label: string;
 	description: string;
-	priceCents: number;
+	price: number;
 	minDays: number;
 	maxDays: number;
 }
@@ -29,7 +29,7 @@ const defaultSettings: SiteSettings = {
 			id: 'standard',
 			label: 'Standard',
 			description: 'Get your product in 1 week',
-			priceCents: 0,
+			price: 0,
 			minDays: 5,
 			maxDays: 7
 		},
@@ -37,7 +37,7 @@ const defaultSettings: SiteSettings = {
 			id: 'express',
 			label: 'Express',
 			description: 'Get your product in 0-1 days',
-			priceCents: 2000,
+			price: 2000,
 			minDays: 0,
 			maxDays: 1
 		},
@@ -45,7 +45,7 @@ const defaultSettings: SiteSettings = {
 			id: 'basic',
 			label: 'Basic',
 			description: 'Get your product in 3-4 days',
-			priceCents: 1000,
+			price: 1000,
 			minDays: 3,
 			maxDays: 4
 		}

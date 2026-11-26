@@ -15,7 +15,7 @@ export interface CartItemRecord {
 	cartId: string;
 	variantId: string;
 	quantity: number;
-	unitPriceCents: number;
+	unitPrice: number;
 	createdAt: Date;
 	updatedAt: Date;
 }
@@ -29,8 +29,8 @@ export interface CartItem {
 	variantName: string;
 	brandName: string | null;
 	imageUrl: string | null;
-	unitPriceCents: number;
-	compareAtPriceCents: number | null;
+	unitPrice: number;
+	compareAtPrice: number | null;
 	quantity: number;
 	stock: number;
 }
@@ -44,10 +44,10 @@ export interface CartCoupon {
 export interface Cart {
 	id: string;
 	items: CartItem[];
-	subtotalCents: number;
-	discountCents: number;
-	shippingCents: number;
-	totalCents: number;
+	subtotal: number;
+	discount: number;
+	shipping: number;
+	total: number;
 	currency: string;
 	itemCount: number;
 	coupon: CartCoupon | null;
@@ -83,10 +83,10 @@ export function emptyCart(cartId: string, currency = 'IDR'): Cart {
 	return {
 		id: cartId,
 		items: [],
-		subtotalCents: 0,
-		discountCents: 0,
-		shippingCents: 0,
-		totalCents: 0,
+		subtotal: 0,
+		discount: 0,
+		shipping: 0,
+		total: 0,
 		currency,
 		itemCount: 0,
 		coupon: null

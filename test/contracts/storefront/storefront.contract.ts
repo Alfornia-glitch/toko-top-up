@@ -51,8 +51,8 @@ export function runStorefrontContract(context: StorefrontContractContext): void 
 				sku: `SKU-${counter}`,
 				name: `Product ${counter}`,
 				status: 'active',
-				priceCents: 1000,
-				variants: [{ sku: `SKU-${counter}-V`, name: 'Default', priceCents: 1000, stock: 5 }],
+				price: 1000,
+				variants: [{ sku: `SKU-${counter}-V`, name: 'Default', price: 1000, stock: 5 }],
 				...overrides
 			},
 			admin
@@ -93,10 +93,10 @@ export function runStorefrontContract(context: StorefrontContractContext): void 
 		test('sorts and filters by price, rating, search, brand, category and flags', async () => {
 			const brandId = await context.createBrand('Acme');
 			const categoryId = await context.createCategory('Phones');
-			await product({ name: 'Cheap', priceCents: 500, variants: [] });
+			await product({ name: 'Cheap', price: 500, variants: [] });
 			await product({
 				name: 'Mid',
-				priceCents: 1500,
+				price: 1500,
 				brandId,
 				categoryId,
 				isFeatured: true,
@@ -104,11 +104,11 @@ export function runStorefrontContract(context: StorefrontContractContext): void 
 			});
 			await product({
 				name: 'Dear',
-				priceCents: 9000,
+				price: 9000,
 				brandId,
 				isDeal: true,
 				isNewArrival: true,
-				compareAtPriceCents: 12000,
+				compareAtPrice: 12000,
 				variants: []
 			});
 
@@ -129,13 +129,13 @@ export function runStorefrontContract(context: StorefrontContractContext): void 
 			await product({
 				name: 'Red phone',
 				brandId,
-				priceCents: 2000,
-				compareAtPriceCents: 2500,
+				price: 2000,
+				compareAtPrice: 2500,
 				variants: [
 					{
 						sku: 'R-1',
 						name: 'Red',
-						priceCents: 2000,
+						price: 2000,
 						stock: 3,
 						optionValuesJson: { Color: 'red' }
 					}
@@ -143,12 +143,12 @@ export function runStorefrontContract(context: StorefrontContractContext): void 
 			});
 			await product({
 				name: 'Blue phone',
-				priceCents: 3000,
+				price: 3000,
 				variants: [
 					{
 						sku: 'B-1',
 						name: 'Blue',
-						priceCents: 3000,
+						price: 3000,
 						stock: 0,
 						optionValuesJson: { colour: 'blue' }
 					}
@@ -161,7 +161,7 @@ export function runStorefrontContract(context: StorefrontContractContext): void 
 
 			const { facets } = unwrap(await storefront.listProducts());
 			expect(facets.colors).toEqual(['Blue', 'Red']);
-			expect(facets.price).toEqual({ minCents: 2000, maxCents: 3000 });
+			expect(facets.price).toEqual({ min: 2000, max: 3000 });
 			expect(facets.discounts).toEqual([20]);
 			expect(facets.brands.map((b) => b.name)).toEqual(['Acme']);
 		});
@@ -179,8 +179,8 @@ export function runStorefrontContract(context: StorefrontContractContext): void 
 				images: [{ url: '/main.png', position: 0 }],
 				options: [{ name: 'Color', position: 0, values: [{ value: 'Red', position: 0 }] }],
 				variants: [
-					{ sku: 'M-1', name: 'Active', priceCents: 1000, stock: 2 },
-					{ sku: 'M-2', name: 'Hidden', priceCents: 900, stock: 2, status: 'inactive' }
+					{ sku: 'M-1', name: 'Active', price: 1000, stock: 2 },
+					{ sku: 'M-2', name: 'Hidden', price: 900, stock: 2, status: 'inactive' }
 				]
 			});
 			await context.seedReview({
@@ -289,14 +289,14 @@ export function runStorefrontContract(context: StorefrontContractContext): void 
 
 			unwrap(
 				await content.putSettings(
-					{ currency: 'IDR', contact: { phone: '123' }, shipping: [{ id: 'one', priceCents: 1 }] },
+					{ currency: 'IDR', contact: { phone: '123' }, shipping: [{ id: 'one', price: 1 }] },
 					superAdmin
 				)
 			);
 			const stored = unwrap(await storefront.getSiteSettings());
 			expect(stored.currency).toBe('IDR');
 			expect(stored.contact).toMatchObject({ phone: '123', email: 'shopix@gmail.com' });
-			expect(stored.shipping).toEqual([{ id: 'one', priceCents: 1 }]);
+			expect(stored.shipping).toEqual([{ id: 'one', price: 1 }]);
 		});
 	});
 

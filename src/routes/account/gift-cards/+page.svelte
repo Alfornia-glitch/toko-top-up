@@ -197,10 +197,10 @@
 										data-name="Flex Horizontal"
 									>
 										<p class="relative shrink-0 text-[#737373]">
-											Initial: {formatMoney(card.initialAmountCents, card.currency)}
+											Initial: {formatMoney(card.initialAmount, card.currency)}
 										</p>
 										<p class="relative shrink-0 text-[#0a0a0a]">
-											Balance: {formatMoney(card.balanceCents, card.currency)}
+											Balance: {formatMoney(card.balance, card.currency)}
 										</p>
 										<p class="relative shrink-0 text-[#737373]">Currency: {card.currency}</p>
 										<p class="relative shrink-0 text-[#737373]">

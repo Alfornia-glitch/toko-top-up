@@ -211,7 +211,7 @@ export function createPaymentsService(deps: PaymentsDependencies): PaymentsServi
 				}
 				if (order.currency !== 'IDR') throw new UnprocessableError('QRIS only supports IDR orders');
 				// The amount always comes from the stored order, never from the client.
-				const baseAmount = order.grandTotalCents;
+				const baseAmount = order.grandTotal;
 				if (!Number.isInteger(baseAmount) || baseAmount <= 0) {
 					throw new UnprocessableError('Order has nothing to pay');
 				}

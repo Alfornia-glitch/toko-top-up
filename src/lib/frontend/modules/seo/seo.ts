@@ -1,4 +1,4 @@
-import { ZERO_DECIMAL, formatMoney } from '../commerce/format.ts';
+import { formatMoney } from '../commerce/format.ts';
 
 /** Shown in titles and Open Graph `site_name`; change it when the store gets its final brand. */
 export const SITE_NAME = 'Shopix';
@@ -69,7 +69,7 @@ export interface ProductMetaSource {
 	slug: string;
 	description: string | null;
 	shortDescription: string | null;
-	priceCents: number;
+	price: number;
 	currency: string;
 	brandName: string | null;
 	images: Array<{ url: string }>;
@@ -78,12 +78,12 @@ export interface ProductMetaSource {
 
 export function productMeta(product: ProductMetaSource): PageMeta {
 	const currency = product.currency || 'IDR';
-	const price = ZERO_DECIMAL.has(currency) ? product.priceCents : product.priceCents / 100;
+	const price = product.price;
 	const summary = product.shortDescription || product.description;
 	const description = truncate(
 		summary
-			? `${summary} — ${formatMoney(product.priceCents, currency)}`
-			: `Beli ${product.name} seharga ${formatMoney(product.priceCents, currency)} di ${SITE_NAME}.`
+			? `${summary} — ${formatMoney(product.price, currency)}`
+			: `Beli ${product.name} seharga ${formatMoney(product.price, currency)} di ${SITE_NAME}.`
 	);
 	const image = product.images[0]?.url ?? null;
 	const inStock = product.variants ? product.variants.some((variant) => variant.stock > 0) : true;

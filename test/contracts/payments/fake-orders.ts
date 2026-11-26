@@ -7,7 +7,7 @@ export interface FakeOrder {
 	orderNumber: string;
 	status: string;
 	currency: string;
-	grandTotalCents: number;
+	grandTotal: number;
 	notes: string[];
 }
 
@@ -48,7 +48,7 @@ export function createFakeOrders() {
 				orderNumber: `SX-${order.id}`,
 				status: 'pending',
 				currency: 'IDR',
-				grandTotalCents: 150_000,
+				grandTotal: 150_000,
 				notes: [],
 				...order
 			};

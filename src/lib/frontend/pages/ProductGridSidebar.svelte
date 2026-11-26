@@ -49,12 +49,8 @@
 		}))
 	);
 	let page = $state(untrack(() => query.page ?? 1));
-	let minInput = $state(
-		untrack(() => (query.minPrice != null ? String(query.minPrice / 100) : ''))
-	);
-	let maxInput = $state(
-		untrack(() => (query.maxPrice != null ? String(query.maxPrice / 100) : ''))
-	);
+	let minInput = $state(untrack(() => (query.minPrice != null ? String(query.minPrice) : '')));
+	let maxInput = $state(untrack(() => (query.maxPrice != null ? String(query.maxPrice) : '')));
 
 	let requestId = 0;
 
@@ -78,11 +74,11 @@
 	const pageNumbers = $derived(buildPageNumbers(page, totalPages));
 	const priceRanges = $derived.by(() => {
 		const bounds = result?.facets.price;
-		if (!bounds || bounds.maxCents <= bounds.minCents) return [];
-		const step = (bounds.maxCents - bounds.minCents) / 4;
+		if (!bounds || bounds.max <= bounds.min) return [];
+		const step = (bounds.max - bounds.min) / 4;
 		return Array.from({ length: 4 }, (_, index) => ({
-			min: Math.round(bounds.minCents + step * index),
-			max: index === 3 ? bounds.maxCents : Math.round(bounds.minCents + step * (index + 1))
+			min: Math.round(bounds.min + step * index),
+			max: index === 3 ? bounds.max : Math.round(bounds.min + step * (index + 1))
 		}));
 	});
 
@@ -148,8 +144,8 @@
 	}
 
 	function applyPrice() {
-		const min = minInput.trim() === '' ? undefined : Math.round(Number(minInput) * 100);
-		const max = maxInput.trim() === '' ? undefined : Math.round(Number(maxInput) * 100);
+		const min = minInput.trim() === '' ? undefined : Math.round(Number(minInput));
+		const max = maxInput.trim() === '' ? undefined : Math.round(Number(maxInput));
 		filters.minPrice = min != null && Number.isFinite(min) ? min : undefined;
 		filters.maxPrice = max != null && Number.isFinite(max) ? max : undefined;
 		page = 1;
@@ -157,8 +153,8 @@
 	}
 
 	function applyRange(min: number, max: number) {
-		minInput = String(min / 100);
-		maxInput = String(max / 100);
+		minInput = String(min);
+		maxInput = String(max);
 		filters.minPrice = min;
 		filters.maxPrice = max;
 		page = 1;

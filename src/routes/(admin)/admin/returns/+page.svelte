@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { formatMoney } from '#lib/frontend/modules/commerce/format.ts';
 	import { onDestroy, onMount } from 'svelte';
 	import { RotateCcw } from '@lucide/svelte';
 	import DataTable from '#lib/frontend/components/admin/DataTable.svelte';
@@ -21,7 +22,7 @@
 		reason: string;
 		status: string;
 		resolution: string | null;
-		refundAmountCents: number | null;
+		refundAmount: number | null;
 		createdAt: string;
 		updatedAt: string;
 	};
@@ -33,7 +34,7 @@
 		{ key: 'customer', label: 'Customer' },
 		{ key: 'type', label: 'Type' },
 		{ key: 'status', label: 'Status' },
-		{ key: 'refundAmountCents', label: 'Refund', class: 'text-right' },
+		{ key: 'refundAmount', label: 'Refund', class: 'text-right' },
 		{ key: 'createdAt', label: 'Created' }
 	];
 
@@ -113,12 +114,6 @@
 	function handlePageChange(nextPage: number) {
 		page = nextPage;
 		void loadReturns();
-	}
-
-	function formatMoney(cents: number) {
-		return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(
-			cents / 100
-		);
 	}
 
 	function formatDate(value: string) {
@@ -241,11 +236,11 @@
 				<StatusBadge status={String(row.type ?? '')} />
 			{:else if column.key === 'status'}
 				<StatusBadge status={String(row.status ?? '')} />
-			{:else if column.key === 'refundAmountCents'}
-				{#if row.refundAmountCents === null || row.refundAmountCents === undefined}
+			{:else if column.key === 'refundAmount'}
+				{#if row.refundAmount === null || row.refundAmount === undefined}
 					<span class="text-muted-foreground">—</span>
 				{:else}
-					<span class="font-medium">{formatMoney(Number(row.refundAmountCents))}</span>
+					<span class="font-medium">{formatMoney(Number(row.refundAmount))}</span>
 				{/if}
 			{:else if column.key === 'createdAt'}
 				<span class="text-muted-foreground">{formatDate(String(row.createdAt ?? ''))}</span>
