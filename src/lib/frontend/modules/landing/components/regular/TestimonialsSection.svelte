@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
 	import ImagePlaceholder from '#lib/frontend/components/ui/ImagePlaceholder.svelte';
 	import { home } from '#lib/frontend/modules/commerce/home.svelte.ts';
 	import { site } from '#lib/frontend/modules/commerce/site.svelte.ts';
@@ -15,7 +16,7 @@
 	<div
 		class="relative flex shrink-0 flex-col justify-center font-['Geist:Medium'] text-[14px] leading-[0] font-medium [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
 	>
-		<p class="leading-[20px]">Follow Us @shopix</p>
+		<p class="leading-[20px]">{m.components_regular_testimonials_follow()}</p>
 	</div>
 {/snippet}
 
@@ -26,7 +27,7 @@
 	<p
 		class="relative w-[min-content] min-w-full shrink-0 text-center font-['Geist:Bold'] text-[30px] leading-[36px] font-bold [word-break:break-word] text-[#0a0a0a] max-[480px]:text-2xl max-[480px]:leading-8"
 	>
-		Inspired by Our Community
+		{m.components_regular_testimonials_title()}
 	</p>
 	<div
 		class="relative flex w-[1600px] shrink-0 content-stretch items-center gap-[16px]"
@@ -42,14 +43,14 @@
 					{#if testimonial.imageUrl}
 						<img
 							src={testimonial.imageUrl}
-							alt={testimonial.caption ?? 'Community photo'}
+							alt={testimonial.caption ?? m.components_regular_testimonials_photo()}
 							loading="lazy"
 							class="absolute inset-0 size-full object-cover transition duration-300 group-hover:scale-105"
 						/>
 					{:else}
 						<ImagePlaceholder
 							class="pointer-events-none absolute inset-0 rounded-[8px]"
-							label={testimonial.caption ?? 'Community photo'}
+							label={testimonial.caption ?? m.components_regular_testimonials_photo()}
 						/>
 					{/if}
 				</a>
@@ -61,14 +62,14 @@
 					{#if testimonial.imageUrl}
 						<img
 							src={testimonial.imageUrl}
-							alt={testimonial.caption ?? 'Community photo'}
+							alt={testimonial.caption ?? m.components_regular_testimonials_photo()}
 							loading="lazy"
 							class="absolute inset-0 size-full object-cover"
 						/>
 					{:else}
 						<ImagePlaceholder
 							class="pointer-events-none absolute inset-0 rounded-[8px]"
-							label={testimonial.caption ?? 'Community photo'}
+							label={testimonial.caption ?? m.components_regular_testimonials_photo()}
 						/>
 					{/if}
 				</div>

@@ -166,18 +166,18 @@
 		}
 	}
 
-	const layoutOptions = [
+	const layoutOptions = $derived([
 		{
 			value: 'regular',
-			label: 'Regular ecommerce',
-			description: 'Mega menu, deals, brands and new arrivals on the home page.'
+			label: m.admin_super_settings_layout_regular_label(),
+			description: m.admin_super_settings_layout_regular_desc()
 		},
 		{
 			value: 'topup',
-			label: 'Top-up store',
-			description: 'Compact game top-up header, game categories and testimonials.'
+			label: m.admin_super_settings_layout_topup_label(),
+			description: m.admin_super_settings_layout_topup_desc()
 		}
-	] as const;
+	] as const);
 
 	const currentLayout = $derived(
 		settings.find((setting) => setting.key === 'storefrontLayout')?.valueJson === 'topup'
@@ -201,11 +201,11 @@
 			});
 			const payload = await response.json().catch(() => ({}));
 
-			if (!response.ok) throw new Error(payload.error ?? 'Could not save storefront layout');
+			if (!response.ok) throw payload;
 
 			await loadSettings();
 		} catch (err) {
-			error = err instanceof Error ? err.message : 'Could not save storefront layout';
+			error = errorMessage(err, 'admin_super_settings_layout_save_failed');
 		} finally {
 			layoutSaving = false;
 		}
@@ -236,9 +236,11 @@
 
 	<section class="space-y-3" aria-labelledby="storefront-layout-heading">
 		<div>
-			<h2 id="storefront-layout-heading" class="text-base font-medium">Storefront layout</h2>
+			<h2 id="storefront-layout-heading" class="text-base font-medium">
+				{m.admin_super_settings_layout_title()}
+			</h2>
 			<p class="text-sm text-muted-foreground">
-				Choose which look the public storefront uses. Changes apply after the next page load.
+				{m.admin_super_settings_layout_desc()}
 			</p>
 		</div>
 		<div class="grid gap-3 sm:grid-cols-2">
@@ -256,7 +258,7 @@
 					<span class="flex items-center justify-between gap-2">
 						<span class="text-sm font-medium">{option.label}</span>
 						{#if selected}
-							<span class="text-xs font-medium text-primary">Active</span>
+							<span class="text-xs font-medium text-primary">{m.common_active()}</span>
 						{/if}
 					</span>
 					<span class="mt-1 block text-sm text-muted-foreground">{option.description}</span>

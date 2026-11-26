@@ -1,10 +1,11 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { m } from '#lib/paraglide/messages.js';
 	import { site } from '#lib/frontend/modules/commerce/site.svelte.ts';
 	import {
 		FOOTER_EXPLORE,
 		FOOTER_FEATURES,
-		FOOTER_LEGAL,
+		footerLegal,
 		FOOTER_TERMS
 	} from '#lib/frontend/content/navigation.regular.ts';
 	import {
@@ -55,15 +56,15 @@
 				body: JSON.stringify({ email })
 			});
 
-			if (!response.ok) throw new Error('Could not subscribe. Please try again.');
+			if (!response.ok) throw new Error(m.components_regular_newsletter_failed());
 
 			newsletterState = 'success';
-			newsletterMessage = 'Subscribed! Check your inbox for offers.';
+			newsletterMessage = m.components_regular_newsletter_success();
 			email = '';
 		} catch (error) {
 			newsletterState = 'error';
 			newsletterMessage =
-				error instanceof Error ? error.message : 'Could not subscribe. Please try again.';
+				error instanceof Error ? error.message : m.components_regular_newsletter_failed();
 		}
 	}
 </script>
@@ -308,29 +309,29 @@
 					<p
 						class="relative min-w-px flex-[1_0_0] font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] text-[#0a0a0a]"
 					>
-						Explore
+						{m.components_regular_footer_explore()}
 					</p>
 				</div>
 				<p
 					class="relative w-full shrink-0 font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-[#737373]"
 				>
-					{FOOTER_EXPLORE[0]}
+					{FOOTER_EXPLORE[0].label}
 				</p>
 				<p
 					class="relative w-full shrink-0 font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-[#737373]"
 				>
-					{FOOTER_EXPLORE[1]}
+					{FOOTER_EXPLORE[1].label}
 				</p>
 				<a
 					href="/account/order-tracking"
 					class="relative w-full shrink-0 font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-[#737373] hover:text-[#0a0a0a] hover:underline"
 				>
-					Order Tracking
+					{m.components_regular_footer_order_tracking()}
 				</a>
 				<p
 					class="relative w-full shrink-0 font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-[#737373]"
 				>
-					{FOOTER_EXPLORE[2]}
+					{FOOTER_EXPLORE[2].label}
 				</p>
 			</div>
 			<div
@@ -344,31 +345,31 @@
 					<p
 						class="relative min-w-px flex-[1_0_0] font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] text-[#0a0a0a]"
 					>
-						Terms & Policies
+						{m.components_regular_footer_terms()}
 					</p>
 				</div>
 				<a
 					href="/account/returns-refunds"
 					class="relative w-full shrink-0 font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-[#737373] hover:text-[#0a0a0a] hover:underline"
-					>Returns & Exchanges</a
+					>{m.components_regular_footer_returns()}</a
 				>
 				<a
 					href="/privacy-policy"
 					class="relative w-full shrink-0 font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-[#737373] hover:text-[#0a0a0a] hover:underline"
 				>
-					{FOOTER_TERMS[0]}
+					{FOOTER_TERMS[0].label}
 				</a>
 				<a
 					href="/help/purchase-protection"
 					class="relative w-full shrink-0 font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-[#737373] hover:text-[#0a0a0a] hover:underline"
 				>
-					{FOOTER_TERMS[1]}
+					{FOOTER_TERMS[1].label}
 				</a>
 				<a
 					href="/help"
 					class="relative w-full shrink-0 font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-[#737373] hover:text-[#0a0a0a] hover:underline"
 				>
-					{FOOTER_TERMS[2]}
+					{FOOTER_TERMS[2].label}
 				</a>
 			</div>
 			<div
@@ -382,7 +383,7 @@
 					<p
 						class="relative shrink-0 font-['Geist:SemiBold'] text-[18px] leading-[28px] font-semibold [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
 					>
-						Get the Latest Offers & Discounts
+						{m.components_regular_newsletter_title()}
 					</p>
 					<div
 						class="relative flex w-full shrink-0 content-stretch items-center justify-end"
@@ -405,8 +406,8 @@
 										type="email"
 										required
 										bind:value={email}
-										placeholder="Your email address"
-										aria-label="Your email address"
+										placeholder={m.components_regular_newsletter_email()}
+										aria-label={m.components_regular_newsletter_email()}
 										class="min-w-0 flex-[1_0_0] border-none bg-transparent font-['Geist:Regular'] text-[14px] leading-[20px] font-normal text-[#0a0a0a] outline-none placeholder:text-[#737373]"
 									/>
 									<button
@@ -414,7 +415,9 @@
 										disabled={newsletterState === 'loading'}
 										class="shrink-0 rounded-[6px] bg-[#0a0a0a] px-[10px] py-[4px] font-['Geist:Medium'] text-[12px] leading-[16px] font-medium text-white disabled:opacity-50"
 									>
-										{newsletterState === 'loading' ? 'Joining…' : 'Subscribe'}
+										{newsletterState === 'loading'
+											? m.components_regular_newsletter_joining()
+											: m.components_regular_newsletter_subscribe()}
 									</button>
 								</div>
 							</form>
@@ -436,7 +439,7 @@
 					<p
 						class="relative w-[min-content] min-w-full shrink-0 font-['Geist:SemiBold'] text-[18px] leading-[28px] font-semibold [word-break:break-word] text-[#0a0a0a]"
 					>
-						Download App
+						{m.components_regular_footer_download()}
 					</p>
 					<div
 						class="relative flex shrink-0 content-stretch items-start gap-[16px]"
@@ -457,7 +460,7 @@
 								<p
 									class="relative shrink-0 font-['Geist:Regular'] text-[10.102px] leading-[13.469px] font-normal"
 								>
-									Download on the
+									{m.components_regular_footer_download_on()}
 								</p>
 								<p
 									class="relative shrink-0 font-['Geist:Medium'] text-[11.786px] leading-[16.837px] font-medium opacity-92"
@@ -488,7 +491,7 @@
 								<p
 									class="relative shrink-0 font-['Geist:Regular'] text-[9.778px] leading-[13.037px] font-normal"
 								>
-									Download on the
+									{m.components_regular_footer_download_on()}
 								</p>
 								<p
 									class="relative shrink-0 font-['Geist:Medium'] text-[11.407px] leading-[16.296px] font-medium opacity-92"
@@ -555,7 +558,7 @@
 					<p
 						class="relative shrink-0 font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
 					>
-						Secure Payment
+						{m.components_regular_footer_secure_payment()}
 					</p>
 				</div>
 			</div>
@@ -574,7 +577,7 @@
 					<p
 						class="relative min-w-[329px] flex-[1_0_0] font-['Geist:Medium'] text-[16px] leading-[0] font-medium [word-break:break-word] text-[#0a0a0a]"
 					>
-						<span class="leading-[24px]">{FOOTER_LEGAL}</span>
+						<span class="leading-[24px]">{footerLegal()}</span>
 					</p>
 				</div>
 				<div

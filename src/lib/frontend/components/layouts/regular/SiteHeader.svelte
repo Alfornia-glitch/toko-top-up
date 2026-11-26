@@ -11,6 +11,8 @@
 		User
 	} from '@lucide/svelte';
 	import { onMount } from 'svelte';
+	import { m } from '#lib/paraglide/messages.js';
+	import LanguageSwitcher from '#lib/frontend/components/LanguageSwitcher.svelte';
 	import { afterNavigate, goto } from '$app/navigation';
 	import MegaMenu from './MegaMenu.svelte';
 	import { Button } from '#lib/frontend/components/ui/button/index.ts';
@@ -86,8 +88,8 @@
 		<input
 			{id}
 			type="search"
-			placeholder="Search products..."
-			aria-label="Search products"
+			placeholder={m.components_regular_search_placeholder()}
+			aria-label={m.components_regular_search_label()}
 			bind:value={query}
 			class="h-10 w-full rounded-lg border bg-background pr-3 pl-9 text-sm outline-none placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring"
 		/>
@@ -115,7 +117,7 @@
 							variant="outline"
 							size="icon"
 							class="md:hidden"
-							aria-label="Open navigation menu"
+							aria-label={m.components_regular_header_open_menu()}
 						>
 							<Menu />
 						</Button>
@@ -124,29 +126,31 @@
 				<Sheet.Content side="left" class="overflow-y-auto p-4">
 					<Sheet.Header class="p-0">
 						<Sheet.Title>{BRAND}</Sheet.Title>
-						<Sheet.Description class="sr-only">Site navigation</Sheet.Description>
+						<Sheet.Description class="sr-only"
+							>{m.components_regular_header_site_nav()}</Sheet.Description
+						>
 					</Sheet.Header>
 					{@render searchForm('search-mobile')}
-					<nav aria-label="Mobile" class="flex flex-col gap-1">
+					<nav aria-label={m.components_regular_header_mobile_nav()} class="flex flex-col gap-1">
 						<a
 							href="/products?deal=true"
 							class="rounded-lg px-3 py-2 font-medium text-red-600 hover:bg-muted"
 						>
-							Today’s deals
+							{m.components_regular_nav_deals()}
 						</a>
 						<a
 							href="/products?newArrival=true"
 							class="rounded-lg px-3 py-2 font-medium hover:bg-muted"
 						>
-							New arrivals
+							{m.components_regular_nav_new()}
 						</a>
 						<a href="/products" class="rounded-lg px-3 py-2 font-medium hover:bg-muted">
-							All products
+							{m.components_regular_nav_all_products()}
 						</a>
 						<p
 							class="px-3 pt-3 text-xs font-semibold tracking-wider text-muted-foreground uppercase"
 						>
-							Categories
+							{m.common_categories()}
 						</p>
 						{#each rootCategories as root (root.id)}
 							{@const children = home.categories.filter((c) => c.parentId === root.id)}
@@ -163,7 +167,7 @@
 											href={categoryHref(root.id)}
 											class="rounded-lg px-3 py-1.5 text-sm hover:bg-muted"
 										>
-											All {root.name}
+											{m.components_regular_nav_all_category({ name: root.name })}
 										</a>
 										{#each children as child (child.id)}
 											<a
@@ -184,9 +188,14 @@
 					</nav>
 					<div class="mt-auto flex flex-col gap-1 border-t pt-3">
 						{#if user}
-							<a href="/account" class="rounded-lg px-3 py-2 hover:bg-muted">My account</a>
-							<a href="/account/orders" class="rounded-lg px-3 py-2 hover:bg-muted">My orders</a>
-							<a href="/account/wishlist" class="rounded-lg px-3 py-2 hover:bg-muted">My wishlist</a
+							<a href="/account" class="rounded-lg px-3 py-2 hover:bg-muted"
+								>{m.components_site_header_my_account()}</a
+							>
+							<a href="/account/orders" class="rounded-lg px-3 py-2 hover:bg-muted"
+								>{m.components_site_header_my_orders()}</a
+							>
+							<a href="/account/wishlist" class="rounded-lg px-3 py-2 hover:bg-muted"
+								>{m.components_regular_my_wishlist()}</a
 							>
 							<button
 								type="button"
@@ -194,16 +203,20 @@
 								class="flex items-center gap-2 rounded-lg px-3 py-2 text-left text-red-600 hover:bg-muted"
 							>
 								<LogOut class="size-4" />
-								Sign out
+								{m.common_logout()}
 							</button>
 						{:else}
-							<Button href="/login" variant="outline">Sign in</Button>
+							<Button href="/login" variant="outline">{m.common_login()}</Button>
 						{/if}
 					</div>
 				</Sheet.Content>
 			</Sheet.Root>
 
-			<a href="/" class="flex shrink-0 items-center gap-2" aria-label="{BRAND} home">
+			<a
+				href="/"
+				class="flex shrink-0 items-center gap-2"
+				aria-label={m.components_auth_logo_home()}
+			>
 				<span
 					class="flex size-8 items-center justify-center rounded-lg bg-foreground text-background"
 				>
@@ -217,12 +230,13 @@
 			</div>
 
 			<div class="ml-auto flex items-center gap-1 sm:gap-2">
+				<LanguageSwitcher />
 				<Button
 					href="/products"
 					variant="ghost"
 					size="icon"
 					class="md:hidden"
-					aria-label="Search products"
+					aria-label={m.components_regular_search_label()}
 				>
 					<Search />
 				</Button>
@@ -231,7 +245,7 @@
 					variant="ghost"
 					size="icon"
 					class="hidden sm:inline-flex"
-					aria-label="Wishlist"
+					aria-label={m.common_wishlist()}
 				>
 					<Heart />
 				</Button>
@@ -240,7 +254,7 @@
 					variant="ghost"
 					size="icon"
 					class="relative"
-					aria-label="Cart, {cart.count} items"
+					aria-label={m.components_regular_cart_label({ count: cart.count })}
 				>
 					<ShoppingCart />
 					{#if cart.count > 0}
@@ -259,7 +273,7 @@
 									{...props}
 									type="button"
 									class="ml-1 cursor-pointer rounded-full focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
-									aria-label="Account menu"
+									aria-label={m.components_site_header_account_menu()}
 								>
 									<UserAvatar
 										image={user.image}
@@ -273,31 +287,33 @@
 						</DropdownMenu.Trigger>
 						<DropdownMenu.Content align="end" class="w-56">
 							<DropdownMenu.Label>
-								<div class="truncate font-medium">{user.name ?? 'Account'}</div>
+								<div class="truncate font-medium">
+									{user.name ?? m.components_site_header_account_fallback()}
+								</div>
 								<div class="truncate text-xs text-muted-foreground">{user.email ?? ''}</div>
 							</DropdownMenu.Label>
 							<DropdownMenu.Separator />
 							<DropdownMenu.Item onclick={() => void goto('/account')}>
 								<User />
-								My account
+								{m.components_site_header_my_account()}
 							</DropdownMenu.Item>
 							<DropdownMenu.Item onclick={() => void goto('/account/orders')}>
 								<Package />
-								My orders
+								{m.components_site_header_my_orders()}
 							</DropdownMenu.Item>
 							<DropdownMenu.Item onclick={() => void goto('/account/wishlist')}>
 								<Heart />
-								My wishlist
+								{m.components_regular_my_wishlist()}
 							</DropdownMenu.Item>
 							<DropdownMenu.Separator />
 							<DropdownMenu.Item variant="destructive" onclick={() => void signOutUser('/login')}>
 								<LogOut />
-								Sign out
+								{m.common_logout()}
 							</DropdownMenu.Item>
 						</DropdownMenu.Content>
 					</DropdownMenu.Root>
 				{:else}
-					<Button href="/login" variant="outline" class="ml-1">Sign in</Button>
+					<Button href="/login" variant="outline" class="ml-1">{m.common_login()}</Button>
 				{/if}
 			</div>
 		</div>

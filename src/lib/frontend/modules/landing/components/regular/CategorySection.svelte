@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
 	import ImagePlaceholder from '#lib/frontend/components/ui/ImagePlaceholder.svelte';
 	import { Button } from '#lib/frontend/components/ui/button/index.ts';
 	import * as Carousel from '#lib/frontend/components/ui/carousel/index.ts';
@@ -10,9 +11,9 @@
 <section class="flex w-full flex-col items-center bg-white pt-24" data-name="Category">
 	<div class="flex w-full max-w-[1280px] flex-col gap-8 px-8">
 		<div class="flex items-end justify-between gap-8 text-[#0a0a0a]">
-			<h2 class="text-3xl leading-9 font-bold">Shop by Category</h2>
+			<h2 class="text-3xl leading-9 font-bold">{m.components_shop_by_category()}</h2>
 			<Button variant="link" href="/categories" class="text-lg font-medium text-[#0a0a0a]">
-				View All
+				{m.common_view_all()}
 			</Button>
 		</div>
 
@@ -46,7 +47,9 @@
 								<p class="text-lg leading-7 font-medium break-words text-[#0a0a0a]">
 									{category.name}
 								</p>
-								<p class="text-sm leading-5 text-[#737373]">{category.productCount} products</p>
+								<p class="text-sm leading-5 text-[#737373]">
+									{m.components_category_grid_products({ count: category.productCount })}
+								</p>
 							</div>
 						</a>
 					</Carousel.Item>
