@@ -33,7 +33,7 @@
 	}
 </script>
 
-<svelte:head><link rel="icon" href={site.logoUrl ?? favicon} /></svelte:head>
+<svelte:head><link rel="icon" href={site.logoUrl || favicon} /></svelte:head>
 
 {#if !DYNAMIC_SEO_ROUTES.has(page.route.id ?? '')}
 	<Seo meta={metaForRoute(page.route.id, site.storeName)} />
