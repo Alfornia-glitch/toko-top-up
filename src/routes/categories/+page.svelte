@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
 	import { onMount } from 'svelte';
 	import { ArrowRight } from '@lucide/svelte';
 	import SiteHeader from '#lib/frontend/components/SiteHeader.svelte';
@@ -149,7 +150,7 @@
 						href={`/products?categoryId=${root.id}`}
 						class="shrink-0 font-['Geist:Medium'] text-[18px] leading-[28px] font-medium text-[#0a0a0a] transition hover:text-[#525252]"
 					>
-						View All
+						{m.common_view_all()}
 					</a>
 				</div>
 				<div
@@ -184,7 +185,7 @@
 									{category.name}
 								</p>
 								<p class="text-[14px] leading-[20px] text-[#737373]">
-									{category.productCount} products
+									{m.storefront_categories_products_count({ count: category.productCount })}
 								</p>
 							</div>
 						</a>
@@ -210,7 +211,7 @@
 					<h2
 						class="relative min-w-px flex-[1_0_0] font-['Geist:Bold'] text-[30px] leading-[36px] font-bold [word-break:break-word] text-[#0a0a0a] max-[480px]:text-2xl max-[480px]:leading-8"
 					>
-						Grand Global Brands
+						{m.storefront_categories_brands_title()}
 					</h2>
 				</div>
 				<div
@@ -270,13 +271,13 @@
 					<h2
 						class="relative min-w-px flex-[1_0_0] font-['Geist:Bold'] text-[30px] leading-[36px] font-bold [word-break:break-word] text-[#0a0a0a] max-[480px]:text-2xl max-[480px]:leading-8"
 					>
-						Deals of the Day
+						{m.storefront_categories_deals_title()}
 					</h2>
 					<a
 						href="/products?deal=true"
 						class="shrink-0 font-['Geist:Medium'] text-[18px] leading-[28px] font-medium text-[#0a0a0a] transition hover:text-[#525252]"
 					>
-						View All
+						{m.common_view_all()}
 					</a>
 				</div>
 				<div
@@ -332,7 +333,7 @@
 						</div>
 						<div class="flex w-full max-w-[420px] flex-col gap-[8px]" data-name="Flex Vertical">
 							<p class="font-['Geist:SemiBold'] text-[16px] leading-[24px] font-semibold">
-								Offer expires in:
+								{m.storefront_categories_offer_expires()}
 							</p>
 							<DealCountdown endsAt={firstDeal.dealEndsAt} />
 						</div>
@@ -344,7 +345,7 @@
 							<span
 								class="font-['Geist:Medium'] text-[14px] leading-[20px] font-medium whitespace-nowrap"
 							>
-								Shop now
+								{m.storefront_categories_shop_now()}
 							</span>
 							<ArrowRight class="size-[16px]" />
 						</a>
@@ -356,21 +357,21 @@
 
 	{#if remainingDeals.length > 0}
 		<ProductCarousel
-			title="Deals of the Day"
+			title={m.storefront_categories_deals_title()}
 			products={remainingDeals}
 			viewAllHref="/products?deal=true"
 		/>
 	{/if}
 
 	<ProductCarousel
-		title="New Arrival Products"
+		title={m.storefront_categories_new_arrivals()}
 		products={home.newArrivals}
 		viewAllHref="/products?newArrival=true"
 	/>
 
 	{#if home.popular.length > 0}
 		<ProductCarousel
-			title="Popular Products"
+			title={m.storefront_categories_popular()}
 			products={home.popular}
 			viewAllHref="/products?sort=popular"
 		/>

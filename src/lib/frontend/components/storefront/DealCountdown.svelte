@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
 	let { endsAt }: { endsAt: string | Date | null | undefined } = $props();
 
 	let days = $state('00');
@@ -8,10 +9,10 @@
 	let visible = $state(false);
 
 	const blocks = $derived([
-		{ label: 'Day', value: days },
-		{ label: 'Hours', value: hours },
-		{ label: 'Min', value: minutes },
-		{ label: 'Sec', value: seconds }
+		{ label: m.components_countdown_days(), value: days },
+		{ label: m.components_countdown_hours(), value: hours },
+		{ label: m.components_countdown_minutes(), value: minutes },
+		{ label: m.components_countdown_seconds(), value: seconds }
 	]);
 
 	function endTime(value: string | Date | null | undefined): number | null {

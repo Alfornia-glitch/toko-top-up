@@ -1,5 +1,13 @@
 <script lang="ts">
-	import { formatMoney } from '#lib/frontend/modules/commerce/format.ts';
+	import {
+		formatDate,
+		formatMoney,
+		formatNumber,
+		formatPercent
+	} from '#lib/frontend/modules/commerce/format.ts';
+	import { intlLocale } from '#lib/frontend/i18n/locale.ts';
+	import { m } from '#lib/paraglide/messages.js';
+	import { errorMessage } from '#lib/frontend/i18n/index.ts';
 	import { onMount } from 'svelte';
 	import { getLocalTimeZone, today, type DateValue } from '@internationalized/date';
 	import {
@@ -109,12 +117,12 @@
 			: []
 	);
 
-	const bandRows = $derived(
+	const bandRows = $derived.by(() =>
 		inventory
 			? [
 					{
 						key: 'healthy',
-						label: 'Healthy stock',
+						label: m.admin_catalog_reports_band_healthy(),
 						count: inventory.bands.healthy,
 						percent:
 							inventory.variantCount > 0
@@ -123,14 +131,14 @@
 					},
 					{
 						key: 'low',
-						label: 'Low stock',
+						label: m.admin_catalog_reports_band_low(),
 						count: inventory.bands.low,
 						percent:
 							inventory.variantCount > 0 ? (inventory.bands.low / inventory.variantCount) * 100 : 0
 					},
 					{
 						key: 'out',
-						label: 'Out of stock',
+						label: m.admin_catalog_reports_band_out(),
 						count: inventory.bands.out,
 						percent:
 							inventory.variantCount > 0 ? (inventory.bands.out / inventory.variantCount) * 100 : 0
@@ -139,31 +147,31 @@
 			: []
 	);
 
-	const dailyColumns = [
-		{ key: 'date', label: 'Date' },
-		{ key: 'orders', label: 'Orders', class: 'text-right' },
-		{ key: 'revenue', label: 'Revenue', class: 'text-right' }
-	];
+	const dailyColumns = $derived([
+		{ key: 'date', label: m.admin_catalog_reports_col_date() },
+		{ key: 'orders', label: m.common_orders(), class: 'text-right' },
+		{ key: 'revenue', label: m.admin_catalog_reports_col_revenue(), class: 'text-right' }
+	]);
 
-	const topProductColumns = [
-		{ key: 'name', label: 'Product' },
-		{ key: 'sku', label: 'SKU' },
-		{ key: 'quantity', label: 'Units', class: 'text-right' },
-		{ key: 'total', label: 'Revenue', class: 'text-right' }
-	];
+	const topProductColumns = $derived([
+		{ key: 'name', label: m.common_product() },
+		{ key: 'sku', label: m.admin_catalog_products_col_sku() },
+		{ key: 'quantity', label: m.admin_catalog_reports_col_units(), class: 'text-right' },
+		{ key: 'total', label: m.admin_catalog_reports_col_revenue(), class: 'text-right' }
+	]);
 
-	const lowStockColumns = [
-		{ key: 'productName', label: 'Product' },
-		{ key: 'name', label: 'Variant' },
-		{ key: 'sku', label: 'SKU' },
-		{ key: 'stock', label: 'Stock', class: 'text-right' }
-	];
+	const lowStockColumns = $derived([
+		{ key: 'productName', label: m.common_product() },
+		{ key: 'name', label: m.admin_catalog_reports_col_variant() },
+		{ key: 'sku', label: m.admin_catalog_products_col_sku() },
+		{ key: 'stock', label: m.admin_catalog_inventory_col_stock(), class: 'text-right' }
+	]);
 
-	const movementColumns = [
-		{ key: 'variantId', label: 'Variant' },
-		{ key: 'delta', label: 'Net change', class: 'text-right' },
-		{ key: 'entries', label: 'Entries', class: 'text-right' }
-	];
+	const movementColumns = $derived([
+		{ key: 'variantId', label: m.admin_catalog_reports_col_variant() },
+		{ key: 'delta', label: m.admin_catalog_reports_col_net_change(), class: 'text-right' },
+		{ key: 'entries', label: m.admin_catalog_reports_col_entries(), class: 'text-right' }
+	]);
 
 	onMount(() => {
 		void loadSales();
@@ -185,11 +193,12 @@
 			const response = await fetch(`/api/admin/reports/sales?${params.toString()}`);
 			const payload = await response.json().catch(() => ({}));
 
-			if (!response.ok) throw new Error(payload.error ?? 'Could not load the sales report');
+			if (!response.ok)
+				throw new Error(errorMessage(payload, 'admin_catalog_reports_sales_load_failed'));
 
 			sales = payload.data ?? null;
 		} catch (err) {
-			salesError = err instanceof Error ? err.message : 'Could not load the sales report';
+			salesError = errorMessage(err, 'admin_catalog_reports_sales_load_failed');
 		} finally {
 			salesLoading = false;
 		}
@@ -203,11 +212,12 @@
 			const response = await fetch('/api/admin/reports/inventory');
 			const payload = await response.json().catch(() => ({}));
 
-			if (!response.ok) throw new Error(payload.error ?? 'Could not load the inventory report');
+			if (!response.ok)
+				throw new Error(errorMessage(payload, 'admin_catalog_reports_inventory_load_failed'));
 
 			inventory = payload.data ?? null;
 		} catch (err) {
-			inventoryError = err instanceof Error ? err.message : 'Could not load the inventory report';
+			inventoryError = errorMessage(err, 'admin_catalog_reports_inventory_load_failed');
 		} finally {
 			inventoryLoading = false;
 		}
@@ -244,53 +254,41 @@
 		return date.toISOString();
 	}
 
-	const number = new Intl.NumberFormat('en-US');
-	const rangeFormatter = new Intl.DateTimeFormat('en-US', {
-		month: 'short',
-		day: 'numeric',
-		year: 'numeric'
-	});
-	const dayFormatter = new Intl.DateTimeFormat('en-US', {
-		month: 'short',
-		day: 'numeric',
-		year: 'numeric',
-		timeZone: 'UTC'
-	});
-
-	function formatNumber(value: number) {
-		return number.format(value ?? 0);
-	}
-
 	function formatRangeDate(value: DateValue | undefined) {
-		if (!value) return 'Any date';
+		if (!value) return m.admin_catalog_reports_any_date();
 
-		return rangeFormatter.format(value.toDate(getLocalTimeZone()));
+		return formatDate(value.toDate(getLocalTimeZone()));
 	}
 
 	function formatDay(value: string) {
 		const date = new Date(`${value}T00:00:00Z`);
 		if (Number.isNaN(date.getTime())) return value;
 
-		return dayFormatter.format(date);
+		return new Intl.DateTimeFormat(intlLocale(), {
+			month: 'short',
+			day: 'numeric',
+			year: 'numeric',
+			timeZone: 'UTC'
+		}).format(date);
 	}
 </script>
 
 <div class="space-y-6">
 	<div class="flex flex-wrap items-start justify-between gap-3">
 		<div>
-			<h1 class="text-2xl font-semibold tracking-tight">Reports</h1>
-			<p class="text-sm text-muted-foreground">Review sales performance and inventory health.</p>
+			<h1 class="text-2xl font-semibold tracking-tight">{m.admin_catalog_reports_title()}</h1>
+			<p class="text-sm text-muted-foreground">{m.admin_catalog_reports_subtitle()}</p>
 		</div>
 		<Button variant="outline" onclick={refresh} disabled={salesLoading && inventoryLoading}>
 			<RefreshCw class="size-4" />
-			Refresh
+			{m.common_refresh()}
 		</Button>
 	</div>
 
 	<Tabs.Root bind:value={tab}>
 		<Tabs.List>
-			<Tabs.Trigger value="sales">Sales</Tabs.Trigger>
-			<Tabs.Trigger value="inventory">Inventory</Tabs.Trigger>
+			<Tabs.Trigger value="sales">{m.admin_catalog_reports_tab_sales()}</Tabs.Trigger>
+			<Tabs.Trigger value="inventory">{m.admin_catalog_reports_tab_inventory()}</Tabs.Trigger>
 		</Tabs.List>
 
 		<Tabs.Content value="sales" class="mt-4 space-y-6">
@@ -306,7 +304,7 @@
 			<Card.Root>
 				<Card.Content class="flex flex-wrap items-end gap-3 py-4">
 					<div class="space-y-1.5">
-						<Label>From</Label>
+						<Label>{m.admin_catalog_reports_from()}</Label>
 						<Popover.Root bind:open={fromOpen}>
 							<Popover.Trigger>
 								{#snippet child({ props })}
@@ -329,7 +327,7 @@
 					</div>
 
 					<div class="space-y-1.5">
-						<Label>To</Label>
+						<Label>{m.admin_catalog_reports_to()}</Label>
 						<Popover.Root bind:open={toOpen}>
 							<Popover.Trigger>
 								{#snippet child({ props })}
@@ -362,46 +360,48 @@
 			{:else if sales}
 				<div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
 					<StatCard
-						title="Revenue"
+						title={m.admin_catalog_reports_stat_revenue()}
 						value={formatMoney(sales.revenue)}
-						hint="Paid orders in range"
+						hint={m.admin_catalog_reports_stat_revenue_hint()}
 						icon={DollarSign}
 					/>
 					<StatCard
-						title="Orders"
+						title={m.admin_catalog_reports_stat_orders()}
 						value={formatNumber(sales.orderCount)}
-						hint={`${formatNumber(sales.paidOrders)} paid`}
+						hint={m.admin_catalog_reports_stat_orders_hint({
+							count: formatNumber(sales.paidOrders)
+						})}
 						icon={ShoppingCart}
 					/>
 					<StatCard
-						title="Average order value"
+						title={m.admin_catalog_reports_stat_aov()}
 						value={formatMoney(sales.averageOrder)}
-						hint="Paid orders only"
+						hint={m.admin_catalog_reports_stat_aov_hint()}
 						icon={TrendingUp}
 					/>
 					<StatCard
-						title="Paid orders"
+						title={m.admin_catalog_reports_stat_paid()}
 						value={formatNumber(sales.paidOrders)}
-						hint="Processing, shipped or delivered"
+						hint={m.admin_catalog_reports_stat_paid_hint()}
 						icon={Package}
 					/>
 				</div>
 
 				<Card.Root>
 					<Card.Header>
-						<Card.Title>Orders by status</Card.Title>
-						<Card.Description>Share of all orders placed in the selected range.</Card.Description>
+						<Card.Title>{m.admin_catalog_reports_status_title()}</Card.Title>
+						<Card.Description>{m.admin_catalog_reports_status_description()}</Card.Description>
 					</Card.Header>
 					<Card.Content class="space-y-4">
 						{#if statusRows.length === 0}
-							<p class="text-sm text-muted-foreground">No orders in this range.</p>
+							<p class="text-sm text-muted-foreground">{m.admin_catalog_reports_no_orders()}</p>
 						{:else}
 							{#each statusRows as row (row.status)}
 								<div class="space-y-1.5">
 									<div class="flex items-center justify-between gap-2 text-sm">
 										<StatusBadge status={row.status} />
 										<span class="text-muted-foreground">
-											{formatNumber(row.count)} · {row.percent.toFixed(0)}%
+											{formatNumber(row.count)} · {formatPercent(row.percent / 100)}
 										</span>
 									</div>
 									<Progress.Root value={row.percent} class="h-2" />
@@ -413,13 +413,17 @@
 
 				<div class="space-y-3">
 					<div>
-						<h2 class="text-lg font-semibold tracking-tight">Daily series</h2>
-						<p class="text-sm text-muted-foreground">Orders and revenue grouped by day.</p>
+						<h2 class="text-lg font-semibold tracking-tight">
+							{m.admin_catalog_reports_daily_title()}
+						</h2>
+						<p class="text-sm text-muted-foreground">
+							{m.admin_catalog_reports_daily_description()}
+						</p>
 					</div>
 					<DataTable
 						columns={dailyColumns}
 						rows={dailyRows as unknown as Record<string, unknown>[]}
-						emptyMessage="No orders in this range."
+						emptyMessage={m.admin_catalog_reports_no_orders()}
 						page={1}
 						pageSize={Math.max(dailyRows.length, 1)}
 						total={dailyRows.length}
@@ -440,15 +444,17 @@
 
 				<div class="space-y-3">
 					<div>
-						<h2 class="text-lg font-semibold tracking-tight">Top products</h2>
+						<h2 class="text-lg font-semibold tracking-tight">
+							{m.admin_catalog_reports_top_title()}
+						</h2>
 						<p class="text-sm text-muted-foreground">
-							Best sellers by revenue in the selected range.
+							{m.admin_catalog_reports_top_description()}
 						</p>
 					</div>
 					<DataTable
 						columns={topProductColumns}
 						rows={topProductRows as unknown as Record<string, unknown>[]}
-						emptyMessage="No product sales in this range."
+						emptyMessage={m.admin_catalog_reports_no_product_sales()}
 						page={1}
 						pageSize={Math.max(topProductRows.length, 1)}
 						total={topProductRows.length}
@@ -490,35 +496,35 @@
 			{:else if inventory}
 				<div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
 					<StatCard
-						title="Stock value"
+						title={m.admin_catalog_reports_stat_stock_value()}
 						value={formatMoney(inventory.stockValue)}
-						hint="Retail value at current prices"
+						hint={m.admin_catalog_reports_stat_stock_value_hint()}
 						icon={DollarSign}
 					/>
 					<StatCard
-						title="Low stock"
+						title={m.admin_catalog_reports_stat_low_stock()}
 						value={formatNumber(inventory.lowStock)}
-						hint="Variants with 5 or fewer units"
+						hint={m.admin_catalog_reports_stat_low_stock_hint()}
 						icon={TriangleAlert}
 					/>
 					<StatCard
-						title="Out of stock"
+						title={m.admin_catalog_reports_stat_out_of_stock()}
 						value={formatNumber(inventory.outOfStock)}
-						hint="Variants with zero units"
+						hint={m.admin_catalog_reports_stat_out_of_stock_hint()}
 						icon={Package}
 					/>
 					<StatCard
-						title="Variants"
+						title={m.admin_catalog_reports_stat_variants()}
 						value={formatNumber(inventory.variantCount)}
-						hint="Across all products"
+						hint={m.admin_catalog_reports_stat_variants_hint()}
 						icon={TrendingUp}
 					/>
 				</div>
 
 				<Card.Root>
 					<Card.Header>
-						<Card.Title>Stock bands</Card.Title>
-						<Card.Description>Distribution of variants by stock level.</Card.Description>
+						<Card.Title>{m.admin_catalog_reports_bands_title()}</Card.Title>
+						<Card.Description>{m.admin_catalog_reports_bands_description()}</Card.Description>
 					</Card.Header>
 					<Card.Content class="space-y-4">
 						{#each bandRows as row (row.key)}
@@ -526,7 +532,7 @@
 								<div class="flex items-center justify-between gap-2 text-sm">
 									<span class="font-medium">{row.label}</span>
 									<span class="text-muted-foreground">
-										{formatNumber(row.count)} · {row.percent.toFixed(0)}%
+										{formatNumber(row.count)} · {formatPercent(row.percent / 100)}
 									</span>
 								</div>
 								<Progress.Root value={row.percent} class="h-2" />
@@ -537,13 +543,15 @@
 
 				<div class="space-y-3">
 					<div>
-						<h2 class="text-lg font-semibold tracking-tight">Low stock variants</h2>
-						<p class="text-sm text-muted-foreground">Variants at or below the restock threshold.</p>
+						<h2 class="text-lg font-semibold tracking-tight">
+							{m.admin_catalog_reports_low_title()}
+						</h2>
+						<p class="text-sm text-muted-foreground">{m.admin_catalog_reports_low_description()}</p>
 					</div>
 					<DataTable
 						columns={lowStockColumns}
 						rows={lowStockRows as unknown as Record<string, unknown>[]}
-						emptyMessage="All variants are above the low stock threshold."
+						emptyMessage={m.admin_catalog_reports_low_empty()}
 						page={1}
 						pageSize={Math.max(lowStockRows.length, 1)}
 						total={lowStockRows.length}
@@ -568,13 +576,17 @@
 
 				<div class="space-y-3">
 					<div>
-						<h2 class="text-lg font-semibold tracking-tight">Recent movements</h2>
-						<p class="text-sm text-muted-foreground">Net stock changes over the last 30 days.</p>
+						<h2 class="text-lg font-semibold tracking-tight">
+							{m.admin_catalog_reports_movements_title()}
+						</h2>
+						<p class="text-sm text-muted-foreground">
+							{m.admin_catalog_reports_movements_description()}
+						</p>
 					</div>
 					<DataTable
 						columns={movementColumns}
 						rows={movementRows as unknown as Record<string, unknown>[]}
-						emptyMessage="No stock movements in the last 30 days."
+						emptyMessage={m.admin_catalog_reports_movements_empty()}
 						page={1}
 						pageSize={Math.max(movementRows.length, 1)}
 						total={movementRows.length}

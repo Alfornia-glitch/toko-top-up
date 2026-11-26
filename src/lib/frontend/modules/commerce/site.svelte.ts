@@ -1,3 +1,4 @@
+import { errorMessage } from '#lib/frontend/i18n/index.ts';
 import { api, unwrap } from '../shared/http.ts';
 import type { SiteSettings } from './models.ts';
 
@@ -71,7 +72,7 @@ class SiteStore {
 			this.settings = unwrap(payload);
 			writeCachedLayout(this.settings.storefrontLayout);
 		} catch (error) {
-			this.error = error instanceof Error ? error.message : 'Could not load site settings';
+			this.error = errorMessage(error, 'components_site_load_failed');
 		} finally {
 			this.loading = false;
 		}

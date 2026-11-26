@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
 	import ImagePlaceholder from '#lib/frontend/components/ui/ImagePlaceholder.svelte';
 	import StorefrontProductCard from '#lib/frontend/components/storefront/StorefrontProductCard.svelte';
 	import { home } from '#lib/frontend/modules/commerce/home.svelte.ts';
@@ -30,7 +31,7 @@
 	const featuredSubtitle = $derived(promoBanner?.subtitle ?? firstDeal?.shortDescription ?? null);
 	const featuredImage = $derived(promoBanner?.imageUrl || firstDeal?.imageUrl || '');
 	const featuredHref = $derived(promoBanner?.ctaUrl ?? '/products?deal=true');
-	const featuredCta = $derived(promoBanner?.ctaLabel ?? 'Shop Now');
+	const featuredCta = $derived(promoBanner?.ctaLabel ?? m.components_landing_deals_cta());
 
 	$effect(() => {
 		if (dealEndsAt === null) return;
@@ -58,14 +59,14 @@
 			<p
 				class="relative min-w-px flex-[1_0_0] font-['Geist:Bold'] text-[30px] leading-[36px] font-bold [word-break:break-word] text-[#0a0a0a] max-[480px]:text-2xl max-[480px]:leading-8"
 			>
-				Deals of the Day 🔥
+				{m.components_landing_deals_title()}
 			</p>
 			<div class="relative flex shrink-0 items-center gap-[16px]">
 				<a
 					href="/products?deal=true"
 					class="shrink-0 font-['Geist:Medium'] text-[18px] leading-[28px] font-medium text-[#0a0a0a] transition hover:text-[#525252]"
 				>
-					View All
+					{m.common_view_all()}
 				</a>
 				<div
 					class="relative flex w-[67px] shrink-0 content-stretch items-center justify-between"
@@ -153,7 +154,7 @@
 									<p
 										class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[16px] leading-[24px] font-semibold [word-break:break-word] text-white"
 									>
-										Offers end today:
+										{m.components_landing_deals_ends_today()}
 									</p>
 									<div
 										class="relative flex w-full shrink-0 content-stretch items-center gap-[8px]"
@@ -176,7 +177,7 @@
 											<p
 												class="relative w-full shrink-0 text-center font-['Geist:Medium'] text-[14px] leading-[20px] font-medium [word-break:break-word] text-white"
 											>
-												Day
+												{m.components_countdown_days()}
 											</p>
 										</div>
 										<div
@@ -196,7 +197,7 @@
 											<p
 												class="relative w-full shrink-0 text-center font-['Geist:Medium'] text-[14px] leading-[20px] font-medium [word-break:break-word] text-white"
 											>
-												Hours
+												{m.components_countdown_hours()}
 											</p>
 										</div>
 										<div
@@ -216,7 +217,7 @@
 											<p
 												class="relative w-full shrink-0 text-center font-['Geist:Medium'] text-[14px] leading-[20px] font-medium [word-break:break-word] text-white"
 											>
-												Min
+												{m.components_countdown_minutes()}
 											</p>
 										</div>
 										<div
@@ -236,7 +237,7 @@
 											<p
 												class="relative w-full shrink-0 text-center font-['Geist:Medium'] text-[14px] leading-[20px] font-medium [word-break:break-word] text-white"
 											>
-												Sec
+												{m.components_countdown_seconds()}
 											</p>
 										</div>
 									</div>

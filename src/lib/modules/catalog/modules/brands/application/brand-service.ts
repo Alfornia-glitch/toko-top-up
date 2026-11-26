@@ -121,7 +121,8 @@ export function createBrandService(
 					updatedAt: clock.now()
 				});
 
-				if (!updated) return err(new NotFoundError('Brand not found'));
+				if (!updated)
+					return err(new NotFoundError('Brand not found', { messageKey: 'brand_not_found' }));
 				return ok(updated);
 			} catch (error) {
 				return err(toAppError(error));
@@ -132,11 +133,16 @@ export function createBrandService(
 			try {
 				assertPermission(actor, 'catalog:write');
 				const existing = await repository.findById(id);
-				if (!existing) return err(new NotFoundError('Brand not found'));
+				if (!existing)
+					return err(new NotFoundError('Brand not found', { messageKey: 'brand_not_found' }));
 
 				const products = await repository.countProducts(id);
 				if (products > 0) {
-					return err(new ConflictError('Reassign or delete products that use this brand first'));
+					return err(
+						new ConflictError('Reassign or delete products that use this brand first', {
+							messageKey: 'brand_in_use'
+						})
+					);
 				}
 
 				await repository.delete(id);

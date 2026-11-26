@@ -11,13 +11,16 @@ export const POST: RequestHandler = async ({ locals, params, request }) => {
 	try {
 		body = await request.json();
 	} catch {
-		return Response.json({ error: 'Expected a JSON body' }, { status: 400 });
+		return Response.json(
+			{ error: 'Expected a JSON body', code: 'invalid_json_body' },
+			{ status: 400 }
+		);
 	}
 
 	const parsed = ticketMessageSchema.safeParse(body);
 	if (!parsed.success) {
 		return Response.json(
-			{ error: 'Invalid message', details: parsed.error.flatten() },
+			{ error: 'Invalid message', code: 'VALIDATION_ERROR', details: parsed.error.flatten() },
 			{ status: 422 }
 		);
 	}

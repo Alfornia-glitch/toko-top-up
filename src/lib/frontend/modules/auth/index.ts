@@ -1,3 +1,4 @@
+import { m } from '#lib/paraglide/messages.js';
 import { goto } from '$app/navigation';
 import { createAuthClient } from 'better-auth/svelte';
 import { adminClient } from 'better-auth/client/plugins';
@@ -5,15 +6,23 @@ import { wishlist } from '#lib/frontend/modules/account/index.ts';
 
 export const authClient = createAuthClient({ plugins: [adminClient()] });
 
-const errorMessages: Record<string, string> = {
-	INVALID_EMAIL_OR_PASSWORD: 'Incorrect email or password. Please try again.',
-	INVALID_EMAIL: 'Please enter a valid email address.',
-	INVALID_PASSWORD: 'Incorrect password. Please try again.',
-	PASSWORD_TOO_SHORT: 'Your password must be at least 8 characters long.',
-	USER_ALREADY_EXISTS: 'An account with this email already exists. Try signing in instead.',
-	USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL:
-		'An account with this email already exists. Try signing in instead.'
-};
+function knownErrorMessage(code: string): string | undefined {
+	switch (code) {
+		case 'INVALID_EMAIL_OR_PASSWORD':
+			return m.components_auth_invalid_credentials();
+		case 'INVALID_EMAIL':
+			return m.components_auth_invalid_email();
+		case 'INVALID_PASSWORD':
+			return m.components_auth_invalid_password();
+		case 'PASSWORD_TOO_SHORT':
+			return m.components_auth_password_too_short();
+		case 'USER_ALREADY_EXISTS':
+		case 'USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL':
+			return m.components_auth_user_exists();
+		default:
+			return undefined;
+	}
+}
 
 export function safeRedirect(target: string | null | undefined, fallback = '/'): string {
 	if (target && target.startsWith('/') && !target.startsWith('//')) {
@@ -23,20 +32,17 @@ export function safeRedirect(target: string | null | undefined, fallback = '/'):
 	return fallback;
 }
 
-export function authErrorMessage(
-	error: unknown,
-	fallback = 'Something went wrong. Please try again.'
-): string {
-	if (!error) return fallback;
+export function authErrorMessage(error: unknown, fallback?: string): string {
+	const defaultMessage = fallback ?? m.components_auth_generic_error();
+	if (!error) return defaultMessage;
 
 	const code =
 		typeof error === 'object' && error !== null && 'error' in error
 			? (error as { error?: { code?: string } }).error?.code
 			: undefined;
 
-	if (code && errorMessages[code]) {
-		return errorMessages[code];
-	}
+	const known = code ? knownErrorMessage(code) : undefined;
+	if (known) return known;
 
 	if (error instanceof Error && error.message) {
 		return error.message;
@@ -47,7 +53,7 @@ export function authErrorMessage(
 		if (typeof message === 'string' && message) return message;
 	}
 
-	return fallback;
+	return defaultMessage;
 }
 
 export async function signOutUser(redirectTo = '/login'): Promise<void> {

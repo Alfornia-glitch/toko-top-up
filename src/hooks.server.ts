@@ -2,7 +2,8 @@ import { error, isHttpError, isRedirect, redirect, type RequestEvent } from '@sv
 import { sequence, type Handle, type HandleServerError } from '@sveltejs/kit/hooks';
 import { building } from '$app/env';
 import { svelteKitHandler } from 'better-auth/svelte-kit';
-import { hasPermission, isAppError } from '#shared';
+import { paraglideMiddleware } from '#lib/paraglide/server.js';
+import { errorBody, hasPermission, isAppError } from '#shared';
 import { actorFromUser, adminPermissionForPath } from '#lib/server/actor.server.ts';
 import { answerAppError } from '#lib/server/http/app-error-response.ts';
 import {
@@ -11,8 +12,21 @@ import {
 	purgeStorefrontCache,
 	storefrontCacheHeaders
 } from '#lib/server/http/cdn-cache.ts';
+import { applyZodLocale } from '#lib/server/http/zod-locale.ts';
 import { resolvePageSeo } from '#lib/server/http/seo.ts';
 import { getRuntime } from '#lib/server/runtime.server.ts';
+
+/**
+ * Resolves the request locale (cookie, then base locale) into AsyncLocalStorage so server-side
+ * `m.*` calls use it, and writes it into `<html lang>` of the shell.
+ */
+const paraglideHandle: Handle = ({ event, resolve }) =>
+	paraglideMiddleware(event.request, ({ locale }) => {
+		applyZodLocale(locale);
+		return resolve(event, {
+			transformPageChunk: ({ html }) => html.replace('%paraglide.lang%', locale)
+		});
+	});
 
 const requestContextHandle: Handle = async ({ event, resolve }) => {
 	const requestId = crypto.randomUUID();
@@ -135,7 +149,10 @@ const actorGuardHandle: Handle = ({ event, resolve }) => {
 
 	if (!event.locals.actor) {
 		if (isApi) {
-			return Response.json({ error: 'Authentication required' }, { status: 401 });
+			return Response.json(
+				{ error: 'Authentication required', code: 'UNAUTHORIZED' },
+				{ status: 401 }
+			);
 		}
 
 		const redirectTo = `${event.url.pathname}${event.url.search}`;
@@ -144,7 +161,7 @@ const actorGuardHandle: Handle = ({ event, resolve }) => {
 
 	if (!hasPermission(event.locals.actor, permission)) {
 		if (isApi) {
-			return Response.json({ error: 'Forbidden' }, { status: 403 });
+			return Response.json({ error: 'Forbidden', code: 'FORBIDDEN' }, { status: 403 });
 		}
 
 		error(403, 'Forbidden');
@@ -154,6 +171,7 @@ const actorGuardHandle: Handle = ({ event, resolve }) => {
 };
 
 const composed = sequence(
+	paraglideHandle,
 	requestContextHandle,
 	runtimeHandle,
 	cdnCacheHandle,
@@ -169,7 +187,7 @@ export const handle: Handle = async (input) => {
 		if (!isAppError(cause)) throw cause;
 
 		if (input.event.url.pathname.startsWith('/api/')) {
-			return Response.json({ error: cause.message }, { status: cause.status });
+			return Response.json(errorBody(cause), { status: cause.status });
 		}
 
 		error(cause.status, cause.message);

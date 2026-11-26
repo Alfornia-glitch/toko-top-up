@@ -1,9 +1,7 @@
 <script lang="ts">
-	import {
-		listGiftCards,
-		isUnauthorized,
-		messageFrom
-	} from '#lib/frontend/modules/account/index.ts';
+	import { m } from '#lib/paraglide/messages.js';
+	import { errorMessage, statusLabel } from '#lib/frontend/i18n/index.ts';
+	import { listGiftCards, isUnauthorized } from '#lib/frontend/modules/account/index.ts';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
@@ -33,7 +31,7 @@
 			return '';
 		}
 
-		return messageFrom(cause, 'Something went wrong');
+		return errorMessage(cause, 'common_something_went_wrong');
 	}
 
 	async function loadCards(): Promise<void> {
@@ -87,12 +85,12 @@
 							<p
 								class="relative w-[min-content] min-w-full shrink-0 font-['Geist:SemiBold'] text-[24px] leading-[32px] font-semibold text-[#0a0a0a]"
 							>
-								Give the Perfect Gift Anytime, Anywhere.
+								{m.account_gift_cards_hero_title()}
 							</p>
 							<p
 								class="relative w-[min-content] min-w-full shrink-0 font-['Geist:Regular'] text-[16px] leading-[24px] font-normal text-[#737373]"
 							>
-								Surprise someone special with the freedom to choose what they really want.
+								{m.account_gift_cards_hero_description()}
 							</p>
 						</div>
 						<a
@@ -103,7 +101,7 @@
 							<div
 								class="relative flex shrink-0 flex-col justify-center font-['Geist:Medium'] text-[14px] leading-[0] font-medium [word-break:break-word] whitespace-nowrap text-[#fafafa]"
 							>
-								<p class="leading-[20px]">Send a Gift</p>
+								<p class="leading-[20px]">{m.account_gift_cards_send()}</p>
 							</div>
 							<div class="relative size-[16px] shrink-0" data-name="Right-icon">
 								<img
@@ -142,7 +140,7 @@
 					<p
 						class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] text-[#0a0a0a]"
 					>
-						Your Gift Cards
+						{m.account_gift_cards_title()}
 					</p>
 
 					{#if loadError}
@@ -151,7 +149,7 @@
 
 					{#if loading}
 						<div class="flex w-full items-center justify-center py-[24px]">
-							<Spinner class="size-6" aria-label="Loading gift cards" />
+							<Spinner class="size-6" aria-label={m.account_gift_cards_loading()} />
 						</div>
 					{:else if cards.length === 0}
 						<div
@@ -159,7 +157,7 @@
 							data-name="Card"
 						>
 							<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
-								You have no gift cards yet.
+								{m.account_gift_cards_empty()}
 							</p>
 						</div>
 					{:else}
@@ -188,7 +186,7 @@
 											<p
 												class="relative flex shrink-0 flex-col justify-center text-center font-['Geist:Medium'] text-[12px] leading-[16px] font-medium whitespace-nowrap text-[#0a0a0a] capitalize"
 											>
-												{card.status}
+												{statusLabel('gift_card', card.status)}
 											</p>
 										</div>
 									</div>
@@ -197,14 +195,22 @@
 										data-name="Flex Horizontal"
 									>
 										<p class="relative shrink-0 text-[#737373]">
-											Initial: {formatMoney(card.initialAmount, card.currency)}
+											{m.account_gift_cards_initial({
+												amount: formatMoney(card.initialAmount, card.currency)
+											})}
 										</p>
 										<p class="relative shrink-0 text-[#0a0a0a]">
-											Balance: {formatMoney(card.balance, card.currency)}
+											{m.account_gift_cards_balance({
+												amount: formatMoney(card.balance, card.currency)
+											})}
 										</p>
-										<p class="relative shrink-0 text-[#737373]">Currency: {card.currency}</p>
 										<p class="relative shrink-0 text-[#737373]">
-											Expires: {card.expiresAt ? formatDate(card.expiresAt) : 'No expiry'}
+											{m.account_gift_cards_currency({ currency: card.currency })}
+										</p>
+										<p class="relative shrink-0 text-[#737373]">
+											{card.expiresAt
+												? m.account_gift_cards_expires({ date: formatDate(card.expiresAt) })
+												: m.account_gift_cards_no_expiry()}
 										</p>
 									</div>
 								</div>

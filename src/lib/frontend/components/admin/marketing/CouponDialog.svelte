@@ -17,6 +17,9 @@
 </script>
 
 <script lang="ts">
+	import { statusLabel } from '#lib/frontend/i18n/index.ts';
+	import { errorMessage } from '#lib/frontend/i18n/index.ts';
+	import { m } from '#lib/paraglide/messages.js';
 	import * as Dialog from '#lib/frontend/components/ui/dialog/index.ts';
 	import * as Field from '#lib/frontend/components/ui/field/index.ts';
 	import * as Select from '#lib/frontend/components/ui/select/index.ts';
@@ -81,7 +84,11 @@
 	let saving = $state(false);
 	let error = $state('');
 
-	const valueLabel = $derived(type === 'fixed' ? 'Value (rupiah off)' : 'Value (percentage off)');
+	const valueLabel = $derived(
+		type === 'fixed'
+			? m.components_coupon_dialog_value_fixed()
+			: m.components_coupon_dialog_value_percentage()
+	);
 
 	async function handleSubmit(event: SubmitEvent) {
 		event.preventDefault();
@@ -89,19 +96,19 @@
 
 		const trimmedCode = code.trim();
 		if (trimmedCode.length < 2) {
-			error = 'Code must be at least 2 characters.';
+			error = m.components_coupon_dialog_code_short();
 			return;
 		}
 
 		const numericValue = Number(value);
 		if (!Number.isFinite(numericValue) || numericValue <= 0) {
-			error = 'Value must be greater than zero.';
+			error = m.components_coupon_dialog_value_invalid();
 			return;
 		}
 
 		const numericMinSubtotal = Number(minSubtotal);
 		if (!Number.isFinite(numericMinSubtotal) || numericMinSubtotal < 0) {
-			error = 'Minimum subtotal must be zero or more.';
+			error = m.components_coupon_dialog_min_subtotal_invalid();
 			return;
 		}
 
@@ -110,7 +117,7 @@
 		if (maxUsesText) {
 			const numericMaxUses = Number(maxUsesText);
 			if (!Number.isInteger(numericMaxUses) || numericMaxUses < 1) {
-				error = 'Max uses must be a positive whole number.';
+				error = m.components_coupon_dialog_max_uses_invalid();
 				return;
 			}
 			parsedMaxUses = numericMaxUses;
@@ -125,7 +132,7 @@
 				}
 				parsedAppliesTo = parsed as Record<string, unknown>;
 			} catch {
-				error = 'Applies to must be a valid JSON object.';
+				error = m.components_coupon_dialog_applies_to_invalid();
 				return;
 			}
 		}
@@ -153,12 +160,12 @@
 			});
 			const result = await response.json().catch(() => ({}));
 
-			if (!response.ok) throw new Error(result.error ?? 'Could not save coupon');
+			if (!response.ok) throw result;
 
 			open = false;
 			await onsaved?.();
 		} catch (err) {
-			error = err instanceof Error ? err.message : 'Could not save coupon';
+			error = errorMessage(err, 'components_coupon_dialog_save_failed');
 		} finally {
 			saving = false;
 		}
@@ -168,11 +175,15 @@
 <Dialog.Root bind:open>
 	<Dialog.Content class="sm:max-w-2xl">
 		<Dialog.Header>
-			<Dialog.Title>{coupon ? 'Edit coupon' : 'New coupon'}</Dialog.Title>
+			<Dialog.Title
+				>{coupon
+					? m.components_coupon_dialog_edit_title()
+					: m.components_coupon_dialog_new_title()}</Dialog.Title
+			>
 			<Dialog.Description>
 				{coupon
-					? 'Update discount rules, limits and the active window.'
-					: 'Create a discount code for the storefront.'}
+					? m.components_coupon_dialog_edit_description()
+					: m.components_coupon_dialog_new_description()}
 			</Dialog.Description>
 		</Dialog.Header>
 
@@ -180,23 +191,32 @@
 			<Field.Group>
 				<div class="grid gap-4 sm:grid-cols-2">
 					<Field.Field>
-						<Field.Label for="coupon-code">Code</Field.Label>
-						<Input id="coupon-code" bind:value={code} placeholder="e.g. SPRING20" required />
+						<Field.Label for="coupon-code">{m.components_form_code()}</Field.Label>
+						<Input
+							id="coupon-code"
+							bind:value={code}
+							placeholder={m.components_coupon_dialog_code_placeholder()}
+							required
+						/>
 					</Field.Field>
 
 					<Field.Field>
-						<Field.Label for="coupon-type">Type</Field.Label>
+						<Field.Label for="coupon-type">{m.components_coupon_dialog_type()}</Field.Label>
 						<Select.Root
 							type="single"
 							value={type}
 							onValueChange={(value) => (type = value as 'percentage' | 'fixed')}
 						>
 							<Select.Trigger id="coupon-type" class="w-full">
-								<Select.Value placeholder="Select type" />
+								<Select.Value placeholder={m.components_coupon_dialog_select_type()} />
 							</Select.Trigger>
 							<Select.Content>
-								<Select.Item value="percentage" label="Percentage">Percentage</Select.Item>
-								<Select.Item value="fixed" label="Fixed amount">Fixed amount</Select.Item>
+								<Select.Item value="percentage" label={statusLabel('coupon_type', 'percentage')}
+									>{statusLabel('coupon_type', 'percentage')}</Select.Item
+								>
+								<Select.Item value="fixed" label={statusLabel('coupon_type', 'fixed')}
+									>{statusLabel('coupon_type', 'fixed')}</Select.Item
+								>
 							</Select.Content>
 						</Select.Root>
 					</Field.Field>
@@ -208,13 +228,15 @@
 						<Input id="coupon-value" type="number" min="0" step="0.01" bind:value required />
 						<Field.Description>
 							{type === 'fixed'
-								? 'Amount in rupiah.'
-								: 'Whole percentage, for example 20 for 20% off.'}
+								? m.components_form_amount_in_rupiah()
+								: m.components_coupon_dialog_percentage_hint()}
 						</Field.Description>
 					</Field.Field>
 
 					<Field.Field>
-						<Field.Label for="coupon-min-subtotal">Minimum subtotal (rupiah)</Field.Label>
+						<Field.Label for="coupon-min-subtotal"
+							>{m.components_coupon_dialog_min_subtotal()}</Field.Label
+						>
 						<Input
 							id="coupon-min-subtotal"
 							type="number"
@@ -222,57 +244,61 @@
 							step="0.01"
 							bind:value={minSubtotal}
 						/>
-						<Field.Description>Whole rupiah.</Field.Description>
+						<Field.Description>{m.components_form_whole_rupiah()}</Field.Description>
 					</Field.Field>
 				</div>
 
 				<div class="grid gap-4 sm:grid-cols-2">
 					<Field.Field>
-						<Field.Label for="coupon-max-uses">Max uses</Field.Label>
+						<Field.Label for="coupon-max-uses">{m.components_coupon_dialog_max_uses()}</Field.Label>
 						<Input
 							id="coupon-max-uses"
 							type="number"
 							min="1"
 							step="1"
 							bind:value={maxUses}
-							placeholder="Unlimited"
+							placeholder={m.components_coupon_dialog_unlimited()}
 						/>
-						<Field.Description>Leave empty for unlimited redemptions.</Field.Description>
+						<Field.Description>{m.components_coupon_dialog_max_uses_hint()}</Field.Description>
 					</Field.Field>
 
 					<div class="flex items-center justify-between gap-3 rounded-lg border p-3">
 						<div>
-							<p class="text-sm font-medium">Active</p>
-							<p class="text-xs text-muted-foreground">Disabled coupons cannot be redeemed.</p>
+							<p class="text-sm font-medium">{m.common_active()}</p>
+							<p class="text-xs text-muted-foreground">
+								{m.components_coupon_dialog_active_hint()}
+							</p>
 						</div>
-						<Switch bind:checked={active} aria-label="Coupon active" />
+						<Switch bind:checked={active} aria-label={m.components_coupon_dialog_active_label()} />
 					</div>
 				</div>
 
 				<div class="grid gap-4 sm:grid-cols-2">
 					<Field.Field>
-						<Field.Label for="coupon-starts-at">Starts at</Field.Label>
+						<Field.Label for="coupon-starts-at">{m.components_form_starts_at()}</Field.Label>
 						<Input id="coupon-starts-at" type="datetime-local" bind:value={startsAt} />
-						<Field.Description>Leave empty to start immediately.</Field.Description>
+						<Field.Description>{m.components_coupon_dialog_starts_hint()}</Field.Description>
 					</Field.Field>
 
 					<Field.Field>
-						<Field.Label for="coupon-ends-at">Ends at</Field.Label>
+						<Field.Label for="coupon-ends-at">{m.components_form_ends_at()}</Field.Label>
 						<Input id="coupon-ends-at" type="datetime-local" bind:value={endsAt} />
-						<Field.Description>Leave empty for no expiry.</Field.Description>
+						<Field.Description>{m.components_form_no_expiry()}</Field.Description>
 					</Field.Field>
 				</div>
 
 				<Field.Field>
-					<Field.Label for="coupon-applies-to">Applies to JSON</Field.Label>
+					<Field.Label for="coupon-applies-to"
+						>{m.components_coupon_dialog_applies_to()}</Field.Label
+					>
 					<Textarea
 						id="coupon-applies-to"
 						bind:value={appliesToJson}
-						placeholder={`{ "categories": ["shoes"] }`}
+						placeholder={'{ "categories": ["shoes"] }'}
 						rows={4}
 					/>
 					<Field.Description>
-						Optional JSON object limiting which products or categories the coupon applies to.
+						{m.components_coupon_dialog_applies_to_hint()}
 					</Field.Description>
 				</Field.Field>
 			</Field.Group>
@@ -283,10 +309,14 @@
 
 			<Dialog.Footer>
 				<Button type="button" variant="outline" onclick={() => (open = false)} disabled={saving}>
-					Cancel
+					{m.common_cancel()}
 				</Button>
 				<Button type="submit" disabled={saving}>
-					{saving ? 'Saving…' : coupon ? 'Save changes' : 'Create coupon'}
+					{saving
+						? m.common_saving()
+						: coupon
+							? m.common_save_changes()
+							: m.components_coupon_dialog_create()}
 				</Button>
 			</Dialog.Footer>
 		</form>

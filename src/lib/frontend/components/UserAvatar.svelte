@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
 	import { cn } from '#lib/frontend/utils.ts';
 
 	let {
@@ -15,7 +16,7 @@
 		labelClass?: string;
 	} = $props();
 
-	const displayName = $derived(name?.trim() || email?.trim() || 'Account');
+	const displayName = $derived(name?.trim() || email?.trim() || m.common_account());
 	const initials = $derived(
 		displayName
 			.split(/\s+/)

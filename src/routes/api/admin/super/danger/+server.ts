@@ -11,11 +11,17 @@ export const POST: RequestHandler = async (event) => {
 	try {
 		body = await event.request.json();
 	} catch {
-		return Response.json({ error: 'Expected a JSON body' }, { status: 400 });
+		return Response.json(
+			{ error: 'Expected a JSON body', code: 'invalid_json_body' },
+			{ status: 400 }
+		);
 	}
 	const parsed = dangerActionSchema.safeParse(body);
 	if (!parsed.success)
-		return Response.json({ error: 'Typed confirmation required' }, { status: 422 });
+		return Response.json(
+			{ error: 'Typed confirmation required', code: 'danger_confirmation_required' },
+			{ status: 422 }
+		);
 	const result = await runDangerAction(parsed.data.action, event.locals.actor);
 	await auditRequest(event, event.locals.user!.id, {
 		action: 'danger.run',

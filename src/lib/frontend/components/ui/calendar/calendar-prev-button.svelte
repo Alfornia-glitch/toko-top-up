@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
 	import { Calendar as CalendarPrimitive } from 'bits-ui';
 	import ChevronLeftIcon from '@lucide/svelte/icons/chevron-left';
 	import { buttonVariants, type ButtonVariant } from '#lib/frontend/components/ui/button/index.ts';
@@ -21,6 +22,7 @@
 
 <CalendarPrimitive.PrevButton
 	bind:ref
+	aria-label={m.ui_calendar_previous_month()}
 	class={cn(
 		buttonVariants({ variant }),
 		'size-(--cell-size) bg-transparent p-0 select-none disabled:opacity-50',

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
 	import type { WithElementRef } from '#lib/frontend/utils.ts';
 	import { cn } from '#lib/frontend/utils.ts';
 	import type { HTMLAttributes } from 'svelte/elements';
@@ -14,7 +15,7 @@
 <nav
 	bind:this={ref}
 	data-slot="breadcrumb"
-	aria-label="breadcrumb"
+	aria-label={m.ui_breadcrumb_label()}
 	class={cn(className)}
 	{...restProps}
 >

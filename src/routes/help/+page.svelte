@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
 	import {
 		ChevronDown,
 		CreditCard,
@@ -21,38 +22,38 @@
 
 	const topics = [
 		{
-			title: 'Shipping & delivery',
-			description: 'Delivery windows, shipping costs and carrier options for every order.',
+			title: m.storefront_help_topic_shipping_title(),
+			description: m.storefront_help_topic_shipping_desc(),
 			href: '/help/shipping',
 			icon: Truck
 		},
 		{
-			title: 'Purchase protection',
-			description: 'How Shopix keeps your payments and purchases safe from checkout to delivery.',
+			title: m.storefront_help_topic_protection_title(),
+			description: m.storefront_help_topic_protection_desc(),
 			href: '/help/purchase-protection',
 			icon: ShieldCheck
 		},
 		{
-			title: 'Returns & refunds',
-			description: 'Start a return, check eligibility and follow the status of your refund.',
+			title: m.storefront_help_topic_returns_title(),
+			description: m.storefront_help_topic_returns_desc(),
 			href: '/account/returns-refunds',
 			icon: RotateCcw
 		},
 		{
-			title: 'Track your order',
-			description: 'Follow your package in real time and view delivery updates.',
+			title: m.storefront_help_topic_tracking_title(),
+			description: m.storefront_help_topic_tracking_desc(),
 			href: '/account/order-tracking',
 			icon: MapPin
 		},
 		{
-			title: 'Payment & billing',
-			description: 'Manage payment methods, billing details and order invoices.',
+			title: m.storefront_help_topic_billing_title(),
+			description: m.storefront_help_topic_billing_desc(),
 			href: '/account/payment',
 			icon: CreditCard
 		},
 		{
-			title: 'Contact support',
-			description: 'Open a support ticket and chat with our customer care team.',
+			title: m.storefront_help_topic_contact_title(),
+			description: m.storefront_help_topic_contact_desc(),
 			href: '/account/support-tickets',
 			icon: LifeBuoy
 		}
@@ -61,45 +62,38 @@
 	const faqs = [
 		{
 			id: 'shipping-cost',
-			question: 'How much does shipping cost?',
-			answer:
-				'Standard shipping is free on orders over $50. Below that, a flat rate is calculated at checkout based on your destination.'
+			question: m.storefront_help_faq_shipping_cost_q(),
+			answer: m.storefront_help_faq_shipping_cost_a()
 		},
 		{
 			id: 'delivery-time',
-			question: 'How long does delivery take?',
-			answer:
-				'Standard orders arrive in 3–5 business days. Express delivery is available at checkout for 1–2 business day arrival.'
+			question: m.storefront_help_faq_delivery_time_q(),
+			answer: m.storefront_help_faq_delivery_time_a()
 		},
 		{
 			id: 'tracking',
-			question: 'Can I track my order?',
-			answer:
-				'Yes. Once your order ships you will receive a tracking link by email, and you can follow its progress anytime on the order tracking page.'
+			question: m.storefront_help_faq_tracking_q(),
+			answer: m.storefront_help_faq_tracking_a()
 		},
 		{
 			id: 'returns',
-			question: 'What is your return policy?',
-			answer:
-				'You can return most items within 30 days of delivery for a refund. Items must be unused and in their original packaging.'
+			question: m.storefront_help_faq_returns_q(),
+			answer: m.storefront_help_faq_returns_a()
 		},
 		{
 			id: 'refunds',
-			question: 'How long do refunds take?',
-			answer:
-				'Refunds are issued to your original payment method within 5–7 business days after we receive and inspect your return.'
+			question: m.storefront_help_faq_refunds_q(),
+			answer: m.storefront_help_faq_refunds_a()
 		},
 		{
 			id: 'support-response',
-			question: 'How fast does support respond?',
-			answer:
-				'We reply to most requests within one business day, Monday through Friday. Express delivery orders and damaged items are prioritised.'
+			question: m.storefront_help_faq_support_q(),
+			answer: m.storefront_help_faq_support_a()
 		},
 		{
 			id: 'secure-checkout',
-			question: 'Is checkout secure?',
-			answer:
-				'Yes. Payments are processed over an encrypted connection by PCI-compliant providers, and we never store your full card details.'
+			question: m.storefront_help_faq_secure_q(),
+			answer: m.storefront_help_faq_secure_a()
 		}
 	];
 
@@ -121,14 +115,14 @@
 	<main class="flex-1">
 		<section class="mx-auto max-w-[1280px] px-4 py-12 text-center sm:px-8 sm:py-16">
 			<div class="mx-auto flex max-w-2xl flex-col items-center gap-4">
-				<Badge variant="secondary">Support</Badge>
+				<Badge variant="secondary">{m.storefront_help_badge()}</Badge>
 				<h1
 					class="font-['Geist:Bold'] text-3xl leading-tight text-[#0a0a0a] max-[480px]:text-2xl max-[480px]:leading-8 sm:text-4xl"
 				>
-					How can we help?
+					{m.storefront_help_title()}
 				</h1>
 				<p class="font-['Geist:Regular'] text-base text-[#737373] sm:text-lg">
-					Find answers about orders, shipping, returns and your account.
+					{m.storefront_help_subtitle()}
 				</p>
 				<div class="relative mt-2 w-full max-w-xl">
 					<Search
@@ -138,8 +132,8 @@
 					<Input
 						bind:value={query}
 						type="search"
-						placeholder="Search help topics..."
-						aria-label="Search help topics"
+						placeholder={m.storefront_help_search()}
+						aria-label={m.storefront_help_search_label()}
 						class="h-11 pl-9"
 					/>
 				</div>
@@ -151,7 +145,7 @@
 			aria-labelledby="topics-heading"
 		>
 			<h2 id="topics-heading" class="mb-6 font-['Geist:Bold'] text-2xl text-[#0a0a0a]">
-				Browse topics
+				{m.storefront_help_browse_topics()}
 			</h2>
 			<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
 				{#each filteredTopics as topic (topic.href)}
@@ -173,14 +167,18 @@
 							</Card.Description>
 						</Card.Header>
 						<Card.Footer class="mt-auto justify-start bg-transparent">
-							<Button variant="link" href={topic.href} class="px-0">Learn more</Button>
+							<Button variant="link" href={topic.href} class="px-0"
+								>{m.storefront_help_learn_more()}</Button
+							>
 						</Card.Footer>
 					</Card.Root>
 				{/each}
 				{#if filteredTopics.length === 0}
 					<Card.Root class="bg-[#f5f5f5] sm:col-span-2 lg:col-span-3">
 						<Card.Content class="py-10 text-center">
-							<p class="font-['Geist:Regular'] text-sm text-[#737373]">No matching topics</p>
+							<p class="font-['Geist:Regular'] text-sm text-[#737373]">
+								{m.storefront_help_no_topics()}
+							</p>
 						</Card.Content>
 					</Card.Root>
 				{/if}
@@ -191,7 +189,7 @@
 			<div class="mx-auto max-w-[1280px] px-4 py-12 sm:px-8 sm:py-16">
 				<div class="mx-auto max-w-3xl">
 					<h2 id="faq-heading" class="font-['Geist:Bold'] text-2xl text-[#0a0a0a]">
-						Frequently asked questions
+						{m.storefront_help_faq_title()}
 					</h2>
 					<div class="mt-6 flex flex-col gap-3">
 						{#each filteredFaqs as faq (faq.id)}
@@ -215,7 +213,9 @@
 						{#if filteredFaqs.length === 0}
 							<Card.Root class="bg-[#f5f5f5]">
 								<Card.Content class="py-8 text-center">
-									<p class="font-['Geist:Regular'] text-sm text-[#737373]">No matching questions</p>
+									<p class="font-['Geist:Regular'] text-sm text-[#737373]">
+										{m.storefront_help_no_faqs()}
+									</p>
 								</Card.Content>
 							</Card.Root>
 						{/if}
@@ -228,13 +228,17 @@
 			<Card.Root class="bg-[#f5f5f5]">
 				<Card.Content class="flex flex-col items-center gap-4 py-10 text-center sm:py-12">
 					<LifeBuoy class="size-8 text-[#0a0a0a]" aria-hidden="true" />
-					<h2 class="font-['Geist:Bold'] text-2xl text-[#0a0a0a]">Still need help?</h2>
+					<h2 class="font-['Geist:Bold'] text-2xl text-[#0a0a0a]">
+						{m.storefront_help_still_need()}
+					</h2>
 					<p class="max-w-xl font-['Geist:Regular'] text-sm text-[#737373] sm:text-base">
-						Our support team is ready to help with orders, delivery and account questions.
+						{m.storefront_help_still_need_desc()}
 					</p>
 					<div class="flex flex-wrap items-center justify-center gap-3">
-						<Button href="/account/support-tickets">Contact support</Button>
-						<Button variant="outline" href="/account/order-tracking">Track an order</Button>
+						<Button href="/account/support-tickets">{m.storefront_help_contact_support()}</Button>
+						<Button variant="outline" href="/account/order-tracking"
+							>{m.storefront_help_track_order()}</Button
+						>
 					</div>
 				</Card.Content>
 			</Card.Root>

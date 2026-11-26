@@ -75,13 +75,16 @@ export function createCustomerService(
 
 	async function ownedAddress(userId: string, id: string): Promise<Address> {
 		const address = await repository.findAddress(userId, id);
-		if (!address) throw new NotFoundError('Address not found');
+		if (!address) throw new NotFoundError('Address not found', { messageKey: 'address_not_found' });
 		return address;
 	}
 
 	async function ownedPaymentMethod(userId: string, id: string): Promise<PaymentMethod> {
 		const method = await repository.findPaymentMethod(userId, id);
-		if (!method) throw new NotFoundError('Payment method not found');
+		if (!method)
+			throw new NotFoundError('Payment method not found', {
+				messageKey: 'payment_method_not_found'
+			});
 		return method;
 	}
 
@@ -195,7 +198,10 @@ export function createCustomerService(
 
 				await repository.insertWishlist({ id: newId(), userId, productId, createdAt: clock.now() });
 				const created = await repository.findWishlist(userId, productId);
-				if (!created) throw new NotFoundError('Wishlist item not found');
+				if (!created)
+					throw new NotFoundError('Wishlist item not found', {
+						messageKey: 'wishlist_item_not_found'
+					});
 				return created;
 			}),
 
@@ -203,7 +209,9 @@ export function createCustomerService(
 			run(async () => {
 				const userId = assertActor(actor).id;
 				if (!(await repository.findWishlist(userId, productId))) {
-					throw new NotFoundError('Wishlist item not found');
+					throw new NotFoundError('Wishlist item not found', {
+						messageKey: 'wishlist_item_not_found'
+					});
 				}
 				await repository.deleteWishlist(userId, productId);
 				return productId;
@@ -220,7 +228,8 @@ export function createCustomerService(
 			run(async () => {
 				const admin = assertPermission(actor, 'admin:access');
 				const found = await directory.findProfile(id, admin);
-				if (!found) throw new NotFoundError('Customer not found');
+				if (!found)
+					throw new NotFoundError('Customer not found', { messageKey: 'customer_not_found' });
 
 				const addresses = await repository.listAddresses(id);
 				const spent = found.orders.reduce((total, order) => total + order.grandTotal, 0);

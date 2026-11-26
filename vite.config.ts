@@ -1,6 +1,7 @@
 import tailwindcss from '@tailwindcss/vite';
 import adapter from '@sveltejs/adapter-netlify';
 import { sveltekit } from '@sveltejs/kit/vite';
+import { paraglideVitePlugin } from '@inlang/paraglide-js';
 import { defineConfig } from 'vite';
 
 export default defineConfig({
@@ -8,6 +9,7 @@ export default defineConfig({
 	// a second, mismatched copy of @better-auth/core at runtime.
 	ssr: { noExternal: ['better-auth', /^@better-auth\//] },
 	plugins: [
+		paraglideVitePlugin({ project: './project.inlang' }),
 		tailwindcss(),
 		sveltekit({
 			compilerOptions: {

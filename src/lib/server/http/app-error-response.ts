@@ -1,4 +1,4 @@
-import type { AppError } from '#shared';
+import { errorBody, type AppError } from '#shared';
 
 interface ErrorAwareEvent {
 	url: URL;
@@ -18,8 +18,8 @@ export function answerAppError(response: Response, event: ErrorAwareEvent): Resp
 		return response;
 	}
 
-	return Response.json(
-		{ error: thrown.message },
-		{ status: thrown.status, headers: { 'x-request-id': event.locals.requestId } }
-	);
+	return Response.json(errorBody(thrown), {
+		status: thrown.status,
+		headers: { 'x-request-id': event.locals.requestId }
+	});
 }

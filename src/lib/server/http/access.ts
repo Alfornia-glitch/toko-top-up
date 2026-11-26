@@ -8,11 +8,14 @@ export function isAdminRole(role: string | null | undefined): boolean {
 
 export function requireAdmin(user: { role?: string | null } | null | undefined): Response | null {
 	if (!user) {
-		return Response.json({ error: 'Authentication required' }, { status: 401 });
+		return Response.json(
+			{ error: 'Authentication required', code: 'UNAUTHORIZED' },
+			{ status: 401 }
+		);
 	}
 
 	if (!isAdminRole(user.role)) {
-		return Response.json({ error: 'Forbidden' }, { status: 403 });
+		return Response.json({ error: 'Forbidden', code: 'FORBIDDEN' }, { status: 403 });
 	}
 
 	return null;
@@ -22,11 +25,14 @@ export function requireSuperadmin(
 	user: { role?: string | null } | null | undefined
 ): Response | null {
 	if (!user) {
-		return Response.json({ error: 'Authentication required' }, { status: 401 });
+		return Response.json(
+			{ error: 'Authentication required', code: 'UNAUTHORIZED' },
+			{ status: 401 }
+		);
 	}
 
 	if (!isSuperadminRole(user.role)) {
-		return Response.json({ error: 'Forbidden' }, { status: 403 });
+		return Response.json({ error: 'Forbidden', code: 'FORBIDDEN' }, { status: 403 });
 	}
 
 	return null;

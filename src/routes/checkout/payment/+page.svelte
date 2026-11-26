@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
+	import { errorMessage } from '#lib/frontend/i18n/index.ts';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import {
@@ -139,18 +141,18 @@
 		const last4 = digits.slice(-4);
 
 		if (digits.length < 12 || !/^\d{4}$/.test(last4)) {
-			error = 'Enter a valid card number.';
+			error = m.checkout_payment_card_invalid();
 			return null;
 		}
 
 		const expiry = parseExpiry(expDate);
 		if (!expiry) {
-			error = 'Enter a valid expiry date in MM/YY format.';
+			error = m.checkout_payment_expiry_invalid();
 			return null;
 		}
 
 		if (!/^\d{3,4}$/.test(cvv.trim())) {
-			error = 'Enter a valid CVV.';
+			error = m.checkout_payment_cvv_invalid();
 			return null;
 		}
 
@@ -182,14 +184,14 @@
 
 			methods = [saved, ...methods];
 			paymentMethodId = saved.id;
-			notice = 'Card saved to your account.';
+			notice = m.checkout_payment_card_saved();
 		} catch (cause) {
 			if (cause instanceof ApiError && cause.status === 401) {
 				await goto('/login?redirectTo=/checkout/payment');
 				return;
 			}
 
-			error = cause instanceof Error ? cause.message : 'Could not save your card';
+			error = errorMessage(cause, 'checkout_payment_save_card_failed');
 		}
 	}
 
@@ -228,7 +230,7 @@
 							return;
 						}
 
-						error = cause instanceof Error ? cause.message : 'Could not save your card';
+						error = errorMessage(cause, 'checkout_payment_save_card_failed');
 						return;
 					}
 				} else {
@@ -268,7 +270,7 @@
 				return;
 			}
 
-			error = cause instanceof Error ? cause.message : 'Could not place your order';
+			error = errorMessage(cause, 'checkout_payment_place_failed');
 		} finally {
 			placing = false;
 		}
@@ -292,7 +294,7 @@
 				return;
 			}
 
-			error = cause instanceof Error ? cause.message : 'Could not load checkout details';
+			error = errorMessage(cause, 'checkout_payment_load_failed');
 		} finally {
 			loading = false;
 		}
@@ -322,13 +324,18 @@
 	<div class="flex w-full flex-col items-center bg-white py-10 sm:py-14">
 		<main class="mx-auto w-full max-w-[1280px] px-4 sm:px-8">
 			<div class="flex flex-col gap-1">
-				<h1 class="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">Payment</h1>
+				<h1 class="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+					{m.common_payment()}
+				</h1>
 				<p class="text-sm text-muted-foreground">
-					Choose how you would like to pay for your order.
+					{m.checkout_payment_subtitle()}
 				</p>
 			</div>
 
-			<nav aria-label="Checkout progress" class="mt-6 rounded-xl border bg-muted/40 p-4 sm:p-5">
+			<nav
+				aria-label={m.cart_checkout_progress()}
+				class="mt-6 rounded-xl border bg-muted/40 p-4 sm:p-5"
+			>
 				<div class="flex items-center gap-2 sm:gap-4">
 					<a href="/cart" class="flex items-center gap-2 sm:gap-3">
 						<span
@@ -336,7 +343,7 @@
 						>
 							<ShoppingCart class="size-4" />
 						</span>
-						<span class="text-sm font-medium text-foreground sm:text-base">Cart</span>
+						<span class="text-sm font-medium text-foreground sm:text-base">{m.common_cart()}</span>
 					</a>
 					<div class="h-px flex-1 bg-border" aria-hidden="true"></div>
 					<a href="/checkout/address" class="flex items-center gap-2 sm:gap-3">
@@ -345,7 +352,9 @@
 						>
 							<MapPin class="size-4" />
 						</span>
-						<span class="text-sm font-medium text-foreground sm:text-base">Address</span>
+						<span class="text-sm font-medium text-foreground sm:text-base"
+							>{m.common_address()}</span
+						>
 					</a>
 					<div class="h-px flex-1 bg-border" aria-hidden="true"></div>
 					<a href="/checkout/payment" aria-current="step" class="flex items-center gap-2 sm:gap-3">
@@ -354,7 +363,9 @@
 						>
 							<CreditCard class="size-4" />
 						</span>
-						<span class="text-sm font-medium text-foreground sm:text-base">Payment</span>
+						<span class="text-sm font-medium text-foreground sm:text-base"
+							>{m.common_payment()}</span
+						>
 					</a>
 				</div>
 			</nav>
@@ -385,7 +396,7 @@
 										</span>
 										<div class="flex min-w-0 flex-col gap-0.5">
 											<p class="text-sm font-medium text-foreground">
-												Deliver to {selectedAddress.recipientName}
+												{m.checkout_payment_deliver_to({ name: selectedAddress.recipientName })}
 											</p>
 											<p class="text-sm text-muted-foreground">
 												{[selectedAddress.line1, selectedAddress.city, selectedAddress.country]
@@ -399,14 +410,17 @@
 											<Truck class="size-4" />
 											<span>{selectedShipping.label}</span>
 											<span class="text-xs">
-												({selectedShipping.minDays}–{selectedShipping.maxDays} days)
+												({m.checkout_days_range({
+													min: selectedShipping.minDays,
+													max: selectedShipping.maxDays
+												})})
 											</span>
 										</div>
 										<a
 											href="/checkout/address"
 											class="text-sm font-medium underline-offset-4 hover:underline"
 										>
-											Change
+											{m.checkout_payment_change()}
 										</a>
 									</div>
 								</Card.Content>
@@ -415,26 +429,26 @@
 
 						<Card.Root>
 							<Card.Header>
-								<Card.Title>Payment method</Card.Title>
-								<Card.Description>Select how you would like to pay.</Card.Description>
+								<Card.Title>{m.checkout_payment_method()}</Card.Title>
+								<Card.Description>{m.checkout_payment_method_description()}</Card.Description>
 							</Card.Header>
 							<Card.Content class="flex flex-col gap-6">
 								<Tabs.Root value={activeTab} onValueChange={handleTabChange} class="w-full">
 									<Tabs.List class="h-auto w-full flex-wrap">
 										<Tabs.Trigger value="debit" class="h-8 flex-1 whitespace-nowrap">
-											Debit Card
+											{m.checkout_payment_tab_debit()}
 										</Tabs.Trigger>
 										<Tabs.Trigger value="credit" class="h-8 flex-1 whitespace-nowrap">
-											Credit Card
+											{m.checkout_payment_tab_credit()}
 										</Tabs.Trigger>
 										<Tabs.Trigger value="qris" class="h-8 flex-1 whitespace-nowrap">
 											QRIS
 										</Tabs.Trigger>
 										<Tabs.Trigger value="cod" class="h-8 flex-1 whitespace-nowrap">
-											Cash on delivery
+											{m.checkout_payment_cod()}
 										</Tabs.Trigger>
 										<Tabs.Trigger value="gift" class="h-8 flex-1 whitespace-nowrap">
-											Gift card
+											{m.checkout_payment_gift()}
 										</Tabs.Trigger>
 									</Tabs.List>
 								</Tabs.Root>
@@ -442,7 +456,9 @@
 								{#if isCard}
 									{#if methods.length > 0}
 										<div class="flex flex-col gap-3">
-											<p class="text-sm font-medium text-foreground">Saved cards</p>
+											<p class="text-sm font-medium text-foreground">
+												{m.checkout_payment_saved_cards()}
+											</p>
 											<RadioGroup.Root
 												value={paymentMethodId}
 												onValueChange={(value) => selectSavedMethod(value)}
@@ -457,7 +473,10 @@
 													>
 														<RadioGroup.Item
 															value={method.id}
-															aria-label={`${method.brand} ending in ${method.last4}`}
+															aria-label={m.checkout_payment_card_ending({
+																brand: method.brand,
+																last4: method.last4
+															})}
 														/>
 														<div class="flex min-w-0 flex-1 items-center justify-between gap-3">
 															<div class="flex min-w-0 items-center gap-2">
@@ -473,7 +492,7 @@
 																	method.expYear
 																).slice(-2)}
 																{#if method.isDefault}
-																	<Badge variant="secondary">Default</Badge>
+																	<Badge variant="secondary">{m.account_payment_default()}</Badge>
 																{/if}
 															</span>
 														</div>
@@ -488,16 +507,21 @@
 											class="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-muted/40 px-4 py-3"
 										>
 											<p class="text-sm text-muted-foreground">
-												Using {selectedMethod.brand} ending in {selectedMethod.last4}
+												{m.checkout_payment_using_card({
+													brand: selectedMethod.brand,
+													last4: selectedMethod.last4
+												})}
 											</p>
 											<Button variant="link" size="sm" class="h-auto p-0" onclick={useNewCard}>
-												Use a new card
+												{m.checkout_payment_use_new()}
 											</Button>
 										</div>
 									{:else}
 										<div class="flex flex-col gap-4">
 											<Field.Field>
-												<Field.Label for="card-number">Card Number</Field.Label>
+												<Field.Label for="card-number"
+													>{m.checkout_payment_card_number()}</Field.Label
+												>
 												<Input
 													id="card-number"
 													inputmode="numeric"
@@ -508,26 +532,27 @@
 											</Field.Field>
 											<div class="grid gap-4 sm:grid-cols-3">
 												<Field.Field>
-													<Field.Label for="card-name">Card Name</Field.Label>
+													<Field.Label for="card-name">{m.checkout_payment_card_name()}</Field.Label
+													>
 													<Input
 														id="card-name"
 														autocomplete="cc-name"
-														placeholder="Name on card"
+														placeholder={m.checkout_payment_card_name_placeholder()}
 														bind:value={cardName}
 													/>
 												</Field.Field>
 												<Field.Field>
-													<Field.Label for="card-exp">Exp. Date</Field.Label>
+													<Field.Label for="card-exp">{m.checkout_payment_exp()}</Field.Label>
 													<Input
 														id="card-exp"
 														inputmode="numeric"
 														autocomplete="cc-exp"
-														placeholder="MM/YY"
+														placeholder={m.checkout_payment_exp_placeholder()}
 														bind:value={expDate}
 													/>
 												</Field.Field>
 												<Field.Field>
-													<Field.Label for="card-cvv">CVV Code</Field.Label>
+													<Field.Label for="card-cvv">{m.checkout_payment_cvv()}</Field.Label>
 													<Input
 														id="card-cvv"
 														type="password"
@@ -541,7 +566,7 @@
 											<div class="flex items-center gap-2">
 												<Checkbox id="save-card" bind:checked={saveCard} />
 												<Field.Label for="save-card" class="font-normal">
-													Save this card to my account
+													{m.checkout_payment_save_to_account()}
 												</Field.Label>
 											</div>
 										</div>
@@ -554,10 +579,11 @@
 											<QrCode class="size-4" />
 										</span>
 										<div class="flex flex-col gap-0.5">
-											<p class="text-sm font-medium text-foreground">QRIS transfer</p>
+											<p class="text-sm font-medium text-foreground">
+												{m.checkout_payment_qris_title()}
+											</p>
 											<p class="text-sm text-muted-foreground">
-												After placing your order you will get a QR code and an exact amount to pay
-												within 30 minutes. Upload your payment proof and we will verify it.
+												{m.checkout_payment_qris_description()}
 											</p>
 										</div>
 									</div>
@@ -569,9 +595,9 @@
 											<Banknote class="size-4" />
 										</span>
 										<div class="flex flex-col gap-0.5">
-											<p class="text-sm font-medium text-foreground">Cash on delivery</p>
+											<p class="text-sm font-medium text-foreground">{m.checkout_payment_cod()}</p>
 											<p class="text-sm text-muted-foreground">
-												Pay with cash when your order arrives. Please have the exact amount ready.
+												{m.checkout_payment_cod_description()}
 											</p>
 										</div>
 									</div>
@@ -583,9 +609,9 @@
 											<Gift class="size-4" />
 										</span>
 										<div class="flex flex-col gap-0.5">
-											<p class="text-sm font-medium text-foreground">Gift card</p>
+											<p class="text-sm font-medium text-foreground">{m.checkout_payment_gift()}</p>
 											<p class="text-sm text-muted-foreground">
-												You can apply a gift card after your order is placed.
+												{m.checkout_payment_gift_description()}
 											</p>
 										</div>
 									</div>
@@ -614,9 +640,11 @@
 										disabled={placing || !isCard || Boolean(paymentMethodId)}
 										onclick={saveCardToAccount}
 									>
-										Save card
+										{m.checkout_payment_save_card()}
 									</Button>
-									<Button type="button" variant="outline" onclick={resetForm}>Reset form</Button>
+									<Button type="button" variant="outline" onclick={resetForm}
+										>{m.checkout_payment_reset()}</Button
+									>
 								</div>
 							</Card.Content>
 						</Card.Root>
@@ -624,10 +652,9 @@
 
 					<Card.Root class="lg:sticky lg:top-24">
 						<Card.Header>
-							<Card.Title>Order summary</Card.Title>
+							<Card.Title>{m.cart_order_summary()}</Card.Title>
 							<Card.Description>
-								You have {cart.count}
-								{cart.count === 1 ? 'item' : 'items'} in your cart
+								{m.cart_items_in_cart({ count: cart.count })}
 							</Card.Description>
 						</Card.Header>
 						<Card.Content class="flex flex-col gap-4">
@@ -663,19 +690,19 @@
 
 							<dl class="flex flex-col gap-2.5 text-sm">
 								<div class="flex items-start justify-between gap-4">
-									<dt class="text-muted-foreground">Subtotal</dt>
+									<dt class="text-muted-foreground">{m.common_subtotal()}</dt>
 									<dd class="font-medium text-foreground">
 										{formatMoney(cart.subtotal, cart.currency)}
 									</dd>
 								</div>
 								<div class="flex items-start justify-between gap-4">
-									<dt class="text-muted-foreground">Shipping Cost (+)</dt>
+									<dt class="text-muted-foreground">{m.cart_subtotal_shipping()}</dt>
 									<dd class="font-medium text-foreground">
 										{formatMoney(shipping, cart.currency)}
 									</dd>
 								</div>
 								<div class="flex items-start justify-between gap-4">
-									<dt class="text-muted-foreground">Discount (-)</dt>
+									<dt class="text-muted-foreground">{m.cart_discount()}</dt>
 									<dd class="font-medium text-foreground">
 										{formatMoney(cart.discount, cart.currency)}
 									</dd>
@@ -687,7 +714,7 @@
 							<div
 								class="flex items-start justify-between gap-4 text-base font-semibold text-foreground"
 							>
-								<span>Total Payable</span>
+								<span>{m.cart_total_payable()}</span>
 								<span>{formatMoney(total, cart.currency)}</span>
 							</div>
 						</Card.Content>
@@ -703,10 +730,10 @@
 								{:else}
 									<Lock class="size-4" />
 								{/if}
-								{placing ? 'Placing order...' : 'Place Order'}
+								{placing ? m.checkout_payment_placing() : m.checkout_payment_place()}
 							</Button>
 							<p class="text-center text-xs text-muted-foreground">
-								Your payment details are handled securely.
+								{m.checkout_payment_secure()}
 							</p>
 						</Card.Footer>
 					</Card.Root>

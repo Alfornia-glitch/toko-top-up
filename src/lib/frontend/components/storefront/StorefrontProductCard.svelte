@@ -1,5 +1,5 @@
 <script lang="ts" module>
-	import { formatMoney } from '#lib/frontend/modules/commerce/format.ts';
+	import { formatMoney, formatNumber } from '#lib/frontend/modules/commerce/format.ts';
 	export interface StorefrontProduct {
 		id: string;
 		sku: string;
@@ -23,6 +23,7 @@
 </script>
 
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
 	import { Star } from '@lucide/svelte';
 	import WishlistButton from '#lib/frontend/components/shared/WishlistButton.svelte';
 	import ImagePlaceholder from '#lib/frontend/components/ui/ImagePlaceholder.svelte';
@@ -73,7 +74,9 @@
 			{/if}
 			<div class="absolute top-3 left-3 flex flex-wrap gap-2">
 				{#if product.isNewArrival}
-					<Badge class="rounded-full bg-[#16a34a] px-2.5 text-white">New</Badge>
+					<Badge class="rounded-full bg-[#16a34a] px-2.5 text-white"
+						>{m.components_product_form_new_arrival()}</Badge
+					>
 				{/if}
 				{#if compareAt}
 					<Badge class="rounded-full bg-[#dc2626] px-2.5 text-white">-{discount}%</Badge>
@@ -99,7 +102,9 @@
 						/>
 					{/each}
 				</div>
-				<span class="text-xs text-[#737373]">{rating.toFixed(1)} ({product.ratingCount})</span>
+				<span class="text-xs text-[#737373]"
+					>{formatNumber(rating, { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ({product.ratingCount})</span
+				>
 			</div>
 			<div class="mt-auto flex items-baseline gap-2">
 				<span class="text-base font-semibold text-[#0a0a0a]">

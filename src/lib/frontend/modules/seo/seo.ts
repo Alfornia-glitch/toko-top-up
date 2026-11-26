@@ -1,10 +1,8 @@
+import { m } from '#lib/paraglide/messages.js';
 import { formatMoney } from '../commerce/format.ts';
 
 /** Shown in titles and Open Graph `site_name`; change it when the store gets its final brand. */
 export const SITE_NAME = 'Shopix';
-
-const DEFAULT_DESCRIPTION =
-	'Belanja produk pilihan dengan harga terbaik, pembayaran QRIS, dan pengiriman ke seluruh Indonesia.';
 
 export interface PageMeta {
 	title: string;
@@ -16,44 +14,60 @@ export interface PageMeta {
 	jsonLd?: Record<string, unknown>;
 }
 
+/** Meta whose copy is resolved when read, so it follows the request/page locale. */
+function localized(
+	title: () => string,
+	description: () => string,
+	extra: Partial<PageMeta> = {}
+): PageMeta {
+	return {
+		get title() {
+			return title();
+		},
+		get description() {
+			return description();
+		},
+		...extra
+	};
+}
+
+const titled = (page: () => string) => () => `${page()} | ${SITE_NAME}`;
+
 /** Route ids that are public, indexable and identical for every visitor, so they are prerendered. */
 export const STATIC_META: Record<string, PageMeta> = {
-	'/': { title: SITE_NAME, description: DEFAULT_DESCRIPTION },
-	'/products': {
-		title: `Semua Produk | ${SITE_NAME}`,
-		description: `Jelajahi katalog lengkap ${SITE_NAME}: produk terbaru, promo, dan terlaris.`
-	},
-	'/categories': {
-		title: `Kategori | ${SITE_NAME}`,
-		description: `Temukan produk ${SITE_NAME} berdasarkan kategori.`
-	},
-	'/help': {
-		title: `Bantuan | ${SITE_NAME}`,
-		description: `Pusat bantuan ${SITE_NAME}: pemesanan, pembayaran, dan pengiriman.`
-	},
-	'/help/shipping': {
-		title: `Pengiriman | ${SITE_NAME}`,
-		description: `Informasi metode, biaya, dan estimasi pengiriman ${SITE_NAME}.`
-	},
-	'/help/purchase-protection': {
-		title: `Perlindungan Pembelian | ${SITE_NAME}`,
-		description: `Bagaimana ${SITE_NAME} melindungi setiap pembelian Anda.`
-	},
-	'/privacy-policy': {
-		title: `Kebijakan Privasi | ${SITE_NAME}`,
-		description: `Kebijakan privasi ${SITE_NAME}.`
-	}
+	'/': localized(
+		() => SITE_NAME,
+		() => m.storefront_seo_default_description()
+	),
+	'/products': localized(titled(m.storefront_seo_products_title), () =>
+		m.storefront_seo_products_description({ site: SITE_NAME })
+	),
+	'/categories': localized(titled(m.storefront_seo_categories_title), () =>
+		m.storefront_seo_categories_description({ site: SITE_NAME })
+	),
+	'/help': localized(titled(m.storefront_seo_help_title), () =>
+		m.storefront_seo_help_description({ site: SITE_NAME })
+	),
+	'/help/shipping': localized(titled(m.storefront_seo_shipping_title), () =>
+		m.storefront_seo_shipping_description({ site: SITE_NAME })
+	),
+	'/help/purchase-protection': localized(titled(m.storefront_seo_protection_title), () =>
+		m.storefront_seo_protection_description({ site: SITE_NAME })
+	),
+	'/privacy-policy': localized(titled(m.storefront_seo_privacy_title), () =>
+		m.storefront_seo_privacy_description({ site: SITE_NAME })
+	)
 };
 
 /** Route ids whose page component renders its own `<Seo>` from loaded data. */
 export const DYNAMIC_SEO_ROUTES = new Set(['/products/[slug]', '/categories/[slug]']);
 
 /** Everything else (account, checkout, auth, admin, prototype screens) stays out of search results. */
-export const FALLBACK_META: PageMeta = {
-	title: SITE_NAME,
-	description: DEFAULT_DESCRIPTION,
-	noindex: true
-};
+export const FALLBACK_META: PageMeta = localized(
+	() => SITE_NAME,
+	() => m.storefront_seo_default_description(),
+	{ noindex: true }
+);
 
 export function metaForRoute(routeId: string | null): PageMeta {
 	return (routeId && STATIC_META[routeId]) || FALLBACK_META;
@@ -83,7 +97,11 @@ export function productMeta(product: ProductMetaSource): PageMeta {
 	const description = truncate(
 		summary
 			? `${summary} — ${formatMoney(product.price, currency)}`
-			: `Beli ${product.name} seharga ${formatMoney(product.price, currency)} di ${SITE_NAME}.`
+			: m.storefront_seo_product_fallback_description({
+					name: product.name,
+					price: formatMoney(product.price, currency),
+					site: SITE_NAME
+				})
 	);
 	const image = product.images[0]?.url ?? null;
 	const inStock = product.variants ? product.variants.some((variant) => variant.stock > 0) : true;
@@ -120,7 +138,8 @@ export function categoryMeta(category: CategoryMetaSource): PageMeta {
 	return {
 		title: `${category.name} | ${SITE_NAME}`,
 		description: truncate(
-			category.description || `Belanja produk ${category.name} pilihan di ${SITE_NAME}.`
+			category.description ||
+				m.storefront_seo_category_fallback_description({ name: category.name, site: SITE_NAME })
 		),
 		image: category.imageUrl
 	};

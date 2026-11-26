@@ -72,7 +72,10 @@ export function createProductService(
 
 	async function ensureSkuAvailable(sku: string, excludeId?: string): Promise<void> {
 		if (await repository.findBySku(sku, excludeId)) {
-			throw new ConflictError(`SKU "${sku}" is already in use`);
+			throw new ConflictError(`SKU "${sku}" is already in use`, {
+				messageKey: 'sku_in_use',
+				params: { sku }
+			});
 		}
 	}
 
@@ -96,7 +99,8 @@ export function createProductService(
 			try {
 				assertPermission(actor, 'catalog:read');
 				const product = await repository.findDetail(id);
-				if (!product) return err(new NotFoundError('Product not found'));
+				if (!product)
+					return err(new NotFoundError('Product not found', { messageKey: 'product_not_found' }));
 				return ok(product);
 			} catch (error) {
 				return err(toAppError(error));
@@ -127,7 +131,8 @@ export function createProductService(
 				});
 
 				const product = await repository.findDetail(id);
-				if (!product) return err(new NotFoundError('Product not found'));
+				if (!product)
+					return err(new NotFoundError('Product not found', { messageKey: 'product_not_found' }));
 				await events?.publish(
 					createEvent(PRODUCT_EVENTS.created, {
 						productId: product.id,
@@ -154,7 +159,8 @@ export function createProductService(
 				}
 
 				const existing = await repository.findById(id);
-				if (!existing) return err(new NotFoundError('Product not found'));
+				if (!existing)
+					return err(new NotFoundError('Product not found', { messageKey: 'product_not_found' }));
 
 				const data = parsed.data;
 				await ensureSkuAvailable(data.sku, id);
@@ -164,7 +170,8 @@ export function createProductService(
 					now: clock.now()
 				});
 
-				if (!product) return err(new NotFoundError('Product not found'));
+				if (!product)
+					return err(new NotFoundError('Product not found', { messageKey: 'product_not_found' }));
 				await events?.publish(
 					createEvent(PRODUCT_EVENTS.updated, {
 						productId: product.id,
@@ -182,7 +189,8 @@ export function createProductService(
 			try {
 				assertPermission(actor, 'catalog:write');
 				const product = await repository.setStatus(id, status, clock.now());
-				if (!product) return err(new NotFoundError('Product not found'));
+				if (!product)
+					return err(new NotFoundError('Product not found', { messageKey: 'product_not_found' }));
 				await events?.publish(
 					createEvent(PRODUCT_EVENTS.statusChanged, {
 						productId: product.id,

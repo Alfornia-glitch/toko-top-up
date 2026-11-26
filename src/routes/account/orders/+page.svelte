@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
+	import { errorMessage } from '#lib/frontend/i18n/index.ts';
 	import {
 		listOrders,
 		EmptyState,
@@ -52,7 +54,7 @@
 
 			orders = [];
 			total = 0;
-			error = cause instanceof Error ? cause.message : 'Could not load orders';
+			error = errorMessage(cause, 'account_orders_load_failed');
 		} finally {
 			loading = false;
 		}
@@ -81,29 +83,29 @@
 {#snippet tableHead()}
 	<Table.Header>
 		<Table.Row>
-			<Table.Head class="pl-6">Order</Table.Head>
-			<Table.Head>Placed</Table.Head>
-			<Table.Head>Status</Table.Head>
-			<Table.Head>Payment</Table.Head>
-			<Table.Head>Items</Table.Head>
-			<Table.Head>Total</Table.Head>
+			<Table.Head class="pl-6">{m.common_order()}</Table.Head>
+			<Table.Head>{m.account_orders_placed()}</Table.Head>
+			<Table.Head>{m.common_status()}</Table.Head>
+			<Table.Head>{m.common_payment()}</Table.Head>
+			<Table.Head>{m.account_orders_items()}</Table.Head>
+			<Table.Head>{m.common_total()}</Table.Head>
 			<Table.Head class="pr-6 text-right">
-				<span class="sr-only">Actions</span>
+				<span class="sr-only">{m.common_actions()}</span>
 			</Table.Head>
 		</Table.Row>
 	</Table.Header>
 {/snippet}
 
-<AccountPageShell title="My orders" description="Track, review and manage your purchases.">
+<AccountPageShell title={m.account_orders_title()} description={m.account_orders_description()}>
 	{#snippet actions()}
-		<Button variant="outline" href="/account">Back to account</Button>
+		<Button variant="outline" href="/account">{m.account_back_to_account()}</Button>
 	{/snippet}
 
 	{#if loading}
 		<div class="hidden md:block">
 			<Card.Root class="overflow-hidden py-0">
 				<Card.Content class="p-0">
-					<Table.Root aria-label="Orders" aria-busy="true">
+					<Table.Root aria-label={m.common_orders()} aria-busy="true">
 						{@render tableHead()}
 						<Table.Body>
 							{#each Array(5) as _, index (index)}
@@ -155,21 +157,21 @@
 		</div>
 	{:else if orders.length === 0}
 		<EmptyState
-			title="No orders yet"
-			description="Orders you place will appear here with their latest status."
+			title={m.account_shared_no_orders_yet()}
+			description={m.account_orders_empty_description()}
 		>
 			{#snippet icon()}
 				<Package class="size-5" />
 			{/snippet}
 			{#snippet action()}
-				<Button href="/products">Start shopping</Button>
+				<Button href="/products">{m.account_orders_start_shopping()}</Button>
 			{/snippet}
 		</EmptyState>
 	{:else}
 		<div class="hidden md:block">
 			<Card.Root class="overflow-hidden py-0">
 				<Card.Content class="p-0">
-					<Table.Root aria-label="Orders">
+					<Table.Root aria-label={m.common_orders()}>
 						{@render tableHead()}
 						<Table.Body>
 							{#each orders as order (order.id)}
@@ -192,7 +194,9 @@
 										<a
 											href={`/account/orders/${order.orderNumber}`}
 											class="inline-flex size-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
-											aria-label={`View order ${order.orderNumber}`}
+											aria-label={m.account_orders_view_order_label({
+												orderNumber: order.orderNumber
+											})}
 										>
 											<ArrowRight class="size-4" />
 										</a>
@@ -227,12 +231,13 @@
 							<OrderStatusBadge status={order.paymentStatus} kind="payment" />
 						</div>
 						<p class="text-sm text-muted-foreground">
-							{order.itemCount ?? 0}
-							{order.itemCount === 1 ? 'item' : 'items'}
+							{m.common_items_count({ count: order.itemCount ?? 0 })}
 						</p>
 					</Card.Content>
 					<Card.Footer>
-						<Button href={`/account/orders/${order.orderNumber}`} class="w-full">View order</Button>
+						<Button href={`/account/orders/${order.orderNumber}`} class="w-full"
+							>{m.account_orders_view_order()}</Button
+						>
 					</Card.Footer>
 				</Card.Root>
 			{/each}
@@ -241,7 +246,7 @@
 		{#if totalPages > 1}
 			<div class="flex flex-col items-center justify-between gap-3 sm:flex-row">
 				<p class="text-sm text-muted-foreground">
-					Showing {rangeStart}–{rangeEnd} of {total} orders
+					{m.account_orders_showing({ start: rangeStart, end: rangeEnd, total })}
 				</p>
 				<Pagination.Root count={total} perPage={pageSize} bind:page onPageChange={handlePageChange}>
 					{#snippet children({ pages, currentPage })}

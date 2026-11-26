@@ -1,5 +1,7 @@
 <script lang="ts">
-	import { formatMoney } from '#lib/frontend/modules/commerce/format.ts';
+	import { formatDateTime, formatMoney } from '#lib/frontend/modules/commerce/format.ts';
+	import { m } from '#lib/paraglide/messages.js';
+	import { errorMessage, statusLabel } from '#lib/frontend/i18n/index.ts';
 	import { onDestroy, onMount } from 'svelte';
 	import { Eye, LoaderCircle, Pencil, Plus } from '@lucide/svelte';
 	import DataTable from '#lib/frontend/components/admin/DataTable.svelte';
@@ -40,15 +42,15 @@
 
 	type GiftCardDetail = GiftCardRow & { transactions: GiftCardTransaction[] };
 
-	const columns = [
-		{ key: 'code', label: 'Code' },
-		{ key: 'balance', label: 'Balance', class: 'text-right' },
-		{ key: 'initialAmount', label: 'Initial', class: 'text-right' },
-		{ key: 'status', label: 'Status' },
-		{ key: 'recipient', label: 'Recipient' },
-		{ key: 'expiresAt', label: 'Expires' },
+	const columns = $derived([
+		{ key: 'code', label: m.admin_ops_gift_cards_col_code() },
+		{ key: 'balance', label: m.admin_ops_gift_cards_col_balance(), class: 'text-right' },
+		{ key: 'initialAmount', label: m.admin_ops_gift_cards_col_initial(), class: 'text-right' },
+		{ key: 'status', label: m.common_status() },
+		{ key: 'recipient', label: m.admin_ops_gift_cards_col_recipient() },
+		{ key: 'expiresAt', label: m.admin_ops_gift_cards_col_expires() },
 		{ key: 'actions', label: '', class: 'text-right' }
-	];
+	]);
 
 	const pageSize = 25;
 
@@ -93,12 +95,12 @@
 			const response = await fetch(`/api/admin/gift-cards?${params.toString()}`);
 			const payload = await response.json().catch(() => ({}));
 
-			if (!response.ok) throw new Error(payload.error ?? 'Could not load gift cards');
+			if (!response.ok) throw new Error(errorMessage(payload, 'admin_ops_gift_cards_load_failed'));
 
 			cards = payload.data ?? [];
 			total = Number(payload.total ?? 0);
 		} catch (err) {
-			error = err instanceof Error ? err.message : 'Could not load gift cards';
+			error = errorMessage(err, 'admin_ops_gift_cards_load_failed');
 		} finally {
 			loading = false;
 		}
@@ -148,40 +150,31 @@
 			const response = await fetch(`/api/admin/gift-cards/${id}`);
 			const payload = await response.json().catch(() => ({}));
 
-			if (!response.ok) throw new Error(payload.error ?? 'Could not load gift card');
+			if (!response.ok)
+				throw new Error(errorMessage(payload, 'admin_ops_gift_cards_load_one_failed'));
 
 			detailCard = payload.data as GiftCardDetail;
 		} catch (err) {
-			detailError = err instanceof Error ? err.message : 'Could not load gift card';
+			detailError = errorMessage(err, 'admin_ops_gift_cards_load_one_failed');
 		} finally {
 			detailLoading = false;
 		}
 	}
 
 	function formatDate(value: string | null) {
-		if (!value) return '—';
-		const date = new Date(value);
-		if (Number.isNaN(date.getTime())) return '—';
-
-		return new Intl.DateTimeFormat('en-US', {
-			month: 'short',
-			day: 'numeric',
-			year: 'numeric',
-			hour: '2-digit',
-			minute: '2-digit'
-		}).format(date);
+		return formatDateTime(value) || '—';
 	}
 </script>
 
 <div class="space-y-6">
 	<div class="flex flex-wrap items-start justify-between gap-3">
 		<div>
-			<h1 class="text-2xl font-semibold tracking-tight">Gift cards</h1>
-			<p class="text-sm text-muted-foreground">Issue and manage gift cards and their balances.</p>
+			<h1 class="text-2xl font-semibold tracking-tight">{m.admin_ops_gift_cards_title()}</h1>
+			<p class="text-sm text-muted-foreground">{m.admin_ops_gift_cards_subtitle()}</p>
 		</div>
 		<Button onclick={openCreate}>
 			<Plus class="size-4" />
-			Issue gift card
+			{m.admin_ops_gift_cards_issue()}
 		</Button>
 	</div>
 
@@ -197,27 +190,30 @@
 	<Card.Root>
 		<Card.Content class="grid gap-3 sm:grid-cols-2">
 			<div class="space-y-1.5">
-				<Label for="gift-card-search">Search</Label>
+				<Label for="gift-card-search">{m.common_search()}</Label>
 				<Input
 					id="gift-card-search"
 					bind:value={q}
 					oninput={handleSearch}
-					placeholder="Search code, name or email"
+					placeholder={m.admin_ops_gift_cards_search_placeholder()}
 				/>
 			</div>
 
 			<div class="space-y-1.5">
-				<Label for="gift-card-status-filter">Status</Label>
+				<Label for="gift-card-status-filter">{m.common_status()}</Label>
 				<Select.Root type="single" value={statusFilter} onValueChange={handleStatusChange}>
 					<Select.Trigger id="gift-card-status-filter" class="w-full">
-						<Select.Value placeholder="All statuses" />
+						<Select.Value placeholder={m.common_all_statuses()} />
 					</Select.Trigger>
 					<Select.Content>
-						<Select.Item value="all" label="All statuses">All statuses</Select.Item>
-						<Select.Item value="active" label="Active">Active</Select.Item>
-						<Select.Item value="redeemed" label="Redeemed">Redeemed</Select.Item>
-						<Select.Item value="expired" label="Expired">Expired</Select.Item>
-						<Select.Item value="disabled" label="Disabled">Disabled</Select.Item>
+						<Select.Item value="all" label={m.common_all_statuses()}>
+							{m.common_all_statuses()}
+						</Select.Item>
+						{#each ['active', 'redeemed', 'expired', 'disabled'] as option (option)}
+							<Select.Item value={option} label={statusLabel('gift_card', option)}>
+								{statusLabel('gift_card', option)}
+							</Select.Item>
+						{/each}
 					</Select.Content>
 				</Select.Root>
 			</div>
@@ -228,7 +224,7 @@
 		{columns}
 		rows={cards as unknown as Record<string, unknown>[]}
 		{loading}
-		emptyMessage="No gift cards match the current filters."
+		emptyMessage={m.admin_ops_gift_cards_empty()}
 		{page}
 		{pageSize}
 		{total}
@@ -246,7 +242,7 @@
 					{formatMoney(Number(row.initialAmount ?? 0), String(row.currency ?? 'IDR'))}
 				</span>
 			{:else if column.key === 'status'}
-				<StatusBadge status={String(row.status ?? '')} />
+				<StatusBadge kind="gift_card" status={String(row.status ?? '')} />
 			{:else if column.key === 'recipient'}
 				<div class="space-y-0.5">
 					{#if row.recipientName}
@@ -266,7 +262,7 @@
 					<Button
 						variant="ghost"
 						size="icon-sm"
-						aria-label="View gift card"
+						aria-label={m.admin_ops_gift_cards_view()}
 						onclick={() => openDetail(row)}
 					>
 						<Eye class="size-4" />
@@ -274,7 +270,7 @@
 					<Button
 						variant="ghost"
 						size="icon-sm"
-						aria-label="Edit gift card"
+						aria-label={m.admin_ops_gift_cards_edit()}
 						onclick={() => openEdit(row)}
 					>
 						<Pencil class="size-4" />
@@ -294,8 +290,12 @@
 <Sheet.Root bind:open={detailOpen}>
 	<Sheet.Content class="sm:max-w-lg">
 		<Sheet.Header>
-			<Sheet.Title>{detailCard ? `Gift card ${detailCard.code}` : 'Gift card details'}</Sheet.Title>
-			<Sheet.Description>Balance, recipient details and transactions.</Sheet.Description>
+			<Sheet.Title
+				>{detailCard
+					? m.admin_ops_gift_cards_sheet_title({ code: detailCard.code })
+					: m.admin_ops_gift_cards_sheet_title_generic()}</Sheet.Title
+			>
+			<Sheet.Description>{m.admin_ops_gift_cards_sheet_desc()}</Sheet.Description>
 		</Sheet.Header>
 
 		<div class="flex-1 space-y-4 overflow-y-auto px-4">
@@ -314,18 +314,18 @@
 				<div class="space-y-4">
 					<div class="flex items-center justify-between gap-2">
 						<code class="text-base font-semibold">{detailCard.code}</code>
-						<StatusBadge status={detailCard.status} />
+						<StatusBadge kind="gift_card" status={detailCard.status} />
 					</div>
 
 					<div class="grid grid-cols-2 gap-3 text-sm">
 						<div class="rounded-lg border p-3">
-							<p class="text-xs text-muted-foreground">Balance</p>
+							<p class="text-xs text-muted-foreground">{m.admin_ops_gift_cards_col_balance()}</p>
 							<p class="font-medium">
 								{formatMoney(detailCard.balance, detailCard.currency)}
 							</p>
 						</div>
 						<div class="rounded-lg border p-3">
-							<p class="text-xs text-muted-foreground">Initial amount</p>
+							<p class="text-xs text-muted-foreground">{m.admin_ops_gift_cards_initial_amount()}</p>
 							<p class="font-medium">
 								{formatMoney(detailCard.initialAmount, detailCard.currency)}
 							</p>
@@ -333,7 +333,7 @@
 					</div>
 
 					<div class="space-y-1 text-sm">
-						<p class="text-xs text-muted-foreground">Recipient</p>
+						<p class="text-xs text-muted-foreground">{m.admin_ops_gift_cards_col_recipient()}</p>
 						<p class="font-medium">{detailCard.recipientName ?? '—'}</p>
 						{#if detailCard.recipientEmail}
 							<p class="text-muted-foreground">{detailCard.recipientEmail}</p>
@@ -342,18 +342,18 @@
 
 					{#if detailCard.message}
 						<div class="space-y-1 text-sm">
-							<p class="text-xs text-muted-foreground">Message</p>
+							<p class="text-xs text-muted-foreground">{m.admin_ops_gift_cards_message()}</p>
 							<p class="whitespace-pre-line">{detailCard.message}</p>
 						</div>
 					{/if}
 
 					<div class="grid grid-cols-2 gap-3 text-sm">
 						<div>
-							<p class="text-xs text-muted-foreground">Issued</p>
+							<p class="text-xs text-muted-foreground">{m.admin_ops_gift_cards_issued()}</p>
 							<p>{formatDate(detailCard.createdAt)}</p>
 						</div>
 						<div>
-							<p class="text-xs text-muted-foreground">Expires</p>
+							<p class="text-xs text-muted-foreground">{m.admin_ops_gift_cards_col_expires()}</p>
 							<p>{formatDate(detailCard.expiresAt)}</p>
 						</div>
 					</div>
@@ -361,15 +361,17 @@
 					<Separator />
 
 					<div class="space-y-2">
-						<p class="text-sm font-medium">Transactions</p>
+						<p class="text-sm font-medium">{m.admin_ops_gift_cards_transactions()}</p>
 						{#if detailCard.transactions.length === 0}
-							<p class="text-sm text-muted-foreground">No transactions recorded yet.</p>
+							<p class="text-sm text-muted-foreground">
+								{m.admin_ops_gift_cards_no_transactions()}
+							</p>
 						{:else}
 							<ul class="divide-y">
 								{#each detailCard.transactions as transaction (transaction.id)}
 									<li class="flex items-center justify-between gap-2 py-2 first:pt-0 last:pb-0">
 										<div class="space-y-0.5">
-											<StatusBadge status={transaction.type} />
+											<StatusBadge kind="gift_card_tx" status={transaction.type} />
 											<p class="text-xs text-muted-foreground">
 												{formatDate(transaction.createdAt)}
 											</p>
@@ -387,7 +389,7 @@
 		</div>
 
 		<Sheet.Footer>
-			<Button variant="outline" onclick={() => (detailOpen = false)}>Close</Button>
+			<Button variant="outline" onclick={() => (detailOpen = false)}>{m.common_close()}</Button>
 		</Sheet.Footer>
 	</Sheet.Content>
 </Sheet.Root>

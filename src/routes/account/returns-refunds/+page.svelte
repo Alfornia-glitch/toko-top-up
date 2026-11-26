@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
+	import { enumLabel, errorMessage } from '#lib/frontend/i18n/index.ts';
 	import {
 		listOrders,
 		getOrder,
@@ -6,8 +8,7 @@
 		getReturn,
 		createReturn,
 		isUnauthorized,
-		type ReturnRequestForm,
-		messageFrom
+		type ReturnRequestForm
 	} from '#lib/frontend/modules/account/index.ts';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
@@ -36,17 +37,17 @@
 		ReturnSummary
 	} from '#lib/frontend/modules/commerce/models.ts';
 
-	const typeOptions = [
-		{ value: 'return', label: 'Return' },
-		{ value: 'exchange', label: 'Exchange' }
-	];
+	const typeOptions = $derived([
+		{ value: 'return', label: enumLabel('return_type', 'return') },
+		{ value: 'exchange', label: enumLabel('return_type', 'exchange') }
+	]);
 
-	const resolutionOptions = [
-		{ value: 'none', label: 'No preference' },
-		{ value: 'original_payment', label: 'Original payment' },
-		{ value: 'gift_card', label: 'Gift card' },
-		{ value: 'card', label: 'Card' }
-	];
+	const resolutionOptions = $derived([
+		{ value: 'none', label: m.account_shared_resolution_none() },
+		{ value: 'original_payment', label: enumLabel('return_resolution', 'original_payment') },
+		{ value: 'gift_card', label: enumLabel('return_resolution', 'gift_card') },
+		{ value: 'card', label: enumLabel('return_resolution', 'card') }
+	]);
 
 	let returns = $state<ReturnSummary[]>([]);
 	let selected = $state<ReturnDetail | null>(null);
@@ -82,16 +83,12 @@
 		return false;
 	}
 
-	function errorMessage(cause: unknown, fallback: string): string {
-		return messageFrom(cause, fallback);
-	}
-
 	function typeLabel(type: string): string {
-		return type === 'exchange' ? 'Exchange' : 'Return';
+		return enumLabel('return_type', type === 'exchange' ? 'exchange' : 'return');
 	}
 
 	function resolutionLabel(value: string | null): string {
-		return value ? value.replaceAll('_', ' ') : '—';
+		return value ? enumLabel('return_resolution', value) : '—';
 	}
 
 	function setType(value: string) {
@@ -107,7 +104,7 @@
 		} catch (cause) {
 			if (!redirectIfUnauthorized(cause)) {
 				selected = null;
-				detailError = errorMessage(cause, 'Could not load this return');
+				detailError = errorMessage(cause, 'account_returns_load_one_failed');
 			}
 		} finally {
 			detailLoading = false;
@@ -134,7 +131,7 @@
 			if (returns.length > 0) await loadReturn(returns[0].id);
 		} catch (cause) {
 			if (!redirectIfUnauthorized(cause)) {
-				error = errorMessage(cause, 'Could not load your returns');
+				error = errorMessage(cause, 'account_returns_load_failed');
 			}
 		} finally {
 			loading = false;
@@ -159,7 +156,7 @@
 			}
 		} catch (cause) {
 			if (!redirectIfUnauthorized(cause)) {
-				formError = errorMessage(cause, 'Could not load the items for this order');
+				formError = errorMessage(cause, 'account_shared_load_order_items_failed');
 			}
 		} finally {
 			orderLoading = false;
@@ -171,12 +168,12 @@
 		formError = '';
 
 		if (!form.orderItemId) {
-			formError = 'Select an order and the item you want to request.';
+			formError = m.account_returns_select_required();
 			return;
 		}
 
 		if (!form.reason.trim()) {
-			formError = 'Describe the reason for this request.';
+			formError = m.account_returns_reason_required();
 			return;
 		}
 
@@ -198,7 +195,7 @@
 			form = { orderItemId: '', type: 'return', reason: '', note: '', resolution: 'none' };
 		} catch (cause) {
 			if (!redirectIfUnauthorized(cause)) {
-				formError = errorMessage(cause, 'Could not submit your return request');
+				formError = errorMessage(cause, 'account_return_item_submit_failed');
 			}
 		} finally {
 			submitting = false;
@@ -232,7 +229,7 @@
 				<p
 					class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] text-[#0a0a0a]"
 				>
-					Returns &amp; Refunds
+					{m.account_returns_title()}
 				</p>
 
 				<div
@@ -246,20 +243,20 @@
 						<p
 							class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] text-[#0a0a0a]"
 						>
-							Request return
+							{m.account_returns_request()}
 						</p>
 
 						<form class="flex w-full flex-col gap-[16px]" onsubmit={submitReturn}>
 							<div class="grid w-full gap-[12px] sm:grid-cols-2">
 								<div class="flex flex-col gap-[6px]">
-									<Label for="return-order">Order</Label>
+									<Label for="return-order">{m.common_order()}</Label>
 									<Select.Root
 										type="single"
 										value={selectedOrderNumber}
 										onValueChange={selectOrder}
 									>
 										<Select.Trigger id="return-order" class="w-full">
-											<Select.Value placeholder="Select an order" />
+											<Select.Value placeholder={m.account_shared_select_order()} />
 										</Select.Trigger>
 										<Select.Content>
 											{#each orders as entry (entry.id)}
@@ -271,13 +268,13 @@
 									</Select.Root>
 									{#if orders.length === 0}
 										<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]">
-											You have no orders available for a return request.
+											{m.account_returns_no_orders()}
 										</p>
 									{/if}
 								</div>
 
 								<div class="flex flex-col gap-[6px]">
-									<Label for="return-item">Item</Label>
+									<Label for="return-item">{m.account_returns_item()}</Label>
 									<Select.Root
 										type="single"
 										value={form.orderItemId}
@@ -289,7 +286,9 @@
 											disabled={!selectedOrder || orderLoading}
 										>
 											<Select.Value
-												placeholder={orderLoading ? 'Loading items' : 'Select an item'}
+												placeholder={orderLoading
+													? m.account_shared_loading_items()
+													: m.account_returns_select_item()}
 											/>
 										</Select.Trigger>
 										<Select.Content>
@@ -303,10 +302,10 @@
 								</div>
 
 								<div class="flex flex-col gap-[6px]">
-									<Label for="return-type">Type</Label>
+									<Label for="return-type">{m.account_returns_type()}</Label>
 									<Select.Root type="single" value={form.type} onValueChange={setType}>
 										<Select.Trigger id="return-type" class="w-full">
-											<Select.Value placeholder="Select a type" />
+											<Select.Value placeholder={m.account_returns_select_type()} />
 										</Select.Trigger>
 										<Select.Content>
 											{#each typeOptions as option (option.value)}
@@ -319,14 +318,14 @@
 								</div>
 
 								<div class="flex flex-col gap-[6px]">
-									<Label for="return-resolution">Resolution</Label>
+									<Label for="return-resolution">{m.account_returns_resolution()}</Label>
 									<Select.Root
 										type="single"
 										value={form.resolution}
 										onValueChange={(value) => (form.resolution = value)}
 									>
 										<Select.Trigger id="return-resolution" class="w-full">
-											<Select.Value placeholder="No preference" />
+											<Select.Value placeholder={m.account_shared_resolution_none()} />
 										</Select.Trigger>
 										<Select.Content>
 											{#each resolutionOptions as option (option.value)}
@@ -340,20 +339,20 @@
 							</div>
 
 							<div class="flex flex-col gap-[6px]">
-								<Label for="return-reason">Reason</Label>
+								<Label for="return-reason">{m.account_returns_reason()}</Label>
 								<Input
 									id="return-reason"
 									bind:value={form.reason}
-									placeholder="Why do you want to return or exchange this item?"
+									placeholder={m.account_returns_reason_placeholder()}
 								/>
 							</div>
 
 							<div class="flex flex-col gap-[6px]">
-								<Label for="return-note">Note</Label>
+								<Label for="return-note">{m.account_returns_note()}</Label>
 								<Textarea
 									id="return-note"
 									bind:value={form.note}
-									placeholder="Anything else we should know?"
+									placeholder={m.account_returns_note_placeholder()}
 								/>
 							</div>
 
@@ -363,7 +362,7 @@
 
 							<div>
 								<Button type="submit" disabled={submitting}>
-									{submitting ? 'Submitting' : 'Request return'}
+									{submitting ? m.account_shared_submitting() : m.account_returns_request()}
 								</Button>
 							</div>
 						</form>
@@ -375,9 +374,9 @@
 						class="relative flex w-full items-center justify-center gap-3 rounded-[14px] bg-white px-[24px] py-[64px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)]"
 						data-name="Card"
 					>
-						<Spinner class="size-5" aria-label="Loading returns" />
+						<Spinner class="size-5" aria-label={m.account_returns_loading()} />
 						<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
-							Loading returns
+							{m.account_returns_loading()}
 						</p>
 					</div>
 				{:else if error}
@@ -396,16 +395,16 @@
 						<p
 							class="font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold text-[#0a0a0a]"
 						>
-							No returns yet
+							{m.account_returns_empty_title()}
 						</p>
 						<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
-							Return or exchange requests you create will appear here.
+							{m.account_returns_empty_description()}
 						</p>
 						<a
 							href="/products"
 							class="rounded-[8px] bg-[#171717] px-[16px] py-[10px] font-['Geist:Medium'] text-[14px] leading-[20px] font-medium text-[#fafafa]"
 						>
-							Browse products
+							{m.common_browse_products()}
 						</a>
 					</div>
 				{:else}
@@ -420,7 +419,7 @@
 							<p
 								class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] text-[#0a0a0a]"
 							>
-								Your returns
+								{m.account_returns_list_title()}
 							</p>
 							<div class="flex w-full flex-col gap-[8px]">
 								{#each returns as entry (entry.id)}
@@ -439,7 +438,7 @@
 												{entry.productName}
 											</p>
 											<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]">
-												SKU: {entry.sku}
+												{m.account_shared_sku({ sku: entry.sku })}
 											</p>
 											<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]">
 												{typeLabel(entry.type)} · {entry.reason}
@@ -475,14 +474,14 @@
 							<p
 								class="relative w-[min-content] min-w-full shrink-0 font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] text-[#0a0a0a]"
 							>
-								Return Progressed
+								{m.account_returns_progress_title()}
 							</p>
 
 							{#if detailLoading}
 								<div class="flex items-center gap-[12px]">
-									<Spinner class="size-5" aria-label="Loading return" />
+									<Spinner class="size-5" aria-label={m.account_returns_loading_one()} />
 									<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
-										Loading return
+										{m.account_returns_loading_one()}
 									</p>
 								</div>
 							{:else if detailError}
@@ -497,10 +496,10 @@
 												{selected.productName}
 											</p>
 											<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]">
-												SKU: {selected.sku}
+												{m.account_shared_sku({ sku: selected.sku })}
 											</p>
 											<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]">
-												Order #{selected.orderNumber}
+												{m.account_shared_order_number({ orderNumber: selected.orderNumber })}
 											</p>
 										</div>
 										<div class="flex flex-col items-end gap-[4px] text-right">
@@ -518,7 +517,7 @@
 									<div class="grid w-full gap-[12px] sm:grid-cols-2">
 										<div>
 											<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]">
-												Type
+												{m.account_returns_type()}
 											</p>
 											<p
 												class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-[#0a0a0a]"
@@ -528,7 +527,7 @@
 										</div>
 										<div>
 											<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]">
-												Resolution
+												{m.account_returns_resolution()}
 											</p>
 											<p
 												class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-[#0a0a0a]"
@@ -538,7 +537,7 @@
 										</div>
 										<div class="sm:col-span-2">
 											<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]">
-												Reason
+												{m.account_returns_reason()}
 											</p>
 											<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#0a0a0a]">
 												{selected.reason}
@@ -547,7 +546,7 @@
 										{#if selected.note}
 											<div class="sm:col-span-2">
 												<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]">
-													Note
+													{m.account_returns_note()}
 												</p>
 												<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#0a0a0a]">
 													{selected.note}
@@ -575,7 +574,7 @@
 											<p
 												class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-[#0a0a0a]"
 											>
-												Requested
+												{m.account_returns_requested()}
 											</p>
 											<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]">
 												{formatDateTime(selected.createdAt) || '—'}
@@ -597,7 +596,7 @@
 								</div>
 							{:else}
 								<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
-									Select a return to see its progress.
+									{m.account_returns_select_to_view()}
 								</p>
 							{/if}
 						</div>
@@ -616,12 +615,12 @@
 						<p
 							class="relative shrink-0 font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
 						>
-							Need any help?
+							{m.account_returns_help()}
 						</p>
 						<span
 							class="relative flex h-[24px] shrink-0 content-stretch items-center justify-center gap-[4px] rounded-[9999px] bg-[#171717] px-[12px] py-[4px] font-['Geist:Medium'] text-[12px] leading-[16px] font-medium whitespace-nowrap text-[#fafafa]"
 						>
-							Contact Support
+							{m.account_returns_contact_support()}
 						</span>
 					</div>
 				</a>

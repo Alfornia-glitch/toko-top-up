@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
 	import Eye from '@lucide/svelte/icons/eye';
 	import EyeOff from '@lucide/svelte/icons/eye-off';
 	import * as Field from '#lib/frontend/components/ui/field/index.ts';
@@ -48,7 +49,7 @@
 			size="icon-sm"
 			class="absolute inset-y-0 right-1 my-auto text-muted-foreground hover:text-foreground"
 			onclick={() => (visible = !visible)}
-			aria-label={visible ? 'Hide password' : 'Show password'}
+			aria-label={visible ? m.components_auth_hide_password() : m.components_auth_show_password()}
 			aria-pressed={visible}
 		>
 			{#if visible}

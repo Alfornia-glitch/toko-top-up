@@ -73,6 +73,9 @@
 </script>
 
 <script lang="ts">
+	import { statusLabel } from '#lib/frontend/i18n/index.ts';
+	import { errorMessage } from '#lib/frontend/i18n/index.ts';
+	import { m } from '#lib/paraglide/messages.js';
 	import { untrack } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { LoaderCircle } from '@lucide/svelte';
@@ -213,7 +216,7 @@
 		error?: string;
 		details?: { formErrors?: string[]; fieldErrors?: Record<string, string[]> };
 	}) {
-		const base = payload.error ?? 'Could not save product';
+		const base = errorMessage(payload, 'components_product_form_save_failed');
 		const messages = [
 			...(payload.details?.formErrors ?? []),
 			...Object.values(payload.details?.fieldErrors ?? {}).flat()
@@ -283,33 +286,34 @@
 	}
 
 	function validate() {
-		if (!name.trim()) return 'Product name is required.';
-		if (!sku.trim()) return 'SKU is required.';
+		if (!name.trim()) return m.components_product_form_name_required();
+		if (!sku.trim()) return m.components_product_form_sku_required();
 		if (!Number.isFinite(Number(price)) || Number(price) < 0)
-			return 'Price must be a valid amount.';
+			return m.components_product_form_price_invalid();
 
 		if (
 			compareAtPrice.trim() &&
 			(!Number.isFinite(Number(compareAtPrice)) || Number(compareAtPrice) < 0)
 		) {
-			return 'Compare-at price must be a valid amount.';
+			return m.components_product_form_compare_invalid();
 		}
 
 		if (dealEndsAt && Number.isNaN(new Date(dealEndsAt).getTime()))
-			return 'Deal end date is invalid.';
+			return m.components_product_form_deal_date_invalid();
 
 		for (const option of options) {
-			if (!option.name.trim()) return 'Every option group needs a name.';
+			if (!option.name.trim()) return m.components_product_form_option_name_required();
 
 			for (const value of option.values) {
-				if (!value.value.trim()) return 'Every option value needs text.';
+				if (!value.value.trim()) return m.components_product_form_option_value_required();
 			}
 		}
 
 		for (const variant of variants) {
-			if (!variant.sku.trim() || !variant.name.trim()) return 'Every variant needs a SKU and name.';
+			if (!variant.sku.trim() || !variant.name.trim())
+				return m.components_product_form_variant_sku_name_required();
 			if (!Number.isFinite(Number(variant.price)) || Number(variant.price) < 0)
-				return 'Every variant needs a valid price.';
+				return m.components_product_form_variant_price_invalid();
 		}
 
 		return '';
@@ -349,7 +353,7 @@
 
 			await goto('/admin/products');
 		} catch (err) {
-			error = err instanceof Error ? err.message : 'Could not save product';
+			error = errorMessage(err, 'components_product_form_save_failed');
 		} finally {
 			saving = false;
 		}
@@ -360,19 +364,19 @@
 	<div class="flex flex-wrap items-start justify-between gap-3">
 		<div>
 			<h1 class="text-2xl font-semibold tracking-tight">
-				{editing ? 'Edit product' : 'New product'}
+				{editing ? m.components_product_form_edit_title() : m.components_product_form_new_title()}
 			</h1>
 			<p class="text-sm text-muted-foreground">
-				{editing ? product?.name : 'Add a product to the catalog and configure its variants.'}
+				{editing ? product?.name : m.components_product_form_new_description()}
 			</p>
 		</div>
 		<div class="flex items-center gap-2">
-			<Button type="button" variant="outline" href="/admin/products">Cancel</Button>
+			<Button type="button" variant="outline" href="/admin/products">{m.common_cancel()}</Button>
 			<Button type="submit" disabled={saving}>
 				{#if saving}
 					<LoaderCircle class="size-4 animate-spin" />
 				{/if}
-				{saving ? 'Saving…' : 'Save product'}
+				{saving ? m.common_saving() : m.components_product_form_save()}
 			</Button>
 		</div>
 	</div>
@@ -388,69 +392,81 @@
 
 	<Tabs.Root bind:value={activeTab}>
 		<Tabs.List>
-			<Tabs.Trigger value="general">General</Tabs.Trigger>
+			<Tabs.Trigger value="general">{m.components_product_form_tab_general()}</Tabs.Trigger>
 			<Tabs.Trigger value="images">
-				Images{images.length ? ` (${images.length})` : ''}
+				{m.components_product_images_title()}{images.length ? ` (${images.length})` : ''}
 			</Tabs.Trigger>
 			<Tabs.Trigger value="options">
-				Options{options.length ? ` (${options.length})` : ''}
+				{m.components_options_title()}{options.length ? ` (${options.length})` : ''}
 			</Tabs.Trigger>
 			<Tabs.Trigger value="variants">
-				Variants{variants.length ? ` (${variants.length})` : ''}
+				{m.components_variants_title()}{variants.length ? ` (${variants.length})` : ''}
 			</Tabs.Trigger>
 			{#if editing && product}
-				<Tabs.Trigger value="stock">Stock</Tabs.Trigger>
+				<Tabs.Trigger value="stock">{m.components_form_stock()}</Tabs.Trigger>
 			{/if}
 		</Tabs.List>
 
 		<Tabs.Content value="general" class="mt-4">
 			<Card.Root>
 				<Card.Header>
-					<Card.Title>General information</Card.Title>
+					<Card.Title>{m.components_product_form_general_title()}</Card.Title>
 					<Card.Description>
-						Core product details shown across the storefront and admin.
+						{m.components_product_form_general_description()}
 					</Card.Description>
 				</Card.Header>
 				<Card.Content class="space-y-5">
 					<Field.Group>
 						<Field.Field>
-							<Field.Label for="product-name">Name</Field.Label>
-							<Input id="product-name" bind:value={name} placeholder="Product name" required />
+							<Field.Label for="product-name">{m.common_name()}</Field.Label>
+							<Input
+								id="product-name"
+								bind:value={name}
+								placeholder={m.components_product_form_name_placeholder()}
+								required
+							/>
 						</Field.Field>
 
 						<div class="grid gap-4 sm:grid-cols-2">
 							<Field.Field>
-								<Field.Label for="product-sku">SKU</Field.Label>
-								<Input id="product-sku" bind:value={sku} placeholder="e.g. AUD-001" required />
+								<Field.Label for="product-sku">{m.components_form_sku()}</Field.Label>
+								<Input
+									id="product-sku"
+									bind:value={sku}
+									placeholder={m.components_product_form_sku_placeholder()}
+									required
+								/>
 							</Field.Field>
 
 							<Field.Field>
-								<Field.Label for="product-slug">Slug</Field.Label>
+								<Field.Label for="product-slug">{m.components_form_slug()}</Field.Label>
 								<Input
 									id="product-slug"
 									bind:value={slug}
-									placeholder="auto-generated when empty"
+									placeholder={m.components_form_slug_placeholder()}
 								/>
-								<Field.Description>Leave empty to generate from the name.</Field.Description>
+								<Field.Description>{m.components_form_slug_hint()}</Field.Description>
 							</Field.Field>
 						</div>
 
 						<Field.Field>
-							<Field.Label for="product-short-description">Short description</Field.Label>
+							<Field.Label for="product-short-description"
+								>{m.components_product_form_short_description()}</Field.Label
+							>
 							<Textarea
 								id="product-short-description"
 								bind:value={shortDescription}
-								placeholder="One or two sentences for listings"
+								placeholder={m.components_product_form_short_description_placeholder()}
 								rows={2}
 							/>
 						</Field.Field>
 
 						<Field.Field>
-							<Field.Label for="product-description">Description</Field.Label>
+							<Field.Label for="product-description">{m.common_description()}</Field.Label>
 							<Textarea
 								id="product-description"
 								bind:value={description}
-								placeholder="Full product description"
+								placeholder={m.components_product_form_description_placeholder()}
 								rows={5}
 							/>
 						</Field.Field>
@@ -461,21 +477,27 @@
 					<Field.Group>
 						<div class="grid gap-4 sm:grid-cols-2">
 							<Field.Field>
-								<Field.Label for="product-status">Status</Field.Label>
+								<Field.Label for="product-status">{m.common_status()}</Field.Label>
 								<Select.Root type="single" bind:value={status}>
 									<Select.Trigger id="product-status" class="w-full">
-										<Select.Value placeholder="Select status" />
+										<Select.Value placeholder={m.components_form_select_status()} />
 									</Select.Trigger>
 									<Select.Content>
-										<Select.Item value="draft" label="Draft">Draft</Select.Item>
-										<Select.Item value="active" label="Active">Active</Select.Item>
-										<Select.Item value="archived" label="Archived">Archived</Select.Item>
+										<Select.Item value="draft" label={statusLabel('product', 'draft')}
+											>{statusLabel('product', 'draft')}</Select.Item
+										>
+										<Select.Item value="active" label={statusLabel('product', 'active')}
+											>{statusLabel('product', 'active')}</Select.Item
+										>
+										<Select.Item value="archived" label={statusLabel('product', 'archived')}
+											>{statusLabel('product', 'archived')}</Select.Item
+										>
 									</Select.Content>
 								</Select.Root>
 							</Field.Field>
 
 							<Field.Field>
-								<Field.Label for="product-currency">Currency</Field.Label>
+								<Field.Label for="product-currency">{m.components_form_currency()}</Field.Label>
 								<Input
 									id="product-currency"
 									bind:value={currency}
@@ -488,7 +510,7 @@
 
 						<div class="grid gap-4 sm:grid-cols-2">
 							<Field.Field>
-								<Field.Label for="product-price">Price</Field.Label>
+								<Field.Label for="product-price">{m.common_price()}</Field.Label>
 								<Input
 									id="product-price"
 									type="number"
@@ -497,32 +519,36 @@
 									bind:value={price}
 									placeholder="0.00"
 								/>
-								<Field.Description>Amount in rupiah.</Field.Description>
+								<Field.Description>{m.components_form_amount_in_rupiah()}</Field.Description>
 							</Field.Field>
 
 							<Field.Field>
-								<Field.Label for="product-compare-price">Compare-at price</Field.Label>
+								<Field.Label for="product-compare-price"
+									>{m.components_product_form_compare_price()}</Field.Label
+								>
 								<Input
 									id="product-compare-price"
 									type="number"
 									min="0"
 									step="0.01"
 									bind:value={compareAtPrice}
-									placeholder="Optional"
+									placeholder={m.common_optional()}
 								/>
-								<Field.Description>Leave empty when the product is not on sale.</Field.Description>
+								<Field.Description>{m.components_product_form_compare_hint()}</Field.Description>
 							</Field.Field>
 						</div>
 
 						<div class="grid gap-4 sm:grid-cols-2">
 							<Field.Field>
-								<Field.Label for="product-brand">Brand</Field.Label>
+								<Field.Label for="product-brand">{m.common_brand()}</Field.Label>
 								<Select.Root type="single" bind:value={brandId}>
 									<Select.Trigger id="product-brand" class="w-full">
-										<Select.Value placeholder="No brand" />
+										<Select.Value placeholder={m.components_product_form_no_brand()} />
 									</Select.Trigger>
 									<Select.Content>
-										<Select.Item value="none" label="No brand">No brand</Select.Item>
+										<Select.Item value="none" label={m.components_product_form_no_brand()}
+											>{m.components_product_form_no_brand()}</Select.Item
+										>
 										{#each brands as brand (brand.id)}
 											<Select.Item value={brand.id} label={brand.name}>{brand.name}</Select.Item>
 										{/each}
@@ -531,13 +557,15 @@
 							</Field.Field>
 
 							<Field.Field>
-								<Field.Label for="product-category">Category</Field.Label>
+								<Field.Label for="product-category">{m.common_category()}</Field.Label>
 								<Select.Root type="single" bind:value={categoryId}>
 									<Select.Trigger id="product-category" class="w-full">
-										<Select.Value placeholder="No category" />
+										<Select.Value placeholder={m.components_product_form_no_category()} />
 									</Select.Trigger>
 									<Select.Content>
-										<Select.Item value="none" label="No category">No category</Select.Item>
+										<Select.Item value="none" label={m.components_product_form_no_category()}
+											>{m.components_product_form_no_category()}</Select.Item
+										>
 										{#each categories as category (category.id)}
 											<Select.Item value={category.id} label={category.name}>
 												{category.parentName
@@ -556,31 +584,43 @@
 					<div class="grid gap-3 sm:grid-cols-3">
 						<div class="flex items-center justify-between gap-3 rounded-lg border p-3">
 							<div>
-								<p class="text-sm font-medium">Featured</p>
-								<p class="text-xs text-muted-foreground">Highlight on the storefront.</p>
+								<p class="text-sm font-medium">{m.components_product_form_featured()}</p>
+								<p class="text-xs text-muted-foreground">
+									{m.components_product_form_featured_hint()}
+								</p>
 							</div>
-							<Switch bind:checked={isFeatured} aria-label="Featured product" />
+							<Switch
+								bind:checked={isFeatured}
+								aria-label={m.components_product_form_featured_label()}
+							/>
 						</div>
 
 						<div class="flex items-center justify-between gap-3 rounded-lg border p-3">
 							<div>
-								<p class="text-sm font-medium">New arrival</p>
-								<p class="text-xs text-muted-foreground">Show in new arrivals.</p>
+								<p class="text-sm font-medium">{m.components_product_form_new_arrival()}</p>
+								<p class="text-xs text-muted-foreground">
+									{m.components_product_form_new_arrival_hint()}
+								</p>
 							</div>
-							<Switch bind:checked={isNewArrival} aria-label="New arrival" />
+							<Switch
+								bind:checked={isNewArrival}
+								aria-label={m.components_product_form_new_arrival()}
+							/>
 						</div>
 
 						<div class="flex items-center justify-between gap-3 rounded-lg border p-3">
 							<div>
-								<p class="text-sm font-medium">Deal</p>
-								<p class="text-xs text-muted-foreground">Mark as a limited-time deal.</p>
+								<p class="text-sm font-medium">{m.components_product_form_deal()}</p>
+								<p class="text-xs text-muted-foreground">{m.components_product_form_deal_hint()}</p>
 							</div>
-							<Switch bind:checked={isDeal} aria-label="Product deal" />
+							<Switch bind:checked={isDeal} aria-label={m.components_product_form_deal_label()} />
 						</div>
 					</div>
 
 					<Field.Field>
-						<Field.Label for="product-deal-ends">Deal ends</Field.Label>
+						<Field.Label for="product-deal-ends"
+							>{m.components_product_form_deal_ends()}</Field.Label
+						>
 						<Input
 							id="product-deal-ends"
 							type="datetime-local"
@@ -593,21 +633,25 @@
 
 					<Field.Group>
 						<Field.Field>
-							<Field.Label for="product-shipping">Shipping info</Field.Label>
+							<Field.Label for="product-shipping"
+								>{m.components_product_form_shipping_info()}</Field.Label
+							>
 							<Textarea
 								id="product-shipping"
 								bind:value={shippingInfo}
-								placeholder="Shipping details shown on the product page"
+								placeholder={m.components_product_form_shipping_placeholder()}
 								rows={3}
 							/>
 						</Field.Field>
 
 						<Field.Field>
-							<Field.Label for="product-returns">Return policy</Field.Label>
+							<Field.Label for="product-returns"
+								>{m.components_product_form_return_policy()}</Field.Label
+							>
 							<Textarea
 								id="product-returns"
 								bind:value={returnPolicy}
-								placeholder="Return policy shown on the product page"
+								placeholder={m.components_product_form_return_placeholder()}
 								rows={3}
 							/>
 						</Field.Field>
@@ -652,9 +696,9 @@
 	</Tabs.Root>
 
 	<div class="flex justify-end gap-2 border-t pt-4">
-		<Button type="button" variant="outline" href="/admin/products">Cancel</Button>
+		<Button type="button" variant="outline" href="/admin/products">{m.common_cancel()}</Button>
 		<Button type="submit" disabled={saving}>
-			{saving ? 'Saving…' : 'Save product'}
+			{saving ? m.common_saving() : m.components_product_form_save()}
 		</Button>
 	</div>
 </form>

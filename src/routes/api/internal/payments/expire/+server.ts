@@ -16,7 +16,7 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 		!PAYMENT_EXPIRE_SECRET ||
 		!matches(request.headers.get('x-cron-secret') ?? '', PAYMENT_EXPIRE_SECRET)
 	) {
-		return Response.json({ error: 'Forbidden' }, { status: 403 });
+		return Response.json({ error: 'Forbidden', code: 'FORBIDDEN' }, { status: 403 });
 	}
 
 	try {

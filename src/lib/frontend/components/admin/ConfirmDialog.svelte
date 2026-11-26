@@ -1,13 +1,14 @@
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
 	import * as AlertDialog from '#lib/frontend/components/ui/alert-dialog/index.ts';
 	import { Button } from '#lib/frontend/components/ui/button/index.ts';
 
 	let {
 		open = $bindable(false),
-		title = 'Are you sure?',
-		description = 'This action cannot be undone.',
-		confirmLabel = 'Confirm',
-		cancelLabel = 'Cancel',
+		title = m.components_confirm_dialog_title(),
+		description = m.components_confirm_dialog_description(),
+		confirmLabel = m.common_confirm(),
+		cancelLabel = m.common_cancel(),
 		destructive = false,
 		onConfirm
 	}: {

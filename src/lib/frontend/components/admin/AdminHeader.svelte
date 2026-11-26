@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { LogOut, Search } from '@lucide/svelte';
+	import { m } from '#lib/paraglide/messages.js';
+	import LanguageSwitcher from '#lib/frontend/components/LanguageSwitcher.svelte';
 	import * as Sidebar from '#lib/frontend/components/ui/sidebar/index.ts';
 	import * as Breadcrumb from '#lib/frontend/components/ui/breadcrumb/index.ts';
 	import * as DropdownMenu from '#lib/frontend/components/ui/dropdown-menu/index.ts';
@@ -12,14 +14,14 @@
 	const session = authClient.useSession();
 	const user = $derived($session.data?.user);
 
-	const displayName = $derived(user?.name || user?.email || 'Admin');
+	const displayName = $derived(user?.name || user?.email || m.admin_header_fallback_name());
 
-	const labels: Record<string, string> = {
-		admin: 'Admin',
-		super: 'Superadmin',
-		'gift-cards': 'Gift cards',
-		'audit-logs': 'Audit logs',
-		new: 'New'
+	const labels: Record<string, () => string> = {
+		admin: () => m.admin_header_crumb_admin(),
+		super: () => m.admin_header_crumb_super(),
+		'gift-cards': () => m.admin_header_crumb_gift_cards(),
+		'audit-logs': () => m.admin_header_crumb_audit_logs(),
+		new: () => m.admin_header_crumb_new()
 	};
 
 	const crumbs = $derived.by(() =>
@@ -28,7 +30,7 @@
 			.filter(Boolean)
 			.map((segment, index, segments) => ({
 				label:
-					labels[segment] ?? segment.replaceAll('-', ' ').replace(/^./, (c) => c.toUpperCase()),
+					labels[segment]?.() ?? segment.replaceAll('-', ' ').replace(/^./, (c) => c.toUpperCase()),
 				href: `/${segments.slice(0, index + 1).join('/')}`
 			}))
 	);
@@ -56,9 +58,14 @@
 	</Breadcrumb.Root>
 
 	<div class="ml-auto flex items-center gap-2">
+		<LanguageSwitcher />
 		<div class="relative hidden sm:block">
 			<Search class="absolute top-1/2 left-2 size-4 -translate-y-1/2 text-muted-foreground" />
-			<Input class="w-56 pl-8" placeholder="Search…" aria-label="Search admin" />
+			<Input
+				class="w-56 pl-8"
+				placeholder={m.admin_header_search_placeholder()}
+				aria-label={m.admin_header_search_label()}
+			/>
 		</div>
 
 		<DropdownMenu.Root>
@@ -82,13 +89,13 @@
 			</DropdownMenu.Trigger>
 			<DropdownMenu.Content align="end" class="w-56">
 				<DropdownMenu.Label>
-					<div class="truncate font-medium">{user?.name ?? 'Admin'}</div>
+					<div class="truncate font-medium">{user?.name ?? m.admin_header_fallback_name()}</div>
 					<div class="truncate text-xs text-muted-foreground">{user?.email ?? ''}</div>
 				</DropdownMenu.Label>
 				<DropdownMenu.Separator />
 				<DropdownMenu.Item variant="destructive" onclick={() => void signOutUser('/login')}>
 					<LogOut />
-					Sign out
+					{m.admin_header_sign_out()}
 				</DropdownMenu.Item>
 			</DropdownMenu.Content>
 		</DropdownMenu.Root>

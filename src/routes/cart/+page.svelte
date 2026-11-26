@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import {
@@ -31,18 +32,17 @@
 		void cart.refresh();
 	});
 
-	const itemLabel = $derived(cart.count === 1 ? 'item' : 'items');
 	const discountAmount = $derived(cart.discount > 0 ? -cart.discount : 0);
 	const shipping = $derived(cart.cart?.shipping ?? 0);
 	const shippingLabel = $derived(
-		shipping > 0 ? formatMoney(shipping, cart.currency) : 'Calculated at checkout'
+		shipping > 0 ? formatMoney(shipping, cart.currency) : m.cart_calculated_at_checkout()
 	);
 
 	async function applyCoupon() {
 		const code = couponCode.trim();
 
 		if (!code) {
-			couponError = 'Enter a coupon code.';
+			couponError = m.cart_coupon_required();
 			return;
 		}
 
@@ -66,15 +66,17 @@
 		<main class="mx-auto w-full max-w-[1280px] px-4 sm:px-8">
 			<div class="flex flex-col gap-1">
 				<h1 class="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
-					Shopping cart
+					{m.cart_title()}
 				</h1>
 				<p class="text-sm text-muted-foreground" aria-live="polite">
-					You have {cart.count}
-					{itemLabel} in your cart
+					{m.cart_items_in_cart({ count: cart.count })}
 				</p>
 			</div>
 
-			<nav aria-label="Checkout progress" class="mt-6 rounded-xl border bg-muted/40 p-4 sm:p-5">
+			<nav
+				aria-label={m.cart_checkout_progress()}
+				class="mt-6 rounded-xl border bg-muted/40 p-4 sm:p-5"
+			>
 				<div class="flex items-center gap-2 sm:gap-4">
 					<a href="/cart" aria-current="step" class="flex items-center gap-2 sm:gap-3">
 						<span
@@ -82,7 +84,7 @@
 						>
 							<ShoppingCart class="size-4" />
 						</span>
-						<span class="text-sm font-medium text-foreground sm:text-base">Cart</span>
+						<span class="text-sm font-medium text-foreground sm:text-base">{m.common_cart()}</span>
 					</a>
 					<div class="h-px flex-1 bg-border" aria-hidden="true"></div>
 					<a href="/checkout/address" class="flex items-center gap-2 sm:gap-3">
@@ -91,7 +93,9 @@
 						>
 							<MapPin class="size-4" />
 						</span>
-						<span class="text-sm font-medium text-muted-foreground sm:text-base">Address</span>
+						<span class="text-sm font-medium text-muted-foreground sm:text-base"
+							>{m.common_address()}</span
+						>
 					</a>
 					<div class="h-px flex-1 bg-border" aria-hidden="true"></div>
 					<a href="/checkout/payment" class="flex items-center gap-2 sm:gap-3">
@@ -100,7 +104,9 @@
 						>
 							<CreditCard class="size-4" />
 						</span>
-						<span class="text-sm font-medium text-muted-foreground sm:text-base">Payment</span>
+						<span class="text-sm font-medium text-muted-foreground sm:text-base"
+							>{m.common_payment()}</span
+						>
 					</a>
 				</div>
 			</nav>
@@ -135,7 +141,7 @@
 							href="/products"
 							class="h-11 w-full justify-between px-4 text-sm"
 						>
-							<span class="font-medium">Add more from Wishlist</span>
+							<span class="font-medium">{m.cart_add_more()}</span>
 							<ArrowRight class="size-4" />
 						</Button>
 
@@ -146,14 +152,14 @@
 										<ShoppingCart class="size-7 text-muted-foreground" />
 									</div>
 									<div class="flex flex-col gap-1">
-										<Card.Title class="text-lg">Your cart is empty</Card.Title>
+										<Card.Title class="text-lg">{m.cart_empty_title()}</Card.Title>
 										<Card.Description>
-											Add products to your cart to continue to checkout.
+											{m.cart_empty_description()}
 										</Card.Description>
 									</div>
 									<div class="flex flex-wrap items-center justify-center gap-2">
-										<Button href="/products">Browse products</Button>
-										<Button variant="outline" href="/cart/empty">View empty cart</Button>
+										<Button href="/products">{m.common_browse_products()}</Button>
+										<Button variant="outline" href="/cart/empty">{m.cart_view_empty()}</Button>
 									</div>
 								</Card.Content>
 							</Card.Root>
@@ -198,7 +204,7 @@
 														variant="ghost"
 														size="icon-sm"
 														class="text-muted-foreground hover:text-destructive"
-														aria-label={`Remove ${item.productName} from cart`}
+														aria-label={m.cart_remove_item({ name: item.productName })}
 														onclick={() => void cart.remove(item.id)}
 														disabled={cart.loading}
 													>
@@ -224,7 +230,7 @@
 																variant="ghost"
 																size="icon-sm"
 																class="rounded-r-none"
-																aria-label={`Decrease quantity of ${item.productName}`}
+																aria-label={m.cart_decrease_item({ name: item.productName })}
 																onclick={() => void cart.update(item.id, item.quantity - 1)}
 																disabled={cart.loading || item.quantity <= 1}
 															>
@@ -240,7 +246,7 @@
 																variant="ghost"
 																size="icon-sm"
 																class="rounded-l-none"
-																aria-label={`Increase quantity of ${item.productName}`}
+																aria-label={m.cart_increase_item({ name: item.productName })}
 																onclick={() => void cart.update(item.id, item.quantity + 1)}
 																disabled={cart.loading || item.quantity >= item.stock}
 															>
@@ -252,7 +258,7 @@
 															<span
 																class="text-[11px] tracking-wide text-muted-foreground uppercase"
 															>
-																Line total
+																{m.cart_line_total()}
 															</span>
 															<span class="text-sm font-semibold text-foreground">
 																{formatMoney(item.unitPrice * item.quantity, cart.currency)}
@@ -270,16 +276,15 @@
 
 					<Card.Root class="lg:sticky lg:top-24">
 						<Card.Header>
-							<Card.Title>Order summary</Card.Title>
+							<Card.Title>{m.cart_order_summary()}</Card.Title>
 							{#if cart.loading}
 								<Card.Description class="flex items-center gap-1.5">
 									<Spinner class="size-3" />
-									Updating cart…
+									{m.cart_updating()}
 								</Card.Description>
 							{:else}
 								<Card.Description>
-									You have {cart.count}
-									{itemLabel} in your cart
+									{m.cart_items_in_cart({ count: cart.count })}
 								</Card.Description>
 							{/if}
 						</Card.Header>
@@ -288,7 +293,7 @@
 							<div class="rounded-lg border bg-muted/40 p-3">
 								<div class="mb-2 flex items-center gap-1.5 text-sm font-medium text-foreground">
 									<Tag class="size-4 text-muted-foreground" />
-									Coupon code
+									{m.cart_coupon()}
 								</div>
 
 								{#if cart.cart?.coupon}
@@ -303,7 +308,7 @@
 											onclick={() => void cart.removeCoupon()}
 											disabled={cart.loading}
 										>
-											Remove
+											{m.common_remove()}
 										</Button>
 									</div>
 								{:else}
@@ -316,8 +321,8 @@
 									>
 										<Input
 											bind:value={couponCode}
-											placeholder="Add discount code"
-											aria-label="Coupon code"
+											placeholder={m.cart_coupon_placeholder()}
+											aria-label={m.cart_coupon()}
 											autocomplete="off"
 											class="h-9 bg-background"
 											disabled={cart.loading}
@@ -329,7 +334,7 @@
 											class="h-9 shrink-0 px-4"
 											disabled={cart.loading || couponCode.trim().length === 0}
 										>
-											Apply
+											{m.common_apply()}
 										</Button>
 									</form>
 								{/if}
@@ -341,17 +346,17 @@
 
 							<dl class="flex flex-col gap-2.5 text-sm">
 								<div class="flex items-start justify-between gap-4">
-									<dt class="text-muted-foreground">Subtotal</dt>
+									<dt class="text-muted-foreground">{m.common_subtotal()}</dt>
 									<dd class="font-medium text-foreground">
 										{formatMoney(cart.subtotal, cart.currency)}
 									</dd>
 								</div>
 								<div class="flex items-start justify-between gap-4">
-									<dt class="text-muted-foreground">Shipping Cost (+)</dt>
+									<dt class="text-muted-foreground">{m.cart_subtotal_shipping()}</dt>
 									<dd class="text-right font-medium text-foreground">{shippingLabel}</dd>
 								</div>
 								<div class="flex items-start justify-between gap-4">
-									<dt class="text-muted-foreground">Discount (-)</dt>
+									<dt class="text-muted-foreground">{m.cart_discount()}</dt>
 									<dd class="font-medium text-foreground">
 										{formatMoney(discountAmount, cart.currency)}
 									</dd>
@@ -363,7 +368,7 @@
 							<div
 								class="flex items-start justify-between gap-4 text-base font-semibold text-foreground"
 							>
-								<span>Total Payable</span>
+								<span>{m.cart_total_payable()}</span>
 								<span>{formatMoney(cart.total, cart.currency)}</span>
 							</div>
 						</Card.Content>
@@ -375,11 +380,11 @@
 								onclick={() => goto('/checkout/address')}
 								disabled={cart.items.length === 0 || cart.loading}
 							>
-								Continue to checkout
+								{m.cart_continue()}
 								<ArrowRight class="size-4" />
 							</Button>
 							<p class="text-center text-xs text-muted-foreground">
-								Shipping and taxes calculated at checkout.
+								{m.cart_shipping_note()}
 							</p>
 						</Card.Footer>
 					</Card.Root>

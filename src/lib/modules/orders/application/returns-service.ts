@@ -65,7 +65,7 @@ export function createReturnsService(
 
 	async function requireRow(id: string): Promise<ReturnRow> {
 		const row = await repository.findReturn(id);
-		if (!row) throw new NotFoundError('Return not found');
+		if (!row) throw new NotFoundError('Return not found', { messageKey: 'return_not_found' });
 		return row;
 	}
 
@@ -111,7 +111,8 @@ export function createReturnsService(
 			run(async () => {
 				const userId = assertActor(actor).id;
 				const row = await repository.findReturn(id);
-				if (!row || row.userId !== userId) throw new NotFoundError('Return not found');
+				if (!row || row.userId !== userId)
+					throw new NotFoundError('Return not found', { messageKey: 'return_not_found' });
 				return customerDetail(row);
 			}),
 
@@ -119,7 +120,8 @@ export function createReturnsService(
 			run(async () => {
 				const userId = assertActor(actor).id;
 				const orderId = await repository.findOrderIdForItem(userId, input.orderItemId);
-				if (!orderId) throw new NotFoundError('Order item not found');
+				if (!orderId)
+					throw new NotFoundError('Order item not found', { messageKey: 'order_item_not_found' });
 
 				const now = clock.now();
 				const request: ReturnRequest = {
@@ -180,7 +182,11 @@ export function createReturnsService(
 					const allowed = RETURNS_TRANSITIONS[existing.status] ?? [];
 					if (!allowed.includes(input.status)) {
 						throw new UnprocessableError(
-							`Cannot move a return from "${existing.status}" to "${input.status}"`
+							`Cannot move a return from "${existing.status}" to "${input.status}"`,
+							{
+								messageKey: 'return_transition_invalid',
+								params: { from: existing.status, to: input.status }
+							}
 						);
 					}
 				}

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
 	import { onMount } from 'svelte';
 	import ImagePlaceholder from '#lib/frontend/components/ui/ImagePlaceholder.svelte';
 
@@ -35,7 +36,7 @@
 {#if categories.length > 0}
 	<section class="w-full bg-white py-10" data-name="Storefront Categories">
 		<div class="mx-auto w-full max-w-[1280px] px-4 lg:px-8">
-			<h2 class="mb-6 text-2xl font-bold text-[#0a0a0a]">Shop by Category</h2>
+			<h2 class="mb-6 text-2xl font-bold text-[#0a0a0a]">{m.components_shop_by_category()}</h2>
 			<div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
 				{#each categories as category (category.id)}
 					<a
@@ -56,7 +57,9 @@
 						</div>
 						<div class="flex flex-col gap-1">
 							<span class="text-sm font-semibold text-[#0a0a0a]">{category.name}</span>
-							<span class="text-xs text-[#737373]">{category.productCount} products</span>
+							<span class="text-xs text-[#737373]"
+								>{m.components_category_grid_products({ count: category.productCount })}</span
+							>
 						</div>
 					</a>
 				{/each}

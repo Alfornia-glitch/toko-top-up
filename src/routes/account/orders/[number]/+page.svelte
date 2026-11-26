@@ -1,4 +1,7 @@
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
+	import { errorMessage } from '#lib/frontend/i18n/index.ts';
+	import { timelineMessage } from '#lib/frontend/i18n/events.ts';
 	import {
 		listOrders,
 		getOrder,
@@ -47,7 +50,7 @@
 		const entries: TimelineEntry[] = [
 			...order.events.map((event) => ({
 				id: `event-${event.id}`,
-				label: event.message?.trim() || statusLabel(ORDER_STATUS_LABELS, event.type),
+				label: timelineMessage(event) || statusLabel(ORDER_STATUS_LABELS, event.type),
 				date: event.createdAt
 			})),
 			...order.shipments.map((shipment) => {
@@ -131,7 +134,7 @@
 				return;
 			}
 
-			error = cause instanceof Error ? cause.message : 'Could not load this order';
+			error = errorMessage(cause, 'account_order_detail_load_failed');
 		} finally {
 			loading = false;
 		}
@@ -143,27 +146,33 @@
 </script>
 
 <AccountPageShell
-	title={order ? `Order ${order.orderNumber}` : 'Order details'}
-	description={order ? `Placed ${formatDate(order.placedAt)}` : 'View your order details.'}
+	title={order
+		? m.account_order_detail_title({ orderNumber: order.orderNumber })
+		: m.account_order_detail_title_fallback()}
+	description={order
+		? m.account_order_detail_placed({ date: formatDate(order.placedAt) })
+		: m.account_order_detail_description_fallback()}
 >
 	{#snippet actions()}
 		{#if order && order.status === 'pending' && order.paymentStatus === 'pending'}
-			<Button href={`/account/payments/${order.id}`}>Complete payment</Button>
+			<Button href={`/account/payments/${order.id}`}
+				>{m.account_order_detail_complete_payment()}</Button
+			>
 		{/if}
 		<Button variant="outline" href="/account/orders">
 			<ChevronLeft class="size-4" aria-hidden="true" />
-			Back to orders
+			{m.account_order_detail_back()}
 		</Button>
 		{#if order}
 			<Button href={`/account/order-tracking?order=${encodeURIComponent(order.orderNumber)}`}>
 				<Truck class="size-4" aria-hidden="true" />
-				Track order
+				{m.account_order_detail_track()}
 			</Button>
 		{/if}
 	{/snippet}
 
 	{#if loading}
-		<div class="flex flex-col gap-4" aria-busy="true" aria-label="Loading order">
+		<div class="flex flex-col gap-4" aria-busy="true" aria-label={m.account_shared_loading_order()}>
 			<Card.Root>
 				<Card.Header class="gap-2">
 					<Skeleton class="h-5 w-40" />
@@ -205,13 +214,13 @@
 	{:else if notFound}
 		<Card.Root>
 			<Card.Header>
-				<Card.Title>Order not found</Card.Title>
-				<Card.Description>We could not find an order with that number.</Card.Description>
+				<Card.Title>{m.account_order_detail_not_found_title()}</Card.Title>
+				<Card.Description>{m.account_order_detail_not_found_description()}</Card.Description>
 			</Card.Header>
 			<Card.Content>
 				<Button variant="outline" href="/account/orders">
 					<ChevronLeft class="size-4" aria-hidden="true" />
-					Back to orders
+					{m.account_order_detail_back()}
 				</Button>
 			</Card.Content>
 		</Card.Root>
@@ -221,26 +230,32 @@
 			role="alert"
 		>
 			<span>{error}</span>
-			<Button variant="outline" size="sm" onclick={() => void load()}>Retry</Button>
+			<Button variant="outline" size="sm" onclick={() => void load()}>{m.common_retry()}</Button>
 		</div>
 	{:else if noOrders}
 		<EmptyState
-			title="No orders yet"
-			description="Orders you place will appear here with their details."
+			title={m.account_shared_no_orders_yet()}
+			description={m.account_order_detail_empty_description()}
 		>
 			{#snippet icon()}
 				<Package class="size-5" aria-hidden="true" />
 			{/snippet}
 			{#snippet action()}
-				<Button href="/products">Browse products</Button>
+				<Button href="/products">{m.common_browse_products()}</Button>
 			{/snippet}
 		</EmptyState>
 	{:else if order}
 		<Card.Root>
 			<Card.Header class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
 				<div class="space-y-1">
-					<Card.Title class="text-lg">Order {order.orderNumber}</Card.Title>
-					<Card.Description>Placed {formatDate(order.placedAt) || '—'}</Card.Description>
+					<Card.Title class="text-lg"
+						>{m.account_order_detail_title({ orderNumber: order.orderNumber })}</Card.Title
+					>
+					<Card.Description
+						>{m.account_order_detail_placed({
+							date: formatDate(order.placedAt) || '—'
+						})}</Card.Description
+					>
 				</div>
 				<div class="flex flex-wrap items-center gap-2">
 					<OrderStatusBadge status={order.status} kind="order" />
@@ -252,19 +267,19 @@
 				<Separator />
 				<dl class="grid grid-cols-2 gap-4 sm:grid-cols-4">
 					<div class="min-w-0">
-						<dt class="text-xs text-muted-foreground">Order number</dt>
+						<dt class="text-xs text-muted-foreground">{m.account_order_detail_number()}</dt>
 						<dd class="truncate text-sm font-medium text-foreground">{order.orderNumber}</dd>
 					</div>
 					<div class="min-w-0">
-						<dt class="text-xs text-muted-foreground">Placed</dt>
+						<dt class="text-xs text-muted-foreground">{m.account_order_detail_placed_label()}</dt>
 						<dd class="text-sm font-medium text-foreground">{formatDate(order.placedAt) || '—'}</dd>
 					</div>
 					<div class="min-w-0">
-						<dt class="text-xs text-muted-foreground">Items</dt>
+						<dt class="text-xs text-muted-foreground">{m.account_order_detail_items()}</dt>
 						<dd class="text-sm font-medium text-foreground tabular-nums">{itemCount}</dd>
 					</div>
 					<div class="min-w-0">
-						<dt class="text-xs text-muted-foreground">Grand total</dt>
+						<dt class="text-xs text-muted-foreground">{m.account_shared_grand_total()}</dt>
 						<dd class="text-sm font-medium text-foreground tabular-nums">
 							{formatMoney(order.grandTotal, order.currency)}
 						</dd>
@@ -277,12 +292,12 @@
 			<Card.Header>
 				<Card.Title class="flex items-center gap-2">
 					<Package class="size-4" aria-hidden="true" />
-					Items
+					{m.account_order_detail_items()}
 				</Card.Title>
 			</Card.Header>
 			<Card.Content>
 				{#if order.items.length === 0}
-					<p class="text-sm text-muted-foreground">This order has no items.</p>
+					<p class="text-sm text-muted-foreground">{m.account_order_tracking_no_items()}</p>
 				{:else}
 					<ul class="flex flex-col divide-y divide-border">
 						{#each order.items as item (item.id)}
@@ -301,9 +316,14 @@
 								{/if}
 								<div class="min-w-0 space-y-1">
 									<p class="text-sm font-medium break-words text-foreground">{item.productName}</p>
-									<p class="text-xs text-muted-foreground">SKU: {item.sku}</p>
+									<p class="text-xs text-muted-foreground">
+										{m.account_shared_sku({ sku: item.sku })}
+									</p>
 									<p class="text-sm text-muted-foreground">
-										{item.quantity} × {formatMoney(item.unitPrice, order.currency)}
+										{m.account_order_detail_line({
+											quantity: item.quantity,
+											price: formatMoney(item.unitPrice, order.currency)
+										})}
 									</p>
 								</div>
 								<div class="flex items-center justify-between gap-3 sm:flex-col sm:items-end">
@@ -321,37 +341,37 @@
 
 		<Card.Root>
 			<Card.Header>
-				<Card.Title>Order total</Card.Title>
+				<Card.Title>{m.account_order_detail_total_title()}</Card.Title>
 			</Card.Header>
 			<Card.Content>
 				<dl class="flex flex-col gap-2 text-sm">
 					<div class="flex items-center justify-between gap-3">
-						<dt class="text-muted-foreground">Subtotal</dt>
+						<dt class="text-muted-foreground">{m.common_subtotal()}</dt>
 						<dd class="font-medium text-foreground tabular-nums">
 							{formatMoney(order.subtotal, order.currency)}
 						</dd>
 					</div>
 					<div class="flex items-center justify-between gap-3">
-						<dt class="text-muted-foreground">Discount</dt>
+						<dt class="text-muted-foreground">{m.common_discount()}</dt>
 						<dd class="font-medium text-foreground tabular-nums">
 							-{formatMoney(order.discount, order.currency)}
 						</dd>
 					</div>
 					<div class="flex items-center justify-between gap-3">
-						<dt class="text-muted-foreground">Shipping</dt>
+						<dt class="text-muted-foreground">{m.common_shipping()}</dt>
 						<dd class="font-medium text-foreground tabular-nums">
 							{formatMoney(order.shipping, order.currency)}
 						</dd>
 					</div>
 					<div class="flex items-center justify-between gap-3">
-						<dt class="text-muted-foreground">Tax</dt>
+						<dt class="text-muted-foreground">{m.common_tax()}</dt>
 						<dd class="font-medium text-foreground tabular-nums">
 							{formatMoney(order.tax, order.currency)}
 						</dd>
 					</div>
 					<Separator />
 					<div class="flex items-center justify-between gap-3 text-base">
-						<dt class="font-semibold text-foreground">Total</dt>
+						<dt class="font-semibold text-foreground">{m.common_total()}</dt>
 						<dd class="font-semibold text-foreground tabular-nums">
 							{formatMoney(order.grandTotal, order.currency)}
 						</dd>
@@ -365,7 +385,7 @@
 				<Card.Header>
 					<Card.Title class="flex items-center gap-2">
 						<MapPin class="size-4" aria-hidden="true" />
-						Shipping address
+						{m.account_order_detail_shipping_address()}
 					</Card.Title>
 				</Card.Header>
 				<Card.Content>
@@ -376,7 +396,7 @@
 							{/each}
 						</address>
 					{:else}
-						<p class="text-sm text-muted-foreground">Not provided</p>
+						<p class="text-sm text-muted-foreground">{m.account_order_detail_not_provided()}</p>
 					{/if}
 				</Card.Content>
 			</Card.Root>
@@ -385,7 +405,7 @@
 				<Card.Header>
 					<Card.Title class="flex items-center gap-2">
 						<MapPin class="size-4" aria-hidden="true" />
-						Billing address
+						{m.account_order_detail_billing_address()}
 					</Card.Title>
 				</Card.Header>
 				<Card.Content>
@@ -396,7 +416,7 @@
 							{/each}
 						</address>
 					{:else}
-						<p class="text-sm text-muted-foreground">Not provided</p>
+						<p class="text-sm text-muted-foreground">{m.account_order_detail_not_provided()}</p>
 					{/if}
 				</Card.Content>
 			</Card.Root>
@@ -406,12 +426,12 @@
 			<Card.Header>
 				<Card.Title class="flex items-center gap-2">
 					<Clock class="size-4" aria-hidden="true" />
-					Timeline
+					{m.account_order_detail_timeline()}
 				</Card.Title>
 			</Card.Header>
 			<Card.Content>
 				{#if timeline.length === 0}
-					<p class="text-sm text-muted-foreground">No updates yet</p>
+					<p class="text-sm text-muted-foreground">{m.account_order_detail_no_updates()}</p>
 				{:else}
 					<ol class="flex flex-col">
 						{#each timeline as entry, index (entry.id)}
@@ -441,11 +461,11 @@
 		<div class="flex flex-wrap items-center gap-2">
 			<Button variant="outline" href="/account/returns-refunds">
 				<RotateCcw class="size-4" aria-hidden="true" />
-				Start a return
+				{m.account_order_detail_start_return()}
 			</Button>
 			<Button variant="ghost" href="/account/support-tickets">
 				<LifeBuoy class="size-4" aria-hidden="true" />
-				Get help
+				{m.account_order_detail_get_help()}
 			</Button>
 		</div>
 	{/if}

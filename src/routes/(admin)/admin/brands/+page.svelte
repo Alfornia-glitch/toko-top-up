@@ -6,6 +6,9 @@
 	import ConfirmDialog from '#lib/frontend/components/admin/ConfirmDialog.svelte';
 	import BrandDialog from '#lib/frontend/components/admin/catalog/BrandDialog.svelte';
 	import { Button } from '#lib/frontend/components/ui/button/index.ts';
+	import { m } from '#lib/paraglide/messages.js';
+	import { errorMessage } from '#lib/frontend/i18n/index.ts';
+	import { formatDateTime } from '#lib/frontend/modules/commerce/format.ts';
 
 	type BrandRow = {
 		id: string;
@@ -18,15 +21,20 @@
 		productCount: number;
 	};
 
-	const columns = [
-		{ key: 'logoUrl', label: 'Logo' },
-		{ key: 'name', label: 'Name', sortable: true },
-		{ key: 'slug', label: 'Slug', sortable: true },
-		{ key: 'productCount', label: 'Products', sortable: true, class: 'text-right' },
-		{ key: 'status', label: 'Status' },
-		{ key: 'updatedAt', label: 'Updated', sortable: true },
+	const columns = $derived([
+		{ key: 'logoUrl', label: m.admin_catalog_brands_col_logo() },
+		{ key: 'name', label: m.common_name(), sortable: true },
+		{ key: 'slug', label: m.admin_catalog_brands_col_slug(), sortable: true },
+		{
+			key: 'productCount',
+			label: m.admin_catalog_brands_col_products(),
+			sortable: true,
+			class: 'text-right'
+		},
+		{ key: 'status', label: m.common_status() },
+		{ key: 'updatedAt', label: m.admin_catalog_brands_col_updated(), sortable: true },
 		{ key: 'actions', label: '', class: 'text-right' }
-	];
+	]);
 
 	let brands = $state<BrandRow[]>([]);
 	let loading = $state(true);
@@ -70,11 +78,11 @@
 			const response = await fetch('/api/admin/brands');
 			const payload = await response.json().catch(() => ({}));
 
-			if (!response.ok) throw new Error(payload.error ?? 'Could not load brands');
+			if (!response.ok) throw new Error(errorMessage(payload, 'admin_catalog_brands_load_failed'));
 
 			brands = payload.data ?? [];
 		} catch (err) {
-			error = err instanceof Error ? err.message : 'Could not load brands';
+			error = errorMessage(err, 'admin_catalog_brands_load_failed');
 		} finally {
 			loading = false;
 		}
@@ -118,39 +126,31 @@
 			const response = await fetch(`/api/admin/brands/${deleting.id}`, { method: 'DELETE' });
 			const payload = await response.json().catch(() => ({}));
 
-			if (!response.ok) throw new Error(payload.error ?? 'Could not delete brand');
+			if (!response.ok)
+				throw new Error(errorMessage(payload, 'admin_catalog_brands_delete_failed'));
 
 			await loadBrands();
 		} catch (err) {
-			error = err instanceof Error ? err.message : 'Could not delete brand';
+			error = errorMessage(err, 'admin_catalog_brands_delete_failed');
 		} finally {
 			deleting = null;
 		}
 	}
 
 	function formatDate(value: string) {
-		const date = new Date(value);
-		if (Number.isNaN(date.getTime())) return '—';
-
-		return new Intl.DateTimeFormat('en-US', {
-			month: 'short',
-			day: 'numeric',
-			year: 'numeric',
-			hour: '2-digit',
-			minute: '2-digit'
-		}).format(date);
+		return formatDateTime(value) || m.common_dash();
 	}
 </script>
 
 <div class="space-y-6">
 	<div class="flex flex-wrap items-start justify-between gap-3">
 		<div>
-			<h1 class="text-2xl font-semibold tracking-tight">Brands</h1>
-			<p class="text-sm text-muted-foreground">Manage the brands shown across the catalog.</p>
+			<h1 class="text-2xl font-semibold tracking-tight">{m.admin_catalog_brands_title()}</h1>
+			<p class="text-sm text-muted-foreground">{m.admin_catalog_brands_subtitle()}</p>
 		</div>
 		<Button onclick={openCreate}>
 			<Plus class="size-4" />
-			New brand
+			{m.admin_catalog_brands_new()}
 		</Button>
 	</div>
 
@@ -166,7 +166,7 @@
 		{columns}
 		rows={sortedBrands as unknown as Record<string, unknown>[]}
 		{loading}
-		emptyMessage="No brands yet."
+		emptyMessage={m.admin_catalog_brands_empty()}
 		page={1}
 		pageSize={Math.max(1, sortedBrands.length)}
 		total={sortedBrands.length}
@@ -179,7 +179,7 @@
 				{#if row.logoUrl}
 					<img
 						src={String(row.logoUrl)}
-						alt={`${String(row.name ?? 'Brand')} logo`}
+						alt={m.admin_catalog_brands_logo_alt({ name: String(row.name ?? m.common_brand()) })}
 						class="size-9 rounded-md border bg-muted object-contain p-0.5"
 						loading="lazy"
 					/>
@@ -205,7 +205,7 @@
 					<Button
 						variant="ghost"
 						size="icon-sm"
-						aria-label="Edit brand"
+						aria-label={m.admin_catalog_brands_edit_aria()}
 						onclick={() => openEdit(row)}
 					>
 						<Pencil class="size-4" />
@@ -214,7 +214,7 @@
 						variant="ghost"
 						size="icon-sm"
 						class="text-destructive hover:bg-destructive/10"
-						aria-label="Delete brand"
+						aria-label={m.admin_catalog_brands_delete_aria()}
 						onclick={() => openDelete(row)}
 					>
 						<Trash2 class="size-4" />
@@ -233,9 +233,12 @@
 
 <ConfirmDialog
 	bind:open={deleteOpen}
-	title="Delete brand"
-	description={`Delete “${deleting?.name ?? 'this brand'}”? Brands with products cannot be deleted.`}
-	confirmLabel="Delete"
+	title={m.admin_catalog_brands_delete_title()}
+	description={m.admin_catalog_brands_delete_description({
+		name: deleting?.name ?? m.admin_catalog_brands_delete_this()
+	})}
+	confirmLabel={m.common_delete()}
+	cancelLabel={m.common_cancel()}
 	destructive
 	onConfirm={deleteBrand}
 />

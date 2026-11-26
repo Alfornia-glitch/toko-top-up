@@ -5,6 +5,9 @@
 	import { Button } from '#lib/frontend/components/ui/button/index.ts';
 	import * as Card from '#lib/frontend/components/ui/card/index.ts';
 	import * as Table from '#lib/frontend/components/ui/table/index.ts';
+	import { m } from '#lib/paraglide/messages.js';
+	import { errorMessage } from '#lib/frontend/i18n/index.ts';
+	import { roleLabel } from '#lib/frontend/i18n/labels.ts';
 
 	type RoleCount = {
 		role: string;
@@ -17,6 +20,35 @@
 	};
 
 	const roleOrder = ['customer', 'admin', 'superadmin'];
+
+	// The API sends permission descriptions in English; map the known ones to messages.
+	// Functions, so the locale is read at render time.
+	const permissionMessages: Record<string, () => string> = {
+		'Read storefront': () => m.admin_super_perm_read_storefront(),
+		'Manage own profile': () => m.admin_super_perm_manage_own_profile(),
+		'View own orders': () => m.admin_super_perm_view_own_orders(),
+		'Submit returns': () => m.admin_super_perm_submit_returns(),
+		'Open support tickets': () => m.admin_super_perm_open_support_tickets(),
+		'All customer permissions': () => m.admin_super_perm_all_customer(),
+		'Manage catalog': () => m.admin_super_perm_manage_catalog(),
+		'Manage inventory': () => m.admin_super_perm_manage_inventory(),
+		'Process orders': () => m.admin_super_perm_process_orders(),
+		'Manage returns': () => m.admin_super_perm_manage_returns(),
+		'Moderate reviews': () => m.admin_super_perm_moderate_reviews(),
+		'Manage marketing and content': () => m.admin_super_perm_manage_marketing(),
+		'All admin permissions': () => m.admin_super_perm_all_admin(),
+		'Manage users and roles': () => m.admin_super_perm_manage_users_roles(),
+		'Ban users': () => m.admin_super_perm_ban_users(),
+		'View audit logs': () => m.admin_super_perm_view_audit_logs(),
+		'Manage settings and integrations': () => m.admin_super_perm_manage_settings(),
+		'Danger zone': () => m.admin_super_perm_danger_zone()
+	};
+
+	function permissionLabel(permission: string) {
+		return Object.hasOwn(permissionMessages, permission)
+			? permissionMessages[permission]()
+			: permission;
+	}
 
 	let payload = $state<RolesPayload | null>(null);
 	let loading = $state(true);
@@ -49,11 +81,11 @@
 			const response = await fetch('/api/admin/super/roles');
 			const body = await response.json().catch(() => ({}));
 
-			if (!response.ok) throw new Error(body.error ?? 'Could not load roles');
+			if (!response.ok) throw body;
 
 			payload = body.data as RolesPayload;
 		} catch (err) {
-			error = err instanceof Error ? err.message : 'Could not load roles';
+			error = errorMessage(err, 'admin_super_roles_load_failed');
 		} finally {
 			loading = false;
 		}
@@ -76,9 +108,9 @@
 
 <div class="space-y-6">
 	<div>
-		<h1 class="text-2xl font-semibold tracking-tight">Roles &amp; permissions</h1>
+		<h1 class="text-2xl font-semibold tracking-tight">{m.admin_super_roles_title()}</h1>
 		<p class="text-sm text-muted-foreground">
-			Compare what each role can do across the admin console.
+			{m.admin_super_roles_subtitle()}
 		</p>
 	</div>
 
@@ -90,7 +122,7 @@
 		<Card.Root>
 			<Card.Content class="space-y-4 py-10 text-center">
 				<p class="text-sm text-destructive">{error}</p>
-				<Button onclick={() => void loadRoles()}>Try again</Button>
+				<Button onclick={() => void loadRoles()}>{m.common_retry()}</Button>
 			</Card.Content>
 		</Card.Root>
 	{:else if payload}
@@ -99,8 +131,8 @@
 				<Card.Root>
 					<Card.Content class="flex items-center justify-between gap-3">
 						<div class="space-y-1">
-							<Badge variant={roleVariant(role)} class="capitalize">{role}</Badge>
-							<p class="text-sm text-muted-foreground">Accounts with this role</p>
+							<Badge variant={roleVariant(role)}>{roleLabel(role)}</Badge>
+							<p class="text-sm text-muted-foreground">{m.admin_super_roles_accounts()}</p>
 						</div>
 						<p class="text-3xl font-semibold tracking-tight">{countFor(role)}</p>
 					</Card.Content>
@@ -110,9 +142,9 @@
 
 		<Card.Root>
 			<Card.Header>
-				<Card.Title>Permission matrix</Card.Title>
+				<Card.Title>{m.admin_super_roles_matrix_title()}</Card.Title>
 				<Card.Description>
-					Capabilities granted to each role, grouped by the highest role that introduces them.
+					{m.admin_super_roles_matrix_desc()}
 				</Card.Description>
 			</Card.Header>
 			<Card.Content>
@@ -120,11 +152,11 @@
 					<Table.Root>
 						<Table.Header>
 							<Table.Row>
-								<Table.Head>Permission</Table.Head>
+								<Table.Head>{m.admin_super_roles_permission()}</Table.Head>
 								{#each roleOrder as role (role)}
-									<Table.Head class="text-center capitalize">
+									<Table.Head class="text-center">
 										<span class="inline-flex items-center gap-2">
-											{role}
+											{roleLabel(role)}
 											<Badge variant={roleVariant(role)}>{countFor(role)}</Badge>
 										</span>
 									</Table.Head>
@@ -138,21 +170,21 @@
 										colspan={roleOrder.length + 1}
 										class="h-24 text-center text-muted-foreground"
 									>
-										No permissions configured.
+										{m.admin_super_roles_no_permissions()}
 									</Table.Cell>
 								</Table.Row>
 							{:else}
 								{#each permissions as permission (permission)}
 									<Table.Row>
-										<Table.Cell class="font-medium">{permission}</Table.Cell>
+										<Table.Cell class="font-medium">{permissionLabel(permission)}</Table.Cell>
 										{#each roleOrder as role (role)}
 											<Table.Cell class="text-center">
 												{#if hasPermission(role, permission)}
 													<Check class="mx-auto size-4 text-emerald-600" />
-													<span class="sr-only">Granted</span>
+													<span class="sr-only">{m.admin_super_roles_granted()}</span>
 												{:else}
 													<Minus class="mx-auto size-4 text-muted-foreground" />
-													<span class="sr-only">Not granted</span>
+													<span class="sr-only">{m.admin_super_roles_not_granted()}</span>
 												{/if}
 											</Table.Cell>
 										{/each}
@@ -167,7 +199,7 @@
 	{:else}
 		<Card.Root>
 			<Card.Content class="py-10 text-center text-sm text-muted-foreground">
-				No role data available.
+				{m.admin_super_roles_no_data()}
 			</Card.Content>
 		</Card.Root>
 	{/if}

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
 	import StorefrontProductCard, {
 		type StorefrontProduct
 	} from '#lib/frontend/components/storefront/StorefrontProductCard.svelte';
@@ -7,7 +8,7 @@
 		title,
 		products,
 		viewAllHref,
-		emptyLabel = 'No products available.'
+		emptyLabel = m.components_product_carousel_empty()
 	}: {
 		title: string;
 		products: StorefrontProduct[];
@@ -38,7 +39,7 @@
 					href={viewAllHref}
 					class="relative shrink-0 font-['Geist:Medium'] text-[18px] leading-[28px] font-medium text-[#0a0a0a] transition hover:text-[#525252]"
 				>
-					View All
+					{m.common_view_all()}
 				</a>
 			{/if}
 		</div>

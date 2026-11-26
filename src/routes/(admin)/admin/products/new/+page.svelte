@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { LoaderCircle } from '@lucide/svelte';
+	import { m } from '#lib/paraglide/messages.js';
+	import { errorMessage } from '#lib/frontend/i18n/index.ts';
 	import ProductForm from '#lib/frontend/components/admin/catalog/ProductForm.svelte';
 	import type {
 		CatalogBrandOption,
@@ -33,11 +35,13 @@
 			]);
 
 			if (!categoryResponse.ok) {
-				throw new Error(categoryPayload.error ?? 'Could not load categories');
+				throw new Error(
+					errorMessage(categoryPayload, 'admin_catalog_products_load_categories_failed')
+				);
 			}
 
 			if (!brandResponse.ok) {
-				throw new Error(brandPayload.error ?? 'Could not load brands');
+				throw new Error(errorMessage(brandPayload, 'admin_catalog_products_load_brands_failed'));
 			}
 
 			categories = (categoryPayload.data ?? []).map(
@@ -52,7 +56,7 @@
 				name: row.name
 			}));
 		} catch (err) {
-			error = err instanceof Error ? err.message : 'Could not load form options';
+			error = errorMessage(err, 'admin_catalog_products_load_options_failed');
 		} finally {
 			loading = false;
 		}
@@ -68,8 +72,8 @@
 		<Card.Content class="space-y-4 py-10 text-center">
 			<p class="text-sm text-destructive">{error}</p>
 			<div class="flex justify-center gap-2">
-				<Button variant="outline" href="/admin/products">Back to products</Button>
-				<Button onclick={loadOptions}>Try again</Button>
+				<Button variant="outline" href="/admin/products">{m.admin_catalog_products_back()}</Button>
+				<Button onclick={loadOptions}>{m.common_retry()}</Button>
 			</div>
 		</Card.Content>
 	</Card.Root>

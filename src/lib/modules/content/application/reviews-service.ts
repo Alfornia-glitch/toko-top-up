@@ -74,7 +74,8 @@ export function createReviewsService(
 			run(async () => {
 				assertPermission(actor, 'admin:access');
 				const before = await repository.findReview(id);
-				if (!before) throw new NotFoundError('Review not found');
+				if (!before)
+					throw new NotFoundError('Review not found', { messageKey: 'review_not_found' });
 				await repository.updateReviewStatus(id, status);
 				return { ...before, status };
 			}),

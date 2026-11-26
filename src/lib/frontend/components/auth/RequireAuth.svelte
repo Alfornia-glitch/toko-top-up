@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
 	import type { Snippet } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
@@ -23,6 +24,6 @@
 	{@render children()}
 {:else}
 	<div class="flex min-h-screen w-full items-center justify-center bg-background">
-		<Spinner class="size-6" aria-label="Checking your session" />
+		<Spinner class="size-6" aria-label={m.components_auth_checking_session()} />
 	</div>
 {/if}

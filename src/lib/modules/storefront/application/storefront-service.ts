@@ -118,7 +118,8 @@ export function createStorefrontService(dependencies: StorefrontDependencies): S
 		getProduct: (slug) =>
 			run(async () => {
 				const product = unwrap(await browse.getProduct(slug));
-				if (!product) throw new NotFoundError('Product not found');
+				if (!product)
+					throw new NotFoundError('Product not found', { messageKey: 'product_not_found' });
 
 				const [reviewRows, ratingBuckets, byCategory, byBrand] = await Promise.all([
 					content.reviews.listApprovedReviews(product.id, REVIEW_LIMIT).then(unwrap),
@@ -171,7 +172,7 @@ export function createStorefrontService(dependencies: StorefrontDependencies): S
 			run(async () => {
 				assertActor(actor);
 				if (!unwrap(await browse.isProductActive(productId))) {
-					throw new NotFoundError('Product not found');
+					throw new NotFoundError('Product not found', { messageKey: 'product_not_found' });
 				}
 				const entry = unwrap(await customers.customers.addWishlist(productId, actor));
 				return { id: entry.id, productId: entry.productId };

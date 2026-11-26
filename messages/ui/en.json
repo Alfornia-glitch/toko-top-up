@@ -1,0 +1,23 @@
+{
+	"$schema": "https://inlang.com/schema/inlang-message-format",
+	"ui_breadcrumb_label": "Breadcrumb",
+	"ui_breadcrumb_more": "More",
+	"ui_calendar_previous_month": "Previous month",
+	"ui_calendar_next_month": "Next month",
+	"ui_carousel_previous_slide": "Previous slide",
+	"ui_carousel_next_slide": "Next slide",
+	"ui_command_dialog_title": "Command palette",
+	"ui_command_dialog_description": "Search for a command to run...",
+	"ui_sidebar_toggle": "Toggle sidebar",
+	"ui_sidebar_title": "Sidebar",
+	"ui_sidebar_description": "Displays the mobile sidebar.",
+	"ui_pagination_label": "Pagination",
+	"ui_pagination_more_pages": "More pages",
+	"ui_pagination_go_next": "Go to next page",
+	"ui_pagination_go_previous": "Go to previous page",
+	"ui_image_placeholder": "Image placeholder",
+	"ui_input_number_label": "Label",
+	"ui_input_number_bottom_text": "Bottom text",
+	"ui_radio_label": "Label",
+	"ui_radio_sub_label": "Additional description"
+}

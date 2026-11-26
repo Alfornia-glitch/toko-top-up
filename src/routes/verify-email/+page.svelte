@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
 	import { goto } from '$app/navigation';
 	import MailCheck from '@lucide/svelte/icons/mail-check';
 	import AuthShell from '#lib/frontend/components/auth/AuthShell.svelte';
@@ -9,9 +10,7 @@
 	const session = authClient.useSession();
 	const email = $derived($session.data?.user.email);
 	const description = $derived(
-		email
-			? `An activation link has been sent to your email address: ${email}. Please check your inbox and click on the link to complete the activation process.`
-			: 'An activation link has been sent to your email address. Please check your inbox and click on the link to complete the activation process.'
+		email ? m.auth_verify_description_email({ email }) : m.auth_verify_description()
 	);
 
 	let resent = $state(false);
@@ -44,7 +43,7 @@
 	}
 </script>
 
-<AuthShell showLogo={false} title="Verify your email" {description}>
+<AuthShell showLogo={false} title={m.auth_verify_title()} {description}>
 	{#snippet icon()}
 		<div class="flex size-12 items-center justify-center rounded-full bg-muted text-foreground">
 			<MailCheck class="size-6" />
@@ -52,9 +51,9 @@
 	{/snippet}
 
 	<div class="grid gap-6">
-		<Button type="button" class="w-full" onclick={() => goto('/')}>Skip for now</Button>
+		<Button type="button" class="w-full" onclick={() => goto('/')}>{m.auth_verify_skip()}</Button>
 		<p class="text-center text-sm text-muted-foreground">
-			Didn't get the mail?
+			{m.auth_no_mail()}
 			<button
 				type="button"
 				class="font-medium text-foreground underline-offset-4 hover:underline disabled:opacity-50"
@@ -64,7 +63,7 @@
 				{#if loading}
 					<Spinner class="mr-1 inline size-3" />
 				{/if}
-				{resent ? 'Sent' : 'Resend'}
+				{resent ? m.auth_verify_sent() : m.auth_resend()}
 			</button>
 		</p>
 		{#if error}

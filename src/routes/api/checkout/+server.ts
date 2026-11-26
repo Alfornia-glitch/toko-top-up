@@ -13,20 +13,27 @@ export const POST: RequestHandler = async ({ locals, request, cookies }) => {
 	try {
 		body = await request.json();
 	} catch {
-		return Response.json({ error: 'Expected a JSON body' }, { status: 400 });
+		return Response.json(
+			{ error: 'Expected a JSON body', code: 'invalid_json_body' },
+			{ status: 400 }
+		);
 	}
 
 	const parsed = checkoutSchema.safeParse(body);
 	if (!parsed.success) {
 		return Response.json(
-			{ error: 'Invalid checkout details', details: parsed.error.flatten() },
+			{
+				error: 'Invalid checkout details',
+				code: 'VALIDATION_ERROR',
+				details: parsed.error.flatten()
+			},
 			{ status: 422 }
 		);
 	}
 
 	try {
 		const cartId = await resolveCartId(cookies, locals.user!.id);
-		if (!cartId) throw new ConflictError('Your cart is empty');
+		if (!cartId) throw new ConflictError('Your cart is empty', { messageKey: 'cart_empty' });
 
 		const placed = unwrap(
 			await locals.services.checkout.checkout.placeOrder(

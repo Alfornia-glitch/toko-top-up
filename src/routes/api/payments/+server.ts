@@ -11,7 +11,11 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 	if (denied) return denied;
 
 	const parsed = createSchema.safeParse(await request.json().catch(() => null));
-	if (!parsed.success) return Response.json({ error: 'Expected { orderId }' }, { status: 422 });
+	if (!parsed.success)
+		return Response.json(
+			{ error: 'Expected { orderId }', code: 'VALIDATION_ERROR' },
+			{ status: 422 }
+		);
 
 	try {
 		const data = unwrap(

@@ -106,7 +106,8 @@ export function createMarketingService(
 
 	async function giftCardDetail(id: string): Promise<GiftCardDetail> {
 		const card = await repository.findGiftCard(id);
-		if (!card) throw new NotFoundError('Gift card not found');
+		if (!card)
+			throw new NotFoundError('Gift card not found', { messageKey: 'gift_card_not_found' });
 		return { ...card, transactions: await repository.listGiftCardTransactions(id) };
 	}
 
@@ -123,7 +124,10 @@ export function createMarketingService(
 				assertPermission(actor, 'admin:access');
 				const code = input.code.toUpperCase();
 				if (await repository.findCouponByCode(code)) {
-					throw new ConflictError(`Coupon code "${code}" already exists`);
+					throw new ConflictError(`Coupon code "${code}" already exists`, {
+						messageKey: 'coupon_code_exists',
+						params: { code }
+					});
 				}
 				const now = clock.now();
 				const id = newId();
@@ -141,12 +145,16 @@ export function createMarketingService(
 			run(async () => {
 				assertPermission(actor, 'admin:access');
 				const existing = await repository.findCoupon(id);
-				if (!existing) throw new NotFoundError('Coupon not found');
+				if (!existing)
+					throw new NotFoundError('Coupon not found', { messageKey: 'coupon_not_found' });
 
 				const code = input.code.toUpperCase();
 				const clash = await repository.findCouponByCode(code);
 				if (clash && clash.id !== id) {
-					throw new ConflictError(`Coupon code "${code}" already exists`);
+					throw new ConflictError(`Coupon code "${code}" already exists`, {
+						messageKey: 'coupon_code_exists',
+						params: { code }
+					});
 				}
 
 				const values = couponValues(input, code);
@@ -157,9 +165,12 @@ export function createMarketingService(
 		deleteCoupon: (id, actor) =>
 			run(async () => {
 				assertPermission(actor, 'admin:access');
-				if (!(await repository.findCoupon(id))) throw new NotFoundError('Coupon not found');
+				if (!(await repository.findCoupon(id)))
+					throw new NotFoundError('Coupon not found', { messageKey: 'coupon_not_found' });
 				if ((await repository.countRedemptions(id)) > 0) {
-					throw new ConflictError('Coupon has redemptions; disable it instead');
+					throw new ConflictError('Coupon has redemptions; disable it instead', {
+						messageKey: 'coupon_has_redemptions'
+					});
 				}
 				await repository.deleteCoupon(id);
 				return id;
@@ -172,21 +183,29 @@ export function createMarketingService(
 		validateCouponForCart: (code, subtotal) =>
 			run(async () => {
 				const coupon = await repository.findCouponByCode(code.trim().toUpperCase());
-				if (!coupon) throw new NotFoundError('Coupon not found');
-				if (coupon.status !== 'active') throw new UnprocessableError('Coupon is not active');
+				if (!coupon)
+					throw new NotFoundError('Coupon not found', { messageKey: 'coupon_not_found' });
+				if (coupon.status !== 'active')
+					throw new UnprocessableError('Coupon is not active', { messageKey: 'coupon_inactive' });
 
 				const now = clock.now().getTime();
 				if (coupon.startsAt && now < coupon.startsAt.getTime()) {
-					throw new UnprocessableError('Coupon is not yet active');
+					throw new UnprocessableError('Coupon is not yet active', {
+						messageKey: 'coupon_not_started'
+					});
 				}
 				if (coupon.endsAt && now > coupon.endsAt.getTime()) {
-					throw new UnprocessableError('Coupon has expired');
+					throw new UnprocessableError('Coupon has expired', { messageKey: 'coupon_expired' });
 				}
 				if (coupon.maxUses !== null && coupon.usedCount >= coupon.maxUses) {
-					throw new UnprocessableError('Coupon usage limit reached');
+					throw new UnprocessableError('Coupon usage limit reached', {
+						messageKey: 'coupon_exhausted'
+					});
 				}
 				if (!isCouponApplicable(coupon, subtotal, now)) {
-					throw new UnprocessableError('Cart subtotal is below the coupon minimum');
+					throw new UnprocessableError('Cart subtotal is below the coupon minimum', {
+						messageKey: 'coupon_min_subtotal'
+					});
 				}
 				return coupon;
 			}),
@@ -198,7 +217,8 @@ export function createMarketingService(
 					{ id: newId(), ...input, createdAt: now },
 					now
 				);
-				if (outcome === 'exhausted') throw new ConflictError('Coupon usage limit reached');
+				if (outcome === 'exhausted')
+					throw new ConflictError('Coupon usage limit reached', { messageKey: 'coupon_exhausted' });
 			}),
 
 		listGiftCards: (query, actor) =>
@@ -216,7 +236,11 @@ export function createMarketingService(
 
 				for (let attempt = 0; attempt < 5; attempt += 1) {
 					if (!(await repository.findGiftCardByCode(code))) break;
-					if (input.code) throw new ConflictError(`Gift card code "${code}" already exists`);
+					if (input.code)
+						throw new ConflictError(`Gift card code "${code}" already exists`, {
+							messageKey: 'gift_card_code_exists',
+							params: { code }
+						});
 					code = generateGiftCardCode(newId());
 				}
 
@@ -260,7 +284,8 @@ export function createMarketingService(
 		updateGiftCard: (id, input, actor) =>
 			run(async () => {
 				assertPermission(actor, 'admin:access');
-				if (!(await repository.findGiftCard(id))) throw new NotFoundError('Gift card not found');
+				if (!(await repository.findGiftCard(id)))
+					throw new NotFoundError('Gift card not found', { messageKey: 'gift_card_not_found' });
 
 				await repository.updateGiftCard(id, {
 					...(input.status ? { status: input.status } : {}),
@@ -292,7 +317,10 @@ export function createMarketingService(
 			run(async () => {
 				assertPermission(actor, 'admin:access');
 				const existing = await repository.findSubscriptionById(id);
-				if (!existing) throw new NotFoundError('Subscription not found');
+				if (!existing)
+					throw new NotFoundError('Subscription not found', {
+						messageKey: 'subscription_not_found'
+					});
 				await repository.updateSubscription(id, { status, updatedAt: clock.now() });
 				return { ...existing, status };
 			}),
@@ -303,7 +331,10 @@ export function createMarketingService(
 		setMySubscriptionStatus: (status, actor) =>
 			run(async () => {
 				const existing = await repository.findSubscriptionByUser(assertActor(actor).id);
-				if (!existing) throw new NotFoundError('Newsletter subscription not found');
+				if (!existing)
+					throw new NotFoundError('Newsletter subscription not found', {
+						messageKey: 'subscription_not_found'
+					});
 				const now = clock.now();
 				await repository.updateSubscription(existing.id, { status, updatedAt: now });
 				return { ...existing, status, updatedAt: now };

@@ -122,12 +122,15 @@ export function createInventoryService(
 				});
 
 				if (outcome.kind === 'not_found') {
-					return err(new NotFoundError('Variant not found'));
+					return err(new NotFoundError('Variant not found', { messageKey: 'variant_not_found' }));
 				}
 
 				if (outcome.kind === 'negative') {
 					return err(
-						new ConflictError(`Stock cannot go below zero (current: ${outcome.currentStock})`)
+						new ConflictError(`Stock cannot go below zero (current: ${outcome.currentStock})`, {
+							messageKey: 'stock_below_zero',
+							params: { current: outcome.currentStock }
+						})
 					);
 				}
 
@@ -168,13 +171,21 @@ export function createInventoryService(
 				});
 
 				if (outcome.kind === 'not_found') {
-					return err(new NotFoundError(`Variant ${outcome.variantId} not found`));
+					return err(
+						new NotFoundError(`Variant ${outcome.variantId} not found`, {
+							messageKey: 'variant_not_found'
+						})
+					);
 				}
 				if (outcome.kind === 'insufficient') {
 					return err(
 						new ConflictError(
 							`Insufficient stock for variant ${outcome.variantId} (available: ${outcome.available})`,
-							{ details: { variantId: outcome.variantId, available: outcome.available } }
+							{
+								details: { variantId: outcome.variantId, available: outcome.available },
+								messageKey: 'insufficient_stock_variant',
+								params: { available: outcome.available }
+							}
 						)
 					);
 				}

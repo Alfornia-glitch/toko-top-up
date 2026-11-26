@@ -17,6 +17,8 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
+	import { m } from '#lib/paraglide/messages.js';
+	import LanguageSwitcher from '#lib/frontend/components/LanguageSwitcher.svelte';
 	import { Button } from '#lib/frontend/components/ui/button/index.ts';
 	import * as DropdownMenu from '#lib/frontend/components/ui/dropdown-menu/index.ts';
 	import * as InputGroup from '#lib/frontend/components/ui/input-group/index.ts';
@@ -66,7 +68,13 @@
 			<Sheet.Root bind:open={mobileOpen}>
 				<Sheet.Trigger>
 					{#snippet child({ props })}
-						<Button {...props} variant="ghost" size="icon" class="md:hidden" aria-label="Menu">
+						<Button
+							{...props}
+							variant="ghost"
+							size="icon"
+							class="md:hidden"
+							aria-label={m.components_site_header_menu()}
+						>
 							<Menu />
 						</Button>
 					{/snippet}
@@ -109,12 +117,23 @@
 					<InputGroup.Addon>
 						<Search />
 					</InputGroup.Addon>
-					<InputGroup.Input placeholder="Cari game..." aria-label="Cari game" bind:value={query} />
+					<InputGroup.Input
+						placeholder={m.components_site_header_search_placeholder()}
+						aria-label={m.components_site_header_search_label()}
+						bind:value={query}
+					/>
 				</InputGroup.Root>
 			</form>
 
 			<div class="ml-auto flex items-center gap-2">
-				<Button variant="ghost" size="icon" href="/cart" class="relative" aria-label="Keranjang">
+				<LanguageSwitcher />
+				<Button
+					variant="ghost"
+					size="icon"
+					href="/cart"
+					class="relative"
+					aria-label={m.components_site_header_cart()}
+				>
 					<ShoppingCart />
 					{#if cart.count > 0}
 						<span
@@ -133,7 +152,7 @@
 									{...props}
 									type="button"
 									class="shrink-0 cursor-pointer"
-									aria-label="Menu akun"
+									aria-label={m.components_site_header_account_menu()}
 								>
 									<UserAvatar image={user.image} name={user.name} email={user.email} />
 								</button>
@@ -141,40 +160,43 @@
 						</DropdownMenu.Trigger>
 						<DropdownMenu.Content align="end" class="w-56">
 							<DropdownMenu.Label>
-								<div class="truncate text-sm font-medium">{user.name ?? 'Akun'}</div>
+								<div class="truncate text-sm font-medium">
+									{user.name ?? m.components_site_header_account_fallback()}
+								</div>
 								<div class="truncate text-xs text-muted-foreground">{user.email ?? ''}</div>
 							</DropdownMenu.Label>
 							<DropdownMenu.Separator />
 							<DropdownMenu.Item onclick={() => void goto('/account')}>
 								<User />
-								Akun saya
+								{m.components_site_header_my_account()}
 							</DropdownMenu.Item>
 							<DropdownMenu.Item onclick={() => void goto('/account/orders')}>
 								<Package />
-								Pesanan saya
+								{m.components_site_header_my_orders()}
 							</DropdownMenu.Item>
 							<DropdownMenu.Item onclick={() => void goto('/account/wishlist')}>
 								<Heart />
-								Wishlist
+								{m.common_wishlist()}
 							</DropdownMenu.Item>
 							<DropdownMenu.Separator />
 							<DropdownMenu.Item variant="destructive" onclick={() => void signOutUser('/login')}>
 								<LogOut />
-								Keluar
+								{m.common_logout()}
 							</DropdownMenu.Item>
 						</DropdownMenu.Content>
 					</DropdownMenu.Root>
 				{:else}
-					<Button variant="secondary" size="sm" href="/login">Masuk</Button>
-					<Button size="sm" href="/login?mode=register" class="hidden sm:inline-flex">Daftar</Button
-					>
+					<Button variant="secondary" size="sm" href="/login">{m.common_login()}</Button>
+					<Button size="sm" href="/login?mode=register" class="hidden sm:inline-flex">
+						{m.common_signup()}
+					</Button>
 				{/if}
 			</div>
 		</div>
 
 		<nav
 			class="hidden [scrollbar-width:none] gap-1 overflow-x-auto border-t px-8 py-2 md:flex"
-			aria-label="Navigasi utama"
+			aria-label={m.components_site_header_main_nav()}
 		>
 			{#each HEADER_NAV_LINKS as link (link.href)}
 				{@const Icon = icons[link.icon]}

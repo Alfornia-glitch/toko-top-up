@@ -1,5 +1,9 @@
 <script lang="ts">
-	import { formatMoney } from '#lib/frontend/modules/commerce/format.ts';
+	import {
+		formatDateTime,
+		formatMoney,
+		formatPercent
+	} from '#lib/frontend/modules/commerce/format.ts';
 	import { onDestroy, onMount } from 'svelte';
 	import { Pencil, Plus, Trash2 } from '@lucide/svelte';
 	import DataTable from '#lib/frontend/components/admin/DataTable.svelte';
@@ -11,6 +15,9 @@
 	import { Input } from '#lib/frontend/components/ui/input/index.ts';
 	import { Label } from '#lib/frontend/components/ui/label/index.ts';
 	import * as Select from '#lib/frontend/components/ui/select/index.ts';
+	import { m } from '#lib/paraglide/messages.js';
+	import { errorMessage } from '#lib/frontend/i18n/index.ts';
+	import { statusLabel } from '#lib/frontend/i18n/labels.ts';
 
 	type CouponRow = {
 		id: string;
@@ -28,16 +35,20 @@
 		updatedAt: string;
 	};
 
-	const columns = [
-		{ key: 'code', label: 'Code' },
-		{ key: 'type', label: 'Type' },
-		{ key: 'value', label: 'Value', class: 'text-right' },
-		{ key: 'minSubtotal', label: 'Min subtotal', class: 'text-right' },
-		{ key: 'usage', label: 'Usage', class: 'text-right' },
-		{ key: 'status', label: 'Status' },
-		{ key: 'endsAt', label: 'Ends' },
+	const columns = $derived([
+		{ key: 'code', label: m.admin_catalog_coupons_col_code() },
+		{ key: 'type', label: m.admin_catalog_coupons_col_type() },
+		{ key: 'value', label: m.admin_catalog_coupons_col_value(), class: 'text-right' },
+		{
+			key: 'minSubtotal',
+			label: m.admin_catalog_coupons_col_min_subtotal(),
+			class: 'text-right'
+		},
+		{ key: 'usage', label: m.admin_catalog_coupons_col_usage(), class: 'text-right' },
+		{ key: 'status', label: m.common_status() },
+		{ key: 'endsAt', label: m.admin_catalog_coupons_col_ends() },
 		{ key: 'actions', label: '', class: 'text-right' }
-	];
+	]);
 
 	const pageSize = 25;
 
@@ -79,12 +90,12 @@
 			const response = await fetch(`/api/admin/coupons?${params.toString()}`);
 			const payload = await response.json().catch(() => ({}));
 
-			if (!response.ok) throw new Error(payload.error ?? 'Could not load coupons');
+			if (!response.ok) throw new Error(errorMessage(payload, 'admin_catalog_coupons_load_failed'));
 
 			coupons = payload.data ?? [];
 			total = Number(payload.total ?? 0);
 		} catch (err) {
-			error = err instanceof Error ? err.message : 'Could not load coupons';
+			error = errorMessage(err, 'admin_catalog_coupons_load_failed');
 		} finally {
 			loading = false;
 		}
@@ -140,40 +151,31 @@
 			const response = await fetch(`/api/admin/coupons/${deleting.id}`, { method: 'DELETE' });
 			const payload = await response.json().catch(() => ({}));
 
-			if (!response.ok) throw new Error(payload.error ?? 'Could not delete coupon');
+			if (!response.ok)
+				throw new Error(errorMessage(payload, 'admin_catalog_coupons_delete_failed'));
 
 			await loadCoupons();
 		} catch (err) {
-			error = err instanceof Error ? err.message : 'Could not delete coupon';
+			error = errorMessage(err, 'admin_catalog_coupons_delete_failed');
 		} finally {
 			deleting = null;
 		}
 	}
 
 	function formatDate(value: string | null) {
-		if (!value) return '—';
-		const date = new Date(value);
-		if (Number.isNaN(date.getTime())) return '—';
-
-		return new Intl.DateTimeFormat('en-US', {
-			month: 'short',
-			day: 'numeric',
-			year: 'numeric',
-			hour: '2-digit',
-			minute: '2-digit'
-		}).format(date);
+		return formatDateTime(value) || m.common_dash();
 	}
 </script>
 
 <div class="space-y-6">
 	<div class="flex flex-wrap items-start justify-between gap-3">
 		<div>
-			<h1 class="text-2xl font-semibold tracking-tight">Coupons</h1>
-			<p class="text-sm text-muted-foreground">Create and manage discount codes.</p>
+			<h1 class="text-2xl font-semibold tracking-tight">{m.admin_catalog_coupons_title()}</h1>
+			<p class="text-sm text-muted-foreground">{m.admin_catalog_coupons_subtitle()}</p>
 		</div>
 		<Button onclick={openCreate}>
 			<Plus class="size-4" />
-			New coupon
+			{m.admin_catalog_coupons_new()}
 		</Button>
 	</div>
 
@@ -189,25 +191,30 @@
 	<Card.Root>
 		<Card.Content class="grid gap-3 sm:grid-cols-2">
 			<div class="space-y-1.5">
-				<Label for="coupon-search">Search</Label>
+				<Label for="coupon-search">{m.common_search()}</Label>
 				<Input
 					id="coupon-search"
 					bind:value={q}
 					oninput={handleSearch}
-					placeholder="Search coupon codes"
+					placeholder={m.admin_catalog_coupons_search_placeholder()}
 				/>
 			</div>
 
 			<div class="space-y-1.5">
-				<Label for="coupon-status-filter">Status</Label>
+				<Label for="coupon-status-filter">{m.common_status()}</Label>
 				<Select.Root type="single" value={statusFilter} onValueChange={handleStatusChange}>
 					<Select.Trigger id="coupon-status-filter" class="w-full">
-						<Select.Value placeholder="All statuses" />
+						<Select.Value placeholder={m.common_all_statuses()} />
 					</Select.Trigger>
 					<Select.Content>
-						<Select.Item value="all" label="All statuses">All statuses</Select.Item>
-						<Select.Item value="active" label="Active">Active</Select.Item>
-						<Select.Item value="disabled" label="Disabled">Disabled</Select.Item>
+						<Select.Item value="all" label={m.common_all_statuses()}>
+							{m.common_all_statuses()}
+						</Select.Item>
+						{#each ['active', 'disabled'] as value (value)}
+							<Select.Item {value} label={statusLabel('coupon', value)}>
+								{statusLabel('coupon', value)}
+							</Select.Item>
+						{/each}
 					</Select.Content>
 				</Select.Root>
 			</div>
@@ -218,7 +225,7 @@
 		{columns}
 		rows={coupons as unknown as Record<string, unknown>[]}
 		{loading}
-		emptyMessage="No coupons match the current filters."
+		emptyMessage={m.admin_catalog_coupons_empty()}
 		{page}
 		{pageSize}
 		{total}
@@ -228,12 +235,12 @@
 			{#if column.key === 'code'}
 				<code class="font-medium">{String(row.code ?? '')}</code>
 			{:else if column.key === 'type'}
-				<span class="capitalize">{String(row.type ?? '')}</span>
+				<span>{statusLabel('coupon_type', String(row.type ?? ''))}</span>
 			{:else if column.key === 'value'}
 				<span class="font-medium">
 					{row.type === 'fixed'
 						? formatMoney(Number(row.value ?? 0))
-						: `${Number(row.value ?? 0)}%`}
+						: formatPercent(Number(row.value ?? 0) / 100)}
 				</span>
 			{:else if column.key === 'minSubtotal'}
 				<span class="text-muted-foreground">
@@ -252,7 +259,7 @@
 					<Button
 						variant="ghost"
 						size="icon-sm"
-						aria-label="Edit coupon"
+						aria-label={m.admin_catalog_coupons_edit_aria()}
 						onclick={() => openEdit(row)}
 					>
 						<Pencil class="size-4" />
@@ -261,7 +268,7 @@
 						variant="ghost"
 						size="icon-sm"
 						class="text-destructive hover:bg-destructive/10"
-						aria-label="Delete coupon"
+						aria-label={m.admin_catalog_coupons_delete_aria()}
 						onclick={() => openDelete(row)}
 					>
 						<Trash2 class="size-4" />
@@ -280,9 +287,12 @@
 
 <ConfirmDialog
 	bind:open={deleteOpen}
-	title="Delete coupon"
-	description={`Delete “${deleting?.code ?? 'this coupon'}”? Coupons with redemptions cannot be deleted.`}
-	confirmLabel="Delete"
+	title={m.admin_catalog_coupons_delete_title()}
+	description={m.admin_catalog_coupons_delete_description({
+		code: deleting?.code ?? m.admin_catalog_coupons_delete_this()
+	})}
+	confirmLabel={m.common_delete()}
+	cancelLabel={m.common_cancel()}
 	destructive
 	onConfirm={deleteCoupon}
 />

@@ -8,6 +8,8 @@
 </script>
 
 <script lang="ts">
+	import { errorMessage } from '#lib/frontend/i18n/index.ts';
+	import { m } from '#lib/paraglide/messages.js';
 	import * as Dialog from '#lib/frontend/components/ui/dialog/index.ts';
 	import * as Field from '#lib/frontend/components/ui/field/index.ts';
 	import { Button } from '#lib/frontend/components/ui/button/index.ts';
@@ -34,7 +36,7 @@
 		error?: string;
 		details?: { formErrors?: string[]; fieldErrors?: Record<string, string[]> };
 	}): string {
-		const base = payload.error ?? 'Could not adjust stock';
+		const base = errorMessage(payload, 'components_inventory_adjust_failed');
 		const messages = [
 			...(payload.details?.formErrors ?? []),
 			...Object.values(payload.details?.fieldErrors ?? {}).flat()
@@ -51,12 +53,12 @@
 
 		const amount = Number(delta);
 		if (!Number.isInteger(amount) || amount === 0) {
-			error = 'Enter a non-zero whole number.';
+			error = m.components_inventory_adjust_delta_invalid();
 			return;
 		}
 
 		if (!reason.trim()) {
-			error = 'Reason is required.';
+			error = m.components_inventory_adjust_reason_required();
 			return;
 		}
 
@@ -82,7 +84,7 @@
 			open = false;
 			await onsaved?.();
 		} catch (err) {
-			error = err instanceof Error ? err.message : 'Could not adjust stock';
+			error = errorMessage(err, 'components_inventory_adjust_failed');
 		} finally {
 			saving = false;
 		}
@@ -92,12 +94,16 @@
 <Dialog.Root bind:open>
 	<Dialog.Content class="sm:max-w-md">
 		<Dialog.Header>
-			<Dialog.Title>Adjust stock</Dialog.Title>
+			<Dialog.Title>{m.components_inventory_adjust_title()}</Dialog.Title>
 			<Dialog.Description>
 				{#if variant}
-					{variant.name} · {variant.sku} · currently {variant.stock} in stock.
+					{m.components_inventory_adjust_current({
+						name: variant.name,
+						sku: variant.sku,
+						stock: variant.stock
+					})}
 				{:else}
-					Choose a variant to adjust.
+					{m.components_inventory_adjust_choose_variant()}
 				{/if}
 			</Dialog.Description>
 		</Dialog.Header>
@@ -105,44 +111,48 @@
 		<form class="grid gap-4" onsubmit={handleSubmit}>
 			<Field.Group>
 				<Field.Field>
-					<Field.Label for="inventory-delta">Change</Field.Label>
+					<Field.Label for="inventory-delta">{m.components_inventory_adjust_change()}</Field.Label>
 					<Input
 						id="inventory-delta"
 						type="number"
 						step="1"
 						bind:value={delta}
-						placeholder="e.g. 10 or -3"
+						placeholder={m.components_inventory_adjust_delta_placeholder()}
 						required
 					/>
-					<Field.Description>Use a negative number to remove stock.</Field.Description>
+					<Field.Description>{m.components_inventory_adjust_delta_hint()}</Field.Description>
 				</Field.Field>
 
 				<Field.Field>
-					<Field.Label for="inventory-reason">Reason</Field.Label>
+					<Field.Label for="inventory-reason">{m.components_inventory_adjust_reason()}</Field.Label>
 					<Input
 						id="inventory-reason"
 						bind:value={reason}
-						placeholder="e.g. Stock received"
+						placeholder={m.components_inventory_adjust_reason_placeholder()}
 						required
 					/>
 				</Field.Field>
 
 				<div class="grid gap-4 sm:grid-cols-2">
 					<Field.Field>
-						<Field.Label for="inventory-reference-type">Reference type</Field.Label>
+						<Field.Label for="inventory-reference-type"
+							>{m.components_inventory_adjust_reference_type()}</Field.Label
+						>
 						<Input
 							id="inventory-reference-type"
 							bind:value={referenceType}
-							placeholder="e.g. purchase_order"
+							placeholder={m.components_inventory_adjust_reference_type_placeholder()}
 						/>
 					</Field.Field>
 
 					<Field.Field>
-						<Field.Label for="inventory-reference-id">Reference ID</Field.Label>
+						<Field.Label for="inventory-reference-id"
+							>{m.components_inventory_adjust_reference_id()}</Field.Label
+						>
 						<Input
 							id="inventory-reference-id"
 							bind:value={referenceId}
-							placeholder="Optional reference"
+							placeholder={m.components_inventory_adjust_reference_id_placeholder()}
 						/>
 					</Field.Field>
 				</div>
@@ -154,10 +164,12 @@
 
 			<Dialog.Footer>
 				<Button type="button" variant="outline" onclick={() => (open = false)} disabled={saving}>
-					Cancel
+					{m.common_cancel()}
 				</Button>
 				<Button type="submit" disabled={saving || !variant}>
-					{saving ? 'Adjusting…' : 'Adjust stock'}
+					{saving
+						? m.components_inventory_adjust_submitting()
+						: m.components_inventory_adjust_title()}
 				</Button>
 			</Dialog.Footer>
 		</form>

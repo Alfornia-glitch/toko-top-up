@@ -15,6 +15,10 @@
 	import * as Table from '#lib/frontend/components/ui/table/index.ts';
 	import { Textarea } from '#lib/frontend/components/ui/textarea/index.ts';
 	import { authErrorMessage, authClient } from '#frontend/modules/auth/index.ts';
+	import { m } from '#lib/paraglide/messages.js';
+	import { errorMessage } from '#lib/frontend/i18n/index.ts';
+	import { roleLabel } from '#lib/frontend/i18n/labels.ts';
+	import { formatDateTime } from '#lib/frontend/modules/commerce/format.ts';
 
 	type SessionRow = {
 		id: string;
@@ -70,7 +74,7 @@
 
 	async function load(id: string | undefined) {
 		if (!id) {
-			error = 'User not found.';
+			error = m.admin_super_user_not_found();
 			loading = false;
 			return;
 		}
@@ -82,12 +86,12 @@
 			const response = await fetch(`/api/admin/super/users/${id}`);
 			const payload = await response.json().catch(() => ({}));
 
-			if (!response.ok) throw new Error(payload.error ?? 'Could not load user');
+			if (!response.ok) throw payload;
 
 			profile = payload.data as UserDetail;
 			role = profile.role;
 		} catch (err) {
-			error = err instanceof Error ? err.message : 'Could not load user';
+			error = errorMessage(err, 'admin_super_user_load_failed');
 		} finally {
 			loading = false;
 		}
@@ -109,13 +113,13 @@
 			});
 			const payload = await response.json().catch(() => ({}));
 
-			if (!response.ok) throw new Error(payload.error ?? 'Could not update role');
+			if (!response.ok) throw payload;
 
-			notice = 'Role updated.';
+			notice = m.admin_super_user_role_updated();
 			await load(profile.id);
 		} catch (err) {
 			role = profile.role;
-			actionError = err instanceof Error ? err.message : 'Could not update role';
+			actionError = errorMessage(err, 'admin_super_user_role_update_failed');
 		} finally {
 			savingRole = false;
 		}
@@ -134,7 +138,7 @@
 		banError = '';
 
 		if (!banReason.trim()) {
-			banError = 'A ban reason is required.';
+			banError = m.admin_super_user_ban_reason_required();
 			return;
 		}
 
@@ -153,13 +157,13 @@
 			});
 			const payload = await response.json().catch(() => ({}));
 
-			if (!response.ok) throw new Error(payload.error ?? 'Could not ban user');
+			if (!response.ok) throw payload;
 
 			banOpen = false;
-			notice = 'User banned.';
+			notice = m.admin_super_user_banned();
 			await load(profile.id);
 		} catch (err) {
-			banError = err instanceof Error ? err.message : 'Could not ban user';
+			banError = errorMessage(err, 'admin_super_user_ban_failed');
 		} finally {
 			banning = false;
 		}
@@ -178,12 +182,12 @@
 			});
 			const payload = await response.json().catch(() => ({}));
 
-			if (!response.ok) throw new Error(payload.error ?? 'Could not unban user');
+			if (!response.ok) throw payload;
 
-			notice = 'User unbanned.';
+			notice = m.admin_super_user_unbanned();
 			await load(profile.id);
 		} catch (err) {
-			actionError = err instanceof Error ? err.message : 'Could not unban user';
+			actionError = errorMessage(err, 'admin_super_user_unban_failed');
 		} finally {
 			unbanning = false;
 		}
@@ -201,12 +205,12 @@
 			const result = await authClient.admin.impersonateUser({ userId: profile.id });
 
 			if (result.error) {
-				throw new Error(authErrorMessage(result.error, 'Could not impersonate user'));
+				throw new Error(authErrorMessage(result.error, m.admin_super_user_impersonate_failed()));
 			}
 
 			await goto('/');
 		} catch (err) {
-			actionError = err instanceof Error ? err.message : 'Could not impersonate user';
+			actionError = errorMessage(err, 'admin_super_user_impersonate_failed');
 		} finally {
 			impersonating = false;
 		}
@@ -230,12 +234,12 @@
 			);
 			const payload = await response.json().catch(() => ({}));
 
-			if (!response.ok) throw new Error(payload.error ?? 'Could not revoke session');
+			if (!response.ok) throw payload;
 
-			notice = 'Session revoked.';
+			notice = m.admin_super_user_session_revoked();
 			await load(profile.id);
 		} catch (err) {
-			actionError = err instanceof Error ? err.message : 'Could not revoke session';
+			actionError = errorMessage(err, 'admin_super_user_revoke_failed');
 		} finally {
 			revokeTarget = null;
 		}
@@ -248,17 +252,7 @@
 	}
 
 	function formatDate(value: string | null) {
-		if (!value) return '—';
-		const date = new Date(value);
-		if (Number.isNaN(date.getTime())) return '—';
-
-		return new Intl.DateTimeFormat('en-US', {
-			month: 'short',
-			day: 'numeric',
-			year: 'numeric',
-			hour: '2-digit',
-			minute: '2-digit'
-		}).format(date);
+		return formatDateTime(value) || m.common_dash();
 	}
 </script>
 
@@ -273,9 +267,9 @@
 			<div class="flex justify-center gap-2">
 				<Button variant="outline" href="/admin/super/users">
 					<ArrowLeft class="size-4" />
-					Back to users
+					{m.admin_super_user_back()}
 				</Button>
-				<Button onclick={() => void load(page.params.id)}>Try again</Button>
+				<Button onclick={() => void load(page.params.id)}>{m.common_retry()}</Button>
 			</div>
 		</Card.Content>
 	</Card.Root>
@@ -285,21 +279,21 @@
 			<div class="space-y-2">
 				<Button variant="ghost" size="sm" href="/admin/super/users">
 					<ArrowLeft class="size-4" />
-					Back to users
+					{m.admin_super_user_back()}
 				</Button>
 				<div class="flex flex-wrap items-center gap-2">
 					<h1 class="text-2xl font-semibold tracking-tight">
-						{profile.name ?? 'Unnamed user'}
+						{profile.name ?? m.admin_super_unnamed_user()}
 					</h1>
-					<Badge variant={roleVariant(profile.role)} class="capitalize">{profile.role}</Badge>
+					<Badge variant={roleVariant(profile.role)}>{roleLabel(profile.role)}</Badge>
 					<StatusBadge status={profile.banned ? 'banned' : 'active'} />
 					{#if profile.emailVerified}
 						<Badge variant="outline">
 							<ShieldCheck class="size-3" />
-							Verified
+							{m.admin_super_user_verified()}
 						</Badge>
 					{:else}
-						<Badge variant="outline">Unverified</Badge>
+						<Badge variant="outline">{m.admin_super_user_unverified()}</Badge>
 					{/if}
 				</div>
 				<p class="text-sm text-muted-foreground">{profile.email}</p>
@@ -308,26 +302,26 @@
 				<Button variant="outline" onclick={impersonate} disabled={impersonating || profile.banned}>
 					{#if impersonating}
 						<LoaderCircle class="size-4 animate-spin" />
-						Impersonating…
+						{m.admin_super_user_impersonating()}
 					{:else}
 						<LogIn class="size-4" />
-						Impersonate
+						{m.admin_super_user_impersonate()}
 					{/if}
 				</Button>
 				{#if profile.banned}
 					<Button variant="outline" onclick={unban} disabled={unbanning}>
 						{#if unbanning}
 							<LoaderCircle class="size-4 animate-spin" />
-							Unbanning…
+							{m.admin_super_user_unbanning()}
 						{:else}
 							<RefreshCw class="size-4" />
-							Unban
+							{m.admin_super_user_unban()}
 						{/if}
 					</Button>
 				{:else}
 					<Button variant="destructive" onclick={openBan}>
 						<Ban class="size-4" />
-						Ban user
+						{m.admin_super_user_ban()}
 					</Button>
 				{/if}
 			</div>
@@ -349,45 +343,47 @@
 		<div class="grid gap-4 lg:grid-cols-2">
 			<Card.Root>
 				<Card.Header>
-					<Card.Title>Profile</Card.Title>
-					<Card.Description>Account details and role assignment.</Card.Description>
+					<Card.Title>{m.common_profile()}</Card.Title>
+					<Card.Description>{m.admin_super_user_profile_desc()}</Card.Description>
 				</Card.Header>
 				<Card.Content class="space-y-4">
 					<dl class="grid gap-3 text-sm sm:grid-cols-2">
 						<div class="space-y-1">
-							<dt class="text-muted-foreground">User ID</dt>
+							<dt class="text-muted-foreground">{m.admin_super_user_id()}</dt>
 							<dd class="font-mono text-xs break-all">{profile.id}</dd>
 						</div>
 						<div class="space-y-1">
-							<dt class="text-muted-foreground">Orders</dt>
+							<dt class="text-muted-foreground">{m.common_orders()}</dt>
 							<dd class="font-medium">{profile.orderCount}</dd>
 						</div>
 						<div class="space-y-1">
-							<dt class="text-muted-foreground">Joined</dt>
+							<dt class="text-muted-foreground">{m.admin_super_col_joined()}</dt>
 							<dd>{formatDate(profile.createdAt)}</dd>
 						</div>
 						<div class="space-y-1">
-							<dt class="text-muted-foreground">Updated</dt>
+							<dt class="text-muted-foreground">{m.admin_super_col_updated()}</dt>
 							<dd>{formatDate(profile.updatedAt)}</dd>
 						</div>
 					</dl>
 
 					<Field.Field>
-						<Field.Label for="user-role">Role</Field.Label>
+						<Field.Label for="user-role">{m.admin_super_col_role()}</Field.Label>
 						<Select.Root type="single" value={role} onValueChange={saveRole}>
 							<Select.Trigger id="user-role" class="w-full sm:w-64">
-								<Select.Value placeholder="Select role" />
+								<Select.Value placeholder={m.admin_super_user_select_role()} />
 							</Select.Trigger>
 							<Select.Content>
 								{#each roles as option (option)}
-									<Select.Item value={option} label={option} class="capitalize">
-										{option}
+									<Select.Item value={option} label={roleLabel(option)}>
+										{roleLabel(option)}
 									</Select.Item>
 								{/each}
 							</Select.Content>
 						</Select.Root>
 						<Field.Description>
-							{savingRole ? 'Saving role…' : 'Changes are saved immediately.'}
+							{savingRole
+								? m.admin_super_user_saving_role()
+								: m.admin_super_user_changes_immediate()}
 						</Field.Description>
 					</Field.Field>
 				</Card.Content>
@@ -395,24 +391,24 @@
 
 			<Card.Root>
 				<Card.Header>
-					<Card.Title>Moderation</Card.Title>
-					<Card.Description>Ban status and restrictions.</Card.Description>
+					<Card.Title>{m.admin_super_user_moderation_title()}</Card.Title>
+					<Card.Description>{m.admin_super_user_moderation_desc()}</Card.Description>
 				</Card.Header>
 				<Card.Content class="space-y-3 text-sm">
 					<div class="flex items-center justify-between gap-3">
-						<span class="text-muted-foreground">Status</span>
+						<span class="text-muted-foreground">{m.common_status()}</span>
 						<StatusBadge status={profile.banned ? 'banned' : 'active'} />
 					</div>
 					<div class="flex items-center justify-between gap-3">
-						<span class="text-muted-foreground">Reason</span>
-						<span class="text-right">{profile.banReason ?? '—'}</span>
+						<span class="text-muted-foreground">{m.admin_super_user_reason()}</span>
+						<span class="text-right">{profile.banReason ?? m.common_dash()}</span>
 					</div>
 					<div class="flex items-center justify-between gap-3">
-						<span class="text-muted-foreground">Expires</span>
+						<span class="text-muted-foreground">{m.admin_super_user_expires()}</span>
 						<span class="text-right">{formatDate(profile.banExpires)}</span>
 					</div>
 					<div class="flex items-center justify-between gap-3">
-						<span class="text-muted-foreground">Active sessions</span>
+						<span class="text-muted-foreground">{m.admin_super_user_active_sessions()}</span>
 						<span class="font-medium">{profile.sessions.length}</span>
 					</div>
 				</Card.Content>
@@ -421,23 +417,23 @@
 
 		<Card.Root>
 			<Card.Header>
-				<Card.Title>Sessions</Card.Title>
-				<Card.Description>Devices signed in to this account.</Card.Description>
+				<Card.Title>{m.admin_super_user_sessions_title()}</Card.Title>
+				<Card.Description>{m.admin_super_user_sessions_desc()}</Card.Description>
 			</Card.Header>
 			<Card.Content>
 				{#if profile.sessions.length === 0}
-					<p class="text-sm text-muted-foreground">No active sessions.</p>
+					<p class="text-sm text-muted-foreground">{m.admin_super_user_no_sessions()}</p>
 				{:else}
 					<div class="overflow-hidden rounded-lg border">
 						<Table.Root>
 							<Table.Header>
 								<Table.Row>
-									<Table.Head>Session</Table.Head>
-									<Table.Head>IP address</Table.Head>
-									<Table.Head>User agent</Table.Head>
-									<Table.Head>Created</Table.Head>
-									<Table.Head>Expires</Table.Head>
-									<Table.Head class="text-right">Actions</Table.Head>
+									<Table.Head>{m.admin_super_user_col_session()}</Table.Head>
+									<Table.Head>{m.admin_super_audit_ip()}</Table.Head>
+									<Table.Head>{m.admin_super_audit_user_agent()}</Table.Head>
+									<Table.Head>{m.admin_super_user_col_created()}</Table.Head>
+									<Table.Head>{m.admin_super_user_expires()}</Table.Head>
+									<Table.Head class="text-right">{m.common_actions()}</Table.Head>
 								</Table.Row>
 							</Table.Header>
 							<Table.Body>
@@ -446,14 +442,16 @@
 										<Table.Cell>
 											<code class="text-xs text-muted-foreground">{session.id}</code>
 											{#if session.impersonatedBy}
-												<Badge variant="secondary" class="ml-2">Impersonated</Badge>
+												<Badge variant="secondary" class="ml-2">
+													{m.admin_super_user_impersonated()}
+												</Badge>
 											{/if}
 										</Table.Cell>
 										<Table.Cell class="text-muted-foreground">
-											{session.ipAddress ?? '—'}
+											{session.ipAddress ?? m.common_dash()}
 										</Table.Cell>
 										<Table.Cell class="max-w-64 truncate text-muted-foreground">
-											{session.userAgent ?? '—'}
+											{session.userAgent ?? m.common_dash()}
 										</Table.Cell>
 										<Table.Cell class="text-muted-foreground">
 											{formatDate(session.createdAt)}
@@ -463,7 +461,7 @@
 										</Table.Cell>
 										<Table.Cell class="text-right">
 											<Button variant="outline" size="sm" onclick={() => openRevoke(session)}>
-												Revoke
+												{m.admin_super_user_revoke()}
 											</Button>
 										</Table.Cell>
 									</Table.Row>
@@ -479,27 +477,27 @@
 	<AlertDialog.Root bind:open={banOpen}>
 		<AlertDialog.Content>
 			<AlertDialog.Header>
-				<AlertDialog.Title>Ban user</AlertDialog.Title>
+				<AlertDialog.Title>{m.admin_super_user_ban()}</AlertDialog.Title>
 				<AlertDialog.Description>
-					Ban {profile.email}? All active sessions will be revoked.
+					{m.admin_super_user_ban_desc({ email: profile.email })}
 				</AlertDialog.Description>
 			</AlertDialog.Header>
 
 			<div class="grid gap-3">
 				<Field.Field>
-					<Field.Label for="ban-reason">Reason</Field.Label>
+					<Field.Label for="ban-reason">{m.admin_super_user_reason()}</Field.Label>
 					<Textarea
 						id="ban-reason"
 						bind:value={banReason}
-						placeholder="Explain why this account is being banned"
+						placeholder={m.admin_super_user_ban_reason_placeholder()}
 						rows={3}
 					/>
 				</Field.Field>
 
 				<Field.Field>
-					<Field.Label for="ban-expires">Expires</Field.Label>
+					<Field.Label for="ban-expires">{m.admin_super_user_expires()}</Field.Label>
 					<Input id="ban-expires" type="datetime-local" bind:value={banExpires} />
-					<Field.Description>Leave empty for a permanent ban.</Field.Description>
+					<Field.Description>{m.admin_super_user_ban_expires_hint()}</Field.Description>
 				</Field.Field>
 
 				{#if banError}
@@ -508,14 +506,14 @@
 			</div>
 
 			<AlertDialog.Footer>
-				<AlertDialog.Cancel disabled={banning}>Cancel</AlertDialog.Cancel>
+				<AlertDialog.Cancel disabled={banning}>{m.common_cancel()}</AlertDialog.Cancel>
 				<Button
 					type="button"
 					variant="destructive"
 					onclick={submitBan}
 					disabled={banning || !banReason.trim()}
 				>
-					{banning ? 'Banning…' : 'Ban user'}
+					{banning ? m.admin_super_user_banning() : m.admin_super_user_ban()}
 				</Button>
 			</AlertDialog.Footer>
 		</AlertDialog.Content>
@@ -523,17 +521,20 @@
 {:else}
 	<Card.Root>
 		<Card.Content class="space-y-4 py-10 text-center">
-			<p class="text-sm text-muted-foreground">This user could not be found.</p>
-			<Button href="/admin/super/users">Back to users</Button>
+			<p class="text-sm text-muted-foreground">
+				{m.admin_super_user_not_found_card()}
+			</p>
+			<Button href="/admin/super/users">{m.admin_super_user_back()}</Button>
 		</Card.Content>
 	</Card.Root>
 {/if}
 
 <ConfirmDialog
 	bind:open={revokeOpen}
-	title="Revoke session"
-	description="This device will be signed out immediately. The user may sign in again."
-	confirmLabel="Revoke"
+	title={m.admin_super_user_revoke_title()}
+	description={m.admin_super_user_revoke_desc()}
+	confirmLabel={m.admin_super_user_revoke()}
+	cancelLabel={m.common_cancel()}
 	destructive
 	onConfirm={revokeSession}
 />

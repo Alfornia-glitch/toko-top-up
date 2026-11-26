@@ -13,13 +13,16 @@ export const POST: RequestHandler = async ({ locals, params, request }) => {
 	try {
 		body = await request.json();
 	} catch {
-		return Response.json({ error: 'Expected a JSON body' }, { status: 400 });
+		return Response.json(
+			{ error: 'Expected a JSON body', code: 'invalid_json_body' },
+			{ status: 400 }
+		);
 	}
 
 	const parsed = shipmentCreateSchema.safeParse(body);
 	if (!parsed.success) {
 		return Response.json(
-			{ error: 'Invalid shipment data', details: parsed.error.flatten() },
+			{ error: 'Invalid shipment data', code: 'VALIDATION_ERROR', details: parsed.error.flatten() },
 			{ status: 422 }
 		);
 	}

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
 	import Plus from './Plus.svelte';
 	import Minus from './Minus.svelte';
 
@@ -15,7 +16,7 @@
 		<p
 			class="relative w-[min-content] min-w-full shrink-0 font-['Geist:Regular'] text-[14px] leading-[20px] font-normal [word-break:break-word] text-[#737373]"
 		>
-			Label
+			{m.ui_input_number_label()}
 		</p>
 	{/if}
 	<div
@@ -54,7 +55,7 @@
 		<p
 			class="relative min-h-px w-[128px] flex-[1_0_0] font-['Geist:Regular'] text-[14px] leading-[20px] font-normal [word-break:break-word] text-[#737373] opacity-80"
 		>
-			Bottom Text
+			{m.ui_input_number_bottom_text()}
 		</p>
 	{/if}
 </div>

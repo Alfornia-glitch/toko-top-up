@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
 	import SiteHeader from '#lib/frontend/components/SiteHeader.svelte';
 	import SiteFooter from '#lib/frontend/components/SiteFooter.svelte';
 	import { cart } from '#lib/frontend/modules/commerce/cart.svelte.ts';
@@ -60,19 +61,16 @@
 				<p
 					class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[30px] leading-[36px] font-semibold text-[#0a0a0a] max-[480px]:text-2xl max-[480px]:leading-8"
 				>
-					Your cart is currently empty
+					{m.cart_empty_page_title()}
 				</p>
 				<p
 					class="relative w-full shrink-0 font-['Geist:Regular'] text-[0px] leading-[0] font-normal text-[#737373]"
 				>
-					<span class="text-[14px] leading-[20px]"
-						>Start filling it with great finds, hot deals, and everyday essentials. We have
-						something special waiting for you!&#32;</span
-					>
+					<span class="text-[14px] leading-[20px]">{m.cart_empty_page_description()}&#32;</span>
 					<a
 						href="/products"
 						class="text-[14px] leading-[20px] text-[#0a0a0a] underline decoration-solid decoration-from-font [text-decoration-skip-ink:none] [text-underline-position:from-font] hover:underline"
-						>Continue Shopping</a
+						>{m.common_continue_shopping()}</a
 					>
 				</p>
 				{#if cart.count > 0}
@@ -80,7 +78,7 @@
 						href="/cart"
 						class="inline-flex items-center justify-center self-center rounded-[10px] border border-solid border-[#171717] bg-[#171717] px-[16px] py-[8px] font-['Geist:Medium'] text-[14px] leading-[20px] font-medium text-[#fafafa] transition hover:bg-[#262626]"
 					>
-						View cart
+						{m.cart_empty_page_view_cart()}
 					</a>
 				{/if}
 			</div>

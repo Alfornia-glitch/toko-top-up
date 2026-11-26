@@ -24,13 +24,20 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 	try {
 		body = await request.json();
 	} catch {
-		return Response.json({ error: 'Expected a JSON body' }, { status: 400 });
+		return Response.json(
+			{ error: 'Expected a JSON body', code: 'invalid_json_body' },
+			{ status: 400 }
+		);
 	}
 
 	const parsed = paymentMethodWriteSchema.safeParse(body);
 	if (!parsed.success) {
 		return Response.json(
-			{ error: 'Invalid payment method', details: parsed.error.flatten() },
+			{
+				error: 'Invalid payment method',
+				code: 'VALIDATION_ERROR',
+				details: parsed.error.flatten()
+			},
 			{ status: 422 }
 		);
 	}

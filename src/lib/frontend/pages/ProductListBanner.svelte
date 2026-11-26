@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
 	import { onMount, untrack } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { page as appPage } from '$app/state';
@@ -10,6 +11,7 @@
 	import type { ProductQuery } from '#lib/frontend/modules/commerce/products.ts';
 	import type { ProductListResult } from '#lib/frontend/modules/commerce/models.ts';
 	import { formatMoney } from '#lib/frontend/modules/commerce/format.ts';
+	import { errorMessage } from '#lib/frontend/i18n/index.ts';
 	import { home } from '#lib/frontend/modules/commerce/home.svelte.ts';
 
 	let { query = {} }: { query?: ProductQuery } = $props();
@@ -58,8 +60,8 @@
 			? filters.minPrice != null && filters.maxPrice != null
 				? `${formatMoney(filters.minPrice)} – ${formatMoney(filters.maxPrice)}`
 				: filters.minPrice != null
-					? `From ${formatMoney(filters.minPrice)}`
-					: `Up to ${formatMoney(filters.maxPrice ?? 0)}`
+					? m.storefront_listing_price_from({ price: formatMoney(filters.minPrice) })
+					: m.storefront_listing_price_up_to({ price: formatMoney(filters.maxPrice ?? 0) })
 			: ''
 	);
 	const totalPages = $derived(
@@ -141,7 +143,7 @@
 		} catch (cause) {
 			if (request !== requestId) return;
 			result = null;
-			error = cause instanceof Error ? cause.message : 'Could not load products';
+			error = errorMessage(cause, 'storefront_listing_load_failed');
 		} finally {
 			if (request === requestId) loading = false;
 		}
@@ -320,7 +322,7 @@
 											<p
 												class="relative shrink-0 font-['Geist:Medium'] text-[14px] leading-[20px] font-medium [word-break:break-word] whitespace-nowrap text-[#0a0a0a] opacity-60"
 											>
-												Grid
+												{m.storefront_listing_view_grid()}
 											</p>
 										</a>
 										<a
@@ -340,7 +342,7 @@
 											<p
 												class="relative shrink-0 font-['Geist:Medium'] text-[14px] leading-[20px] font-medium [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
 											>
-												List
+												{m.storefront_listing_view_list()}
 											</p>
 										</a>
 									</div>
@@ -360,11 +362,11 @@
 											value={filters.sort ?? 'recommended'}
 											onchange={(event) => changeSort(event.currentTarget.value as SortValue)}
 										>
-											<option value="recommended">Sort : Recommended</option>
-											<option value="popular">Sort : Popular</option>
-											<option value="price_asc">Sort : Price: Low to High</option>
-											<option value="price_desc">Sort : Price: High to Low</option>
-											<option value="newest">Sort : Newest</option>
+											<option value="recommended">{m.storefront_listing_sort_recommended()}</option>
+											<option value="popular">{m.storefront_listing_sort_popular()}</option>
+											<option value="price_asc">{m.storefront_listing_sort_price_asc()}</option>
+											<option value="price_desc">{m.storefront_listing_sort_price_desc()}</option>
+											<option value="newest">{m.storefront_listing_sort_newest()}</option>
 										</select>
 										<div class="relative size-[16px] shrink-0" data-name="chevron-down">
 											<img
@@ -492,7 +494,9 @@
 				</div>
 				<div class="flex w-full items-center justify-between" data-name="Flex Horizontal">
 					<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]">
-						{loading ? 'Loading products…' : `${result?.total ?? 0} products`}
+						{loading
+							? m.storefront_listing_loading()
+							: m.storefront_listing_total({ count: result?.total ?? 0 })}
 					</p>
 				</div>
 				{#if loading}
@@ -518,7 +522,7 @@
 					</p>
 				{:else if result && result.data.length === 0}
 					<p class="w-full font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
-						No products found for the selected filters.
+						{m.storefront_listing_empty()}
 					</p>
 				{:else if result}
 					<div
@@ -554,7 +558,7 @@
 							<p
 								class="font-['Geist:Medium'] text-[14px] leading-[20px] font-medium text-[#0a0a0a]"
 							>
-								Previous
+								{m.common_previous()}
 							</p>
 						</button>
 						{#each pageNumbers as number (number)}
@@ -583,7 +587,7 @@
 							<p
 								class="font-['Geist:Medium'] text-[14px] leading-[20px] font-medium text-[#0a0a0a]"
 							>
-								Next
+								{m.common_next()}
 							</p>
 							<div class="relative size-[16px] shrink-0" data-name="Left icon">
 								<img

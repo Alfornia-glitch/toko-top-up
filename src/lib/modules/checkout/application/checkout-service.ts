@@ -70,9 +70,15 @@ function resolveLines(cart: Cart, snapshots: Map<string, Snapshot>) {
 
 	for (const item of cart.items) {
 		const variant = snapshots.get(item.variantId);
-		if (!variant) throw new ConflictError('A product in your cart is no longer available');
+		if (!variant)
+			throw new ConflictError('A product in your cart is no longer available', {
+				messageKey: 'cart_item_unavailable'
+			});
 		if (variant.stock < item.quantity) {
-			throw new ConflictError(`Insufficient stock for ${variant.productName}`);
+			throw new ConflictError(`Insufficient stock for ${variant.productName}`, {
+				messageKey: 'insufficient_stock_product',
+				params: { product: variant.productName }
+			});
 		}
 
 		const total = variant.price * item.quantity;
@@ -115,12 +121,16 @@ export function createCheckoutService(dependencies: CheckoutDependencies): Check
 			try {
 				const buyer = assertActor(actor);
 				const current = unwrap(await cart.cart.getCart(cartId));
-				if (current.items.length === 0) throw new ConflictError('Your cart is empty');
+				if (current.items.length === 0)
+					throw new ConflictError('Your cart is empty', { messageKey: 'cart_empty' });
 
 				const address = unwrap(await customers.customers.getAddress(input.addressId, buyer));
 
 				const method = await settings.getShippingMethod(input.shippingId);
-				if (!method) throw new UnprocessableError('Unknown shipping method');
+				if (!method)
+					throw new UnprocessableError('Unknown shipping method', {
+						messageKey: 'shipping_method_unknown'
+					});
 
 				const variantIds = [...new Set(current.items.map((item) => item.variantId))];
 				const rows = unwrap(await catalog.products.getVariantSnapshots(variantIds));

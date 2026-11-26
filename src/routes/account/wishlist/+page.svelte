@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
+	import { errorMessage } from '#lib/frontend/i18n/index.ts';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
@@ -26,7 +28,7 @@
 				if (isUnauthorized(cause)) {
 					redirectToLogin();
 				} else {
-					error = cause instanceof Error ? cause.message : 'Could not load your wishlist.';
+					error = errorMessage(cause, 'account_home_wishlist_load_failed');
 				}
 			})
 			.finally(() => {
@@ -35,10 +37,12 @@
 	});
 </script>
 
-<AccountPageShell title="My wishlist" description="Products you saved for later.">
+<AccountPageShell title={m.account_wishlist_title()} description={m.account_wishlist_description()}>
 	{#snippet actions()}
-		<span class="text-sm text-muted-foreground">{wishlist.count} saved products</span>
-		<Button variant="outline" href="/account">Back to account</Button>
+		<span class="text-sm text-muted-foreground"
+			>{m.account_wishlist_count({ count: wishlist.count })}</span
+		>
+		<Button variant="outline" href="/account">{m.account_back_to_account()}</Button>
 	{/snippet}
 
 	{#if loading}
@@ -60,14 +64,14 @@
 		</div>
 	{:else if wishlist.items.length === 0}
 		<EmptyState
-			title="Your wishlist is empty"
-			description="Save products you love and find them here later."
+			title={m.account_wishlist_empty_title()}
+			description={m.account_wishlist_empty_description()}
 		>
 			{#snippet icon()}
 				<Heart class="size-5" />
 			{/snippet}
 			{#snippet action()}
-				<Button href="/products">Browse products</Button>
+				<Button href="/products">{m.common_browse_products()}</Button>
 			{/snippet}
 		</EmptyState>
 	{:else}
@@ -78,7 +82,9 @@
 						<StorefrontProductCard product={item} />
 					</div>
 					<div class="flex items-center gap-2">
-						<Badge variant="secondary">Saved {formatDate(item.wishlistedAt)}</Badge>
+						<Badge variant="secondary"
+							>{m.account_wishlist_saved({ date: formatDate(item.wishlistedAt) })}</Badge
+						>
 					</div>
 				</div>
 			{/each}

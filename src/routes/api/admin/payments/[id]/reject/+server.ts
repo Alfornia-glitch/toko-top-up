@@ -16,7 +16,11 @@ export const POST: RequestHandler = async ({ locals, params, request }) => {
 	const parsed = rejectSchema.safeParse(await request.json().catch(() => null));
 	if (!parsed.success) {
 		return Response.json(
-			{ error: 'A rejection reason is required', details: parsed.error.flatten() },
+			{
+				error: 'A rejection reason is required',
+				code: 'payment_reject_reason_required',
+				details: parsed.error.flatten()
+			},
 			{ status: 422 }
 		);
 	}

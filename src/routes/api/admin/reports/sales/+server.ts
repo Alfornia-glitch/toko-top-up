@@ -7,7 +7,8 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 	const denied = requireAdmin(locals.user);
 	if (denied) return denied;
 	const parsed = reportRangeSchema.safeParse(Object.fromEntries(url.searchParams));
-	if (!parsed.success) return Response.json({ error: 'Invalid range' }, { status: 400 });
+	if (!parsed.success)
+		return Response.json({ error: 'Invalid range', code: 'invalid_query' }, { status: 400 });
 	return Response.json({
 		data: unwrap(await locals.services.reporting.commerce.salesReport(parsed.data, locals.actor))
 	});

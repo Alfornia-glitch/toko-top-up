@@ -131,7 +131,7 @@ export function createOrdersService(
 
 	async function requireOrder(id: string): Promise<Order> {
 		const order = await repository.findOrder(id);
-		if (!order) throw new NotFoundError('Order not found');
+		if (!order) throw new NotFoundError('Order not found', { messageKey: 'order_not_found' });
 		return order;
 	}
 
@@ -178,7 +178,11 @@ export function createOrdersService(
 				const nextStatus = input.status ?? existing.status;
 				if (!assertTransitionAllowed(existing.status, nextStatus)) {
 					throw new UnprocessableError(
-						`Cannot move an order from "${existing.status}" to "${nextStatus}"`
+						`Cannot move an order from "${existing.status}" to "${nextStatus}"`,
+						{
+							messageKey: 'order_transition_invalid',
+							params: { from: existing.status, to: nextStatus }
+						}
 					);
 				}
 
@@ -221,7 +225,10 @@ export function createOrdersService(
 				const existing = await requireOrder(id);
 
 				if (['pending', 'cancelled', 'refunded'].includes(existing.status)) {
-					throw new UnprocessableError(`Cannot ship an order with status "${existing.status}"`);
+					throw new UnprocessableError(`Cannot ship an order with status "${existing.status}"`, {
+						messageKey: 'order_ship_invalid_status',
+						params: { status: existing.status }
+					});
 				}
 
 				const now = clock.now();
@@ -286,7 +293,7 @@ export function createOrdersService(
 			run(async () => {
 				const userId = assertActor(actor).id;
 				const order = await repository.findOrderForUser(userId, numberOrId);
-				if (!order) throw new NotFoundError('Order not found');
+				if (!order) throw new NotFoundError('Order not found', { messageKey: 'order_not_found' });
 
 				const [items, events, shipments] = await Promise.all([
 					repository.listItems(order.id),
@@ -445,7 +452,9 @@ export function createOrdersService(
 				const order = await requireOrder(orderId);
 				if (order.status !== 'pending') {
 					if (order.status === 'cancelled') {
-						throw new UnprocessableError('Cannot mark a cancelled order as paid');
+						throw new UnprocessableError('Cannot mark a cancelled order as paid', {
+							messageKey: 'order_cancelled_not_payable'
+						});
 					}
 					return;
 				}

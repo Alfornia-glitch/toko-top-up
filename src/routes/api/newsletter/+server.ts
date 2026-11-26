@@ -8,13 +8,20 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	try {
 		body = await request.json();
 	} catch {
-		return Response.json({ error: 'Expected a JSON body' }, { status: 400 });
+		return Response.json(
+			{ error: 'Expected a JSON body', code: 'invalid_json_body' },
+			{ status: 400 }
+		);
 	}
 
 	const parsed = newsletterSubscribeSchema.safeParse(body);
 	if (!parsed.success)
 		return Response.json(
-			{ error: 'Invalid newsletter data', details: parsed.error.flatten() },
+			{
+				error: 'Invalid newsletter data',
+				code: 'VALIDATION_ERROR',
+				details: parsed.error.flatten()
+			},
 			{ status: 422 }
 		);
 

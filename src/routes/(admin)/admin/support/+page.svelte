@@ -1,5 +1,8 @@
 <script lang="ts">
 	import { onDestroy, onMount } from 'svelte';
+	import { formatDateTime } from '#lib/frontend/modules/commerce/format.ts';
+	import { m } from '#lib/paraglide/messages.js';
+	import { errorMessage, statusLabel } from '#lib/frontend/i18n/index.ts';
 	import { ArrowRight } from '@lucide/svelte';
 	import DataTable from '#lib/frontend/components/admin/DataTable.svelte';
 	import StatusBadge from '#lib/frontend/components/admin/StatusBadge.svelte';
@@ -25,15 +28,15 @@
 		updatedAt: string;
 	};
 
-	const columns = [
-		{ key: 'ticketNumber', label: 'Ticket' },
-		{ key: 'subject', label: 'Subject' },
-		{ key: 'customerName', label: 'Customer' },
-		{ key: 'priority', label: 'Priority' },
-		{ key: 'status', label: 'Status' },
-		{ key: 'updatedAt', label: 'Updated' },
+	const columns = $derived([
+		{ key: 'ticketNumber', label: m.admin_ops_support_col_ticket() },
+		{ key: 'subject', label: m.admin_ops_support_col_subject() },
+		{ key: 'customerName', label: m.common_customer() },
+		{ key: 'priority', label: m.admin_ops_support_priority() },
+		{ key: 'status', label: m.common_status() },
+		{ key: 'updatedAt', label: m.admin_ops_support_col_updated() },
 		{ key: 'actions', label: '', class: 'text-right' }
-	];
+	]);
 
 	const pageSize = 25;
 
@@ -72,12 +75,12 @@
 			const response = await fetch(`/api/admin/support?${params.toString()}`);
 			const payload = await response.json().catch(() => ({}));
 
-			if (!response.ok) throw new Error(payload.error ?? 'Could not load tickets');
+			if (!response.ok) throw new Error(errorMessage(payload, 'admin_ops_support_load_failed'));
 
 			tickets = payload.data ?? [];
 			total = Number(payload.total ?? 0);
 		} catch (err) {
-			error = err instanceof Error ? err.message : 'Could not load tickets';
+			error = errorMessage(err, 'admin_ops_support_load_failed');
 		} finally {
 			loading = false;
 		}
@@ -110,25 +113,14 @@
 	}
 
 	function formatDate(value: string) {
-		const date = new Date(value);
-		if (Number.isNaN(date.getTime())) return '—';
-
-		return new Intl.DateTimeFormat('en-US', {
-			month: 'short',
-			day: 'numeric',
-			year: 'numeric',
-			hour: '2-digit',
-			minute: '2-digit'
-		}).format(date);
+		return formatDateTime(value) || '—';
 	}
 </script>
 
 <div class="space-y-6">
 	<div>
-		<h1 class="text-2xl font-semibold tracking-tight">Support</h1>
-		<p class="text-sm text-muted-foreground">
-			Triage customer tickets and respond to conversations.
-		</p>
+		<h1 class="text-2xl font-semibold tracking-tight">{m.admin_ops_support_title()}</h1>
+		<p class="text-sm text-muted-foreground">{m.admin_ops_support_subtitle()}</p>
 	</div>
 
 	{#if error}
@@ -143,43 +135,49 @@
 	<Card.Root>
 		<Card.Content class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
 			<div class="space-y-1.5">
-				<Label for="support-search">Search</Label>
+				<Label for="support-search">{m.common_search()}</Label>
 				<Input
 					id="support-search"
 					bind:value={q}
 					oninput={handleSearch}
-					placeholder="Search ticket, subject or email"
+					placeholder={m.admin_ops_support_search_placeholder()}
 				/>
 			</div>
 
 			<div class="space-y-1.5">
-				<Label for="support-status-filter">Status</Label>
+				<Label for="support-status-filter">{m.common_status()}</Label>
 				<Select.Root type="single" value={statusFilter} onValueChange={handleStatusChange}>
 					<Select.Trigger id="support-status-filter" class="w-full">
-						<Select.Value placeholder="All statuses" />
+						<Select.Value placeholder={m.common_all_statuses()} />
 					</Select.Trigger>
 					<Select.Content>
-						<Select.Item value="all" label="All statuses">All statuses</Select.Item>
-						<Select.Item value="open" label="Open">Open</Select.Item>
-						<Select.Item value="pending" label="Pending">Pending</Select.Item>
-						<Select.Item value="resolved" label="Resolved">Resolved</Select.Item>
-						<Select.Item value="closed" label="Closed">Closed</Select.Item>
+						<Select.Item value="all" label={m.common_all_statuses()}>
+							{m.common_all_statuses()}
+						</Select.Item>
+						{#each ['open', 'pending', 'resolved', 'closed'] as option (option)}
+							<Select.Item value={option} label={statusLabel('ticket', option)}>
+								{statusLabel('ticket', option)}
+							</Select.Item>
+						{/each}
 					</Select.Content>
 				</Select.Root>
 			</div>
 
 			<div class="space-y-1.5">
-				<Label for="support-priority-filter">Priority</Label>
+				<Label for="support-priority-filter">{m.admin_ops_support_priority()}</Label>
 				<Select.Root type="single" value={priorityFilter} onValueChange={handlePriorityChange}>
 					<Select.Trigger id="support-priority-filter" class="w-full">
-						<Select.Value placeholder="All priorities" />
+						<Select.Value placeholder={m.admin_ops_support_all_priorities()} />
 					</Select.Trigger>
 					<Select.Content>
-						<Select.Item value="all" label="All priorities">All priorities</Select.Item>
-						<Select.Item value="low" label="Low">Low</Select.Item>
-						<Select.Item value="normal" label="Normal">Normal</Select.Item>
-						<Select.Item value="high" label="High">High</Select.Item>
-						<Select.Item value="urgent" label="Urgent">Urgent</Select.Item>
+						<Select.Item value="all" label={m.admin_ops_support_all_priorities()}>
+							{m.admin_ops_support_all_priorities()}
+						</Select.Item>
+						{#each ['low', 'normal', 'high', 'urgent'] as option (option)}
+							<Select.Item value={option} label={statusLabel('priority', option)}>
+								{statusLabel('priority', option)}
+							</Select.Item>
+						{/each}
 					</Select.Content>
 				</Select.Root>
 			</div>
@@ -190,7 +188,7 @@
 		{columns}
 		rows={tickets as unknown as Record<string, unknown>[]}
 		{loading}
-		emptyMessage="No tickets match the current filters."
+		emptyMessage={m.admin_ops_support_empty()}
 		{page}
 		{pageSize}
 		{total}
@@ -211,9 +209,9 @@
 					{/if}
 				</div>
 			{:else if column.key === 'priority'}
-				<StatusBadge status={String(row.priority ?? '')} />
+				<StatusBadge kind="priority" status={String(row.priority ?? '')} />
 			{:else if column.key === 'status'}
-				<StatusBadge status={String(row.status ?? '')} />
+				<StatusBadge kind="ticket" status={String(row.status ?? '')} />
 			{:else if column.key === 'updatedAt'}
 				<span class="text-muted-foreground">{formatDate(String(row.updatedAt ?? ''))}</span>
 			{:else if column.key === 'actions'}
@@ -221,7 +219,7 @@
 					<Button
 						variant="ghost"
 						size="icon-sm"
-						aria-label="Open ticket"
+						aria-label={m.admin_ops_support_open_ticket()}
 						href={`/admin/support/${String(row.id)}`}
 					>
 						<ArrowRight class="size-4" />

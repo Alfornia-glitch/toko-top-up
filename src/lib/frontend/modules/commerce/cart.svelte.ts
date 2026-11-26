@@ -1,4 +1,5 @@
-import { api, ApiError, unwrap } from '../shared/http.ts';
+import { errorMessage } from '#lib/frontend/i18n/index.ts';
+import { api, unwrap } from '../shared/http.ts';
 import type { Cart } from './models.ts';
 
 type CartPayload = { data: Cart };
@@ -64,12 +65,7 @@ class CartStore {
 		try {
 			await fn();
 		} catch (cause) {
-			this.error =
-				cause instanceof ApiError
-					? cause.message
-					: cause instanceof Error
-						? cause.message
-						: 'Something went wrong';
+			this.error = errorMessage(cause, 'common_something_went_wrong');
 		} finally {
 			this.loading = false;
 		}

@@ -2,10 +2,13 @@
 	import './layout.css';
 	import { page } from '$app/state';
 	import favicon from '#lib/assets/favicon.svg';
+	import { syncDocumentLang } from '#lib/frontend/i18n/locale.ts';
 	import Seo from '#lib/frontend/components/Seo.svelte';
 	import { DYNAMIC_SEO_ROUTES, metaForRoute } from '#lib/frontend/modules/seo/index.ts';
 
 	let { children } = $props();
+
+	syncDocumentLang();
 
 	if (import.meta.env.DEV) {
 		window.addEventListener(

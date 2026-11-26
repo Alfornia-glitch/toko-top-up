@@ -22,13 +22,16 @@ export const PATCH: RequestHandler = async ({ locals, params, request }) => {
 	try {
 		body = await request.json();
 	} catch {
-		return Response.json({ error: 'Expected a JSON body' }, { status: 400 });
+		return Response.json(
+			{ error: 'Expected a JSON body', code: 'invalid_json_body' },
+			{ status: 400 }
+		);
 	}
 
 	const parsed = orderUpdateSchema.safeParse(body);
 	if (!parsed.success) {
 		return Response.json(
-			{ error: 'Invalid order update', details: parsed.error.flatten() },
+			{ error: 'Invalid order update', code: 'VALIDATION_ERROR', details: parsed.error.flatten() },
 			{ status: 422 }
 		);
 	}

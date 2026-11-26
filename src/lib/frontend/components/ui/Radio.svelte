@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
 	import type { Snippet } from 'svelte';
 
 	let {
@@ -39,10 +40,12 @@
 				<div
 					class="relative flex h-[24px] w-full shrink-0 flex-col justify-center leading-[0] text-[#0a0a0a]"
 				>
-					<p class="leading-[20px]">Label</p>
+					<p class="leading-[20px]">{m.ui_radio_label()}</p>
 				</div>
 				{#if subLabel}
-					<p class="relative h-[20px] w-full shrink-0 leading-[20px] text-[#737373]">Label</p>
+					<p class="relative h-[20px] w-full shrink-0 leading-[20px] text-[#737373]">
+						{m.ui_radio_sub_label()}
+					</p>
 				{/if}
 			{/if}
 		</div>

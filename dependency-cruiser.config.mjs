@@ -96,7 +96,8 @@ const config = {
 				'^static/',
 				'^tools/',
 				'^scripts/',
-				'^e2e/'
+				'^e2e/',
+				'^src/lib/paraglide/'
 			]
 		},
 		tsConfig: { fileName: 'tsconfig.json' },

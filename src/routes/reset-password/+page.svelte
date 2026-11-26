@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import AuthShell from '#lib/frontend/components/auth/AuthShell.svelte';
@@ -20,17 +21,17 @@
 		error = '';
 
 		if (!token) {
-			error = 'This reset link is invalid or has expired. Please request a new one.';
+			error = m.auth_reset_invalid_link();
 			return;
 		}
 
 		if (password.length < 8) {
-			error = 'Your password must be at least 8 characters long.';
+			error = m.auth_password_too_short();
 			return;
 		}
 
 		if (password !== confirmPassword) {
-			error = 'Passwords do not match.';
+			error = m.auth_password_mismatch();
 			return;
 		}
 
@@ -56,26 +57,23 @@
 	}
 </script>
 
-<AuthShell
-	title="Reset password"
-	description="Time for a fresh start! Go ahead and set a new password."
->
+<AuthShell title={m.auth_reset_title()} description={m.auth_reset_description()}>
 	{#if token}
 		<form class="grid gap-4" onsubmit={handleSubmit}>
 			<Field.Group>
 				<PasswordField
 					id="password"
-					label="New password"
+					label={m.auth_reset_new_password()}
 					bind:value={password}
-					placeholder="Enter a new password"
+					placeholder={m.auth_reset_new_password_placeholder()}
 					autocomplete="new-password"
-					hint="Use at least 8 characters."
+					hint={m.auth_password_hint()}
 				/>
 				<PasswordField
 					id="confirm-password"
-					label="Confirm password"
+					label={m.auth_confirm_password()}
 					bind:value={confirmPassword}
-					placeholder="Repeat your new password"
+					placeholder={m.auth_reset_confirm_placeholder()}
 					autocomplete="new-password"
 				/>
 			</Field.Group>
@@ -87,22 +85,22 @@
 					{#if loading}
 						<Spinner />
 					{/if}
-					Save changes
+					{m.common_save_changes()}
 				</Button>
 				<Button type="button" variant="outline" class="w-full" onclick={() => goto('/login')}>
-					Back to login
+					{m.auth_back_to_login()}
 				</Button>
 			</div>
 		</form>
 	{:else}
 		<div class="grid gap-4">
 			<p class="text-sm text-muted-foreground">
-				This reset link is invalid or has expired. Please request a new password reset link.
+				{m.auth_reset_invalid_link_long()}
 			</p>
 			<div class="grid gap-2">
-				<Button href="/forgot-password" class="w-full">Forgot password?</Button>
+				<Button href="/forgot-password" class="w-full">{m.auth_forgot_title()}</Button>
 				<Button type="button" variant="outline" class="w-full" onclick={() => goto('/login')}>
-					Back to login
+					{m.auth_back_to_login()}
 				</Button>
 			</div>
 		</div>

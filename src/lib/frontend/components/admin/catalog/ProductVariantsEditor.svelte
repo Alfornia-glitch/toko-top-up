@@ -14,6 +14,7 @@
 </script>
 
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
 	import { Plus, Trash2 } from '@lucide/svelte';
 	import type { ProductOptionRow } from '#lib/frontend/components/admin/catalog/ProductOptionsEditor.svelte';
 	import { Button } from '#lib/frontend/components/ui/button/index.ts';
@@ -59,33 +60,33 @@
 <div class="space-y-4">
 	<div class="flex flex-wrap items-start justify-between gap-2">
 		<div>
-			<h3 class="font-medium">Variants</h3>
+			<h3 class="font-medium">{m.components_variants_title()}</h3>
 			<p class="text-sm text-muted-foreground">
-				Each variant is a purchasable combination with its own SKU, price and stock.
+				{m.components_variants_description()}
 			</p>
 		</div>
 		<Button type="button" variant="outline" onclick={addVariant}>
 			<Plus class="size-4" />
-			Add variant
+			{m.components_variants_add()}
 		</Button>
 	</div>
 
 	{#if variants.length === 0}
 		<div class="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">
-			No variants yet. Add a variant for each combination you sell.
+			{m.components_variants_empty()}
 		</div>
 	{:else}
 		<div class="space-y-3">
 			{#each variants as variant, index (variant.clientId)}
 				<div class="space-y-3 rounded-lg border p-4">
 					<div class="flex items-center justify-between gap-2">
-						<p class="truncate font-medium">{variant.name || 'New variant'}</p>
+						<p class="truncate font-medium">{variant.name || m.components_variants_new()}</p>
 						<Button
 							type="button"
 							variant="ghost"
 							size="icon-sm"
 							class="text-destructive hover:bg-destructive/10"
-							aria-label="Remove variant"
+							aria-label={m.components_variants_remove()}
 							onclick={() => removeVariant(index)}
 						>
 							<Trash2 class="size-4" />
@@ -94,45 +95,49 @@
 
 					<div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
 						<label class="grid gap-1 text-xs font-medium text-muted-foreground">
-							SKU
-							<Input bind:value={variant.sku} placeholder="SKU" aria-label="Variant SKU" />
-						</label>
-						<label class="grid gap-1 text-xs font-medium text-muted-foreground">
-							Name
+							{m.components_form_sku()}
 							<Input
-								bind:value={variant.name}
-								placeholder="Variant name"
-								aria-label="Variant name"
+								bind:value={variant.sku}
+								placeholder={m.components_form_sku()}
+								aria-label={m.components_variants_sku_label()}
 							/>
 						</label>
 						<label class="grid gap-1 text-xs font-medium text-muted-foreground">
-							Price
+							{m.common_name()}
+							<Input
+								bind:value={variant.name}
+								placeholder={m.components_variants_name_placeholder()}
+								aria-label={m.components_variants_name_placeholder()}
+							/>
+						</label>
+						<label class="grid gap-1 text-xs font-medium text-muted-foreground">
+							{m.common_price()}
 							<Input
 								type="number"
 								min="0"
 								step="0.01"
 								bind:value={variant.price}
 								placeholder="0.00"
-								aria-label="Variant price"
+								aria-label={m.components_variants_price_label()}
 							/>
 						</label>
 						<label class="grid gap-1 text-xs font-medium text-muted-foreground">
-							Compare at
+							{m.components_variants_compare_at()}
 							<Input
 								type="number"
 								min="0"
 								step="0.01"
 								bind:value={variant.compareAtPrice}
-								placeholder="Optional"
-								aria-label="Variant compare at price"
+								placeholder={m.common_optional()}
+								aria-label={m.components_variants_compare_at_label()}
 							/>
 						</label>
 						<label class="grid gap-1 text-xs font-medium text-muted-foreground">
-							Stock
+							{m.components_form_stock()}
 							{#if variant.id}
 								<span
 									class="flex h-9 items-center text-sm text-foreground"
-									aria-label="Variant stock"
+									aria-label={m.components_variants_stock_label()}
 								>
 									{variant.stock}
 								</span>
@@ -142,23 +147,23 @@
 									min="0"
 									step="1"
 									bind:value={variant.stock}
-									aria-label="Variant stock"
+									aria-label={m.components_variants_stock_label()}
 								/>
 							{/if}
 						</label>
 						<label class="grid gap-1 text-xs font-medium text-muted-foreground">
-							Weight (g)
+							{m.components_variants_weight()}
 							<Input
 								type="number"
 								min="0"
 								step="1"
 								bind:value={variant.weightGrams}
-								placeholder="Optional"
-								aria-label="Variant weight in grams"
+								placeholder={m.common_optional()}
+								aria-label={m.components_variants_weight_label()}
 							/>
 						</label>
 						<div class="grid gap-1 text-xs font-medium text-muted-foreground">
-							Status
+							{m.common_status()}
 							<Select.Root
 								type="single"
 								value={variant.status}
@@ -166,11 +171,15 @@
 									(variant.status = value === 'inactive' ? 'inactive' : 'active')}
 							>
 								<Select.Trigger class="w-full">
-									<Select.Value placeholder="Select status" />
+									<Select.Value placeholder={m.components_form_select_status()} />
 								</Select.Trigger>
 								<Select.Content>
-									<Select.Item value="active" label="Active">Active</Select.Item>
-									<Select.Item value="inactive" label="Inactive">Inactive</Select.Item>
+									<Select.Item value="active" label={m.common_active()}
+										>{m.common_active()}</Select.Item
+									>
+									<Select.Item value="inactive" label={m.common_inactive()}
+										>{m.common_inactive()}</Select.Item
+									>
 								</Select.Content>
 							</Select.Root>
 						</div>
@@ -180,14 +189,18 @@
 						<div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
 							{#each options as option (option.clientId)}
 								<div class="grid gap-1 text-xs font-medium text-muted-foreground">
-									{option.name || 'Option'}
+									{option.name || m.components_variants_option_fallback()}
 									<Select.Root
 										type="single"
 										value={variant.optionValuesJson[option.name] ?? ''}
 										onValueChange={(value) => setOptionValue(variant, option.name, value)}
 									>
 										<Select.Trigger class="w-full">
-											<Select.Value placeholder={`Select ${option.name || 'value'}`} />
+											<Select.Value
+												placeholder={m.components_variants_select_option({
+													name: option.name || m.components_variants_value_fallback()
+												})}
+											/>
 										</Select.Trigger>
 										<Select.Content>
 											{#each option.values.filter( (value) => value.value.trim() ) as value (value.clientId)}

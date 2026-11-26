@@ -1,4 +1,7 @@
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
+	import { errorMessage } from '#lib/frontend/i18n/index.ts';
+	import { timelineMessage } from '#lib/frontend/i18n/events.ts';
 	import {
 		listOrders,
 		getOrder,
@@ -41,7 +44,7 @@
 		const entries: TimelineEntry[] = [
 			...order.events.map((event) => ({
 				id: `event-${event.id}`,
-				label: event.message?.trim() || statusLabel(ORDER_STATUS_LABELS, event.type),
+				label: timelineMessage(event) || statusLabel(ORDER_STATUS_LABELS, event.type),
 				date: event.createdAt
 			})),
 			...order.shipments.map((shipment) => {
@@ -74,7 +77,7 @@
 			return;
 		}
 
-		error = cause instanceof Error ? cause.message : 'Could not load order details';
+		error = errorMessage(cause, 'account_order_tracking_load_failed');
 	}
 
 	async function load(requested: string | null) {
@@ -151,9 +154,9 @@
 						class="relative flex w-full items-center justify-center gap-3 rounded-[14px] bg-white px-[24px] py-[64px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)]"
 						data-name="Card"
 					>
-						<Spinner class="size-5" aria-label="Loading order" />
+						<Spinner class="size-5" aria-label={m.account_shared_loading_order()} />
 						<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
-							Loading order
+							{m.account_shared_loading_order()}
 						</p>
 					</div>
 				{:else if error}
@@ -172,16 +175,16 @@
 						<p
 							class="font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold text-[#0a0a0a]"
 						>
-							No orders yet
+							{m.account_shared_no_orders_yet()}
 						</p>
 						<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
-							Orders you place will show up here with their tracking details.
+							{m.account_order_tracking_empty_description()}
 						</p>
 						<a
 							href="/products"
 							class="rounded-[8px] bg-[#171717] px-[16px] py-[10px] font-['Geist:Medium'] text-[14px] leading-[20px] font-medium text-[#fafafa]"
 						>
-							Browse products
+							{m.common_browse_products()}
 						</a>
 					</div>
 				{:else if order}
@@ -195,10 +198,10 @@
 						>
 							{#if orders.length > 1}
 								<div class="flex w-full flex-col gap-[6px] sm:max-w-[280px]">
-									<Label for="order-picker">Order</Label>
+									<Label for="order-picker">{m.common_order()}</Label>
 									<Select.Root type="single" value={order.orderNumber} onValueChange={selectOrder}>
 										<Select.Trigger id="order-picker" class="w-full">
-											<Select.Value placeholder="Select an order" />
+											<Select.Value placeholder={m.account_shared_select_order()} />
 										</Select.Trigger>
 										<Select.Content>
 											{#each orders as entry (entry.id)}
@@ -226,7 +229,7 @@
 										<p
 											class="relative w-[min-content] min-w-full shrink-0 font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] text-[#0a0a0a]"
 										>
-											Tracking Details
+											{m.account_order_tracking_title()}
 										</p>
 										<p
 											class="relative shrink-0 font-['Geist:Regular'] text-[18px] leading-[28px] font-normal whitespace-nowrap text-[#737373]"
@@ -242,7 +245,7 @@
 											{statusLabel(PAYMENT_STATUS_LABELS, order.paymentStatus)}
 										</Badge>
 										<Badge variant="secondary">
-											{statusLabel(ORDER_STATUS_LABELS, order.fulfillmentStatus)}
+											{statusLabel('fulfillment', order.fulfillmentStatus)}
 										</Badge>
 									</div>
 								</div>
@@ -250,7 +253,7 @@
 								<div class="grid w-full gap-[12px] sm:grid-cols-2">
 									<div>
 										<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]">
-											Carrier
+											{m.account_order_tracking_carrier()}
 										</p>
 										<p
 											class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-[#0a0a0a]"
@@ -260,7 +263,7 @@
 									</div>
 									<div>
 										<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]">
-											Tracking number
+											{m.account_order_tracking_number()}
 										</p>
 										<p
 											class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-[#0a0a0a]"
@@ -270,7 +273,7 @@
 									</div>
 									<div>
 										<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]">
-											Estimated delivery
+											{m.account_order_tracking_estimated_delivery()}
 										</p>
 										<p
 											class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-[#0a0a0a]"
@@ -280,7 +283,7 @@
 									</div>
 									<div>
 										<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]">
-											Placed
+											{m.account_order_tracking_placed()}
 										</p>
 										<p
 											class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-[#0a0a0a]"
@@ -298,11 +301,11 @@
 								<p
 									class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] text-[#0a0a0a]"
 								>
-									Items
+									{m.account_order_tracking_items()}
 								</p>
 								{#if order.items.length === 0}
 									<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
-										This order has no items.
+										{m.account_order_tracking_no_items()}
 									</p>
 								{:else}
 									<div class="flex w-full flex-col">
@@ -323,7 +326,7 @@
 													<div
 														class="flex size-[72px] shrink-0 items-center justify-center rounded-[8px] bg-[#f5f5f5] text-center font-['Geist:Regular'] text-[12px] leading-[16px] text-[#737373]"
 													>
-														No image
+														{m.account_shared_no_image()}
 													</div>
 												{/if}
 												<div class="min-w-0 flex-1">
@@ -335,12 +338,15 @@
 													<p
 														class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]"
 													>
-														SKU: {item.sku}
+														{m.account_shared_sku({ sku: item.sku })}
 													</p>
 													<p
 														class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]"
 													>
-														Qty: {item.quantity} · {formatMoney(item.unitPrice, order.currency)}
+														{m.account_shared_qty_price({
+															quantity: item.quantity,
+															price: formatMoney(item.unitPrice, order.currency)
+														})}
 													</p>
 												</div>
 												<p
@@ -360,7 +366,7 @@
 							>
 								<div class="flex w-full items-center justify-between gap-[12px]">
 									<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
-										Subtotal
+										{m.common_subtotal()}
 									</p>
 									<p
 										class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-[#0a0a0a]"
@@ -370,7 +376,7 @@
 								</div>
 								<div class="flex w-full items-center justify-between gap-[12px]">
 									<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
-										Discount
+										{m.common_discount()}
 									</p>
 									<p
 										class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-[#0a0a0a]"
@@ -380,7 +386,7 @@
 								</div>
 								<div class="flex w-full items-center justify-between gap-[12px]">
 									<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
-										Shipping
+										{m.common_shipping()}
 									</p>
 									<p
 										class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-[#0a0a0a]"
@@ -394,7 +400,7 @@
 									<p
 										class="font-['Geist:SemiBold'] text-[18px] leading-[28px] font-semibold text-[#0a0a0a]"
 									>
-										Total
+										{m.common_total()}
 									</p>
 									<p
 										class="font-['Geist:SemiBold'] text-[18px] leading-[28px] font-semibold text-[#0a0a0a]"
@@ -411,11 +417,11 @@
 								<p
 									class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] text-[#0a0a0a]"
 								>
-									Order Activity
+									{m.account_order_tracking_activity()}
 								</p>
 								{#if timeline.length === 0}
 									<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
-										No activity has been recorded for this order yet.
+										{m.account_order_tracking_no_activity()}
 									</p>
 								{:else}
 									<div

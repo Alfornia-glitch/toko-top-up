@@ -1,10 +1,11 @@
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
+	import { errorMessage, statusLabel } from '#lib/frontend/i18n/index.ts';
 	import {
 		getSubscription,
 		setSubscriptionStatus,
 		subscribeNewsletter,
-		isUnauthorized,
-		messageFrom
+		isUnauthorized
 	} from '#lib/frontend/modules/account/index.ts';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
@@ -41,7 +42,7 @@
 			return '';
 		}
 
-		return messageFrom(cause, 'Something went wrong');
+		return errorMessage(cause, 'common_something_went_wrong');
 	}
 
 	async function loadSubscription(): Promise<void> {
@@ -79,7 +80,7 @@
 
 		const value = email.trim();
 		if (!value) {
-			formError = 'Enter your email address.';
+			formError = m.account_newsletter_email_required();
 			return;
 		}
 
@@ -134,13 +135,12 @@
 							<p
 								class="relative w-[min-content] min-w-full shrink-0 font-['Geist:SemiBold'] text-[24px] leading-[32px] font-semibold text-[#0a0a0a]"
 							>
-								Join & Be First to Know About Exclusive Drops and Secret Deals
+								{m.account_newsletter_hero_title()}
 							</p>
 							<p
 								class="relative w-[min-content] min-w-full shrink-0 font-['Geist:Regular'] text-[16px] leading-[24px] font-normal text-[#737373]"
 							>
-								Sign up today to get early access to new collections, secret sales, and curated
-								picks you won’t find anywhere else.
+								{m.account_newsletter_hero_description()}
 							</p>
 						</div>
 						<a
@@ -151,7 +151,7 @@
 							<div
 								class="relative flex shrink-0 flex-col justify-center font-['Geist:Medium'] text-[14px] leading-[0] font-medium [word-break:break-word] whitespace-nowrap text-[#fafafa]"
 							>
-								<p class="leading-[20px]">Get Updates</p>
+								<p class="leading-[20px]">{m.account_newsletter_get_updates()}</p>
 							</div>
 							<div class="relative size-[16px] shrink-0" data-name="Right-icon">
 								<img
@@ -193,7 +193,7 @@
 						<p
 							class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[24px] leading-[32px] font-semibold [word-break:break-word] text-[#0a0a0a]"
 						>
-							Email Newsletter
+							{m.account_newsletter_title()}
 						</p>
 
 						{#if loadError}
@@ -202,7 +202,7 @@
 
 						{#if loading}
 							<div class="flex w-full items-center justify-center py-[16px]">
-								<Spinner class="size-6" aria-label="Loading newsletter subscription" />
+								<Spinner class="size-6" aria-label={m.account_newsletter_loading()} />
 							</div>
 						{:else if subscription}
 							<div
@@ -225,12 +225,12 @@
 										<p
 											class="relative flex shrink-0 flex-col justify-center text-center font-['Geist:Medium'] text-[12px] leading-[16px] font-medium whitespace-nowrap text-[#0a0a0a] capitalize"
 										>
-											{subscription.status}
+											{statusLabel('newsletter', subscription.status)}
 										</p>
 									</div>
 								</div>
 								<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
-									Member since {formatDate(subscription.createdAt)}
+									{m.account_newsletter_member_since({ date: formatDate(subscription.createdAt) })}
 								</p>
 							</div>
 							<Button
@@ -241,18 +241,20 @@
 							>
 								{#if saving}
 									<Spinner />
-									Saving…
+									{m.common_saving()}
 								{:else}
-									{subscription.status === 'subscribed' ? 'Unsubscribe' : 'Subscribe'}
+									{subscription.status === 'subscribed'
+										? m.account_newsletter_unsubscribe()
+										: m.account_newsletter_subscribe()}
 								{/if}
 							</Button>
 						{:else}
 							<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
-								You are not subscribed to the newsletter yet.
+								{m.account_newsletter_not_subscribed()}
 							</p>
 							<form class="flex w-full flex-col items-start gap-[12px]" onsubmit={subscribe}>
 								<div class="grid w-full max-w-[400px] gap-[6px]">
-									<Label for="newsletter-email">Email address</Label>
+									<Label for="newsletter-email">{m.account_newsletter_email_label()}</Label>
 									<Input
 										id="newsletter-email"
 										type="email"
@@ -268,9 +270,9 @@
 								<Button type="submit" disabled={saving}>
 									{#if saving}
 										<Spinner />
-										Subscribing…
+										{m.account_newsletter_subscribing()}
 									{:else}
-										Subscribe
+										{m.account_newsletter_subscribe()}
 									{/if}
 								</Button>
 							</form>

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
 	import UserAvatar from '#lib/frontend/components/UserAvatar.svelte';
 	import { authClient, signOutUser } from '#frontend/modules/auth/index.ts';
 
@@ -69,7 +70,9 @@
 					onclick={() => (mobileExpanded = !mobileExpanded)}
 					class="rounded-lg bg-gray-100 px-3 py-1.5 text-xs font-semibold text-gray-800 lg:hidden"
 				>
-					{mobileExpanded ? 'Hide Menu ▲' : 'Account Menu ▼'}
+					{mobileExpanded
+						? m.components_account_sidebar_hide_menu()
+						: m.components_account_sidebar_show_menu()}
 				</button>
 			</div>
 
@@ -96,7 +99,7 @@
 						<p
 							class="relative h-full min-w-px flex-[1_0_0] font-['Geist:Medium'] text-[16px] leading-[24px] font-medium [word-break:break-word] text-[#0a0a0a]"
 						>
-							My account
+							{m.components_site_header_my_account()}
 						</p>
 					</a>
 					<a
@@ -110,7 +113,7 @@
 						<p
 							class="relative h-full min-w-px flex-[1_0_0] font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-[#0a0a0a]"
 						>
-							My Wishlist
+							{m.components_account_sidebar_wishlist()}
 						</p>
 					</a>
 					<a
@@ -124,7 +127,7 @@
 						<p
 							class="relative h-full min-w-px flex-[1_0_0] font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-[#0a0a0a]"
 						>
-							My Orders
+							{m.components_site_header_my_orders()}
 						</p>
 					</a>
 					<a
@@ -138,7 +141,7 @@
 						<p
 							class="relative h-full min-w-px flex-[1_0_0] font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-[#0a0a0a]"
 						>
-							Order Details
+							{m.components_account_sidebar_order_details()}
 						</p>
 					</a>
 					<a
@@ -152,7 +155,7 @@
 						<p
 							class="relative min-w-px flex-[1_0_0] font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-[#0a0a0a]"
 						>
-							My Addresses
+							{m.components_account_sidebar_addresses()}
 						</p>
 					</a>
 					<a
@@ -166,7 +169,7 @@
 						<p
 							class="relative h-full min-w-px flex-[1_0_0] font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-[#0a0a0a]"
 						>
-							My Wallet
+							{m.components_account_sidebar_wallet()}
 						</p>
 					</a>
 					<div class="relative h-[8px] w-full shrink-0" data-name="separator">
@@ -183,7 +186,7 @@
 						<p
 							class="relative h-full min-w-px flex-[1_0_0] font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-[#0a0a0a]"
 						>
-							Payment
+							{m.common_payment()}
 						</p>
 					</a>
 					<a
@@ -197,7 +200,7 @@
 						<p
 							class="relative h-full min-w-px flex-[1_0_0] font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-[#0a0a0a]"
 						>
-							Gift Cards
+							{m.components_account_sidebar_gift_cards()}
 						</p>
 					</a>
 					<a
@@ -211,7 +214,7 @@
 						<p
 							class="relative h-full min-w-px flex-[1_0_0] font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-[#0a0a0a]"
 						>
-							{`Return & Refunds`}
+							{m.components_account_sidebar_returns()}
 						</p>
 					</a>
 					<a
@@ -225,7 +228,7 @@
 						<p
 							class="relative h-full min-w-px flex-[1_0_0] font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-[#0a0a0a]"
 						>
-							Email Newsletter
+							{m.components_account_sidebar_newsletter()}
 						</p>
 					</a>
 					<a
@@ -239,7 +242,7 @@
 						<p
 							class="relative h-full min-w-px flex-[1_0_0] font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-[#0a0a0a]"
 						>
-							Support Tickets
+							{m.components_account_sidebar_support_tickets()}
 						</p>
 					</a>
 					<div class="relative h-[8px] w-full shrink-0" data-name="separator">
@@ -257,7 +260,7 @@
 						<p
 							class="relative h-full shrink-0 font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word]"
 						>
-							Logout
+							{m.common_logout()}
 						</p>
 					</button>
 				</div>

@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { errorMessage } from '#lib/frontend/i18n/index.ts';
+	import { m } from '#lib/paraglide/messages.js';
 	import { ImagePlus, LoaderCircle, Upload } from '@lucide/svelte';
 	import * as Dialog from '#lib/frontend/components/ui/dialog/index.ts';
 	import * as Tabs from '#lib/frontend/components/ui/tabs/index.ts';
@@ -47,10 +49,10 @@
 			);
 			const payload = await response.json();
 
-			if (!response.ok) throw new Error(payload.error ?? 'Could not load media');
+			if (!response.ok) throw payload;
 			assets = payload.data ?? [];
 		} catch (err) {
-			error = err instanceof Error ? err.message : 'Could not load media';
+			error = errorMessage(err, 'components_media_picker_load_failed');
 		} finally {
 			loading = false;
 		}
@@ -71,12 +73,12 @@
 			const response = await fetch('/api/upload', { method: 'POST', body });
 			const payload = await response.json();
 
-			if (!response.ok) throw new Error(payload.error ?? 'Upload failed');
+			if (!response.ok) throw payload;
 
 			assets = [payload as MediaAsset, ...assets];
 			select(payload as MediaAsset);
 		} catch (err) {
-			error = err instanceof Error ? err.message : 'Upload failed';
+			error = errorMessage(err, 'components_media_picker_upload_failed');
 		} finally {
 			uploading = false;
 		}
@@ -91,16 +93,16 @@
 <Dialog.Root bind:open>
 	<Dialog.Content class="sm:max-w-2xl">
 		<Dialog.Header>
-			<Dialog.Title>Media library</Dialog.Title>
+			<Dialog.Title>{m.components_media_picker_title()}</Dialog.Title>
 			<Dialog.Description>
-				Pick an existing image or upload a new one to the public bucket.
+				{m.components_media_picker_description()}
 			</Dialog.Description>
 		</Dialog.Header>
 
 		<Tabs.Root value="library">
 			<Tabs.List>
-				<Tabs.Trigger value="library">Library</Tabs.Trigger>
-				<Tabs.Trigger value="upload">Upload</Tabs.Trigger>
+				<Tabs.Trigger value="library">{m.components_media_picker_tab_library()}</Tabs.Trigger>
+				<Tabs.Trigger value="upload">{m.components_media_picker_tab_upload()}</Tabs.Trigger>
 			</Tabs.List>
 
 			<Tabs.Content value="library" class="mt-3">
@@ -115,7 +117,7 @@
 				{:else if assets.length === 0}
 					<div class="flex h-48 flex-col items-center justify-center gap-2 text-muted-foreground">
 						<ImagePlus class="size-8" />
-						<p class="text-sm">No media in this folder yet.</p>
+						<p class="text-sm">{m.components_media_picker_empty()}</p>
 					</div>
 				{:else}
 					<div class="grid max-h-96 grid-cols-3 gap-2 overflow-y-auto sm:grid-cols-4">
@@ -141,13 +143,15 @@
 
 			<Tabs.Content value="upload" class="mt-3 space-y-3">
 				<Input bind:ref={fileInput} type="file" accept="image/*" />
-				<p class="text-xs text-muted-foreground">JPEG, PNG, WebP, AVIF or GIF. Maximum 5 MiB.</p>
+				<p class="text-xs text-muted-foreground">{m.components_media_picker_hint()}</p>
 				{#if error}
 					<p class="text-sm text-destructive">{error}</p>
 				{/if}
 				<Button onclick={handleUpload} disabled={uploading}>
 					<Upload class="size-4" />
-					{uploading ? 'Uploading…' : 'Upload image'}
+					{uploading
+						? m.components_media_picker_uploading()
+						: m.components_media_picker_upload_image()}
 				</Button>
 			</Tabs.Content>
 		</Tabs.Root>

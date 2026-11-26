@@ -20,7 +20,7 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 	const parsed = querySchema.safeParse(Object.fromEntries(url.searchParams));
 	if (!parsed.success) {
 		return Response.json(
-			{ error: 'Invalid query', details: parsed.error.flatten() },
+			{ error: 'Invalid query', code: 'invalid_query', details: parsed.error.flatten() },
 			{ status: 422 }
 		);
 	}

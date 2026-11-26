@@ -20,6 +20,9 @@
 </script>
 
 <script lang="ts">
+	import { formatDateTime } from '#lib/frontend/modules/commerce/format.ts';
+	import { errorMessage } from '#lib/frontend/i18n/index.ts';
+	import { m } from '#lib/paraglide/messages.js';
 	import { onMount } from 'svelte';
 	import { LoaderCircle } from '@lucide/svelte';
 	import InventoryAdjustDialog from '#lib/frontend/components/admin/catalog/InventoryAdjustDialog.svelte';
@@ -54,7 +57,7 @@
 			const response = await fetch(`/api/admin/products/${productId}`);
 			const payload = await response.json().catch(() => ({}));
 
-			if (!response.ok) throw new Error(payload.error ?? 'Could not load stock');
+			if (!response.ok) throw payload;
 
 			variants = (payload.data.variants as StockVariant[]).map((variant) => ({
 				id: variant.id,
@@ -66,7 +69,7 @@
 
 			movements = await loadMovements(variants);
 		} catch (err) {
-			error = err instanceof Error ? err.message : 'Could not load stock';
+			error = errorMessage(err, 'components_stock_panel_load_failed');
 		} finally {
 			loading = false;
 		}
@@ -80,7 +83,9 @@
 				);
 				const payload = await response.json().catch(() => ({}));
 
-				if (!response.ok) throw new Error(payload.error ?? 'Could not load stock history');
+				if (!response.ok) {
+					throw new Error(errorMessage(payload, 'components_stock_panel_history_failed'));
+				}
 
 				return payload.data as StockMovement[];
 			})
@@ -98,14 +103,11 @@
 	}
 
 	function formatDate(value: string) {
-		const date = new Date(value);
-		if (Number.isNaN(date.getTime())) return '—';
-
-		return date.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+		return formatDateTime(value) || m.common_dash();
 	}
 
 	function formatReference(type: string | null, id: string | null) {
-		if (!type) return '—';
+		if (!type) return m.common_dash();
 
 		return id ? `${type} · ${id}` : type;
 	}
@@ -113,10 +115,9 @@
 
 <div class="space-y-6">
 	<div>
-		<h3 class="font-medium">Stock</h3>
+		<h3 class="font-medium">{m.components_stock_panel_title()}</h3>
 		<p class="text-sm text-muted-foreground">
-			Stock changes are recorded as movements. Adjust a variant here instead of editing it in the
-			variant list.
+			{m.components_stock_panel_description()}
 		</p>
 	</div>
 
@@ -135,17 +136,19 @@
 		</div>
 	{:else if variants.length === 0}
 		<div class="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">
-			Add a variant first to track its stock.
+			{m.components_stock_panel_no_variants()}
 		</div>
 	{:else}
 		<div class="rounded-lg border">
 			<Table.Root>
 				<Table.Header>
 					<Table.Row>
-						<Table.Head>Variant</Table.Head>
-						<Table.Head>SKU</Table.Head>
-						<Table.Head class="text-right">In stock</Table.Head>
-						<Table.Head class="text-right"><span class="sr-only">Actions</span></Table.Head>
+						<Table.Head>{m.components_stock_panel_variant()}</Table.Head>
+						<Table.Head>{m.components_form_sku()}</Table.Head>
+						<Table.Head class="text-right">{m.components_stock_panel_in_stock()}</Table.Head>
+						<Table.Head class="text-right"
+							><span class="sr-only">{m.common_actions()}</span></Table.Head
+						>
 					</Table.Row>
 				</Table.Header>
 				<Table.Body>
@@ -156,7 +159,7 @@
 							<Table.Cell class="text-right tabular-nums">{variant.stock}</Table.Cell>
 							<Table.Cell class="text-right">
 								<Button variant="outline" size="sm" onclick={() => openAdjust(variant)}>
-									Adjust
+									{m.components_stock_panel_adjust()}
 								</Button>
 							</Table.Cell>
 						</Table.Row>
@@ -167,24 +170,24 @@
 
 		<div class="space-y-3">
 			<div>
-				<h4 class="font-medium">Recent movements</h4>
-				<p class="text-sm text-muted-foreground">The latest stock changes for this product.</p>
+				<h4 class="font-medium">{m.components_stock_panel_recent()}</h4>
+				<p class="text-sm text-muted-foreground">{m.components_stock_panel_recent_hint()}</p>
 			</div>
 
 			{#if movements.length === 0}
 				<div class="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
-					No stock movements yet.
+					{m.components_stock_panel_no_movements()}
 				</div>
 			{:else}
 				<div class="rounded-lg border">
 					<Table.Root>
 						<Table.Header>
 							<Table.Row>
-								<Table.Head>Date</Table.Head>
-								<Table.Head>Variant</Table.Head>
-								<Table.Head class="text-right">Change</Table.Head>
-								<Table.Head>Reason</Table.Head>
-								<Table.Head>Reference</Table.Head>
+								<Table.Head>{m.common_date()}</Table.Head>
+								<Table.Head>{m.components_stock_panel_variant()}</Table.Head>
+								<Table.Head class="text-right">{m.components_inventory_adjust_change()}</Table.Head>
+								<Table.Head>{m.components_inventory_adjust_reason()}</Table.Head>
+								<Table.Head>{m.components_stock_panel_reference()}</Table.Head>
 							</Table.Row>
 						</Table.Header>
 						<Table.Body>

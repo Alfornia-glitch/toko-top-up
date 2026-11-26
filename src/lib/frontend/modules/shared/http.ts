@@ -1,12 +1,22 @@
 export class ApiError extends Error {
 	status: number;
 	details?: unknown;
+	/** Machine code from the response body (`NOT_FOUND`, `cart_empty`, ...). */
+	code?: string;
+	params?: Record<string, string | number>;
 
-	constructor(message: string, status: number, details?: unknown) {
+	constructor(
+		message: string,
+		status: number,
+		details?: unknown,
+		extra: { code?: string; params?: Record<string, string | number> } = {}
+	) {
 		super(message);
 		this.name = 'ApiError';
 		this.status = status;
 		this.details = details;
+		if (extra.code) this.code = extra.code;
+		if (extra.params) this.params = extra.params;
 	}
 }
 
@@ -32,7 +42,19 @@ export async function apiFetch<T>(input: string, init?: RequestInit): Promise<T>
 
 	if (!response.ok) {
 		const message = readMessage(body, 'error') ?? readMessage(body, 'message') ?? 'Request failed';
-		throw new ApiError(message, response.status, body);
+		const record =
+			typeof body === 'object' && body !== null ? (body as Record<string, unknown>) : {};
+		const code =
+			typeof record.code === 'string'
+				? record.code
+				: message === 'Request failed'
+					? 'request_failed'
+					: undefined;
+		const params =
+			typeof record.params === 'object' && record.params !== null
+				? (record.params as Record<string, string | number>)
+				: undefined;
+		throw new ApiError(message, response.status, body, { code, params });
 	}
 
 	return body as T;

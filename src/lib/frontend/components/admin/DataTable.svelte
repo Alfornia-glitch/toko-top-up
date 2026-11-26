@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
 	import type { Snippet } from 'svelte';
 	import { ArrowDown, ArrowUp, ArrowUpDown, ChevronLeft, ChevronRight } from '@lucide/svelte';
 	import * as Table from '#lib/frontend/components/ui/table/index.ts';
@@ -19,7 +20,7 @@
 		columns,
 		rows,
 		loading = false,
-		emptyMessage = 'No records found.',
+		emptyMessage = m.components_data_table_empty(),
 		page = 1,
 		pageSize = 25,
 		total = 0,
@@ -116,7 +117,7 @@
 	</div>
 
 	<div class="flex flex-wrap items-center justify-between gap-2 text-sm text-muted-foreground">
-		<span>{from}–{to} of {total}</span>
+		<span>{m.components_data_table_range({ from, to, total })}</span>
 		<div class="flex items-center gap-2">
 			<Button
 				variant="outline"
@@ -125,16 +126,16 @@
 				onclick={() => onPageChange?.(page - 1)}
 			>
 				<ChevronLeft class="size-4" />
-				Previous
+				{m.common_previous()}
 			</Button>
-			<span>Page {page} of {totalPages}</span>
+			<span>{m.common_page_of({ page, total: totalPages })}</span>
 			<Button
 				variant="outline"
 				size="sm"
 				disabled={page >= totalPages || loading}
 				onclick={() => onPageChange?.(page + 1)}
 			>
-				Next
+				{m.common_next()}
 				<ChevronRight class="size-4" />
 			</Button>
 		</div>

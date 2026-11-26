@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
 	import { cn } from '#lib/frontend/utils.ts';
 
 	let { class: className = '' }: { class?: string } = $props();
@@ -10,7 +11,7 @@
 
 <a
 	href="/"
-	aria-label="Shopix home"
+	aria-label={m.components_auth_logo_home()}
 	class={cn('inline-flex items-center gap-2', className)}
 	data-name="Logo"
 >

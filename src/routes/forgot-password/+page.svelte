@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
 	import { goto } from '$app/navigation';
 	import AuthShell from '#lib/frontend/components/auth/AuthShell.svelte';
 	import * as Field from '#lib/frontend/components/ui/field/index.ts';
@@ -38,18 +39,15 @@
 	}
 </script>
 
-<AuthShell
-	title="Forgot password?"
-	description="Enter your email and we’ll send you instructions to reset your password"
->
+<AuthShell title={m.auth_forgot_title()} description={m.auth_forgot_description()}>
 	<form class="grid gap-4" onsubmit={handleSubmit}>
 		<Field.Group>
 			<Field.Field>
-				<Field.Label for="email">Email</Field.Label>
+				<Field.Label for="email">{m.common_email()}</Field.Label>
 				<Input
 					id="email"
 					type="email"
-					placeholder="john@example.com"
+					placeholder={m.auth_email_placeholder()}
 					autocomplete="email"
 					bind:value={email}
 					required
@@ -58,8 +56,7 @@
 		</Field.Group>
 		{#if sent}
 			<p class="text-sm text-muted-foreground" role="status">
-				If an account exists for that email, a reset link is on its way. Check your inbox and follow
-				the instructions.
+				{m.auth_forgot_sent()}
 			</p>
 		{/if}
 		{#if error}
@@ -70,10 +67,10 @@
 				{#if loading}
 					<Spinner />
 				{/if}
-				Reset password
+				{m.auth_forgot_submit()}
 			</Button>
 			<Button type="button" variant="outline" class="w-full" onclick={() => goto('/login')}>
-				Back to login
+				{m.auth_back_to_login()}
 			</Button>
 		</div>
 	</form>

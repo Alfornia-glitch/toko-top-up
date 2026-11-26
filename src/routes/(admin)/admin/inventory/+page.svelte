@@ -7,6 +7,9 @@
 	import { Button } from '#lib/frontend/components/ui/button/index.ts';
 	import { Input } from '#lib/frontend/components/ui/input/index.ts';
 	import { Switch } from '#lib/frontend/components/ui/switch/index.ts';
+	import { m } from '#lib/paraglide/messages.js';
+	import { errorMessage } from '#lib/frontend/i18n/index.ts';
+	import { formatDateTime } from '#lib/frontend/modules/commerce/format.ts';
 
 	type InventoryRow = {
 		id: string;
@@ -33,22 +36,22 @@
 		productName: string;
 	};
 
-	const inventoryColumns = [
-		{ key: 'productName', label: 'Product' },
-		{ key: 'variant', label: 'Variant' },
-		{ key: 'stock', label: 'Stock', class: 'text-right' },
-		{ key: 'status', label: 'Status' },
+	const inventoryColumns = $derived([
+		{ key: 'productName', label: m.admin_catalog_inventory_col_product() },
+		{ key: 'variant', label: m.admin_catalog_inventory_col_variant() },
+		{ key: 'stock', label: m.admin_catalog_inventory_col_stock(), class: 'text-right' },
+		{ key: 'status', label: m.common_status() },
 		{ key: 'actions', label: '', class: 'text-right' }
-	];
+	]);
 
-	const movementColumns = [
-		{ key: 'createdAt', label: 'When' },
-		{ key: 'productName', label: 'Product' },
-		{ key: 'variant', label: 'Variant' },
-		{ key: 'delta', label: 'Change', class: 'text-right' },
-		{ key: 'reason', label: 'Reason' },
-		{ key: 'reference', label: 'Reference' }
-	];
+	const movementColumns = $derived([
+		{ key: 'createdAt', label: m.admin_catalog_inventory_col_when() },
+		{ key: 'productName', label: m.admin_catalog_inventory_col_product() },
+		{ key: 'variant', label: m.admin_catalog_inventory_col_variant() },
+		{ key: 'delta', label: m.admin_catalog_inventory_col_change(), class: 'text-right' },
+		{ key: 'reason', label: m.admin_catalog_inventory_col_reason() },
+		{ key: 'reference', label: m.admin_catalog_inventory_col_reference() }
+	]);
 
 	let inventory = $state<InventoryRow[]>([]);
 	let loading = $state(true);
@@ -91,12 +94,13 @@
 			const response = await fetch(`/api/admin/inventory?${params.toString()}`);
 			const payload = await response.json().catch(() => ({}));
 
-			if (!response.ok) throw new Error(payload.error ?? 'Could not load inventory');
+			if (!response.ok)
+				throw new Error(errorMessage(payload, 'admin_catalog_inventory_load_failed'));
 
 			inventory = payload.data ?? [];
 			total = Number(payload.total ?? 0);
 		} catch (err) {
-			error = err instanceof Error ? err.message : 'Could not load inventory';
+			error = errorMessage(err, 'admin_catalog_inventory_load_failed');
 		} finally {
 			loading = false;
 		}
@@ -114,12 +118,13 @@
 			const response = await fetch(`/api/admin/inventory/movements?${params.toString()}`);
 			const payload = await response.json().catch(() => ({}));
 
-			if (!response.ok) throw new Error(payload.error ?? 'Could not load stock movements');
+			if (!response.ok)
+				throw new Error(errorMessage(payload, 'admin_catalog_inventory_movements_load_failed'));
 
 			movements = payload.data ?? [];
 			movementTotal = Number(payload.total ?? 0);
 		} catch (err) {
-			movementError = err instanceof Error ? err.message : 'Could not load stock movements';
+			movementError = errorMessage(err, 'admin_catalog_inventory_movements_load_failed');
 		} finally {
 			movementLoading = false;
 		}
@@ -167,34 +172,39 @@
 	}
 
 	function formatDate(value: string) {
-		const date = new Date(value);
-		if (Number.isNaN(date.getTime())) return '—';
+		return formatDateTime(value) || m.common_dash();
+	}
 
-		return new Intl.DateTimeFormat('en-US', {
-			month: 'short',
-			day: 'numeric',
-			year: 'numeric',
-			hour: '2-digit',
-			minute: '2-digit'
-		}).format(date);
+	function reasonLabel(value: string) {
+		switch (value) {
+			case 'order':
+				return m.admin_catalog_inventory_reason_order();
+			case 'order_cancelled':
+				return m.admin_catalog_inventory_reason_order_cancelled();
+			default:
+				return value;
+		}
 	}
 
 	function formatReference(type: unknown, id: unknown) {
 		if (!type) return '—';
 
-		return id ? `${String(type)} · ${String(id)}` : String(type);
+		const label =
+			String(type) === 'order' ? m.admin_catalog_inventory_reference_order() : String(type);
+
+		return id ? `${label} · ${String(id)}` : label;
 	}
 </script>
 
 <div class="space-y-6">
 	<div class="flex flex-wrap items-start justify-between gap-3">
 		<div>
-			<h1 class="text-2xl font-semibold tracking-tight">Inventory</h1>
-			<p class="text-sm text-muted-foreground">Track stock levels and adjust variants.</p>
+			<h1 class="text-2xl font-semibold tracking-tight">{m.admin_catalog_inventory_title()}</h1>
+			<p class="text-sm text-muted-foreground">{m.admin_catalog_inventory_subtitle()}</p>
 		</div>
 		<Button variant="outline" onclick={refresh} disabled={loading && movementLoading}>
 			<RefreshCw class="size-4" />
-			Refresh
+			{m.common_refresh()}
 		</Button>
 	</div>
 
@@ -211,19 +221,19 @@
 			<Search class="absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
 			<Input
 				bind:value={search}
-				placeholder="Search by product, variant or SKU"
+				placeholder={m.admin_catalog_inventory_search_placeholder()}
 				class="pl-8"
-				aria-label="Search inventory"
+				aria-label={m.admin_catalog_inventory_search_aria()}
 			/>
 		</div>
 		<Button type="submit" variant="outline">
 			<Search class="size-4" />
-			Search
+			{m.common_search()}
 		</Button>
 		<label for="low-stock" class="flex items-center gap-2 text-sm font-medium">
 			<Switch id="low-stock" bind:checked={lowStock} onCheckedChange={handleLowStock} />
 			<SlidersHorizontal class="size-4 text-muted-foreground" />
-			Low stock only
+			{m.admin_catalog_inventory_low_stock_only()}
 		</label>
 	</form>
 
@@ -231,7 +241,7 @@
 		columns={inventoryColumns}
 		rows={inventory as unknown as Record<string, unknown>[]}
 		{loading}
-		emptyMessage="No variants match the current filters."
+		emptyMessage={m.admin_catalog_inventory_empty()}
 		{page}
 		{pageSize}
 		{total}
@@ -256,7 +266,9 @@
 				<StatusBadge status={String(row.status ?? '')} />
 			{:else if column.key === 'actions'}
 				<div class="flex items-center justify-end">
-					<Button variant="outline" size="sm" onclick={() => openAdjust(row)}>Adjust</Button>
+					<Button variant="outline" size="sm" onclick={() => openAdjust(row)}>
+						{m.admin_catalog_inventory_adjust()}
+					</Button>
 				</div>
 			{:else}
 				{String(row[column.key] ?? '—')}
@@ -266,8 +278,10 @@
 
 	<div class="space-y-3">
 		<div>
-			<h2 class="text-lg font-semibold tracking-tight">Recent stock movements</h2>
-			<p class="text-sm text-muted-foreground">The latest inventory changes across all variants.</p>
+			<h2 class="text-lg font-semibold tracking-tight">
+				{m.admin_catalog_inventory_movements_title()}
+			</h2>
+			<p class="text-sm text-muted-foreground">{m.admin_catalog_inventory_movements_subtitle()}</p>
 		</div>
 
 		{#if movementError}
@@ -282,7 +296,7 @@
 			columns={movementColumns}
 			rows={movements as unknown as Record<string, unknown>[]}
 			loading={movementLoading}
-			emptyMessage="No stock movements yet."
+			emptyMessage={m.admin_catalog_inventory_movements_empty()}
 			page={movementPage}
 			pageSize={movementPageSize}
 			total={movementTotal}
@@ -307,7 +321,7 @@
 						{Number(row.delta) > 0 ? '+' : ''}{Number(row.delta)}
 					</span>
 				{:else if column.key === 'reason'}
-					{String(row.reason ?? '—')}
+					{reasonLabel(String(row.reason ?? '')) || '—'}
 				{:else if column.key === 'reference'}
 					{formatReference(row.referenceType, row.referenceId)}
 				{:else}

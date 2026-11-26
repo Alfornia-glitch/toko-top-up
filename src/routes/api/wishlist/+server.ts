@@ -24,13 +24,16 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 	try {
 		body = await request.json();
 	} catch {
-		return Response.json({ error: 'Expected a JSON body' }, { status: 400 });
+		return Response.json(
+			{ error: 'Expected a JSON body', code: 'invalid_json_body' },
+			{ status: 400 }
+		);
 	}
 
 	const parsed = wishlistAddSchema.safeParse(body);
 	if (!parsed.success) {
 		return Response.json(
-			{ error: 'Invalid wishlist item', details: parsed.error.flatten() },
+			{ error: 'Invalid wishlist item', code: 'VALIDATION_ERROR', details: parsed.error.flatten() },
 			{ status: 422 }
 		);
 	}

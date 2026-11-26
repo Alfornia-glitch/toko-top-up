@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
+	import { errorMessage, priorityLabel } from '#lib/frontend/i18n/index.ts';
 	import {
 		listOrders,
 		listTickets,
@@ -6,8 +8,7 @@
 		createTicket,
 		addTicketMessage,
 		isUnauthorized,
-		type TicketForm,
-		messageFrom
+		type TicketForm
 	} from '#lib/frontend/modules/account/index.ts';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
@@ -67,14 +68,6 @@
 		return false;
 	}
 
-	function errorMessage(cause: unknown, fallback: string): string {
-		return messageFrom(cause, fallback);
-	}
-
-	function priorityLabel(priority: string): string {
-		return priority.charAt(0).toUpperCase() + priority.slice(1);
-	}
-
 	function setPriority(value: string) {
 		form.priority = value;
 	}
@@ -88,7 +81,7 @@
 		} catch (cause) {
 			if (!redirectIfUnauthorized(cause)) {
 				selected = null;
-				detailError = errorMessage(cause, 'Could not load this support ticket');
+				detailError = errorMessage(cause, 'account_tickets_load_one_failed');
 			}
 		} finally {
 			detailLoading = false;
@@ -115,7 +108,7 @@
 			if (tickets.length > 0) await loadTicket(tickets[0].id);
 		} catch (cause) {
 			if (!redirectIfUnauthorized(cause)) {
-				error = errorMessage(cause, 'Could not load your support tickets');
+				error = errorMessage(cause, 'account_tickets_load_failed');
 			}
 		} finally {
 			loading = false;
@@ -127,7 +120,7 @@
 		formError = '';
 
 		if (!form.subject.trim() || !form.category.trim() || !form.message.trim()) {
-			formError = 'Subject, category and message are required.';
+			formError = m.account_tickets_required();
 			return;
 		}
 
@@ -148,7 +141,7 @@
 			form = { subject: '', category: '', priority: 'normal', message: '', orderId: 'none' };
 		} catch (cause) {
 			if (!redirectIfUnauthorized(cause)) {
-				formError = errorMessage(cause, 'Could not create your support ticket');
+				formError = errorMessage(cause, 'account_tickets_create_failed');
 			}
 		} finally {
 			submitting = false;
@@ -162,7 +155,7 @@
 		if (!selected) return;
 
 		if (!reply.trim()) {
-			replyError = 'Write a message before sending.';
+			replyError = m.account_tickets_reply_required();
 			return;
 		}
 
@@ -177,7 +170,7 @@
 			await refreshTickets();
 		} catch (cause) {
 			if (!redirectIfUnauthorized(cause)) {
-				replyError = errorMessage(cause, 'Could not send your message');
+				replyError = errorMessage(cause, 'account_tickets_reply_failed');
 			}
 		} finally {
 			replying = false;
@@ -211,7 +204,7 @@
 				<p
 					class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] text-[#0a0a0a]"
 				>
-					Support Tickets
+					{m.account_tickets_title()}
 				</p>
 
 				<div
@@ -225,34 +218,34 @@
 						<p
 							class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] text-[#0a0a0a]"
 						>
-							New support ticket
+							{m.account_tickets_new()}
 						</p>
 
 						<form class="flex w-full flex-col gap-[16px]" onsubmit={submitTicket}>
 							<div class="grid w-full gap-[12px] sm:grid-cols-2">
 								<div class="flex flex-col gap-[6px]">
-									<Label for="ticket-subject">Subject</Label>
+									<Label for="ticket-subject">{m.account_tickets_subject()}</Label>
 									<Input
 										id="ticket-subject"
 										bind:value={form.subject}
-										placeholder="What do you need help with?"
+										placeholder={m.account_tickets_subject_placeholder()}
 									/>
 								</div>
 
 								<div class="flex flex-col gap-[6px]">
-									<Label for="ticket-category">Category</Label>
+									<Label for="ticket-category">{m.common_category()}</Label>
 									<Input
 										id="ticket-category"
 										bind:value={form.category}
-										placeholder="Order, delivery, account"
+										placeholder={m.account_tickets_category_placeholder()}
 									/>
 								</div>
 
 								<div class="flex flex-col gap-[6px]">
-									<Label for="ticket-priority">Priority</Label>
+									<Label for="ticket-priority">{m.account_tickets_priority()}</Label>
 									<Select.Root type="single" value={form.priority} onValueChange={setPriority}>
 										<Select.Trigger id="ticket-priority" class="w-full">
-											<Select.Value placeholder="Select a priority" />
+											<Select.Value placeholder={m.account_tickets_select_priority()} />
 										</Select.Trigger>
 										<Select.Content>
 											{#each priorityOptions as option (option)}
@@ -265,18 +258,18 @@
 								</div>
 
 								<div class="flex flex-col gap-[6px]">
-									<Label for="ticket-order">Related order</Label>
+									<Label for="ticket-order">{m.account_tickets_related_order()}</Label>
 									<Select.Root
 										type="single"
 										value={form.orderId}
 										onValueChange={(value) => (form.orderId = value)}
 									>
 										<Select.Trigger id="ticket-order" class="w-full">
-											<Select.Value placeholder="No related order" />
+											<Select.Value placeholder={m.account_tickets_no_related_order()} />
 										</Select.Trigger>
 										<Select.Content>
-											<Select.Item value="none" label="No related order">
-												No related order
+											<Select.Item value="none" label={m.account_tickets_no_related_order()}>
+												{m.account_tickets_no_related_order()}
 											</Select.Item>
 											{#each orders as entry (entry.id)}
 												<Select.Item value={entry.id} label={entry.orderNumber}>
@@ -289,11 +282,11 @@
 							</div>
 
 							<div class="flex flex-col gap-[6px]">
-								<Label for="ticket-message">Message</Label>
+								<Label for="ticket-message">{m.account_tickets_message()}</Label>
 								<Textarea
 									id="ticket-message"
 									bind:value={form.message}
-									placeholder="Describe the issue in detail"
+									placeholder={m.account_tickets_message_placeholder()}
 								/>
 							</div>
 
@@ -303,7 +296,7 @@
 
 							<div>
 								<Button type="submit" disabled={submitting}>
-									{submitting ? 'Submitting' : 'Create ticket'}
+									{submitting ? m.account_shared_submitting() : m.account_tickets_create()}
 								</Button>
 							</div>
 						</form>
@@ -315,9 +308,9 @@
 						class="relative flex w-full items-center justify-center gap-3 rounded-[14px] bg-white px-[24px] py-[64px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)]"
 						data-name="Card"
 					>
-						<Spinner class="size-5" aria-label="Loading support tickets" />
+						<Spinner class="size-5" aria-label={m.account_tickets_loading()} />
 						<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
-							Loading support tickets
+							{m.account_tickets_loading()}
 						</p>
 					</div>
 				{:else if error}
@@ -336,10 +329,10 @@
 						<p
 							class="font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold text-[#0a0a0a]"
 						>
-							No support tickets yet
+							{m.account_tickets_empty_title()}
 						</p>
 						<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
-							Tickets you create will appear here with their replies.
+							{m.account_tickets_empty_description()}
 						</p>
 					</div>
 				{:else}
@@ -370,7 +363,7 @@
 											{entry.ticketNumber} · {entry.category} · {priorityLabel(entry.priority)}
 										</p>
 										<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]">
-											Updated {formatDateTime(entry.updatedAt) || '—'}
+											{m.account_tickets_updated({ date: formatDateTime(entry.updatedAt) || '—' })}
 										</p>
 									</div>
 									<div class="flex flex-col items-end gap-[4px] text-right">
@@ -393,9 +386,9 @@
 						>
 							{#if detailLoading}
 								<div class="flex items-center gap-[12px]">
-									<Spinner class="size-5" aria-label="Loading support ticket" />
+									<Spinner class="size-5" aria-label={m.account_tickets_loading_one()} />
 									<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
-										Loading support ticket
+										{m.account_tickets_loading_one()}
 									</p>
 								</div>
 							{:else if detailError}
@@ -426,7 +419,7 @@
 												<p
 													class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-[#0a0a0a]"
 												>
-													{message.senderName ?? message.senderEmail ?? 'Support'}
+													{message.senderName ?? message.senderEmail ?? m.account_tickets_support()}
 												</p>
 												<p class="font-['Geist:Regular'] text-[12px] leading-[16px] text-[#737373]">
 													{formatDateTime(message.createdAt) || '—'}
@@ -442,20 +435,24 @@
 								</div>
 
 								<form class="flex w-full flex-col gap-[8px]" onsubmit={submitReply}>
-									<Label for="ticket-reply">Reply</Label>
-									<Textarea id="ticket-reply" bind:value={reply} placeholder="Write a reply" />
+									<Label for="ticket-reply">{m.account_tickets_reply()}</Label>
+									<Textarea
+										id="ticket-reply"
+										bind:value={reply}
+										placeholder={m.account_tickets_reply_placeholder()}
+									/>
 									{#if replyError}
 										<p class="text-sm text-[#b91c1c]" role="alert">{replyError}</p>
 									{/if}
 									<div>
 										<Button type="submit" disabled={replying}>
-											{replying ? 'Sending' : 'Send reply'}
+											{replying ? m.account_tickets_sending() : m.account_tickets_send_reply()}
 										</Button>
 									</div>
 								</form>
 							{:else}
 								<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
-									Select a ticket to read the conversation.
+									{m.account_tickets_select_to_read()}
 								</p>
 							{/if}
 						</div>

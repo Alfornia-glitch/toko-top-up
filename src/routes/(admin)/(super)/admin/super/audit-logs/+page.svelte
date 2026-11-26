@@ -1,6 +1,11 @@
 <script lang="ts">
 	import { onDestroy, onMount } from 'svelte';
 	import { Eye, LoaderCircle } from '@lucide/svelte';
+	import { m } from '#lib/paraglide/messages.js';
+	import { errorMessage } from '#lib/frontend/i18n/index.ts';
+	import { auditActionLabel } from '#lib/frontend/i18n/labels.ts';
+	import { formatDateTime } from '#lib/frontend/modules/commerce/format.ts';
+	import { entityLabel } from '../entity-label.ts';
 	import DataTable from '#lib/frontend/components/admin/DataTable.svelte';
 	import { Badge } from '#lib/frontend/components/ui/badge/index.ts';
 	import { Button } from '#lib/frontend/components/ui/button/index.ts';
@@ -23,13 +28,13 @@
 		createdAt: string;
 	};
 
-	const columns = [
-		{ key: 'createdAt', label: 'Time' },
-		{ key: 'actor', label: 'Actor' },
-		{ key: 'action', label: 'Action' },
-		{ key: 'entity', label: 'Entity' },
+	const columns = $derived([
+		{ key: 'createdAt', label: m.admin_super_col_time() },
+		{ key: 'actor', label: m.admin_super_col_actor() },
+		{ key: 'action', label: m.admin_super_col_action() },
+		{ key: 'entity', label: m.admin_super_col_entity() },
 		{ key: 'actions', label: '', class: 'text-right' }
-	];
+	]);
 
 	const entityTypes = [
 		'user',
@@ -88,12 +93,12 @@
 			const response = await fetch(`/api/admin/super/audit-logs?${params.toString()}`);
 			const payload = await response.json().catch(() => ({}));
 
-			if (!response.ok) throw new Error(payload.error ?? 'Could not load audit logs');
+			if (!response.ok) throw payload;
 
 			logs = payload.data ?? [];
 			total = Number(payload.total ?? 0);
 		} catch (err) {
-			error = err instanceof Error ? err.message : 'Could not load audit logs';
+			error = errorMessage(err, 'admin_super_audit_load_failed');
 		} finally {
 			loading = false;
 		}
@@ -127,21 +132,8 @@
 		detailOpen = true;
 	}
 
-	function formatDate(value: string) {
-		const date = new Date(value);
-		if (Number.isNaN(date.getTime())) return '—';
-
-		return new Intl.DateTimeFormat('en-US', {
-			month: 'short',
-			day: 'numeric',
-			year: 'numeric',
-			hour: '2-digit',
-			minute: '2-digit'
-		}).format(date);
-	}
-
 	function formatJson(value: unknown) {
-		if (value === null || value === undefined) return '—';
+		if (value === null || value === undefined) return m.common_dash();
 
 		if (typeof value === 'string') {
 			try {
@@ -157,9 +149,9 @@
 
 <div class="space-y-6">
 	<div>
-		<h1 class="text-2xl font-semibold tracking-tight">Audit logs</h1>
+		<h1 class="text-2xl font-semibold tracking-tight">{m.admin_super_audit_title()}</h1>
 		<p class="text-sm text-muted-foreground">
-			Immutable record of administrative actions across the platform.
+			{m.admin_super_audit_subtitle()}
 		</p>
 	</div>
 
@@ -175,25 +167,29 @@
 	<Card.Root>
 		<Card.Content class="grid gap-3 sm:grid-cols-2">
 			<div class="space-y-1.5">
-				<Label for="audit-search">Search</Label>
+				<Label for="audit-search">{m.common_search()}</Label>
 				<Input
 					id="audit-search"
 					bind:value={q}
 					oninput={handleSearch}
-					placeholder="Search by action"
+					placeholder={m.admin_super_audit_search_placeholder()}
 				/>
 			</div>
 
 			<div class="space-y-1.5">
-				<Label for="audit-entity-filter">Entity</Label>
+				<Label for="audit-entity-filter">{m.admin_super_col_entity()}</Label>
 				<Select.Root type="single" value={entityFilter} onValueChange={handleEntityChange}>
 					<Select.Trigger id="audit-entity-filter" class="w-full">
-						<Select.Value placeholder="All entities" />
+						<Select.Value placeholder={m.admin_super_audit_all_entities()} />
 					</Select.Trigger>
 					<Select.Content>
-						<Select.Item value="all" label="All entities">All entities</Select.Item>
+						<Select.Item value="all" label={m.admin_super_audit_all_entities()}>
+							{m.admin_super_audit_all_entities()}
+						</Select.Item>
 						{#each entityTypes as entity (entity)}
-							<Select.Item value={entity} label={entity}>{entity}</Select.Item>
+							<Select.Item value={entity} label={entityLabel(entity)}>
+								{entityLabel(entity)}
+							</Select.Item>
 						{/each}
 					</Select.Content>
 				</Select.Root>
@@ -205,7 +201,7 @@
 		{columns}
 		rows={logs as unknown as Record<string, unknown>[]}
 		{loading}
-		emptyMessage="No audit log entries match the current filters."
+		emptyMessage={m.admin_super_audit_empty()}
 		{page}
 		{pageSize}
 		{total}
@@ -213,18 +209,20 @@
 	>
 		{#snippet cell(row, column)}
 			{#if column.key === 'createdAt'}
-				<span class="text-muted-foreground">{formatDate(String(row.createdAt ?? ''))}</span>
+				<span class="text-muted-foreground"
+					>{formatDateTime(String(row.createdAt ?? '')) || m.common_dash()}</span
+				>
 			{:else if column.key === 'actor'}
 				{#if row.actorUserId}
 					<code class="text-xs text-muted-foreground">{String(row.actorUserId)}</code>
 				{:else}
-					<span class="text-muted-foreground">system</span>
+					<span class="text-muted-foreground">{m.admin_super_actor_system()}</span>
 				{/if}
 			{:else if column.key === 'action'}
-				<code class="text-xs">{String(row.action ?? '')}</code>
+				<code class="text-xs">{auditActionLabel(String(row.action ?? ''))}</code>
 			{:else if column.key === 'entity'}
 				<div class="flex flex-col items-start gap-1">
-					<Badge variant="outline">{String(row.entityType ?? '')}</Badge>
+					<Badge variant="outline">{entityLabel(String(row.entityType ?? ''))}</Badge>
 					{#if row.entityId}
 						<code class="max-w-48 truncate text-xs text-muted-foreground">
 							{String(row.entityId)}
@@ -235,14 +233,14 @@
 				<Button
 					variant="ghost"
 					size="sm"
-					aria-label="View audit entry"
+					aria-label={m.admin_super_audit_view_entry()}
 					onclick={() => openDetail(row)}
 				>
 					<Eye class="size-4" />
-					View
+					{m.common_view()}
 				</Button>
 			{:else}
-				{String(row[column.key] ?? '—')}
+				{String(row[column.key] ?? m.common_dash())}
 			{/if}
 		{/snippet}
 	</DataTable>
@@ -251,9 +249,11 @@
 <Sheet.Root bind:open={detailOpen}>
 	<Sheet.Content class="w-full overflow-y-auto sm:max-w-lg">
 		<Sheet.Header>
-			<Sheet.Title>Audit entry</Sheet.Title>
+			<Sheet.Title>{m.admin_super_audit_entry_title()}</Sheet.Title>
 			<Sheet.Description>
-				{selected ? `${selected.action} · ${formatDate(selected.createdAt)}` : 'Entry details'}
+				{selected
+					? `${auditActionLabel(selected.action)} · ${formatDateTime(selected.createdAt)}`
+					: m.admin_super_audit_entry_details()}
 			</Sheet.Description>
 		</Sheet.Header>
 
@@ -261,17 +261,19 @@
 			<div class="space-y-4 px-4 text-sm">
 				<dl class="grid gap-3">
 					<div class="space-y-1">
-						<dt class="text-muted-foreground">Actor</dt>
-						<dd class="font-mono text-xs break-all">{selected.actorUserId ?? 'system'}</dd>
+						<dt class="text-muted-foreground">{m.admin_super_col_actor()}</dt>
+						<dd class="font-mono text-xs break-all">
+							{selected.actorUserId ?? m.admin_super_actor_system()}
+						</dd>
 					</div>
 					<div class="space-y-1">
-						<dt class="text-muted-foreground">Action</dt>
-						<dd><code class="text-xs">{selected.action}</code></dd>
+						<dt class="text-muted-foreground">{m.admin_super_col_action()}</dt>
+						<dd><code class="text-xs">{auditActionLabel(selected.action)}</code></dd>
 					</div>
 					<div class="space-y-1">
-						<dt class="text-muted-foreground">Entity</dt>
+						<dt class="text-muted-foreground">{m.admin_super_col_entity()}</dt>
 						<dd class="space-y-1">
-							<Badge variant="outline">{selected.entityType}</Badge>
+							<Badge variant="outline">{entityLabel(selected.entityType)}</Badge>
 							{#if selected.entityId}
 								<p class="font-mono text-xs break-all text-muted-foreground">
 									{selected.entityId}
@@ -280,17 +282,19 @@
 						</dd>
 					</div>
 					<div class="space-y-1">
-						<dt class="text-muted-foreground">IP address</dt>
-						<dd>{selected.ipAddress ?? '—'}</dd>
+						<dt class="text-muted-foreground">{m.admin_super_audit_ip()}</dt>
+						<dd>{selected.ipAddress ?? m.common_dash()}</dd>
 					</div>
 					<div class="space-y-1">
-						<dt class="text-muted-foreground">User agent</dt>
-						<dd class="break-words text-muted-foreground">{selected.userAgent ?? '—'}</dd>
+						<dt class="text-muted-foreground">{m.admin_super_audit_user_agent()}</dt>
+						<dd class="break-words text-muted-foreground">
+							{selected.userAgent ?? m.common_dash()}
+						</dd>
 					</div>
 				</dl>
 
 				<div class="space-y-2">
-					<h3 class="text-sm font-medium">Before</h3>
+					<h3 class="text-sm font-medium">{m.admin_super_audit_before()}</h3>
 					<pre
 						class="max-h-80 overflow-auto rounded-lg border bg-muted/40 p-3 text-xs whitespace-pre-wrap">{formatJson(
 							selected.beforeJson
@@ -298,7 +302,7 @@
 				</div>
 
 				<div class="space-y-2">
-					<h3 class="text-sm font-medium">After</h3>
+					<h3 class="text-sm font-medium">{m.admin_super_audit_after()}</h3>
 					<pre
 						class="max-h-80 overflow-auto rounded-lg border bg-muted/40 p-3 text-xs whitespace-pre-wrap">{formatJson(
 							selected.afterJson
@@ -312,7 +316,7 @@
 		{/if}
 
 		<Sheet.Footer>
-			<Button variant="outline" onclick={() => (detailOpen = false)}>Close</Button>
+			<Button variant="outline" onclick={() => (detailOpen = false)}>{m.common_close()}</Button>
 		</Sheet.Footer>
 	</Sheet.Content>
 </Sheet.Root>

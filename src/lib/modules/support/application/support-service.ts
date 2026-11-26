@@ -80,7 +80,7 @@ export function createSupportService(
 
 	async function adminDetail(id: string): Promise<AdminTicketDetail> {
 		const ticket = await repository.findTicket(id);
-		if (!ticket) throw new NotFoundError('Ticket not found');
+		if (!ticket) throw new NotFoundError('Ticket not found', { messageKey: 'ticket_not_found' });
 		const [customer] = await attachCustomers([ticket]);
 		return { ...customer!, messages: await messageViews(id) };
 	}
@@ -96,7 +96,8 @@ export function createSupportService(
 
 	async function ownedTicket(userId: string, id: string): Promise<Ticket> {
 		const ticket = await repository.findTicket(id);
-		if (!ticket || ticket.userId !== userId) throw new NotFoundError('Support ticket not found');
+		if (!ticket || ticket.userId !== userId)
+			throw new NotFoundError('Support ticket not found', { messageKey: 'ticket_not_found' });
 		return ticket;
 	}
 
@@ -193,7 +194,8 @@ export function createSupportService(
 		updateTicket: (id, input, actor) =>
 			run(async () => {
 				assertPermission(actor, 'admin:access');
-				if (!(await repository.findTicket(id))) throw new NotFoundError('Ticket not found');
+				if (!(await repository.findTicket(id)))
+					throw new NotFoundError('Ticket not found', { messageKey: 'ticket_not_found' });
 				await repository.updateTicket(id, {
 					...(input.status ? { status: input.status } : {}),
 					...(input.priority ? { priority: input.priority } : {}),
@@ -208,7 +210,8 @@ export function createSupportService(
 		addAdminMessage: (id, body, attachmentsJson, actor) =>
 			run(async () => {
 				const admin = assertPermission(actor, 'admin:access');
-				if (!(await repository.findTicket(id))) throw new NotFoundError('Ticket not found');
+				if (!(await repository.findTicket(id)))
+					throw new NotFoundError('Ticket not found', { messageKey: 'ticket_not_found' });
 				await repository.insertMessage(newMessage(id, admin.id, body, attachmentsJson ?? null));
 				return adminDetail(id);
 			})

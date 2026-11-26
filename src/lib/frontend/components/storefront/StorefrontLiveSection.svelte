@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
 	import ImagePlaceholder from '#lib/frontend/components/ui/ImagePlaceholder.svelte';
 	import StorefrontProductCard from '#lib/frontend/components/storefront/StorefrontProductCard.svelte';
 	import { home } from '#lib/frontend/modules/commerce/home.svelte.ts';
@@ -13,15 +14,15 @@
 						<h2
 							class="text-[30px] leading-[36px] font-bold text-[#0a0a0a] max-[480px]:text-2xl max-[480px]:leading-8"
 						>
-							Featured Products
+							{m.components_live_featured_title()}
 						</h2>
-						<p class="text-sm text-[#737373]">Hand-picked favourites from the live catalog</p>
+						<p class="text-sm text-[#737373]">{m.components_live_featured_subtitle()}</p>
 					</div>
 					<a
 						href="/products?featured=true"
 						class="shrink-0 text-sm font-medium text-[#0a0a0a] transition hover:text-[#525252]"
 					>
-						View all
+						{m.common_view_all()}
 					</a>
 				</div>
 				<div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
@@ -33,7 +34,7 @@
 
 			{#if home.brands.length > 0}
 				<div class="flex flex-col gap-4">
-					<h3 class="text-xl font-bold text-[#0a0a0a]">Shop by Brand</h3>
+					<h3 class="text-xl font-bold text-[#0a0a0a]">{m.components_shop_by_brand()}</h3>
 					<div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
 						{#each home.brands as brand (brand.id)}
 							<a

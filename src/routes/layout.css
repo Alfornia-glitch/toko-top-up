@@ -311,16 +311,9 @@ button {
 	}
 
 	/* Product details layout */
-	.commerce-app [data-name='Phone case image'],
-	.commerce-app [data-node-id='I1:21686;31919:11168'] {
+	.commerce-app [data-name='Phone case image'] {
 		flex-direction: column !important;
 		padding-inline: 16px !important;
-	}
-
-	.commerce-app [data-node-id='I1:21686;31919:11169'] {
-		width: 100% !important;
-		height: auto !important;
-		min-width: 0 !important;
 	}
 
 	/* Form & Auth cards */

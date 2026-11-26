@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
 	import type { Snippet } from 'svelte';
 
 	let {
@@ -22,7 +23,7 @@
 				<div
 					class="relative flex shrink-0 flex-col justify-center font-['Geist:Medium'] text-[14px] leading-[0] font-medium [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
 				>
-					<p class="leading-[20px]">Previous</p>
+					<p class="leading-[20px]">{m.common_previous()}</p>
 				</div>
 			</div>
 			<div
@@ -70,7 +71,7 @@
 				<div
 					class="relative flex shrink-0 flex-col justify-center font-['Geist:Medium'] text-[14px] leading-[0] font-medium [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
 				>
-					<p class="leading-[20px]">Next</p>
+					<p class="leading-[20px]">{m.common_next()}</p>
 				</div>
 				<div class="relative size-[16px] shrink-0" data-name="Left icon">
 					<img alt="" class="absolute inset-0 block size-full max-w-none" src="/assets/6b5ef.svg" />

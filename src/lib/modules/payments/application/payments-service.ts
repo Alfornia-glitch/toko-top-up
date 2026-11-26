@@ -142,7 +142,8 @@ export function createPaymentsService(deps: PaymentsDependencies): PaymentsServi
 		const user = assertActor(actor);
 		const found = (await repository.findPayment(ref)) ?? (await repository.findPaymentByOrder(ref));
 		// Someone else's payment reads as missing so ids cannot be probed.
-		if (!found || found.userId !== user.id) throw new NotFoundError('Payment not found');
+		if (!found || found.userId !== user.id)
+			throw new NotFoundError('Payment not found', { messageKey: 'payment_not_found' });
 		return expireIfLapsed(found);
 	}
 
@@ -166,7 +167,7 @@ export function createPaymentsService(deps: PaymentsDependencies): PaymentsServi
 
 	async function requirePayment(id: string): Promise<PaymentRecord> {
 		const found = await repository.findPayment(id);
-		if (!found) throw new NotFoundError('Payment not found');
+		if (!found) throw new NotFoundError('Payment not found', { messageKey: 'payment_not_found' });
 		return found;
 	}
 
@@ -176,7 +177,10 @@ export function createPaymentsService(deps: PaymentsDependencies): PaymentsServi
 
 			if (payment.status !== 'paid') {
 				if (payment.status !== 'awaiting_verification') {
-					throw new UnprocessableError(`Cannot approve a payment that is ${payment.status}`);
+					throw new UnprocessableError(`Cannot approve a payment that is ${payment.status}`, {
+						messageKey: 'payment_approve_invalid_status',
+						params: { status: payment.status }
+					});
 				}
 				const now = clock.now();
 				const approved = await repository.approve(
@@ -189,7 +193,9 @@ export function createPaymentsService(deps: PaymentsDependencies): PaymentsServi
 				if (!approved) {
 					const current = await requirePayment(paymentId);
 					if (current.status !== 'paid') {
-						throw new ConflictError('Payment state changed, reload and try again');
+						throw new ConflictError('Payment state changed, reload and try again', {
+							messageKey: 'payment_state_changed'
+						});
 					}
 				}
 			}
@@ -207,20 +213,30 @@ export function createPaymentsService(deps: PaymentsDependencies): PaymentsServi
 				const order = unwrap(await orders.orders.getMyOrder(orderId, actor));
 
 				if (order.status !== 'pending') {
-					throw new UnprocessableError(`Order is ${order.status} and cannot be paid`);
+					throw new UnprocessableError(`Order is ${order.status} and cannot be paid`, {
+						messageKey: 'order_not_payable',
+						params: { status: order.status }
+					});
 				}
-				if (order.currency !== 'IDR') throw new UnprocessableError('QRIS only supports IDR orders');
+				if (order.currency !== 'IDR')
+					throw new UnprocessableError('QRIS only supports IDR orders', {
+						messageKey: 'payment_qris_idr_only'
+					});
 				// The amount always comes from the stored order, never from the client.
 				const baseAmount = order.grandTotal;
 				if (!Number.isInteger(baseAmount) || baseAmount <= 0) {
-					throw new UnprocessableError('Order has nothing to pay');
+					throw new UnprocessableError('Order has nothing to pay', {
+						messageKey: 'order_nothing_to_pay'
+					});
 				}
 
 				const existing = await repository.findPaymentByOrder(order.id);
 				if (existing) {
 					const current = await expireIfLapsed(existing);
 					if (current.status !== 'expired') return customerView(current);
-					throw new UnprocessableError('The payment window for this order has expired');
+					throw new UnprocessableError('The payment window for this order has expired', {
+						messageKey: 'payment_window_expired'
+					});
 				}
 
 				const now = clock.now();
@@ -246,7 +262,9 @@ export function createPaymentsService(deps: PaymentsDependencies): PaymentsServi
 						if (!(error instanceof OpenAmountCollisionError)) throw error;
 					}
 				}
-				throw new ConflictError('Could not allocate a unique payment amount, please retry');
+				throw new ConflictError('Could not allocate a unique payment amount, please retry', {
+					messageKey: 'payment_amount_allocation_failed'
+				});
 			}),
 
 		getMyPayment: (ref, actor) => run(async () => customerView(await ownPayment(ref, actor))),
@@ -257,11 +275,17 @@ export function createPaymentsService(deps: PaymentsDependencies): PaymentsServi
 				const payment = await ownPayment(paymentId, actor);
 
 				if (payment.status === 'expired' || payment.expiresAt < clock.now()) {
-					throw new UnprocessableError('The payment window has expired');
+					throw new UnprocessableError('The payment window has expired', {
+						messageKey: 'payment_window_expired'
+					});
 				}
 				if (!OPEN.includes(payment.status)) {
 					throw new UnprocessableError(
-						`Proof cannot be uploaded while the payment is ${payment.status}`
+						`Proof cannot be uploaded while the payment is ${payment.status}`,
+						{
+							messageKey: 'payment_proof_invalid_status',
+							params: { status: payment.status }
+						}
 					);
 				}
 
@@ -270,20 +294,29 @@ export function createPaymentsService(deps: PaymentsDependencies): PaymentsServi
 					new Date(clock.now().getTime() - 3_600_000)
 				);
 				if (recent >= PROOF_UPLOADS_PER_HOUR) {
-					throw new RateLimitedError('Too many uploads for this order, try again later');
+					throw new RateLimitedError('Too many uploads for this order, try again later', {
+						messageKey: 'payment_proof_rate_limited'
+					});
 				}
 
 				if (file.size > PROOF_MAX_BYTES || file.bytes.length > PROOF_MAX_BYTES) {
-					throw new ValidationError('Proof image must be 5 MB or smaller');
+					throw new ValidationError('Proof image must be 5 MB or smaller', {
+						messageKey: 'payment_proof_too_large'
+					});
 				}
 				const mime = sniffMime(file.bytes);
-				if (!mime) throw new ValidationError('Proof must be a JPG, PNG or WebP image');
+				if (!mime)
+					throw new ValidationError('Proof must be a JPG, PNG or WebP image', {
+						messageKey: 'payment_proof_bad_type'
+					});
 
 				// Hash the cleaned bytes so re-saving the same screenshot with new metadata still matches.
 				const clean = stripMetadata(file.bytes, mime);
 				const hash = sha256(clean);
 				if (await repository.hashExists(hash)) {
-					throw new ConflictError('This proof image has already been submitted');
+					throw new ConflictError('This proof image has already been submitted', {
+						messageKey: 'payment_proof_duplicate'
+					});
 				}
 
 				const path = await storage.save(`${newId()}.${EXTENSIONS[mime]}`, clean);
@@ -306,7 +339,9 @@ export function createPaymentsService(deps: PaymentsDependencies): PaymentsServi
 					);
 				} catch (error) {
 					if (error instanceof DuplicateProofError) {
-						throw new ConflictError('This proof image has already been submitted');
+						throw new ConflictError('This proof image has already been submitted', {
+							messageKey: 'payment_proof_duplicate'
+						});
 					}
 					throw error;
 				}
@@ -318,12 +353,14 @@ export function createPaymentsService(deps: PaymentsDependencies): PaymentsServi
 				const user = assertActor(actor);
 				const payment = await requirePayment(paymentId);
 				const isAdmin = user.permissions.has('admin:access');
-				if (!isAdmin && payment.userId !== user.id) throw new NotFoundError('Proof not found');
+				if (!isAdmin && payment.userId !== user.id)
+					throw new NotFoundError('Proof not found', { messageKey: 'payment_proof_not_found' });
 
 				const proof = proofId
 					? await repository.findProof(proofId)
 					: await repository.latestProof(paymentId);
-				if (!proof || proof.paymentId !== paymentId) throw new NotFoundError('Proof not found');
+				if (!proof || proof.paymentId !== paymentId)
+					throw new NotFoundError('Proof not found', { messageKey: 'payment_proof_not_found' });
 
 				const extension = proof.filePath.split('.').pop() ?? '';
 				return {
@@ -391,13 +428,18 @@ export function createPaymentsService(deps: PaymentsDependencies): PaymentsServi
 			run(async () => {
 				const admin = assertPermission(actor, 'admin:access');
 				if (!(REJECT_REASONS as readonly string[]).includes(input.reason)) {
-					throw new ValidationError('Choose a valid rejection reason');
+					throw new ValidationError('Choose a valid rejection reason', {
+						messageKey: 'payment_reject_reason_invalid'
+					});
 				}
 				const reason = input.reason as RejectReason;
 				const note = input.note?.trim() || null;
 				const payment = await requirePayment(paymentId);
 				if (payment.status !== 'awaiting_verification') {
-					throw new UnprocessableError(`Cannot reject a payment that is ${payment.status}`);
+					throw new UnprocessableError(`Cannot reject a payment that is ${payment.status}`, {
+						messageKey: 'payment_reject_invalid_status',
+						params: { status: payment.status }
+					});
 				}
 
 				const rejected = await repository.reject(
@@ -408,7 +450,10 @@ export function createPaymentsService(deps: PaymentsDependencies): PaymentsServi
 					clock.now(),
 					audit(paymentId, 'rejected', admin.id, note ? `${reason}: ${note}` : reason)
 				);
-				if (!rejected) throw new ConflictError('Payment state changed, reload and try again');
+				if (!rejected)
+					throw new ConflictError('Payment state changed, reload and try again', {
+						messageKey: 'payment_state_changed'
+					});
 
 				// No mailer exists, so the customer is told through the order timeline.
 				unwrap(

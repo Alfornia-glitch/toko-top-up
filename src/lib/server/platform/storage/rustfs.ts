@@ -73,12 +73,16 @@ function toMediaError(error: unknown): MediaError {
 	});
 
 	if (code === 'EEXIST' || code === 'PreconditionFailed' || status === 409) {
-		return new MediaError(409, 'A file with that name already exists');
+		return new MediaError(409, 'A file with that name already exists', {
+			messageKey: 'storage_file_exists'
+		});
 	}
 
 	if (code === 'EntityTooLarge' || status === 413) {
-		return new MediaError(413, 'File too large for the storage bucket');
+		return new MediaError(413, 'File too large for the storage bucket', {
+			messageKey: 'storage_bucket_file_too_large'
+		});
 	}
 
-	return new MediaError(502, 'Storage request failed');
+	return new MediaError(502, 'Storage request failed', { messageKey: 'storage_request_failed' });
 }

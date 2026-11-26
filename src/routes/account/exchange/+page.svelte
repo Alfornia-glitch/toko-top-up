@@ -1,11 +1,12 @@
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
+	import { errorMessage } from '#lib/frontend/i18n/index.ts';
 	import {
 		listOrders,
 		getOrder,
 		createReturn,
 		isUnauthorized,
-		type ReturnItemForm,
-		messageFrom
+		type ReturnItemForm
 	} from '#lib/frontend/modules/account/index.ts';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
@@ -33,20 +34,20 @@
 		ReturnDetail
 	} from '#lib/frontend/modules/commerce/models.ts';
 
-	const reasonOptions = [
-		'Wrong size',
-		'Defective/damaged item',
-		'Wrong item received',
-		'Don’t like the product',
-		'Other'
-	];
+	const reasonOptions = $derived([
+		m.account_shared_reason_wrong_size(),
+		m.account_shared_reason_defective(),
+		m.account_shared_reason_wrong_item(),
+		m.account_shared_reason_dislike(),
+		m.account_shared_reason_other()
+	]);
 
-	const resolutionOptions = [
-		{ value: 'none', label: 'No preference' },
-		{ value: 'original_payment', label: 'Original payment method' },
-		{ value: 'gift_card', label: 'Gift card' },
-		{ value: 'card', label: 'Credit or Debit card' }
-	];
+	const resolutionOptions = $derived([
+		{ value: 'none', label: m.account_shared_resolution_none() },
+		{ value: 'original_payment', label: m.account_shared_resolution_original_payment() },
+		{ value: 'gift_card', label: m.account_shared_resolution_gift_card() },
+		{ value: 'card', label: m.account_shared_resolution_card() }
+	]);
 
 	let orders = $state<OrderSummary[]>([]);
 	let selectedOrder = $state<OrderDetail | null>(null);
@@ -78,10 +79,6 @@
 		return false;
 	}
 
-	function errorMessage(cause: unknown, fallback: string): string {
-		return messageFrom(cause, fallback);
-	}
-
 	async function selectOrder(value: string) {
 		selectedOrderNumber = value;
 		selectedOrder = null;
@@ -100,7 +97,7 @@
 			}
 		} catch (cause) {
 			if (!redirectIfUnauthorized(cause)) {
-				formError = errorMessage(cause, 'Could not load the items for this order');
+				formError = errorMessage(cause, 'account_shared_load_order_items_failed');
 			}
 		} finally {
 			orderLoading = false;
@@ -117,7 +114,7 @@
 			if (orders.length > 0) await selectOrder(orders[0].orderNumber);
 		} catch (cause) {
 			if (!redirectIfUnauthorized(cause)) {
-				error = errorMessage(cause, 'Could not load your orders');
+				error = errorMessage(cause, 'account_shared_load_orders_failed');
 			}
 		} finally {
 			loading = false;
@@ -129,12 +126,12 @@
 		formError = '';
 
 		if (!form.orderItemId) {
-			formError = 'Select the item you want to exchange.';
+			formError = m.account_exchange_select_item();
 			return;
 		}
 
 		if (!form.reason.trim()) {
-			formError = 'Tell us why you want to exchange this item.';
+			formError = m.account_exchange_reason_required();
 			return;
 		}
 
@@ -150,7 +147,7 @@
 			});
 		} catch (cause) {
 			if (!redirectIfUnauthorized(cause)) {
-				formError = errorMessage(cause, 'Could not submit your exchange request');
+				formError = errorMessage(cause, 'account_exchange_submit_failed');
 			}
 		} finally {
 			submitting = false;
@@ -194,9 +191,9 @@
 						class="relative flex w-full items-center justify-center gap-3 rounded-[14px] bg-white px-[24px] py-[64px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)]"
 						data-name="Card"
 					>
-						<Spinner class="size-5" aria-label="Loading orders" />
+						<Spinner class="size-5" aria-label={m.account_shared_loading_orders()} />
 						<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
-							Loading orders
+							{m.account_shared_loading_orders()}
 						</p>
 					</div>
 				{:else if error}
@@ -215,16 +212,16 @@
 						<p
 							class="font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold text-[#0a0a0a]"
 						>
-							No orders yet
+							{m.account_shared_no_orders_yet()}
 						</p>
 						<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
-							You need an order before you can request an exchange.
+							{m.account_exchange_need_order()}
 						</p>
 						<a
 							href="/products"
 							class="rounded-[8px] bg-[#171717] px-[16px] py-[10px] font-['Geist:Medium'] text-[14px] leading-[20px] font-medium text-[#fafafa]"
 						>
-							Browse products
+							{m.common_browse_products()}
 						</a>
 					</div>
 				{:else if created}
@@ -239,14 +236,14 @@
 							<p
 								class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] text-[#0a0a0a]"
 							>
-								Exchange requested
+								{m.account_exchange_requested()}
 							</p>
 							<div class="flex w-full flex-wrap items-center gap-[8px]">
 								<Badge variant="outline">
 									{statusLabel(RETURN_STATUS_LABELS, created.status)}
 								</Badge>
 								<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
-									Order #{created.orderNumber}
+									{m.account_shared_order_number({ orderNumber: created.orderNumber })}
 								</p>
 							</div>
 							<div class="flex w-full flex-col gap-[4px]">
@@ -256,20 +253,22 @@
 									{created.productName}
 								</p>
 								<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]">
-									SKU: {created.sku}
+									{m.account_shared_sku({ sku: created.sku })}
 								</p>
 								<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]">
 									{created.reason}
 								</p>
 							</div>
 							<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]">
-								We will contact you once the exchange is approved.
+								{m.account_exchange_approval_notice()}
 							</p>
 							<div class="flex flex-wrap items-center gap-[12px]">
 								<Button href="/account/returns-refunds" data-name="Solid Button">
-									View returns &amp; refunds
+									{m.account_shared_view_returns_refunds()}
 								</Button>
-								<Button variant="outline" onclick={startAnother}>Request another</Button>
+								<Button variant="outline" onclick={startAnother}
+									>{m.account_shared_request_another()}</Button
+								>
 							</div>
 						</div>
 					</div>
@@ -291,7 +290,7 @@
 									<p
 										class="relative shrink-0 font-['Geist:Medium'] text-[14px] leading-[20px] font-medium [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
 									>
-										Exchange
+										{m.account_shared_tab_exchange()}
 									</p>
 								</a>
 								<a
@@ -302,7 +301,7 @@
 									<p
 										class="relative shrink-0 font-['Geist:Medium'] text-[14px] leading-[20px] font-medium [word-break:break-word] whitespace-nowrap text-[#0a0a0a] opacity-60"
 									>
-										Return
+										{m.account_shared_tab_return()}
 									</p>
 								</a>
 							</div>
@@ -310,10 +309,10 @@
 
 						{#if orders.length > 1}
 							<div class="flex w-full flex-col gap-[6px] sm:max-w-[320px]">
-								<Label for="exchange-order">Order</Label>
+								<Label for="exchange-order">{m.common_order()}</Label>
 								<Select.Root type="single" value={selectedOrderNumber} onValueChange={selectOrder}>
 									<Select.Trigger id="exchange-order" class="w-full">
-										<Select.Value placeholder="Select an order" />
+										<Select.Value placeholder={m.account_shared_select_order()} />
 									</Select.Trigger>
 									<Select.Content>
 										{#each orders as entry (entry.id)}
@@ -343,7 +342,7 @@
 											<p
 												class="relative font-['Geist:Medium'] text-[14px] leading-[20px] font-medium [word-break:break-word] text-[#171717]"
 											>
-												Order #{selectedOrder.orderNumber}
+												{m.account_shared_order_number({ orderNumber: selectedOrder.orderNumber })}
 											</p>
 											<p class="font-['Geist:Regular'] text-[12px] leading-[16px] text-[#737373]">
 												{formatDate(selectedOrder.placedAt)}
@@ -356,14 +355,14 @@
 
 									{#if orderLoading}
 										<div class="flex items-center gap-[12px]">
-											<Spinner class="size-5" aria-label="Loading order items" />
+											<Spinner class="size-5" aria-label={m.account_shared_loading_order_items()} />
 											<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]">
-												Loading items
+												{m.account_shared_loading_items()}
 											</p>
 										</div>
 									{:else if selectedOrder.items.length === 0}
 										<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]">
-											This order has no items to exchange.
+											{m.account_exchange_no_items()}
 										</p>
 									{:else}
 										<RadioGroup.Root
@@ -392,7 +391,7 @@
 															<span
 																class="text-center font-['Geist:Regular'] text-[12px] leading-[16px] text-[#737373]"
 															>
-																No image
+																{m.account_shared_no_image()}
 															</span>
 														{/if}
 													</div>
@@ -405,15 +404,15 @@
 														<p
 															class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]"
 														>
-															SKU: {item.sku}
+															{m.account_shared_sku({ sku: item.sku })}
 														</p>
 														<p
 															class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]"
 														>
-															Qty: {item.quantity} · {formatMoney(
-																item.unitPrice,
-																selectedOrder.currency
-															)}
+															{m.account_shared_qty_price({
+																quantity: item.quantity,
+																price: formatMoney(item.unitPrice, selectedOrder.currency)
+															})}
 														</p>
 													</div>
 													<p
@@ -431,7 +430,7 @@
 										>
 											<div class="flex w-full items-center justify-between gap-[12px]">
 												<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
-													Subtotal
+													{m.common_subtotal()}
 												</p>
 												<p
 													class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-[#0a0a0a]"
@@ -441,7 +440,7 @@
 											</div>
 											<div class="flex w-full items-center justify-between gap-[12px]">
 												<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
-													Discount
+													{m.common_discount()}
 												</p>
 												<p
 													class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-[#0a0a0a]"
@@ -451,7 +450,7 @@
 											</div>
 											<div class="flex w-full items-center justify-between gap-[12px]">
 												<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
-													Shipment cost
+													{m.account_shared_shipping_cost()}
 												</p>
 												<p
 													class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-[#0a0a0a]"
@@ -465,7 +464,7 @@
 												<p
 													class="font-['Geist:SemiBold'] text-[18px] leading-[28px] font-semibold text-[#0a0a0a]"
 												>
-													Grand Total
+													{m.account_shared_grand_total()}
 												</p>
 												<p
 													class="font-['Geist:SemiBold'] text-[18px] leading-[28px] font-semibold text-[#0a0a0a]"
@@ -490,7 +489,7 @@
 								<p
 									class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] text-[#0a0a0a]"
 								>
-									Why do you want to exchange this item?
+									{m.account_exchange_why()}
 								</p>
 								<RadioGroup.Root
 									bind:value={form.reason}
@@ -519,12 +518,12 @@
 							data-name="Message Container"
 						>
 							<Label for="exchange-note" class="text-[16px] leading-[24px] font-medium">
-								Note (optional)
+								{m.account_shared_note_optional()}
 							</Label>
 							<Textarea
 								id="exchange-note"
 								bind:value={form.note}
-								placeholder="Anything else we should know about this exchange?"
+								placeholder={m.account_exchange_note_placeholder()}
 							/>
 						</div>
 
@@ -535,7 +534,7 @@
 							<p
 								class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] text-[#0a0a0a]"
 							>
-								Preferred resolution (optional)
+								{m.account_exchange_resolution()}
 							</p>
 							<RadioGroup.Root
 								bind:value={form.resolution}
@@ -561,7 +560,7 @@
 						<p
 							class="relative w-full shrink-0 font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-[#16a34a]"
 						>
-							Your item will be picked up within 2-3 days.
+							{m.account_shared_pickup_notice()}
 						</p>
 
 						{#if formError}
@@ -574,7 +573,7 @@
 							disabled={submitting || !selectedOrder}
 							data-name="Solid Button"
 						>
-							{submitting ? 'Submitting' : 'Confirm Exchange'}
+							{submitting ? m.account_shared_submitting() : m.account_exchange_confirm()}
 						</Button>
 					</form>
 				{/if}

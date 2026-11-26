@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
 	import { Button } from '#lib/frontend/components/ui/button/index.ts';
 	import * as Carousel from '#lib/frontend/components/ui/carousel/index.ts';
 	import ImagePlaceholder from '#lib/frontend/components/ui/ImagePlaceholder.svelte';
@@ -15,7 +16,7 @@
 </script>
 
 {#snippet tile(testimonial: Testimonial)}
-	{@const label = testimonial.caption ?? 'Foto pelanggan'}
+	{@const label = testimonial.caption ?? m.components_landing_testimonials_photo()}
 	<svelte:element
 		this={testimonial.link ? 'a' : 'div'}
 		href={testimonial.link ?? undefined}
@@ -52,7 +53,9 @@
 		class="flex w-full flex-col px-8"
 	>
 		<div class="flex w-full items-center gap-[16px]">
-			<p class="min-w-px flex-1 font-['Geist:Bold'] text-xl font-bold">Ulasan Pelanggan</p>
+			<p class="min-w-px flex-1 font-['Geist:Bold'] text-xl font-bold">
+				{m.components_landing_testimonials_title()}
+			</p>
 			{#if home.testimonials.length}
 				<div class="flex items-center gap-[8px]">
 					<Carousel.Previous variant="outline" size="icon" class={controlClass} />
@@ -73,7 +76,7 @@
 	{#if instagram}
 		<Button variant="outline" href={instagram} target="_blank" rel="noreferrer" class="h-9 px-4">
 			<img loading="lazy" decoding="async" alt="" class="size-4" src={imgLeftIcon5} />
-			Ikuti kami di Instagram
+			{m.components_landing_testimonials_instagram()}
 		</Button>
 	{/if}
 </div>

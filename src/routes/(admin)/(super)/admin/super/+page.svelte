@@ -16,6 +16,11 @@
 	import * as Table from '#lib/frontend/components/ui/table/index.ts';
 	import { Skeleton } from '#lib/frontend/components/ui/skeleton/index.ts';
 	import StatCard from '#lib/frontend/components/admin/StatCard.svelte';
+	import { m } from '#lib/paraglide/messages.js';
+	import { errorMessage } from '#lib/frontend/i18n/index.ts';
+	import { auditActionLabel } from '#lib/frontend/i18n/labels.ts';
+	import { formatDateTime } from '#lib/frontend/modules/commerce/format.ts';
+	import { entityLabel } from './entity-label.ts';
 
 	type Stats = {
 		users: number;
@@ -42,55 +47,43 @@
 		icon: Component<{ class?: string }>;
 	};
 
-	const quickLinks: QuickLink[] = [
+	const quickLinks: QuickLink[] = $derived([
 		{
 			href: '/admin/super/settings',
-			title: 'Settings',
-			description: 'Key/value platform configuration.',
+			title: m.common_settings(),
+			description: m.admin_super_link_settings_desc(),
 			icon: Settings
 		},
 		{
 			href: '/admin/super/integrations',
-			title: 'Integrations',
-			description: 'Provider and credential status.',
+			title: m.admin_super_integrations_title(),
+			description: m.admin_super_link_integrations_desc(),
 			icon: Plug
 		},
 		{
 			href: '/admin/super/storage',
-			title: 'Storage',
-			description: 'Media usage and recent uploads.',
+			title: m.admin_super_storage_title(),
+			description: m.admin_super_link_storage_desc(),
 			icon: Database
 		},
 		{
 			href: '/admin/super/system',
-			title: 'System',
-			description: 'Runtime, providers and record counts.',
+			title: m.admin_super_system_title(),
+			description: m.admin_super_link_system_desc(),
 			icon: Server
 		},
 		{
 			href: '/admin/super/danger',
-			title: 'Danger zone',
-			description: 'Destructive maintenance actions.',
+			title: m.admin_super_danger_title(),
+			description: m.admin_super_link_danger_desc(),
 			icon: AlertTriangle
 		}
-	];
+	]);
 
 	let stats = $state<Stats | null>(null);
 	let logs = $state<AuditRow[]>([]);
 	let loading = $state(true);
 	let error = $state('');
-
-	function formatDate(value: string) {
-		const date = new Date(value);
-		if (Number.isNaN(date.getTime())) return '—';
-
-		return new Intl.DateTimeFormat('en-US', {
-			month: 'short',
-			day: 'numeric',
-			hour: '2-digit',
-			minute: '2-digit'
-		}).format(date);
-	}
 
 	onMount(() => {
 		void load();
@@ -108,13 +101,13 @@
 			const statsPayload = await statsResponse.json().catch(() => ({}));
 			const auditPayload = await auditResponse.json().catch(() => ({}));
 
-			if (!statsResponse.ok) throw new Error(statsPayload.error ?? 'Could not load stats');
-			if (!auditResponse.ok) throw new Error(auditPayload.error ?? 'Could not load audit logs');
+			if (!statsResponse.ok) throw statsPayload;
+			if (!auditResponse.ok) throw auditPayload;
 
 			stats = statsPayload.data;
 			logs = auditPayload.data ?? [];
 		} catch (err) {
-			error = err instanceof Error ? err.message : 'Could not load overview';
+			error = errorMessage(err, 'admin_super_overview_load_failed');
 		} finally {
 			loading = false;
 		}
@@ -123,8 +116,8 @@
 
 <div class="space-y-6">
 	<div>
-		<h1 class="text-2xl font-semibold tracking-tight">Superadmin overview</h1>
-		<p class="text-sm text-muted-foreground">Platform-wide health and recent activity.</p>
+		<h1 class="text-2xl font-semibold tracking-tight">{m.admin_super_overview_title()}</h1>
+		<p class="text-sm text-muted-foreground">{m.admin_super_overview_subtitle()}</p>
 	</div>
 
 	{#if error}
@@ -142,15 +135,40 @@
 		<Skeleton class="h-64 w-full rounded-xl" />
 	{:else if stats}
 		<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-			<StatCard title="Users" value={stats.users} hint="Registered accounts" icon={Users} />
-			<StatCard title="Admins" value={stats.admins} hint="Admin role" icon={UserCog} />
-			<StatCard title="Orders" value={stats.orders} hint="All time" icon={ShoppingCart} />
-			<StatCard title="Paid orders" value={stats.paidOrders} hint="Settled" icon={Package} />
-			<StatCard title="Products" value={stats.products} hint="In catalog" icon={Package} />
 			<StatCard
-				title="Audit entries"
+				title={m.admin_super_stat_users()}
+				value={stats.users}
+				hint={m.admin_super_stat_users_hint()}
+				icon={Users}
+			/>
+			<StatCard
+				title={m.admin_super_stat_admins()}
+				value={stats.admins}
+				hint={m.admin_super_stat_admins_hint()}
+				icon={UserCog}
+			/>
+			<StatCard
+				title={m.common_orders()}
+				value={stats.orders}
+				hint={m.admin_super_stat_all_time()}
+				icon={ShoppingCart}
+			/>
+			<StatCard
+				title={m.admin_super_stat_paid_orders()}
+				value={stats.paidOrders}
+				hint={m.admin_super_stat_paid_orders_hint()}
+				icon={Package}
+			/>
+			<StatCard
+				title={m.common_products()}
+				value={stats.products}
+				hint={m.admin_super_stat_in_catalog()}
+				icon={Package}
+			/>
+			<StatCard
+				title={m.admin_super_stat_audit_entries()}
 				value={stats.auditEntries}
-				hint="Logged actions"
+				hint={m.admin_super_stat_audit_entries_hint()}
 				icon={ScrollText}
 			/>
 		</div>
@@ -158,41 +176,49 @@
 		<Card.Root>
 			<Card.Header class="flex flex-row items-start justify-between gap-3 space-y-0">
 				<div>
-					<Card.Title>Recent audit activity</Card.Title>
-					<Card.Description>The latest recorded admin actions.</Card.Description>
+					<Card.Title>{m.admin_super_overview_recent_title()}</Card.Title>
+					<Card.Description>{m.admin_super_overview_recent_desc()}</Card.Description>
 				</div>
-				<a href="/admin/super/audit-logs" class="text-sm font-medium hover:underline"> View all </a>
+				<a href="/admin/super/audit-logs" class="text-sm font-medium hover:underline">
+					{m.common_view_all()}
+				</a>
 			</Card.Header>
 			<Card.Content>
 				<Table.Root>
 					<Table.Header>
 						<Table.Row>
-							<Table.Head>Action</Table.Head>
-							<Table.Head>Entity</Table.Head>
-							<Table.Head>Entity ID</Table.Head>
-							<Table.Head>Actor</Table.Head>
-							<Table.Head>When</Table.Head>
+							<Table.Head>{m.admin_super_col_action()}</Table.Head>
+							<Table.Head>{m.admin_super_col_entity()}</Table.Head>
+							<Table.Head>{m.admin_super_col_entity_id()}</Table.Head>
+							<Table.Head>{m.admin_super_col_actor()}</Table.Head>
+							<Table.Head>{m.admin_super_col_when()}</Table.Head>
 						</Table.Row>
 					</Table.Header>
 					<Table.Body>
 						{#if logs.length === 0}
 							<Table.Row>
 								<Table.Cell colspan={5} class="h-24 text-center text-muted-foreground">
-									No audit activity yet.
+									{m.admin_super_overview_no_activity()}
 								</Table.Cell>
 							</Table.Row>
 						{:else}
 							{#each logs as log (log.id)}
 								<Table.Row>
 									<Table.Cell>
-										<code class="text-xs font-medium">{log.action}</code>
+										<code class="text-xs font-medium">{auditActionLabel(log.action)}</code>
 									</Table.Cell>
-									<Table.Cell class="text-muted-foreground">{log.entityType}</Table.Cell>
-									<Table.Cell class="text-muted-foreground">{log.entityId ?? '—'}</Table.Cell>
 									<Table.Cell class="text-muted-foreground"
-										>{log.actorUserId ?? 'System'}</Table.Cell
+										>{entityLabel(log.entityType)}</Table.Cell
 									>
-									<Table.Cell class="text-muted-foreground">{formatDate(log.createdAt)}</Table.Cell>
+									<Table.Cell class="text-muted-foreground"
+										>{log.entityId ?? m.common_dash()}</Table.Cell
+									>
+									<Table.Cell class="text-muted-foreground"
+										>{log.actorUserId ?? m.admin_super_actor_system()}</Table.Cell
+									>
+									<Table.Cell class="text-muted-foreground"
+										>{formatDateTime(log.createdAt) || m.common_dash()}</Table.Cell
+									>
 								</Table.Row>
 							{/each}
 						{/if}

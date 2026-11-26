@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
 	import { Button } from '#lib/frontend/components/ui/button/index.ts';
 	import { Spinner } from '#lib/frontend/components/ui/spinner/index.ts';
 	import { Separator } from '#lib/frontend/components/ui/separator/index.ts';
@@ -20,10 +21,10 @@
 			});
 
 			if (authError) {
-				error = authErrorMessage(authError, 'Google sign-in is not available right now.');
+				error = authErrorMessage(authError, m.components_auth_google_unavailable());
 			}
 		} catch (err) {
-			error = authErrorMessage(err, 'Google sign-in is not available right now.');
+			error = authErrorMessage(err, m.components_auth_google_unavailable());
 		} finally {
 			googleLoading = false;
 		}
@@ -35,7 +36,7 @@
 		<Separator />
 		<span class="absolute inset-0 flex items-center justify-center">
 			<span class="bg-card px-2 text-xs font-medium tracking-wide text-muted-foreground">
-				Or continue with
+				{m.components_auth_or_continue_with()}
 			</span>
 		</span>
 	</div>
@@ -44,7 +45,7 @@
 			variant="outline"
 			type="button"
 			class="w-full gap-2"
-			aria-label="Continue with Google"
+			aria-label={m.components_auth_continue_google()}
 			disabled={googleLoading}
 			onclick={signInWithGoogle}
 		>

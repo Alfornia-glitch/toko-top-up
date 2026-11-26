@@ -1,5 +1,11 @@
 <script lang="ts">
-	import { formatMoney } from '#lib/frontend/modules/commerce/format.ts';
+	import {
+		formatDate,
+		formatDateTime,
+		formatMoney
+	} from '#lib/frontend/modules/commerce/format.ts';
+	import { m } from '#lib/paraglide/messages.js';
+	import { errorMessage } from '#lib/frontend/i18n/index.ts';
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
 	import {
@@ -62,13 +68,13 @@
 		addresses: CustomerAddress[];
 	};
 
-	const orderColumns = [
-		{ key: 'orderNumber', label: 'Order' },
-		{ key: 'status', label: 'Status' },
-		{ key: 'paymentStatus', label: 'Payment' },
-		{ key: 'grandTotal', label: 'Total', class: 'text-right' },
-		{ key: 'placedAt', label: 'Placed' }
-	];
+	const orderColumns = $derived([
+		{ key: 'orderNumber', label: m.common_order() },
+		{ key: 'status', label: m.common_status() },
+		{ key: 'paymentStatus', label: m.common_payment() },
+		{ key: 'grandTotal', label: m.common_total(), class: 'text-right' },
+		{ key: 'placedAt', label: m.admin_ops_dashboard_col_placed() }
+	]);
 
 	let customer = $state<CustomerDetail | null>(null);
 	let loading = $state(true);
@@ -101,11 +107,11 @@
 
 			const payload = await response.json().catch(() => ({}));
 
-			if (!response.ok) throw new Error(payload.error ?? 'Could not load customer');
+			if (!response.ok) throw new Error(errorMessage(payload, 'admin_ops_customer_load_failed'));
 
 			customer = payload.data as CustomerDetail;
 		} catch (err) {
-			error = err instanceof Error ? err.message : 'Could not load customer';
+			error = errorMessage(err, 'admin_ops_customer_load_failed');
 		} finally {
 			loading = false;
 		}
@@ -119,30 +125,6 @@
 		if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
 
 		return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
-	}
-
-	function formatDate(value: string) {
-		const date = new Date(value);
-		if (Number.isNaN(date.getTime())) return '—';
-
-		return new Intl.DateTimeFormat('en-US', {
-			month: 'short',
-			day: 'numeric',
-			year: 'numeric'
-		}).format(date);
-	}
-
-	function formatDateTime(value: string) {
-		const date = new Date(value);
-		if (Number.isNaN(date.getTime())) return '—';
-
-		return new Intl.DateTimeFormat('en-US', {
-			month: 'short',
-			day: 'numeric',
-			year: 'numeric',
-			hour: '2-digit',
-			minute: '2-digit'
-		}).format(date);
 	}
 
 	function formatAddress(address: CustomerAddress) {
@@ -161,7 +143,7 @@
 	<div class="flex flex-wrap items-center justify-between gap-3">
 		<Button variant="ghost" size="sm" href="/admin/customers">
 			<ArrowLeft class="size-4" />
-			Back to customers
+			{m.admin_ops_customer_back()}
 		</Button>
 		<Button
 			variant="outline"
@@ -170,7 +152,7 @@
 			disabled={loading}
 		>
 			<RefreshCw class="size-4" />
-			Refresh
+			{m.common_refresh()}
 		</Button>
 	</div>
 
@@ -186,8 +168,8 @@
 	{:else if notFound}
 		<Card.Root>
 			<Card.Content class="space-y-4 py-10 text-center">
-				<p class="text-sm text-muted-foreground">This customer could not be found.</p>
-				<Button href="/admin/customers">Back to customers</Button>
+				<p class="text-sm text-muted-foreground">{m.admin_ops_customer_not_found()}</p>
+				<Button href="/admin/customers">{m.admin_ops_customer_back()}</Button>
 			</Card.Content>
 		</Card.Root>
 	{:else if error}
@@ -195,8 +177,8 @@
 			<Card.Content class="space-y-4 py-10 text-center">
 				<p class="text-sm text-destructive">{error}</p>
 				<div class="flex justify-center gap-2">
-					<Button variant="outline" href="/admin/customers">Back to customers</Button>
-					<Button onclick={() => void load(page.params.id)}>Try again</Button>
+					<Button variant="outline" href="/admin/customers">{m.admin_ops_customer_back()}</Button>
+					<Button onclick={() => void load(page.params.id)}>{m.common_retry()}</Button>
 				</div>
 			</Card.Content>
 		</Card.Root>
@@ -214,15 +196,15 @@
 				<div class="min-w-0 flex-1 space-y-1.5">
 					<div class="flex flex-wrap items-center gap-2">
 						<h1 class="text-2xl font-semibold tracking-tight">
-							{customer.name || 'Unnamed customer'}
+							{customer.name || m.admin_ops_customer_unnamed()}
 						</h1>
 						{#if customer.emailVerified}
 							<Badge class="gap-1">
 								<BadgeCheck class="size-3.5" />
-								Verified
+								{m.admin_ops_customer_verified()}
 							</Badge>
 						{:else}
-							<Badge variant="secondary">Unverified</Badge>
+							<Badge variant="secondary">{m.admin_ops_customer_unverified()}</Badge>
 						{/if}
 					</div>
 					<p class="flex items-center gap-1.5 text-sm text-muted-foreground">
@@ -231,32 +213,37 @@
 					</p>
 					<p class="flex items-center gap-1.5 text-sm text-muted-foreground">
 						<Calendar class="size-4" />
-						Joined {formatDate(customer.createdAt)}
+						{m.admin_ops_customer_joined({ date: formatDate(customer.createdAt) })}
 					</p>
 				</div>
 			</Card.Content>
 		</Card.Root>
 
 		<div class="grid gap-4 sm:grid-cols-2">
-			<StatCard title="Orders" value={customer.orderCount} hint="All time" icon={ShoppingCart} />
 			<StatCard
-				title="Lifetime spend"
+				title={m.common_orders()}
+				value={customer.orderCount}
+				hint={m.admin_ops_dashboard_orders_hint()}
+				icon={ShoppingCart}
+			/>
+			<StatCard
+				title={m.admin_ops_customer_lifetime_spend()}
 				value={formatMoney(customer.spent)}
-				hint="Across all orders"
+				hint={m.admin_ops_customer_across_orders()}
 				icon={DollarSign}
 			/>
 		</div>
 
 		<div class="space-y-3">
 			<div>
-				<h2 class="text-lg font-semibold tracking-tight">Orders</h2>
-				<p class="text-sm text-muted-foreground">Orders placed by this customer.</p>
+				<h2 class="text-lg font-semibold tracking-tight">{m.common_orders()}</h2>
+				<p class="text-sm text-muted-foreground">{m.admin_ops_customer_orders_desc()}</p>
 			</div>
 
 			<DataTable
 				columns={orderColumns}
 				rows={customer.orders as unknown as Record<string, unknown>[]}
-				emptyMessage="This customer has not placed any orders yet."
+				emptyMessage={m.admin_ops_customer_no_orders()}
 				page={1}
 				pageSize={Math.max(1, customer.orders.length)}
 				total={customer.orders.length}
@@ -267,15 +254,17 @@
 							{String(row.orderNumber ?? '—')}
 						</a>
 					{:else if column.key === 'status'}
-						<StatusBadge status={String(row.status ?? '')} />
+						<StatusBadge kind="order" status={String(row.status ?? '')} />
 					{:else if column.key === 'paymentStatus'}
-						<StatusBadge status={String(row.paymentStatus ?? '')} />
+						<StatusBadge kind="payment" status={String(row.paymentStatus ?? '')} />
 					{:else if column.key === 'grandTotal'}
 						<span class="font-medium">
 							{formatMoney(Number(row.grandTotal ?? 0), String(row.currency ?? 'IDR'))}
 						</span>
 					{:else if column.key === 'placedAt'}
-						<span class="text-muted-foreground">{formatDateTime(String(row.placedAt ?? ''))}</span>
+						<span class="text-muted-foreground"
+							>{formatDateTime(String(row.placedAt ?? '')) || '—'}</span
+						>
 					{:else}
 						{String(row[column.key] ?? '—')}
 					{/if}
@@ -287,14 +276,14 @@
 
 		<div class="space-y-3">
 			<div>
-				<h2 class="text-lg font-semibold tracking-tight">Addresses</h2>
-				<p class="text-sm text-muted-foreground">Saved shipping and billing addresses.</p>
+				<h2 class="text-lg font-semibold tracking-tight">{m.common_addresses()}</h2>
+				<p class="text-sm text-muted-foreground">{m.admin_ops_customer_addresses_desc()}</p>
 			</div>
 
 			{#if customer.addresses.length === 0}
 				<Card.Root>
 					<Card.Content class="py-8 text-center text-sm text-muted-foreground">
-						No saved addresses.
+						{m.admin_ops_customer_no_addresses()}
 					</Card.Content>
 				</Card.Root>
 			{:else}
@@ -304,14 +293,14 @@
 							<Card.Header>
 								<Card.Title class="flex items-center gap-2 text-base">
 									<MapPin class="size-4 text-muted-foreground" />
-									{address.label || 'Address'}
+									{address.label || m.common_address()}
 								</Card.Title>
 								<Card.Description class="flex flex-wrap gap-1.5">
 									{#if address.isDefaultShipping}
-										<Badge variant="outline">Default shipping</Badge>
+										<Badge variant="outline">{m.admin_ops_customer_default_shipping()}</Badge>
 									{/if}
 									{#if address.isDefaultBilling}
-										<Badge variant="outline">Default billing</Badge>
+										<Badge variant="outline">{m.admin_ops_customer_default_billing()}</Badge>
 									{/if}
 								</Card.Description>
 							</Card.Header>

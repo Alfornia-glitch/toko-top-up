@@ -49,7 +49,7 @@ export function createSupabaseBackend(config: {
 function toMediaError(error: unknown): MediaError {
 	if (!isStorageError(error)) {
 		console.error('[storage] unexpected request failure', error);
-		return new MediaError(502, 'Storage request failed');
+		return new MediaError(502, 'Storage request failed', { messageKey: 'storage_request_failed' });
 	}
 
 	const status = error.status;
@@ -58,16 +58,22 @@ function toMediaError(error: unknown): MediaError {
 	console.error('[storage] request rejected', { status, code, message: error.message });
 
 	if (code === 'ResourceAlreadyExists') {
-		return new MediaError(409, 'A file with that name already exists');
+		return new MediaError(409, 'A file with that name already exists', {
+			messageKey: 'storage_file_exists'
+		});
 	}
 
 	if (code === 'PayloadTooLarge' || status === 413) {
-		return new MediaError(413, 'File too large for the storage bucket');
+		return new MediaError(413, 'File too large for the storage bucket', {
+			messageKey: 'storage_bucket_file_too_large'
+		});
 	}
 
 	if (code === 'InvalidContentType' || status === 415) {
-		return new MediaError(415, 'File type rejected by the storage bucket');
+		return new MediaError(415, 'File type rejected by the storage bucket', {
+			messageKey: 'storage_bucket_type_rejected'
+		});
 	}
 
-	return new MediaError(502, 'Storage request failed');
+	return new MediaError(502, 'Storage request failed', { messageKey: 'storage_request_failed' });
 }

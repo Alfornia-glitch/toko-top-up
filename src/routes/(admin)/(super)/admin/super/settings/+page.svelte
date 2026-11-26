@@ -8,6 +8,9 @@
 	import { Button } from '#lib/frontend/components/ui/button/index.ts';
 	import { Input } from '#lib/frontend/components/ui/input/index.ts';
 	import { Textarea } from '#lib/frontend/components/ui/textarea/index.ts';
+	import { m } from '#lib/paraglide/messages.js';
+	import { errorMessage } from '#lib/frontend/i18n/index.ts';
+	import { formatDateTime } from '#lib/frontend/modules/commerce/format.ts';
 
 	type SettingRow = {
 		key: string;
@@ -16,12 +19,16 @@
 		updatedAt: string;
 	};
 
-	const columns = [
-		{ key: 'key', label: 'Key' },
-		{ key: 'valueJson', label: 'Value', class: 'max-w-md whitespace-normal' },
-		{ key: 'updatedAt', label: 'Updated' },
+	const columns = $derived([
+		{ key: 'key', label: m.admin_super_settings_col_key() },
+		{
+			key: 'valueJson',
+			label: m.admin_super_settings_col_value(),
+			class: 'max-w-md whitespace-normal'
+		},
+		{ key: 'updatedAt', label: m.admin_super_col_updated() },
 		{ key: 'actions', label: '', class: 'text-right' }
-	];
+	]);
 
 	let settings = $state<SettingRow[]>([]);
 	let loading = $state(true);
@@ -45,19 +52,6 @@
 		return JSON.stringify(value, null, 2) ?? 'null';
 	}
 
-	function formatDate(value: string) {
-		const date = new Date(value);
-		if (Number.isNaN(date.getTime())) return '—';
-
-		return new Intl.DateTimeFormat('en-US', {
-			month: 'short',
-			day: 'numeric',
-			year: 'numeric',
-			hour: '2-digit',
-			minute: '2-digit'
-		}).format(date);
-	}
-
 	onMount(() => {
 		void loadSettings();
 	});
@@ -70,11 +64,11 @@
 			const response = await fetch('/api/admin/super/settings');
 			const payload = await response.json().catch(() => ({}));
 
-			if (!response.ok) throw new Error(payload.error ?? 'Could not load settings');
+			if (!response.ok) throw payload;
 
 			settings = payload.data ?? [];
 		} catch (err) {
-			error = err instanceof Error ? err.message : 'Could not load settings';
+			error = errorMessage(err, 'admin_super_settings_load_failed');
 		} finally {
 			loading = false;
 		}
@@ -115,7 +109,7 @@
 
 		const key = formKey.trim();
 		if (!key) {
-			formError = 'Key is required.';
+			formError = m.admin_super_settings_key_required();
 			return;
 		}
 
@@ -123,7 +117,7 @@
 		try {
 			parsed = JSON.parse(formValue);
 		} catch {
-			formError = 'Value must be valid JSON.';
+			formError = m.admin_super_settings_invalid_json();
 			return;
 		}
 
@@ -137,12 +131,12 @@
 			});
 			const payload = await response.json().catch(() => ({}));
 
-			if (!response.ok) throw new Error(payload.error ?? 'Could not save setting');
+			if (!response.ok) throw payload;
 
 			dialogOpen = false;
 			await loadSettings();
 		} catch (err) {
-			formError = err instanceof Error ? err.message : 'Could not save setting';
+			formError = errorMessage(err, 'admin_super_settings_save_failed');
 		} finally {
 			saving = false;
 		}
@@ -160,13 +154,13 @@
 			});
 			const payload = await response.json().catch(() => ({}));
 
-			if (!response.ok) throw new Error(payload.error ?? 'Could not delete setting');
+			if (!response.ok) throw payload;
 
 			deleteOpen = false;
 			deletingKey = null;
 			await loadSettings();
 		} catch (err) {
-			error = err instanceof Error ? err.message : 'Could not delete setting';
+			error = errorMessage(err, 'admin_super_settings_delete_failed');
 		} finally {
 			deleting = false;
 		}
@@ -221,14 +215,14 @@
 <div class="space-y-6">
 	<div class="flex flex-wrap items-start justify-between gap-3">
 		<div>
-			<h1 class="text-2xl font-semibold tracking-tight">Settings</h1>
+			<h1 class="text-2xl font-semibold tracking-tight">{m.common_settings()}</h1>
 			<p class="text-sm text-muted-foreground">
-				Platform configuration stored as JSON key/value pairs.
+				{m.admin_super_settings_subtitle()}
 			</p>
 		</div>
 		<Button onclick={openCreate}>
 			<Plus class="size-4" />
-			New setting
+			{m.admin_super_settings_new()}
 		</Button>
 	</div>
 
@@ -275,7 +269,7 @@
 		{columns}
 		rows={settings as unknown as Record<string, unknown>[]}
 		{loading}
-		emptyMessage="No settings yet."
+		emptyMessage={m.admin_super_settings_empty()}
 		page={1}
 		pageSize={Math.max(1, settings.length)}
 		total={settings.length}
@@ -289,13 +283,15 @@
 						row.valueJson
 					)}</pre>
 			{:else if column.key === 'updatedAt'}
-				<span class="text-muted-foreground">{formatDate(String(row.updatedAt ?? ''))}</span>
+				<span class="text-muted-foreground"
+					>{formatDateTime(String(row.updatedAt ?? '')) || m.common_dash()}</span
+				>
 			{:else if column.key === 'actions'}
 				<div class="flex items-center justify-end gap-1">
 					<Button
 						variant="ghost"
 						size="icon-sm"
-						aria-label="Edit setting"
+						aria-label={m.admin_super_settings_edit_aria()}
 						onclick={() => openEdit(row)}
 					>
 						<Pencil class="size-4" />
@@ -304,14 +300,14 @@
 						variant="ghost"
 						size="icon-sm"
 						class="text-destructive hover:bg-destructive/10"
-						aria-label="Delete setting"
+						aria-label={m.admin_super_settings_delete_aria()}
 						onclick={() => openDelete(row)}
 					>
 						<Trash2 class="size-4" />
 					</Button>
 				</div>
 			{:else}
-				{String(row[column.key] ?? '—')}
+				{String(row[column.key] ?? m.common_dash())}
 			{/if}
 		{/snippet}
 	</DataTable>
@@ -321,27 +317,31 @@
 	<Dialog.Root bind:open={dialogOpen}>
 		<Dialog.Content class="sm:max-w-lg">
 			<Dialog.Header>
-				<Dialog.Title>{editingKey ? 'Edit setting' : 'New setting'}</Dialog.Title>
+				<Dialog.Title
+					>{editingKey
+						? m.admin_super_settings_edit_title()
+						: m.admin_super_settings_new()}</Dialog.Title
+				>
 				<Dialog.Description>
-					{editingKey ? 'Update the JSON value for this key.' : 'Create a new configuration entry.'}
+					{editingKey ? m.admin_super_settings_edit_desc() : m.admin_super_settings_new_desc()}
 				</Dialog.Description>
 			</Dialog.Header>
 
 			<form class="grid gap-4" onsubmit={saveSetting}>
 				<Field.Group>
 					<Field.Field>
-						<Field.Label for="setting-key">Key</Field.Label>
+						<Field.Label for="setting-key">{m.admin_super_settings_col_key()}</Field.Label>
 						<Input
 							id="setting-key"
 							bind:value={formKey}
-							placeholder="e.g. store.name"
+							placeholder={m.admin_super_settings_key_placeholder()}
 							disabled={editingKey !== null}
 							required
 						/>
 					</Field.Field>
 
 					<Field.Field>
-						<Field.Label for="setting-value">Value (JSON)</Field.Label>
+						<Field.Label for="setting-value">{m.admin_super_settings_value_label()}</Field.Label>
 						<Textarea
 							id="setting-value"
 							bind:value={formValue}
@@ -350,7 +350,7 @@
 							required
 						/>
 						<Field.Description>
-							Must be valid JSON such as a string, number, object or array.
+							{m.admin_super_settings_value_hint()}
 						</Field.Description>
 					</Field.Field>
 				</Field.Group>
@@ -366,10 +366,10 @@
 						onclick={() => (dialogOpen = false)}
 						disabled={saving}
 					>
-						Cancel
+						{m.common_cancel()}
 					</Button>
 					<Button type="submit" disabled={saving}>
-						{saving ? 'Saving…' : 'Save setting'}
+						{saving ? m.common_saving() : m.admin_super_settings_save()}
 					</Button>
 				</Dialog.Footer>
 			</form>
@@ -380,15 +380,16 @@
 <AlertDialog.Root bind:open={deleteOpen}>
 	<AlertDialog.Content>
 		<AlertDialog.Header>
-			<AlertDialog.Title>Delete setting</AlertDialog.Title>
+			<AlertDialog.Title>{m.admin_super_settings_delete_title()}</AlertDialog.Title>
 			<AlertDialog.Description>
-				Type the key <code class="font-medium">{deletingKey ?? ''}</code> to confirm. This action cannot
-				be undone.
+				{m.admin_super_settings_delete_before()}
+				<code class="font-medium">{deletingKey ?? ''}</code>
+				{m.admin_super_settings_delete_after()}
 			</AlertDialog.Description>
 		</AlertDialog.Header>
 
 		<div class="grid gap-2">
-			<Field.Label for="delete-setting-confirm">Confirmation</Field.Label>
+			<Field.Label for="delete-setting-confirm">{m.common_confirm()}</Field.Label>
 			<Input
 				id="delete-setting-confirm"
 				bind:value={deleteConfirm}
@@ -401,14 +402,14 @@
 		{/if}
 
 		<AlertDialog.Footer>
-			<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
+			<AlertDialog.Cancel>{m.common_cancel()}</AlertDialog.Cancel>
 			<Button
 				type="button"
 				class="bg-destructive text-white hover:bg-destructive/90"
 				disabled={!canDelete || deleting}
 				onclick={deleteSetting}
 			>
-				{deleting ? 'Deleting…' : 'Delete'}
+				{deleting ? m.common_deleting() : m.common_delete()}
 			</Button>
 		</AlertDialog.Footer>
 	</AlertDialog.Content>

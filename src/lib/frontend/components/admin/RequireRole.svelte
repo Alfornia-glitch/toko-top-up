@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
 	import type { Snippet } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
@@ -44,9 +45,9 @@
 		<Card.Root class="max-w-md text-center">
 			<Card.Header>
 				<ShieldAlert class="mx-auto size-8 text-destructive" />
-				<Card.Title>Access denied</Card.Title>
+				<Card.Title>{m.components_require_role_denied_title()}</Card.Title>
 				<Card.Description>
-					Your account does not have permission to view this area.
+					{m.components_require_role_denied_description()}
 				</Card.Description>
 			</Card.Header>
 		</Card.Root>

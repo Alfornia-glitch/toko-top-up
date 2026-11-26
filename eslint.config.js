@@ -11,7 +11,8 @@ const IGNORED = [
 	'static/**',
 	'tools/**',
 	'scripts/**',
-	'e2e/**'
+	'e2e/**',
+	'src/lib/paraglide/**'
 ];
 
 const moduleTsFiles = ['src/lib/modules/**/*.ts', 'src/lib/shared/**/*.ts'];

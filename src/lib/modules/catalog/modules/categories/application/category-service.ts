@@ -52,7 +52,9 @@ export function createCategoryService(
 
 		while (current) {
 			if (current === id) {
-				throw new UnprocessableError('Category hierarchy cannot contain a cycle');
+				throw new UnprocessableError('Category hierarchy cannot contain a cycle', {
+					messageKey: 'category_cycle'
+				});
 			}
 
 			const category = await repository.findById(current);
@@ -116,11 +118,16 @@ export function createCategoryService(
 				}
 
 				const existing = await repository.findById(id);
-				if (!existing) return err(new NotFoundError('Category not found'));
+				if (!existing)
+					return err(new NotFoundError('Category not found', { messageKey: 'category_not_found' }));
 
 				const parentId = parsed.data.parentId ?? null;
 				if (parentId === id) {
-					return err(new UnprocessableError('A category cannot be its own parent'));
+					return err(
+						new UnprocessableError('A category cannot be its own parent', {
+							messageKey: 'category_own_parent'
+						})
+					);
 				}
 
 				await assertNoCycle(id, parentId);
@@ -136,7 +143,8 @@ export function createCategoryService(
 					updatedAt: clock.now()
 				});
 
-				if (!updated) return err(new NotFoundError('Category not found'));
+				if (!updated)
+					return err(new NotFoundError('Category not found', { messageKey: 'category_not_found' }));
 				return ok(updated);
 			} catch (error) {
 				return err(toAppError(error));
@@ -147,7 +155,8 @@ export function createCategoryService(
 			try {
 				assertPermission(actor, 'catalog:write');
 				const existing = await repository.findById(id);
-				if (!existing) return err(new NotFoundError('Category not found'));
+				if (!existing)
+					return err(new NotFoundError('Category not found', { messageKey: 'category_not_found' }));
 
 				const [children, products] = await Promise.all([
 					repository.countChildren(id),
@@ -155,7 +164,11 @@ export function createCategoryService(
 				]);
 
 				if (children > 0 || products > 0) {
-					return err(new ConflictError('Move or delete child categories and products first'));
+					return err(
+						new ConflictError('Move or delete child categories and products first', {
+							messageKey: 'category_has_children'
+						})
+					);
 				}
 
 				await repository.delete(id);

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
 	import { home } from '#lib/frontend/modules/commerce/home.svelte.ts';
 </script>
 
@@ -13,7 +14,7 @@
 		<p
 			class="relative w-full shrink-0 text-start font-['Geist:Bold'] text-[30px] leading-[36px] font-bold [word-break:break-word] text-[#0a0a0a] max-[480px]:text-2xl max-[480px]:leading-8"
 		>
-			Shop By Brands
+			{m.components_shop_by_brand()}
 		</p>
 		<div
 			class="relative flex w-full shrink-0 flex-wrap content-stretch items-center justify-start gap-[32px]"

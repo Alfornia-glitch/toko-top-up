@@ -21,6 +21,8 @@
 </script>
 
 <script lang="ts">
+	import { errorMessage } from '#lib/frontend/i18n/index.ts';
+	import { m } from '#lib/paraglide/messages.js';
 	import { Image as ImageIcon } from '@lucide/svelte';
 	import { SvelteSet } from 'svelte/reactivity';
 	import * as Dialog from '#lib/frontend/components/ui/dialog/index.ts';
@@ -98,7 +100,7 @@
 
 		const trimmedName = name.trim();
 		if (!trimmedName) {
-			error = 'Name is required.';
+			error = m.components_form_name_required();
 			return;
 		}
 
@@ -123,12 +125,12 @@
 			});
 			const payload = await response.json().catch(() => ({}));
 
-			if (!response.ok) throw new Error(payload.error ?? 'Could not save category');
+			if (!response.ok) throw payload;
 
 			open = false;
 			await onsaved?.();
 		} catch (err) {
-			error = err instanceof Error ? err.message : 'Could not save category';
+			error = errorMessage(err, 'components_category_dialog_save_failed');
 		} finally {
 			saving = false;
 		}
@@ -138,35 +140,50 @@
 <Dialog.Root bind:open>
 	<Dialog.Content class="sm:max-w-lg">
 		<Dialog.Header>
-			<Dialog.Title>{category ? 'Edit category' : 'New category'}</Dialog.Title>
+			<Dialog.Title
+				>{category
+					? m.components_category_dialog_edit_title()
+					: m.components_category_dialog_new_title()}</Dialog.Title
+			>
 			<Dialog.Description>
 				{category
-					? 'Update the category details, image and hierarchy.'
-					: 'Add a category to organise the catalog.'}
+					? m.components_category_dialog_edit_description()
+					: m.components_category_dialog_new_description()}
 			</Dialog.Description>
 		</Dialog.Header>
 
 		<form class="grid gap-4" onsubmit={handleSubmit}>
 			<Field.Group>
 				<Field.Field>
-					<Field.Label for="category-name">Name</Field.Label>
-					<Input id="category-name" bind:value={name} placeholder="e.g. Audio" required />
+					<Field.Label for="category-name">{m.common_name()}</Field.Label>
+					<Input
+						id="category-name"
+						bind:value={name}
+						placeholder={m.components_category_dialog_name_placeholder()}
+						required
+					/>
 				</Field.Field>
 
 				<Field.Field>
-					<Field.Label for="category-slug">Slug</Field.Label>
-					<Input id="category-slug" bind:value={slug} placeholder="auto-generated when empty" />
-					<Field.Description>Leave empty to generate from the name.</Field.Description>
+					<Field.Label for="category-slug">{m.components_form_slug()}</Field.Label>
+					<Input
+						id="category-slug"
+						bind:value={slug}
+						placeholder={m.components_form_slug_placeholder()}
+					/>
+					<Field.Description>{m.components_form_slug_hint()}</Field.Description>
 				</Field.Field>
 
 				<Field.Field>
-					<Field.Label for="category-parent">Parent category</Field.Label>
+					<Field.Label for="category-parent">{m.components_category_dialog_parent()}</Field.Label>
 					<Select.Root type="single" bind:value={parentId}>
 						<Select.Trigger id="category-parent" class="w-full">
-							<Select.Value placeholder="No parent" />
+							<Select.Value placeholder={m.components_category_dialog_no_parent()} />
 						</Select.Trigger>
 						<Select.Content>
-							<Select.Item value="none" label="No parent">No parent</Select.Item>
+							<Select.Item value="none" label={m.components_category_dialog_no_parent()}
+								>{m.components_category_dialog_no_parent()}</Select.Item
+							>
 							{#each parentOptions as option (option.id)}
 								<Select.Item value={option.id} label={option.name}>{option.name}</Select.Item>
 							{/each}
@@ -175,12 +192,12 @@
 				</Field.Field>
 
 				<Field.Field>
-					<Field.Label for="category-image">Image</Field.Label>
+					<Field.Label for="category-image">{m.components_form_image()}</Field.Label>
 					<div class="flex items-center gap-3">
 						{#if imageUrl}
 							<img
 								src={imageUrl}
-								alt="Category preview"
+								alt={m.components_category_dialog_preview()}
 								class="size-14 rounded-full border bg-muted object-cover"
 							/>
 						{:else}
@@ -198,45 +215,51 @@
 								size="sm"
 								onclick={() => (mediaOpen = true)}
 							>
-								{imageUrl ? 'Change image' : 'Choose image'}
+								{imageUrl
+									? m.components_category_dialog_change_image()
+									: m.components_form_choose_image()}
 							</Button>
 							{#if imageUrl}
 								<Button type="button" variant="ghost" size="sm" onclick={() => (imageUrl = '')}>
-									Remove
+									{m.common_remove()}
 								</Button>
 							{/if}
 						</div>
 					</div>
 					<Field.Description>
-						Shown on the storefront category carousel. Pick or upload an image.
+						{m.components_category_dialog_image_hint()}
 					</Field.Description>
 				</Field.Field>
 
 				<Field.Field>
-					<Field.Label for="category-description">Description</Field.Label>
+					<Field.Label for="category-description">{m.common_description()}</Field.Label>
 					<Textarea
 						id="category-description"
 						bind:value={description}
-						placeholder="Optional description"
+						placeholder={m.components_form_optional_description()}
 						rows={3}
 					/>
 				</Field.Field>
 
 				<div class="grid gap-4 sm:grid-cols-2">
 					<Field.Field>
-						<Field.Label for="category-position">Position</Field.Label>
+						<Field.Label for="category-position">{m.components_form_position()}</Field.Label>
 						<Input id="category-position" type="number" min="0" step="1" bind:value={position} />
 					</Field.Field>
 
 					<Field.Field>
-						<Field.Label for="category-status">Status</Field.Label>
+						<Field.Label for="category-status">{m.common_status()}</Field.Label>
 						<Select.Root type="single" bind:value={status}>
 							<Select.Trigger id="category-status" class="w-full">
-								<Select.Value placeholder="Select status" />
+								<Select.Value placeholder={m.components_form_select_status()} />
 							</Select.Trigger>
 							<Select.Content>
-								<Select.Item value="active" label="Active">Active</Select.Item>
-								<Select.Item value="inactive" label="Inactive">Inactive</Select.Item>
+								<Select.Item value="active" label={m.common_active()}
+									>{m.common_active()}</Select.Item
+								>
+								<Select.Item value="inactive" label={m.common_inactive()}
+									>{m.common_inactive()}</Select.Item
+								>
 							</Select.Content>
 						</Select.Root>
 					</Field.Field>
@@ -249,10 +272,14 @@
 
 			<Dialog.Footer>
 				<Button type="button" variant="outline" onclick={() => (open = false)} disabled={saving}>
-					Cancel
+					{m.common_cancel()}
 				</Button>
 				<Button type="submit" disabled={saving}>
-					{saving ? 'Saving…' : category ? 'Save changes' : 'Create category'}
+					{saving
+						? m.common_saving()
+						: category
+							? m.common_save_changes()
+							: m.components_category_dialog_create()}
 				</Button>
 			</Dialog.Footer>
 		</form>

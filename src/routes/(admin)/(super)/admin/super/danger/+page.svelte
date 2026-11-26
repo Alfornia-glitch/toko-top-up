@@ -6,6 +6,8 @@
 	import * as Field from '#lib/frontend/components/ui/field/index.ts';
 	import { Button } from '#lib/frontend/components/ui/button/index.ts';
 	import { Input } from '#lib/frontend/components/ui/input/index.ts';
+	import { m } from '#lib/paraglide/messages.js';
+	import { errorMessage } from '#lib/frontend/i18n/index.ts';
 
 	type DangerAction = 'purge_archived_products' | 'purge_old_audit_logs';
 
@@ -16,21 +18,20 @@
 		icon: Component<{ class?: string }>;
 	};
 
-	const actions: DangerItem[] = [
+	const actions: DangerItem[] = $derived([
 		{
 			key: 'purge_archived_products',
-			title: 'Purge archived products',
-			description:
-				'Permanently delete archived products that have no order references. Products referenced by orders are skipped.',
+			title: m.admin_super_danger_purge_products_title(),
+			description: m.admin_super_danger_purge_products_desc(),
 			icon: Package
 		},
 		{
 			key: 'purge_old_audit_logs',
-			title: 'Purge audit logs older than 90 days',
-			description: 'Permanently delete audit log entries created more than 90 days ago.',
+			title: m.admin_super_danger_purge_logs_title(),
+			description: m.admin_super_danger_purge_logs_desc(),
 			icon: ScrollText
 		}
-	];
+	]);
 
 	let activeAction = $state<DangerItem | null>(null);
 	let dialogOpen = $state(false);
@@ -63,14 +64,14 @@
 			});
 			const payload = await response.json().catch(() => ({}));
 
-			if (!response.ok) throw new Error(payload.error ?? 'Action failed');
+			if (!response.ok) throw payload;
 
 			const deleted = Number(payload.data?.deleted ?? 0);
-			results[action.key] = `Deleted ${deleted} record${deleted === 1 ? '' : 's'}.`;
+			results[action.key] = m.admin_super_danger_deleted({ count: deleted });
 			dialogOpen = false;
 			activeAction = null;
 		} catch (err) {
-			error = err instanceof Error ? err.message : 'Action failed';
+			error = errorMessage(err, 'admin_super_danger_action_failed');
 		} finally {
 			running = false;
 		}
@@ -79,9 +80,9 @@
 
 <div class="space-y-6">
 	<div>
-		<h1 class="text-2xl font-semibold tracking-tight">Danger zone</h1>
+		<h1 class="text-2xl font-semibold tracking-tight">{m.admin_super_danger_title()}</h1>
 		<p class="text-sm text-muted-foreground">
-			Destructive maintenance actions. These cannot be undone.
+			{m.admin_super_danger_subtitle()}
 		</p>
 	</div>
 
@@ -89,7 +90,7 @@
 		class="flex items-start gap-3 rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive"
 	>
 		<AlertTriangle class="mt-0.5 size-4 shrink-0" />
-		<p>Review each action carefully. Type DELETE in the confirmation dialog to proceed.</p>
+		<p>{m.admin_super_danger_warning()}</p>
 	</div>
 
 	{#if error && !dialogOpen}
@@ -117,7 +118,7 @@
 					{/if}
 					<Button variant="destructive" onclick={() => openAction(action)}>
 						<Trash2 class="size-4" />
-						Run action
+						{m.admin_super_danger_run()}
 					</Button>
 				</Card.Content>
 			</Card.Root>
@@ -128,14 +129,16 @@
 <AlertDialog.Root bind:open={dialogOpen}>
 	<AlertDialog.Content>
 		<AlertDialog.Header>
-			<AlertDialog.Title>{activeAction?.title ?? 'Confirm action'}</AlertDialog.Title>
+			<AlertDialog.Title
+				>{activeAction?.title ?? m.admin_super_danger_confirm_title()}</AlertDialog.Title
+			>
 			<AlertDialog.Description>
-				Type DELETE to confirm. {activeAction?.description ?? ''}
+				{m.admin_super_danger_confirm_intro({ description: activeAction?.description ?? '' })}
 			</AlertDialog.Description>
 		</AlertDialog.Header>
 
 		<div class="grid gap-2">
-			<Field.Label for="danger-confirm">Confirmation</Field.Label>
+			<Field.Label for="danger-confirm">{m.common_confirm()}</Field.Label>
 			<Input id="danger-confirm" bind:value={confirmText} placeholder="DELETE" />
 		</div>
 
@@ -144,14 +147,14 @@
 		{/if}
 
 		<AlertDialog.Footer>
-			<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
+			<AlertDialog.Cancel>{m.common_cancel()}</AlertDialog.Cancel>
 			<Button
 				type="button"
 				class="bg-destructive text-white hover:bg-destructive/90"
 				disabled={!canRun || running}
 				onclick={runAction}
 			>
-				{running ? 'Running…' : 'Delete'}
+				{running ? m.admin_super_danger_running() : m.common_delete()}
 			</Button>
 		</AlertDialog.Footer>
 	</AlertDialog.Content>

@@ -2,6 +2,7 @@ import type { RequestEvent } from '@sveltejs/kit';
 import { BETTER_AUTH_URL } from '$app/env/private';
 import {
 	FALLBACK_META,
+	SITE_NAME,
 	categoryMeta,
 	metaForRoute,
 	productMeta,
@@ -9,7 +10,17 @@ import {
 	type PageMeta
 } from '#lib/frontend/modules/seo/index.ts';
 
-const NOT_FOUND_META: PageMeta = { ...FALLBACK_META, title: `Not found | ${FALLBACK_META.title}` };
+import { m } from '#lib/paraglide/messages.js';
+
+const NOT_FOUND_META: PageMeta = {
+	get title() {
+		return `${m.storefront_seo_not_found_title()} | ${SITE_NAME}`;
+	},
+	get description() {
+		return FALLBACK_META.description;
+	},
+	noindex: true
+};
 
 /** The public origin used for canonical and Open Graph URLs (the prerender origin is fake). */
 export function siteOrigin(event: RequestEvent): string {

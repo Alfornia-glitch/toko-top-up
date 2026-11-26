@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
 	import { ChevronDown, Package } from '@lucide/svelte';
 	import { onMount } from 'svelte';
 	import SiteFooter from '#lib/frontend/components/SiteFooter.svelte';
@@ -16,56 +17,48 @@
 	const faqs = [
 		{
 			id: 'processing',
-			question: 'How long does order processing take?',
-			answer:
-				'Orders are picked and packed within 1–2 business days after payment clears. Orders placed before 2 PM local time usually ship the same day, while orders placed on weekends or public holidays ship on the next business day.'
+			question: m.storefront_shipping_faq_processing_q(),
+			answer: m.storefront_shipping_faq_processing_a()
 		},
 		{
 			id: 'free-shipping',
-			question: 'When does shipping become free?',
-			answer:
-				'Standard shipping is free on orders that meet our free-shipping threshold shown at checkout. The discount is applied automatically to your order summary before you pay, so no promo code is needed.'
+			question: m.storefront_shipping_faq_free_q(),
+			answer: m.storefront_shipping_faq_free_a()
 		},
 		{
 			id: 'express',
-			question: 'Can I upgrade to express delivery?',
-			answer:
-				'Yes. Express options appear at checkout whenever they are available for your address. Express orders are prioritised and typically arrive in 1–2 business days, with the exact estimate and price shown before you confirm payment.'
+			question: m.storefront_shipping_faq_express_q(),
+			answer: m.storefront_shipping_faq_express_a()
 		},
 		{
 			id: 'international',
-			question: 'Do you ship internationally?',
-			answer:
-				'We ship to most countries worldwide. International delivery times vary by destination and customs clearance. Import duties, taxes and brokerage fees are the responsibility of the recipient and are not included in the shipping cost at checkout.'
+			question: m.storefront_shipping_faq_international_q(),
+			answer: m.storefront_shipping_faq_international_a()
 		},
 		{
 			id: 'delayed',
-			question: 'My package is late. What should I do?',
-			answer:
-				'If tracking has not updated for 48 hours, or your order is past its estimated delivery window, contact our support team with your order number. We will open a carrier investigation and keep you updated until the parcel is found or a replacement is issued.'
+			question: m.storefront_shipping_faq_delayed_q(),
+			answer: m.storefront_shipping_faq_delayed_a()
 		},
 		{
 			id: 'address',
-			question: 'Can I change my shipping address after ordering?',
-			answer:
-				'Address changes are possible before the order is packed. Contact support as soon as possible with your order number and the corrected address. Once a parcel is in transit, the carrier may allow a redirect for an additional fee.'
+			question: m.storefront_shipping_faq_address_q(),
+			answer: m.storefront_shipping_faq_address_a()
 		},
 		{
 			id: 'tracking',
-			question: 'How do I track my order?',
-			answer:
-				'A tracking link is emailed as soon as your parcel is handed to the carrier. You can also open Order Tracking in your account to see live status updates, the carrier name and the expected delivery date.'
+			question: m.storefront_shipping_faq_tracking_q(),
+			answer: m.storefront_shipping_faq_tracking_a()
 		},
 		{
 			id: 'damaged',
-			question: 'What if my package arrives damaged?',
-			answer:
-				'Please photograph the packaging and the damaged item, then contact support within 7 days of delivery. We will arrange a replacement or refund once the carrier claim is reviewed, and we may ask you to keep the original packaging for inspection.'
+			question: m.storefront_shipping_faq_damaged_q(),
+			answer: m.storefront_shipping_faq_damaged_a()
 		}
 	];
 
 	function costLabel(price: number): string {
-		return price === 0 ? 'Free' : formatMoney(price, site.currency);
+		return price === 0 ? m.common_free() : formatMoney(price, site.currency);
 	}
 
 	onMount(() => {
@@ -80,15 +73,15 @@
 			<Breadcrumb.Root>
 				<Breadcrumb.List>
 					<Breadcrumb.Item>
-						<Breadcrumb.Link href="/">Home</Breadcrumb.Link>
+						<Breadcrumb.Link href="/">{m.common_home()}</Breadcrumb.Link>
 					</Breadcrumb.Item>
 					<Breadcrumb.Separator />
 					<Breadcrumb.Item>
-						<Breadcrumb.Link href="/help">Help</Breadcrumb.Link>
+						<Breadcrumb.Link href="/help">{m.storefront_pp_breadcrumb_help()}</Breadcrumb.Link>
 					</Breadcrumb.Item>
 					<Breadcrumb.Separator />
 					<Breadcrumb.Item>
-						<Breadcrumb.Page>Shipping</Breadcrumb.Page>
+						<Breadcrumb.Page>{m.common_shipping()}</Breadcrumb.Page>
 					</Breadcrumb.Item>
 				</Breadcrumb.List>
 			</Breadcrumb.Root>
@@ -100,18 +93,16 @@
 					<h1
 						class="text-3xl font-bold tracking-tight text-[#0a0a0a] max-[480px]:text-2xl max-[480px]:leading-8 sm:text-4xl"
 					>
-						Shipping &amp; delivery
+						{m.storefront_shipping_title()}
 					</h1>
 					<p class="text-base leading-relaxed text-[#737373]">
-						Everything you need to know about delivery times, tracking your parcel and shipping
-						costs. Choose the method that fits your schedule at checkout, then follow your order
-						from our warehouse to your door.
+						{m.storefront_shipping_intro()}
 					</p>
 				</div>
 				<div class="flex shrink-0">
 					<Button href="/account/order-tracking" size="lg">
 						<Package />
-						Track an order
+						{m.storefront_shipping_track_order()}
 					</Button>
 				</div>
 			</section>
@@ -119,11 +110,10 @@
 			<section class="mt-12" aria-labelledby="delivery-options-heading">
 				<div class="mb-4 flex flex-col gap-1">
 					<h2 id="delivery-options-heading" class="text-2xl font-semibold text-[#0a0a0a]">
-						Delivery options
+						{m.storefront_shipping_options_title()}
 					</h2>
 					<p class="text-sm text-[#737373]">
-						Available methods and estimated delivery windows. Costs are calculated at checkout based
-						on your destination.
+						{m.storefront_shipping_options_desc()}
 					</p>
 				</div>
 
@@ -139,10 +129,11 @@
 						{:else if site.shipping.length === 0}
 							<div class="flex flex-col items-center gap-2 py-10 text-center">
 								<Package class="size-8 text-[#737373]" />
-								<p class="text-base font-medium text-[#0a0a0a]">No shipping options available</p>
+								<p class="text-base font-medium text-[#0a0a0a]">
+									{m.storefront_shipping_none_title()}
+								</p>
 								<p class="text-sm text-[#737373]">
-									Delivery methods are being updated. Please check back shortly or contact support
-									for help with your order.
+									{m.storefront_shipping_none_desc()}
 								</p>
 							</div>
 						{:else}
@@ -150,9 +141,9 @@
 								<Table.Root>
 									<Table.Header>
 										<Table.Row>
-											<Table.Head>Method</Table.Head>
-											<Table.Head>Delivery time</Table.Head>
-											<Table.Head class="text-right">Cost</Table.Head>
+											<Table.Head>{m.storefront_shipping_col_method()}</Table.Head>
+											<Table.Head>{m.storefront_shipping_col_time()}</Table.Head>
+											<Table.Head class="text-right">{m.storefront_shipping_col_cost()}</Table.Head>
 										</Table.Row>
 									</Table.Header>
 									<Table.Body>
@@ -167,11 +158,11 @@
 													</div>
 												</Table.Cell>
 												<Table.Cell class="py-3 whitespace-normal">
-													{option.minDays}–{option.maxDays} days
+													{m.storefront_shipping_days({ min: option.minDays, max: option.maxDays })}
 												</Table.Cell>
 												<Table.Cell class="py-3 text-right">
 													{#if option.price === 0}
-														<Badge variant="secondary">Free</Badge>
+														<Badge variant="secondary">{m.common_free()}</Badge>
 													{:else}
 														<span class="font-medium text-[#0a0a0a]">
 															{costLabel(option.price)}
@@ -190,7 +181,7 @@
 										<div class="flex items-start justify-between gap-3">
 											<span class="font-medium text-[#0a0a0a]">{option.label}</span>
 											{#if option.price === 0}
-												<Badge variant="secondary">Free</Badge>
+												<Badge variant="secondary">{m.common_free()}</Badge>
 											{:else}
 												<span class="shrink-0 font-medium text-[#0a0a0a]">
 													{costLabel(option.price)}
@@ -201,9 +192,9 @@
 											<p class="mt-1 text-xs text-[#737373]">{option.description}</p>
 										{/if}
 										<div class="mt-3 flex items-center justify-between text-sm">
-											<span class="text-[#737373]">Delivery time</span>
+											<span class="text-[#737373]">{m.storefront_shipping_col_time()}</span>
 											<span class="font-medium text-[#0a0a0a]">
-												{option.minDays}–{option.maxDays} days
+												{m.storefront_shipping_days({ min: option.minDays, max: option.maxDays })}
 											</span>
 										</div>
 									</div>
@@ -217,10 +208,10 @@
 			<section class="mt-12" aria-labelledby="shipping-faq-heading">
 				<div class="mb-4 flex flex-col gap-1">
 					<h2 id="shipping-faq-heading" class="text-2xl font-semibold text-[#0a0a0a]">
-						Shipping FAQ
+						{m.storefront_shipping_faq_title()}
 					</h2>
 					<p class="text-sm text-[#737373]">
-						Answers to the questions our support team hears most often.
+						{m.storefront_shipping_faq_desc()}
 					</p>
 				</div>
 
@@ -258,16 +249,15 @@
 					>
 						<div class="flex flex-col gap-1">
 							<h2 id="shipping-help-heading" class="text-xl font-semibold text-[#0a0a0a]">
-								Need more help?
+								{m.storefront_shipping_help_title()}
 							</h2>
 							<p class="text-sm text-[#737373]">
-								Browse the rest of our help centre or contact our support team for order-specific
-								questions.
+								{m.storefront_shipping_help_desc()}
 							</p>
 						</div>
 						<div class="flex flex-col gap-3 sm:flex-row">
-							<Button href="/help" variant="outline">Back to help</Button>
-							<Button href="/account/support-tickets">Contact support</Button>
+							<Button href="/help" variant="outline">{m.storefront_shipping_back_help()}</Button>
+							<Button href="/account/support-tickets">{m.storefront_pp_contact_support()}</Button>
 						</div>
 					</Card.Content>
 				</Card.Root>
