@@ -41,7 +41,7 @@ export interface InventoryRow {
 	name: string;
 	stock: number;
 	status: 'active' | 'inactive';
-	priceCents: number;
+	price: number;
 	productId: string;
 	productName: string;
 	productSku: string;
@@ -108,7 +108,7 @@ export interface InventoryReportVariant {
 	name: string;
 	sku: string;
 	stock: number;
-	priceCents: number;
+	price: number;
 	status: 'active' | 'inactive';
 	productName: string;
 }

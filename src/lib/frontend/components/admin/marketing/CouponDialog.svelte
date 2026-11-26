@@ -4,7 +4,7 @@
 		code: string;
 		type: 'percentage' | 'fixed';
 		value: number;
-		minSubtotalCents: number;
+		minSubtotal: number;
 		maxUses: number | null;
 		usedCount: number;
 		startsAt: string | null;
@@ -58,8 +58,8 @@
 		return {
 			code: value?.code ?? '',
 			type: value?.type ?? 'percentage',
-			value: value?.type === 'fixed' ? String(value.value / 100) : String(value?.value ?? ''),
-			minSubtotal: value ? String(value.minSubtotalCents / 100) : '0',
+			value: value?.type === 'fixed' ? String(value.value) : String(value?.value ?? ''),
+			minSubtotal: value ? String(value.minSubtotal) : '0',
 			maxUses: value?.maxUses ? String(value.maxUses) : '',
 			startsAt: toDatetimeLocal(value?.startsAt ?? null),
 			endsAt: toDatetimeLocal(value?.endsAt ?? null),
@@ -81,7 +81,7 @@
 	let saving = $state(false);
 	let error = $state('');
 
-	const valueLabel = $derived(type === 'fixed' ? 'Value (dollars off)' : 'Value (percentage off)');
+	const valueLabel = $derived(type === 'fixed' ? 'Value (rupiah off)' : 'Value (percentage off)');
 
 	async function handleSubmit(event: SubmitEvent) {
 		event.preventDefault();
@@ -133,8 +133,8 @@
 		const payload = {
 			code: trimmedCode,
 			type,
-			value: type === 'fixed' ? Math.round(numericValue * 100) : Math.round(numericValue),
-			minSubtotalCents: Math.round(numericMinSubtotal * 100),
+			value: Math.round(numericValue),
+			minSubtotal: Math.round(numericMinSubtotal),
 			maxUses: parsedMaxUses,
 			startsAt: fromDatetimeLocal(startsAt),
 			endsAt: fromDatetimeLocal(endsAt),
@@ -208,13 +208,13 @@
 						<Input id="coupon-value" type="number" min="0" step="0.01" bind:value required />
 						<Field.Description>
 							{type === 'fixed'
-								? 'Amount in dollars, converted to cents when saved.'
+								? 'Amount in rupiah.'
 								: 'Whole percentage, for example 20 for 20% off.'}
 						</Field.Description>
 					</Field.Field>
 
 					<Field.Field>
-						<Field.Label for="coupon-min-subtotal">Minimum subtotal (dollars)</Field.Label>
+						<Field.Label for="coupon-min-subtotal">Minimum subtotal (rupiah)</Field.Label>
 						<Input
 							id="coupon-min-subtotal"
 							type="number"
@@ -222,7 +222,7 @@
 							step="0.01"
 							bind:value={minSubtotal}
 						/>
-						<Field.Description>Converted to cents when saved.</Field.Description>
+						<Field.Description>Whole rupiah.</Field.Description>
 					</Field.Field>
 				</div>
 

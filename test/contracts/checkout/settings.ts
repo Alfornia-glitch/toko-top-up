@@ -1,8 +1,8 @@
 import type { CheckoutSettings } from '#modules/checkout/server.ts';
 
 const METHODS = new Map([
-	['standard', { id: 'standard', priceCents: 500 }],
-	['express', { id: 'express', priceCents: 2000 }]
+	['standard', { id: 'standard', price: 500 }],
+	['express', { id: 'express', price: 2000 }]
 ]);
 
 /** In-memory shipping settings for contract tests. */

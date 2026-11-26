@@ -34,7 +34,7 @@ export const cartItems = sqliteTable(
 			.references(() => carts.id, { onDelete: 'cascade' }),
 		variantId: text('variant_id').notNull(),
 		quantity: integer('quantity').notNull().default(1),
-		unitPriceCents: integer('unit_price_cents').notNull(),
+		unitPrice: integer('unit_price').notNull(),
 		...timestamps
 	},
 	(table) => [uniqueIndex('cart_items_cart_variant_idx').on(table.cartId, table.variantId)]

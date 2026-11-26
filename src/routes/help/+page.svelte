@@ -122,7 +122,9 @@
 		<section class="mx-auto max-w-[1280px] px-4 py-12 text-center sm:px-8 sm:py-16">
 			<div class="mx-auto flex max-w-2xl flex-col items-center gap-4">
 				<Badge variant="secondary">Support</Badge>
-				<h1 class="font-['Geist:Bold'] text-3xl leading-tight text-[#0a0a0a] sm:text-4xl">
+				<h1
+					class="font-['Geist:Bold'] text-3xl leading-tight text-[#0a0a0a] max-[480px]:text-2xl max-[480px]:leading-8 sm:text-4xl"
+				>
 					How can we help?
 				</h1>
 				<p class="font-['Geist:Regular'] text-base text-[#737373] sm:text-lg">

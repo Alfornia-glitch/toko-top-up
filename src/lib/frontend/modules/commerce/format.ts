@@ -1,14 +1,11 @@
-/** Currencies whose amounts are stored as whole units, not hundredths. */
-export const ZERO_DECIMAL = new Set(['IDR', 'JPY', 'KRW', 'VND']);
-
-export function formatMoney(cents: number, currency = 'IDR'): string {
+/** Money is stored and displayed in whole rupiah. Never scale by 100. */
+export function formatMoney(amount: number, currency = 'IDR'): string {
 	const code = currency || 'IDR';
-	const zero = ZERO_DECIMAL.has(code);
 	return new Intl.NumberFormat(code === 'IDR' ? 'id-ID' : 'en-US', {
 		style: 'currency',
 		currency: code,
-		maximumFractionDigits: zero ? 0 : 2
-	}).format(zero ? cents : cents / 100);
+		maximumFractionDigits: 0
+	}).format(amount);
 }
 
 export function ratingValue(value: number): number {
@@ -16,9 +13,9 @@ export function ratingValue(value: number): number {
 	return Math.min(5, value > 5 ? value / 100 : value);
 }
 
-export function discountPercent(priceCents: number, compareAtCents: number | null): number {
-	if (!compareAtCents || compareAtCents <= priceCents) return 0;
-	return Math.round(((compareAtCents - priceCents) / compareAtCents) * 100);
+export function discountPercent(price: number, compareAt: number | null): number {
+	if (!compareAt || compareAt <= price) return 0;
+	return Math.round(((compareAt - price) / compareAt) * 100);
 }
 
 export function formatDate(value: string | Date | null | undefined): string {

@@ -13,7 +13,7 @@ export interface PlacedOrder {
 
 export interface ShippingMethod {
 	id: string;
-	priceCents: number;
+	price: number;
 }
 
 /**
@@ -32,6 +32,6 @@ export interface OrderLine {
 	skuSnapshot: string;
 	imageUrlSnapshot: string | null;
 	quantity: number;
-	unitPriceCents: number;
-	totalCents: number;
+	unitPrice: number;
+	total: number;
 }

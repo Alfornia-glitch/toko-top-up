@@ -68,7 +68,7 @@ export function createBrowseService(repository: BrowseRepository): BrowseService
 		return {
 			brands: source.brands,
 			categories: source.categories,
-			price: { minCents: source.minCents, maxCents: source.maxCents },
+			price: { min: source.min, max: source.max },
 			colors: distinctColors(source.colorRows).sort((a, b) => a.localeCompare(b)),
 			discounts: discountPercents(source.discountRows)
 		};

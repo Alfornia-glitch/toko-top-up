@@ -28,10 +28,12 @@
 
 	{#if categoryBanners.length > 1}
 		<section
-			class="relative flex w-full shrink-0 content-stretch items-center justify-center px-4 py-[56px] sm:px-8"
+			class="relative flex w-full max-w-[1440px] shrink-0 content-stretch items-center justify-center py-[56px] max-[480px]:py-9"
 			data-name="Hero"
 		>
-			<div class="grid w-full grid-cols-1 gap-[16px] sm:grid-cols-2 lg:grid-cols-3">
+			<div
+				class="grid w-full max-w-[1280px] grid-cols-1 gap-[16px] px-[32px] max-[480px]:px-3.5 sm:grid-cols-2 lg:grid-cols-3"
+			>
 				{#each categoryBanners as banner (banner.id)}
 					<a
 						href={banner.ctaUrl ?? '/products'}
@@ -73,7 +75,7 @@
 		</section>
 	{:else if heroBanner}
 		<section
-			class="relative flex w-full items-center justify-center overflow-clip px-4 py-4 sm:px-8"
+			class="relative flex w-full max-w-[1440px] shrink-0 content-stretch items-center justify-center overflow-clip py-[56px] max-[480px]:py-9"
 			data-name="Hero"
 		>
 			<div
@@ -94,7 +96,9 @@
 				<div
 					class="relative flex w-full max-w-[600px] flex-col items-start gap-[16px] px-[40px] py-[40px] text-white"
 				>
-					<h1 class="font-['Geist:Bold'] text-[36px] leading-[40px] font-bold">
+					<h1
+						class="font-['Geist:Bold'] text-[36px] leading-[40px] font-bold max-[480px]:text-2xl max-[480px]:leading-8"
+					>
 						{heroBanner.title}
 					</h1>
 					{#if heroBanner.subtitle}
@@ -125,11 +129,11 @@
 		{@const children = home.categories.filter((category) => category.parentId === root.id)}
 		{@const cards = children.length > 0 ? children : [root]}
 		<section
-			class="relative flex w-full shrink-0 flex-col content-stretch items-center justify-center px-4 py-[56px] sm:px-8"
+			class="relative flex w-full shrink-0 flex-col content-stretch items-center justify-center py-[56px] max-[480px]:py-9"
 			data-name="Product category"
 		>
 			<div
-				class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[24px] overflow-clip"
+				class="relative flex w-full max-w-[1280px] shrink-0 flex-col content-stretch items-start gap-[24px] overflow-clip px-[32px] max-[480px]:px-3.5"
 				data-name="Flex Vertical"
 			>
 				<div
@@ -137,7 +141,7 @@
 					data-name="Flex Horizontal"
 				>
 					<h2
-						class="relative min-w-px flex-[1_0_0] font-['Geist:Bold'] text-[30px] leading-[36px] font-bold [word-break:break-word] text-[#0a0a0a]"
+						class="relative min-w-px flex-[1_0_0] font-['Geist:Bold'] text-[30px] leading-[36px] font-bold [word-break:break-word] text-[#0a0a0a] max-[480px]:text-2xl max-[480px]:leading-8"
 					>
 						{root.name}
 					</h2>
@@ -192,11 +196,11 @@
 
 	{#if home.brands.length > 0}
 		<section
-			class="relative flex w-full shrink-0 flex-col content-stretch items-center justify-center px-4 py-[56px] sm:px-8"
+			class="relative flex w-full shrink-0 flex-col content-stretch items-center justify-center py-[56px] max-[480px]:py-9"
 			data-name="Product category"
 		>
 			<div
-				class="relative flex w-full shrink-0 flex-col content-stretch items-center justify-center gap-[32px] overflow-clip"
+				class="relative flex w-full max-w-[1280px] shrink-0 flex-col content-stretch items-center justify-center gap-[32px] overflow-clip px-[32px] max-[480px]:px-3.5"
 				data-name="Flex Vertical"
 			>
 				<div
@@ -204,7 +208,7 @@
 					data-name="Flex Horizontal"
 				>
 					<h2
-						class="relative min-w-px flex-[1_0_0] font-['Geist:Bold'] text-[30px] leading-[36px] font-bold [word-break:break-word] text-[#0a0a0a]"
+						class="relative min-w-px flex-[1_0_0] font-['Geist:Bold'] text-[30px] leading-[36px] font-bold [word-break:break-word] text-[#0a0a0a] max-[480px]:text-2xl max-[480px]:leading-8"
 					>
 						Grand Global Brands
 					</h2>
@@ -250,13 +254,13 @@
 	{/if}
 
 	{#if firstDeal}
-		{@const discount = discountPercent(firstDeal.priceCents, firstDeal.compareAtPriceCents)}
+		{@const discount = discountPercent(firstDeal.price, firstDeal.compareAtPrice)}
 		<section
-			class="relative flex w-full shrink-0 flex-col content-stretch items-center justify-center px-4 py-[56px] sm:px-8"
+			class="relative flex w-full shrink-0 flex-col content-stretch items-center justify-center py-[56px] max-[480px]:py-9"
 			data-name="Feature"
 		>
 			<div
-				class="relative flex w-full shrink-0 flex-col content-stretch items-center justify-center gap-[32px]"
+				class="relative flex w-full max-w-[1280px] shrink-0 flex-col content-stretch items-center justify-center gap-[32px] px-[32px] max-[480px]:px-3.5"
 				data-name="Flex Vertical"
 			>
 				<div
@@ -264,7 +268,7 @@
 					data-name="Flex Horizontal"
 				>
 					<h2
-						class="relative min-w-px flex-[1_0_0] font-['Geist:Bold'] text-[30px] leading-[36px] font-bold [word-break:break-word] text-[#0a0a0a]"
+						class="relative min-w-px flex-[1_0_0] font-['Geist:Bold'] text-[30px] leading-[36px] font-bold [word-break:break-word] text-[#0a0a0a] max-[480px]:text-2xl max-[480px]:leading-8"
 					>
 						Deals of the Day
 					</h2>
@@ -300,7 +304,9 @@
 									{firstDeal.brandName}
 								</p>
 							{/if}
-							<p class="font-['Geist:Bold'] text-[36px] leading-[40px] font-bold">
+							<p
+								class="font-['Geist:Bold'] text-[36px] leading-[40px] font-bold max-[480px]:text-2xl max-[480px]:leading-8"
+							>
 								{firstDeal.name}
 							</p>
 							{#if firstDeal.shortDescription}
@@ -311,11 +317,11 @@
 						</div>
 						<div class="flex flex-wrap items-baseline gap-[8px]">
 							<span class="text-[24px] leading-[32px] font-semibold">
-								{formatMoney(firstDeal.priceCents, firstDeal.currency)}
+								{formatMoney(firstDeal.price, firstDeal.currency)}
 							</span>
-							{#if firstDeal.compareAtPriceCents && firstDeal.compareAtPriceCents > firstDeal.priceCents}
+							{#if firstDeal.compareAtPrice && firstDeal.compareAtPrice > firstDeal.price}
 								<span class="text-[18px] leading-[28px] text-white/70 line-through">
-									{formatMoney(firstDeal.compareAtPriceCents, firstDeal.currency)}
+									{formatMoney(firstDeal.compareAtPrice, firstDeal.currency)}
 								</span>
 								<span
 									class="rounded-full bg-[#dc2626] px-[10px] py-[2px] text-[14px] leading-[20px] font-medium"

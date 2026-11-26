@@ -65,7 +65,10 @@
 				<div class="grid items-center gap-8 lg:grid-cols-2 lg:gap-12">
 					<div class="flex flex-col items-start gap-5">
 						<Badge>New season</Badge>
-						<h1 id="hero-heading" class="text-4xl font-bold tracking-tight sm:text-5xl">
+						<h1
+							id="hero-heading"
+							class="text-4xl font-bold tracking-tight max-[480px]:text-2xl max-[480px]:leading-8 sm:text-5xl"
+						>
 							{banner?.title ?? 'Everything you need, thoughtfully curated'}
 						</h1>
 						<p class="text-lg text-muted-foreground">

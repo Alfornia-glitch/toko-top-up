@@ -60,7 +60,7 @@ export function createCustomerDirectory(ordersOf: () => OrdersService): Customer
 			const data = rows.map((row): CustomerSummary => ({
 				...row,
 				orderCount: totals.get(row.id)?.orderCount ?? 0,
-				spentCents: totals.get(row.id)?.spentCents ?? 0
+				spent: totals.get(row.id)?.spent ?? 0
 			}));
 
 			return { data, total: Number(totalRow?.value ?? 0) };
@@ -91,7 +91,7 @@ export function createCustomerDirectory(ordersOf: () => OrdersService): Customer
 					orderNumber: order.orderNumber,
 					status: order.status,
 					paymentStatus: order.paymentStatus,
-					grandTotalCents: order.grandTotalCents,
+					grandTotal: order.grandTotal,
 					currency: order.currency,
 					placedAt: order.placedAt
 				}))

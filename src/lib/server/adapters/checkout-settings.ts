@@ -9,7 +9,7 @@ export function createCheckoutSettings(storefront: StorefrontService): CheckoutS
 			const method = unwrap(await storefront.getSiteSettings()).shipping.find(
 				(entry) => entry.id === id
 			);
-			return method ? { id: method.id, priceCents: method.priceCents } : null;
+			return method ? { id: method.id, price: method.price } : null;
 		},
 
 		async getCurrency() {

@@ -20,11 +20,11 @@ export interface Order {
 	status: OrderStatus;
 	paymentStatus: string;
 	fulfillmentStatus: string;
-	subtotalCents: number;
-	discountCents: number;
-	shippingCents: number;
-	taxCents: number;
-	grandTotalCents: number;
+	subtotal: number;
+	discount: number;
+	shipping: number;
+	tax: number;
+	grandTotal: number;
 	currency: string;
 	couponId: string | null;
 	shippingAddressJson: Record<string, unknown> | null;
@@ -47,8 +47,8 @@ export interface OrderItem {
 	skuSnapshot: string;
 	imageUrlSnapshot: string | null;
 	quantity: number;
-	unitPriceCents: number;
-	totalCents: number;
+	unitPrice: number;
+	total: number;
 	status: string;
 	createdAt: Date;
 	updatedAt: Date;
@@ -81,7 +81,7 @@ export interface Payment {
 	orderId: string;
 	provider: string;
 	providerRef: string | null;
-	amountCents: number;
+	amount: number;
 	status: PaymentStatus;
 	paidAt: Date | null;
 	failureReason: string | null;
@@ -101,7 +101,7 @@ export interface AdminOrderListItem {
 	status: OrderStatus;
 	paymentStatus: string;
 	fulfillmentStatus: string;
-	grandTotalCents: number;
+	grandTotal: number;
 	currency: string;
 	placedAt: Date;
 	updatedAt: Date;
@@ -125,7 +125,7 @@ export interface CustomerOrderSummary {
 	status: OrderStatus;
 	paymentStatus: string;
 	fulfillmentStatus: string;
-	grandTotalCents: number;
+	grandTotal: number;
 	currency: string;
 	placedAt: Date;
 	itemCount: number;
@@ -137,11 +137,11 @@ export interface CustomerOrderDetail {
 	status: OrderStatus;
 	paymentStatus: string;
 	fulfillmentStatus: string;
-	subtotalCents: number;
-	discountCents: number;
-	shippingCents: number;
-	taxCents: number;
-	grandTotalCents: number;
+	subtotal: number;
+	discount: number;
+	shipping: number;
+	tax: number;
+	grandTotal: number;
 	currency: string;
 	placedAt: Date;
 	shippingAddress: Record<string, unknown> | null;
@@ -157,8 +157,8 @@ export interface CustomerOrderDetail {
 		sku: string;
 		imageUrl: string | null;
 		quantity: number;
-		unitPriceCents: number;
-		totalCents: number;
+		unitPrice: number;
+		total: number;
 		status: string;
 	}>;
 	events: Array<{ id: string; type: string; message: string | null; createdAt: Date }>;
@@ -204,8 +204,8 @@ export interface NewOrderItem {
 	skuSnapshot: string;
 	imageUrlSnapshot: string | null;
 	quantity: number;
-	unitPriceCents: number;
-	totalCents: number;
+	unitPrice: number;
+	total: number;
 }
 
 /** Everything checkout decides about an order; the module assigns ids, number and timestamps. */
@@ -215,11 +215,11 @@ export interface CreateOrderInput {
 	userId: string;
 	status: OrderStatus;
 	paymentStatus: string;
-	subtotalCents: number;
-	discountCents: number;
-	shippingCents: number;
-	taxCents: number;
-	grandTotalCents: number;
+	subtotal: number;
+	discount: number;
+	shipping: number;
+	tax: number;
+	grandTotal: number;
 	currency: string;
 	couponId: string | null;
 	shippingAddress: Record<string, unknown>;
@@ -272,7 +272,7 @@ export interface DateRange {
 export interface SalesOrderRow {
 	id: string;
 	status: OrderStatus;
-	grandTotalCents: number;
+	grandTotal: number;
 	placedAt: Date;
 }
 
@@ -280,7 +280,7 @@ export interface TopProductRow {
 	name: string;
 	sku: string;
 	quantity: number;
-	totalCents: number;
+	total: number;
 }
 
 export interface SalesData {
@@ -293,13 +293,13 @@ export interface OrderTotals {
 	pendingCount: number;
 	/** Orders in a revenue status (paid, processing, shipped, delivered). */
 	paidCount: number;
-	revenueCents: number;
+	revenue: number;
 }
 
 export interface UserOrderTotals {
 	userId: string;
 	orderCount: number;
-	spentCents: number;
+	spent: number;
 }
 
 export interface OrdersRepository {
@@ -355,7 +355,7 @@ export function toAdminListItem(
 		status: order.status,
 		paymentStatus: order.paymentStatus,
 		fulfillmentStatus: order.fulfillmentStatus,
-		grandTotalCents: order.grandTotalCents,
+		grandTotal: order.grandTotal,
 		currency: order.currency,
 		placedAt: order.placedAt,
 		updatedAt: order.updatedAt,

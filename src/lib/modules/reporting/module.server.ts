@@ -95,7 +95,7 @@ export function createReportingServices(options: ReportingOptions): ReportingSer
 				orderNumber: order.orderNumber,
 				status: order.status,
 				paymentStatus: order.paymentStatus,
-				grandTotalCents: order.grandTotalCents,
+				grandTotal: order.grandTotal,
 				currency: order.currency,
 				placedAt: order.placedAt
 			}));

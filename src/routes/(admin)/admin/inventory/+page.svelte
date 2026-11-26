@@ -14,7 +14,7 @@
 		name: string;
 		stock: number;
 		status: string;
-		priceCents: number;
+		price: number;
 		productId: string;
 		productName: string;
 		productSku: string;

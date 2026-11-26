@@ -70,8 +70,8 @@
 		lockedCategoryId={category.id}
 	>
 		{#snippet before()}
-			<div class="flex w-full flex-col gap-6 px-4 pt-8 sm:px-8">
-				<div class="w-full">
+			<div class="flex w-full flex-col gap-6 pt-8">
+				<div class="mx-auto w-full max-w-[1280px] px-[32px] max-[480px]:px-3.5">
 					<Breadcrumb.Root>
 						<Breadcrumb.List>
 							<Breadcrumb.Item>
@@ -88,12 +88,16 @@
 						</Breadcrumb.List>
 					</Breadcrumb.Root>
 				</div>
-				<div class="w-full">
+				<div class="mx-auto w-full max-w-[1280px] px-[32px] max-[480px]:px-3.5">
 					<div
 						class="grid gap-6 overflow-hidden rounded-[14px] border bg-[#f5f5f5] p-6 sm:p-10 md:grid-cols-[1.2fr_1fr]"
 					>
 						<div class="flex flex-col items-start gap-4">
-							<h1 class="text-3xl font-bold text-[#0a0a0a] sm:text-4xl">{category.name}</h1>
+							<h1
+								class="text-3xl font-bold text-[#0a0a0a] max-[480px]:text-2xl max-[480px]:leading-8 sm:text-4xl"
+							>
+								{category.name}
+							</h1>
 							{#if category.description}
 								<p class="text-muted-foreground">{category.description}</p>
 							{/if}

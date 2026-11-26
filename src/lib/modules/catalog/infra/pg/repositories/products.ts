@@ -38,8 +38,8 @@ const productSelection = {
 	brandId: products.brandId,
 	categoryId: products.categoryId,
 	status: products.status,
-	priceCents: products.priceCents,
-	compareAtPriceCents: products.compareAtPriceCents,
+	price: products.price,
+	compareAtPrice: products.compareAtPrice,
 	currency: products.currency,
 	isFeatured: products.isFeatured,
 	isNewArrival: products.isNewArrival,
@@ -138,8 +138,8 @@ export function createPostgresProductRepository(db: PostgresDb): ProductReposito
 					name: products.name,
 					slug: products.slug,
 					status: products.status,
-					priceCents: products.priceCents,
-					compareAtPriceCents: products.compareAtPriceCents,
+					price: products.price,
+					compareAtPrice: products.compareAtPrice,
 					currency: products.currency,
 					isFeatured: products.isFeatured,
 					updatedAt: products.updatedAt,
@@ -329,8 +329,8 @@ export function createPostgresProductRepository(db: PostgresDb): ProductReposito
 					sku: productVariants.sku,
 					name: productVariants.name,
 					status: productVariants.status,
-					priceCents: productVariants.priceCents,
-					compareAtPriceCents: productVariants.compareAtPriceCents,
+					price: productVariants.price,
+					compareAtPrice: productVariants.compareAtPrice,
 					stock: productVariants.stock,
 					productId: products.id,
 					productSlug: products.slug,
@@ -397,8 +397,8 @@ function productSortColumn(key: string) {
 		case 'sku':
 			return products.sku;
 		case 'price':
-		case 'priceCents':
-			return products.priceCents;
+		case 'price':
+			return products.price;
 		case 'createdAt':
 			return products.createdAt;
 		case 'updatedAt':
@@ -418,8 +418,8 @@ function toProduct(row: Product): Product {
 		brandId: row.brandId,
 		categoryId: row.categoryId,
 		status: row.status,
-		priceCents: row.priceCents,
-		compareAtPriceCents: row.compareAtPriceCents,
+		price: row.price,
+		compareAtPrice: row.compareAtPrice,
 		currency: row.currency,
 		isFeatured: row.isFeatured,
 		isNewArrival: row.isNewArrival,

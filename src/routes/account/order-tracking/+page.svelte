@@ -133,11 +133,11 @@
 >
 	<SiteHeader />
 	<div
-		class="relative flex w-full max-w-[1440px] shrink-0 flex-col content-stretch items-center justify-center bg-white py-[56px]"
+		class="relative flex w-full max-w-[1440px] shrink-0 flex-col content-stretch items-center justify-center bg-white py-[56px] max-[480px]:py-9"
 		data-name="Timeline"
 	>
 		<div
-			class="relative flex w-full max-w-[1280px] min-w-[328px] shrink-0 content-stretch items-start gap-[24px] px-[32px]"
+			class="relative flex w-full max-w-[1280px] min-w-[328px] shrink-0 content-stretch items-start gap-[24px] px-[32px] max-[480px]:px-3.5"
 			data-name="Flex Horizontal"
 		>
 			<AccountSidebar />
@@ -340,16 +340,13 @@
 													<p
 														class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]"
 													>
-														Qty: {item.quantity} · {formatMoney(
-															item.unitPriceCents,
-															order.currency
-														)}
+														Qty: {item.quantity} · {formatMoney(item.unitPrice, order.currency)}
 													</p>
 												</div>
 												<p
 													class="shrink-0 font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-[#0a0a0a]"
 												>
-													{formatMoney(item.totalCents, order.currency)}
+													{formatMoney(item.total, order.currency)}
 												</p>
 											</div>
 										{/each}
@@ -358,7 +355,7 @@
 							</div>
 
 							<div
-								class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[8px] rounded-[8px] bg-[#f5f5f5] p-[16px]"
+								class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[8px] rounded-[8px] bg-[#f5f5f5] p-[16px] max-md:max-w-full"
 								data-name="Pricing Details"
 							>
 								<div class="flex w-full items-center justify-between gap-[12px]">
@@ -368,7 +365,7 @@
 									<p
 										class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-[#0a0a0a]"
 									>
-										{formatMoney(order.subtotalCents, order.currency)}
+										{formatMoney(order.subtotal, order.currency)}
 									</p>
 								</div>
 								<div class="flex w-full items-center justify-between gap-[12px]">
@@ -378,7 +375,7 @@
 									<p
 										class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-[#0a0a0a]"
 									>
-										-{formatMoney(order.discountCents, order.currency)}
+										-{formatMoney(order.discount, order.currency)}
 									</p>
 								</div>
 								<div class="flex w-full items-center justify-between gap-[12px]">
@@ -388,7 +385,7 @@
 									<p
 										class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-[#0a0a0a]"
 									>
-										{formatMoney(order.shippingCents, order.currency)}
+										{formatMoney(order.shipping, order.currency)}
 									</p>
 								</div>
 								<div
@@ -402,7 +399,7 @@
 									<p
 										class="font-['Geist:SemiBold'] text-[18px] leading-[28px] font-semibold text-[#0a0a0a]"
 									>
-										{formatMoney(order.grandTotalCents, order.currency)}
+										{formatMoney(order.grandTotal, order.currency)}
 									</p>
 								</div>
 							</div>

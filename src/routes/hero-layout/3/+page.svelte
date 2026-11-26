@@ -64,7 +64,9 @@
 					>
 						<div class="flex flex-col items-start gap-4">
 							<Badge variant="secondary" class="w-fit bg-white text-[#0a0a0a]">Editor's pick</Badge>
-							<h1 class="text-3xl leading-tight font-bold text-[#0a0a0a] sm:text-5xl">
+							<h1
+								class="text-3xl leading-tight font-bold text-[#0a0a0a] max-[480px]:text-2xl max-[480px]:leading-8 sm:text-5xl"
+							>
 								{main?.title ?? 'The editorial edit'}
 							</h1>
 							<p class="max-w-md text-sm text-[#525252] sm:text-base">

@@ -1,12 +1,13 @@
 <script lang="ts" module>
+	import { formatMoney } from '#lib/frontend/modules/commerce/format.ts';
 	export interface StorefrontProduct {
 		id: string;
 		sku: string;
 		name: string;
 		slug: string;
 		shortDescription: string | null;
-		priceCents: number;
-		compareAtPriceCents: number | null;
+		price: number;
+		compareAtPrice: number | null;
 		currency: string;
 		ratingAvg: number;
 		ratingCount: number;
@@ -32,13 +33,6 @@
 
 	let failedUrl = $state<string | null>(null);
 
-	function formatMoney(cents: number, currency: string) {
-		return new Intl.NumberFormat('en-US', {
-			style: 'currency',
-			currency: currency || 'USD'
-		}).format(cents / 100);
-	}
-
 	function ratingValue(value: number) {
 		if (!Number.isFinite(value) || value <= 0) return 0;
 		return Math.min(5, value > 5 ? value / 100 : value);
@@ -46,12 +40,10 @@
 
 	const rating = $derived(ratingValue(product.ratingAvg));
 	const compareAt = $derived(
-		product.compareAtPriceCents && product.compareAtPriceCents > product.priceCents
-			? product.compareAtPriceCents
-			: null
+		product.compareAtPrice && product.compareAtPrice > product.price ? product.compareAtPrice : null
 	);
 	const discount = $derived(
-		compareAt ? Math.round(((compareAt - product.priceCents) / compareAt) * 100) : 0
+		compareAt ? Math.round(((compareAt - product.price) / compareAt) * 100) : 0
 	);
 </script>
 
@@ -111,7 +103,7 @@
 			</div>
 			<div class="mt-auto flex items-baseline gap-2">
 				<span class="text-base font-semibold text-[#0a0a0a]">
-					{formatMoney(product.priceCents, product.currency)}
+					{formatMoney(product.price, product.currency)}
 				</span>
 				{#if compareAt}
 					<span class="text-sm text-[#737373] line-through">

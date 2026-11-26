@@ -49,12 +49,8 @@
 		}))
 	);
 	let page = $state(untrack(() => query.page ?? 1));
-	let minInput = $state(
-		untrack(() => (query.minPrice != null ? String(query.minPrice / 100) : ''))
-	);
-	let maxInput = $state(
-		untrack(() => (query.maxPrice != null ? String(query.maxPrice / 100) : ''))
-	);
+	let minInput = $state(untrack(() => (query.minPrice != null ? String(query.minPrice) : '')));
+	let maxInput = $state(untrack(() => (query.maxPrice != null ? String(query.maxPrice) : '')));
 
 	let requestId = 0;
 
@@ -78,11 +74,11 @@
 	const pageNumbers = $derived(buildPageNumbers(page, totalPages));
 	const priceRanges = $derived.by(() => {
 		const bounds = result?.facets.price;
-		if (!bounds || bounds.maxCents <= bounds.minCents) return [];
-		const step = (bounds.maxCents - bounds.minCents) / 4;
+		if (!bounds || bounds.max <= bounds.min) return [];
+		const step = (bounds.max - bounds.min) / 4;
 		return Array.from({ length: 4 }, (_, index) => ({
-			min: Math.round(bounds.minCents + step * index),
-			max: index === 3 ? bounds.maxCents : Math.round(bounds.minCents + step * (index + 1))
+			min: Math.round(bounds.min + step * index),
+			max: index === 3 ? bounds.max : Math.round(bounds.min + step * (index + 1))
 		}));
 	});
 
@@ -148,8 +144,8 @@
 	}
 
 	function applyPrice() {
-		const min = minInput.trim() === '' ? undefined : Math.round(Number(minInput) * 100);
-		const max = maxInput.trim() === '' ? undefined : Math.round(Number(maxInput) * 100);
+		const min = minInput.trim() === '' ? undefined : Math.round(Number(minInput));
+		const max = maxInput.trim() === '' ? undefined : Math.round(Number(maxInput));
 		filters.minPrice = min != null && Number.isFinite(min) ? min : undefined;
 		filters.maxPrice = max != null && Number.isFinite(max) ? max : undefined;
 		page = 1;
@@ -157,8 +153,8 @@
 	}
 
 	function applyRange(min: number, max: number) {
-		minInput = String(min / 100);
-		maxInput = String(max / 100);
+		minInput = String(min);
+		maxInput = String(max);
 		filters.minPrice = min;
 		filters.maxPrice = max;
 		page = 1;
@@ -236,10 +232,13 @@
 	<SiteHeader />
 	{@render before?.()}
 	<div
-		class="relative flex w-full shrink-0 flex-col content-stretch items-center justify-center gap-[14px] bg-white px-4 py-[56px] sm:px-8"
+		class="relative flex w-full max-w-[1440px] shrink-0 flex-col content-stretch items-center justify-center gap-[14px] bg-white py-[56px] max-[480px]:py-9"
 		data-name="Category filter"
 	>
-		<div class="relative flex w-full shrink-0 content-stretch items-center" data-name="Breadcrumbs">
+		<div
+			class="relative flex w-full max-w-[1280px] shrink-0 content-stretch items-center px-[32px] max-[480px]:px-3.5"
+			data-name="Breadcrumbs"
+		>
 			<div
 				class="relative flex max-h-[28px] shrink-0 content-stretch items-center gap-[6px]"
 				data-name="Items"
@@ -300,11 +299,11 @@
 			</div>
 		</div>
 		<div
-			class="relative flex w-full min-w-[328px] shrink-0 content-stretch items-start gap-[16px]"
+			class="relative flex w-full max-w-[1280px] min-w-[328px] shrink-0 content-stretch items-start gap-[16px] px-[32px] max-[480px]:px-3.5"
 			data-name="Flex Horizontal"
 		>
 			<div
-				class="relative flex max-w-[323px] min-w-[299px] flex-[1_0_0] flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-white py-[16px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)]"
+				class="relative flex max-w-[323px] min-w-[299px] flex-[1_0_0] flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-white py-[16px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)] max-md:max-w-full"
 				data-name="Card"
 			>
 				<div

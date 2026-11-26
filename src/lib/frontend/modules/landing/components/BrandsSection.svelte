@@ -3,15 +3,15 @@
 </script>
 
 <div
-	class="relative flex w-full shrink-0 flex-col content-stretch items-center justify-end bg-white py-[56px]"
+	class="relative flex w-full shrink-0 flex-col content-stretch items-center justify-end bg-white py-[56px] max-[480px]:py-9"
 	data-name="Flex Vertical"
 >
 	<div
-		class="relative flex w-full max-w-[1280px] shrink-0 flex-col content-stretch items-center justify-center gap-[32px] px-[32px]"
+		class="relative flex w-full max-w-[1280px] shrink-0 flex-col content-stretch items-center justify-center gap-[32px] px-[32px] max-[480px]:px-3.5"
 		data-name="Flex Vertical"
 	>
 		<p
-			class="relative w-full shrink-0 text-start font-['Geist:Bold'] text-[30px] leading-[36px] font-bold [word-break:break-word] text-[#0a0a0a]"
+			class="relative w-full shrink-0 text-start font-['Geist:Bold'] text-[30px] leading-[36px] font-bold [word-break:break-word] text-[#0a0a0a] max-[480px]:text-2xl max-[480px]:leading-8"
 		>
 			Shop By Brands
 		</p>

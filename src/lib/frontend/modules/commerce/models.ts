@@ -49,8 +49,8 @@ export interface StorefrontProduct {
 	name: string;
 	slug: string;
 	shortDescription: string | null;
-	priceCents: number;
-	compareAtPriceCents: number | null;
+	price: number;
+	compareAtPrice: number | null;
 	currency: string;
 	ratingAvg: number;
 	ratingCount: number;
@@ -102,8 +102,8 @@ export interface ProductVariant {
 	id: string;
 	sku: string;
 	name: string;
-	priceCents: number;
-	compareAtPriceCents: number | null;
+	price: number;
+	compareAtPrice: number | null;
 	stock: number;
 	optionValuesJson: Record<string, string> | null;
 }
@@ -123,7 +123,7 @@ export interface ProductDetail extends StorefrontProduct {
 export interface ProductFacets {
 	brands: { id: string; name: string; slug: string; logoUrl: string | null }[];
 	categories: { id: string; name: string; slug: string }[];
-	price: { minCents: number; maxCents: number };
+	price: { min: number; max: number };
 	colors: string[];
 	discounts: number[];
 }
@@ -140,7 +140,7 @@ export interface ShippingOption {
 	id: string;
 	label: string;
 	description: string;
-	priceCents: number;
+	price: number;
 	minDays: number;
 	maxDays: number;
 }
@@ -151,6 +151,7 @@ export interface SiteSettings {
 	downloads: { appStore: string; googlePlay: string };
 	shipping: ShippingOption[];
 	currency: string;
+	storefrontLayout: 'regular' | 'topup';
 }
 
 export interface HomeData {
@@ -174,8 +175,8 @@ export interface CartItem {
 	variantName: string;
 	brandName: string | null;
 	imageUrl: string | null;
-	unitPriceCents: number;
-	compareAtPriceCents: number | null;
+	unitPrice: number;
+	compareAtPrice: number | null;
 	quantity: number;
 	stock: number;
 }
@@ -189,10 +190,10 @@ export interface CartCoupon {
 export interface Cart {
 	id: string;
 	items: CartItem[];
-	subtotalCents: number;
-	discountCents: number;
-	shippingCents: number;
-	totalCents: number;
+	subtotal: number;
+	discount: number;
+	shipping: number;
+	total: number;
 	currency: string;
 	itemCount: number;
 	coupon: CartCoupon | null;
@@ -231,8 +232,8 @@ export interface OrderItem {
 	sku: string;
 	imageUrl: string | null;
 	quantity: number;
-	unitPriceCents: number;
-	totalCents: number;
+	unitPrice: number;
+	total: number;
 	status: string;
 }
 
@@ -258,17 +259,17 @@ export interface OrderSummary {
 	status: string;
 	paymentStatus: string;
 	fulfillmentStatus: string;
-	grandTotalCents: number;
+	grandTotal: number;
 	currency: string;
 	placedAt: string;
 	itemCount?: number;
 }
 
 export interface OrderDetail extends OrderSummary {
-	subtotalCents: number;
-	discountCents: number;
-	shippingCents: number;
-	taxCents: number;
+	subtotal: number;
+	discount: number;
+	shipping: number;
+	tax: number;
 	shippingAddress: Record<string, unknown> | null;
 	billingAddress: Record<string, unknown> | null;
 	trackingNumber: string | null;
@@ -290,7 +291,7 @@ export interface ReturnSummary {
 	reason: string;
 	status: string;
 	resolution: string | null;
-	refundAmountCents: number | null;
+	refundAmount: number | null;
 	createdAt: string;
 	updatedAt: string;
 }
@@ -329,8 +330,8 @@ export interface SupportTicketDetail extends SupportTicketSummary {
 export interface GiftCardSummary {
 	id: string;
 	code: string;
-	initialAmountCents: number;
-	balanceCents: number;
+	initialAmount: number;
+	balance: number;
 	currency: string;
 	status: string;
 	expiresAt: string | null;

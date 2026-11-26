@@ -238,34 +238,20 @@ button {
 	overflow-x: hidden;
 }
 
-.commerce-app [data-name='Navbar Container'] {
-	max-width: 100% !important;
-}
-
 @media (max-width: 1024px) {
-	.commerce-app [data-name='Navbar Container'] {
-		padding-inline: 16px !important;
-		gap: 16px !important;
-	}
-
 	/* Two-column splits adapt to stacked */
 	.commerce-app [data-name='Flex Horizontal'] {
 		flex-wrap: wrap;
-	}
-
-	.commerce-app [data-name='User Profile Sidebar'] {
-		width: 100% !important;
-	}
-
-	.commerce-app [data-name='User Profile Sidebar'] > div {
-		width: 100% !important;
-		height: auto !important;
 	}
 
 	.commerce-app [data-name='Product overview'],
 	.commerce-app [data-name='Category filter'],
 	.commerce-app [data-name='Checkout'],
 	.commerce-app [data-name='Feature'],
+	.commerce-app [data-name='Category'] {
+		padding-inline: 16px;
+	}
+
 	.commerce-app [data-name='Hero'] {
 		padding-inline: 16px !important;
 	}

@@ -2,8 +2,8 @@
 	export type GiftCardRecord = {
 		id: string;
 		code: string;
-		initialAmountCents: number;
-		balanceCents: number;
+		initialAmount: number;
+		balance: number;
 		currency: string;
 		status: string;
 		recipientName: string | null;
@@ -52,9 +52,9 @@
 
 		return {
 			code: '',
-			initialAmount: value ? String(value.initialAmountCents / 100) : '',
-			currency: value?.currency ?? 'USD',
-			balance: value ? String(value.balanceCents / 100) : '',
+			initialAmount: value ? String(value.initialAmount) : '',
+			currency: value?.currency ?? 'IDR',
+			balance: value ? String(value.balance) : '',
 			status: value?.status ?? 'active',
 			recipientName: value?.recipientName ?? '',
 			recipientEmail: value?.recipientEmail ?? '',
@@ -103,7 +103,7 @@
 
 				const payload = {
 					status,
-					balanceCents: Math.round(numericBalance * 100),
+					balance: Math.round(numericBalance),
 					recipientName: trimmedRecipientName || null,
 					recipientEmail: trimmedRecipientEmail || null,
 					message: trimmedMessage || null,
@@ -126,11 +126,11 @@
 				}
 
 				const trimmedCode = code.trim();
-				const trimmedCurrency = currency.trim().toUpperCase() || 'USD';
+				const trimmedCurrency = currency.trim().toUpperCase() || 'IDR';
 
 				const payload = {
 					code: trimmedCode || undefined,
-					initialAmountCents: Math.round(numericAmount * 100),
+					initialAmount: Math.round(numericAmount),
 					currency: trimmedCurrency,
 					recipientName: trimmedRecipientName || null,
 					recipientEmail: trimmedRecipientEmail || null,
@@ -195,7 +195,7 @@
 					</div>
 
 					<Field.Field>
-						<Field.Label for="gift-card-balance">Balance (dollars)</Field.Label>
+						<Field.Label for="gift-card-balance">Balance (rupiah)</Field.Label>
 						<Input
 							id="gift-card-balance"
 							type="number"
@@ -204,7 +204,7 @@
 							bind:value={balance}
 							required
 						/>
-						<Field.Description>Converted to cents when saved.</Field.Description>
+						<Field.Description>Whole rupiah.</Field.Description>
 					</Field.Field>
 				{:else}
 					<div class="grid gap-4 sm:grid-cols-2">
@@ -224,7 +224,7 @@
 					</div>
 
 					<Field.Field>
-						<Field.Label for="gift-card-amount">Initial amount (dollars)</Field.Label>
+						<Field.Label for="gift-card-amount">Initial amount (rupiah)</Field.Label>
 						<Input
 							id="gift-card-amount"
 							type="number"
@@ -234,7 +234,7 @@
 							placeholder="0.00"
 							required
 						/>
-						<Field.Description>Converted to cents when saved.</Field.Description>
+						<Field.Description>Whole rupiah.</Field.Description>
 					</Field.Field>
 				{/if}
 

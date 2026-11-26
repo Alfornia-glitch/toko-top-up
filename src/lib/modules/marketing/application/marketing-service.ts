@@ -45,7 +45,7 @@ export interface MarketingService {
 	getCouponById(id: string): Outcome<Coupon | null>;
 	getCouponByCode(code: string): Outcome<Coupon | null>;
 	/** Resolves a code to a coupon that may be applied to a cart of this subtotal, or fails with the reason. */
-	validateCouponForCart(code: string, subtotalCents: number): Outcome<Coupon>;
+	validateCouponForCart(code: string, subtotal: number): Outcome<Coupon>;
 	/** Idempotent per (coupon, order). Fails with 409 when the usage limit is already reached. */
 	redeemCoupon(input: RedeemCouponInput): Outcome<void>;
 
@@ -95,7 +95,7 @@ export function createMarketingService(
 			code,
 			type: input.type,
 			value: input.value,
-			minSubtotalCents: input.minSubtotalCents,
+			minSubtotal: input.minSubtotal,
 			maxUses: input.maxUses ?? null,
 			startsAt: parseDate(input.startsAt),
 			endsAt: parseDate(input.endsAt),
@@ -169,7 +169,7 @@ export function createMarketingService(
 
 		getCouponByCode: (code) => run(() => repository.findCouponByCode(code.trim().toUpperCase())),
 
-		validateCouponForCart: (code, subtotalCents) =>
+		validateCouponForCart: (code, subtotal) =>
 			run(async () => {
 				const coupon = await repository.findCouponByCode(code.trim().toUpperCase());
 				if (!coupon) throw new NotFoundError('Coupon not found');
@@ -185,7 +185,7 @@ export function createMarketingService(
 				if (coupon.maxUses !== null && coupon.usedCount >= coupon.maxUses) {
 					throw new UnprocessableError('Coupon usage limit reached');
 				}
-				if (!isCouponApplicable(coupon, subtotalCents, now)) {
+				if (!isCouponApplicable(coupon, subtotal, now)) {
 					throw new UnprocessableError('Cart subtotal is below the coupon minimum');
 				}
 				return coupon;
@@ -225,8 +225,8 @@ export function createMarketingService(
 					{
 						id,
 						code,
-						initialAmountCents: input.initialAmountCents,
-						balanceCents: input.initialAmountCents,
+						initialAmount: input.initialAmount,
+						balance: input.initialAmount,
 						currency: input.currency,
 						status: 'active',
 						recipientName: input.recipientName ?? null,
@@ -243,7 +243,7 @@ export function createMarketingService(
 						id: newId(),
 						giftCardId: id,
 						orderId: null,
-						amountCents: input.initialAmountCents,
+						amount: input.initialAmount,
 						type: 'issue',
 						createdAt: now
 					}
@@ -264,7 +264,7 @@ export function createMarketingService(
 
 				await repository.updateGiftCard(id, {
 					...(input.status ? { status: input.status } : {}),
-					...(input.balanceCents !== undefined ? { balanceCents: input.balanceCents } : {}),
+					...(input.balance !== undefined ? { balance: input.balance } : {}),
 					...(input.recipientName !== undefined ? { recipientName: input.recipientName } : {}),
 					...(input.recipientEmail !== undefined ? { recipientEmail: input.recipientEmail } : {}),
 					...(input.message !== undefined ? { message: input.message } : {}),

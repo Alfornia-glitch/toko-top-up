@@ -56,7 +56,7 @@ export function runPaymentsContract(ctx: PaymentsContractContext) {
 
 	function newOrder(userId = 'alice', total = 150_000) {
 		const id = `order-${++seq}`;
-		return orders.add({ id, userId, grandTotalCents: total });
+		return orders.add({ id, userId, grandTotal: total });
 	}
 
 	beforeEach(async () => {

@@ -47,7 +47,9 @@
 		<div class="mx-auto w-full max-w-[1280px] px-4 py-10 sm:px-8">
 			<div class="flex flex-col items-start gap-3">
 				<Badge variant="secondary">Legal</Badge>
-				<h1 class="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+				<h1
+					class="text-3xl font-bold tracking-tight text-foreground max-[480px]:text-2xl max-[480px]:leading-8 sm:text-4xl"
+				>
 					Privacy policy
 				</h1>
 				<p class="max-w-2xl text-sm leading-relaxed text-muted-foreground">

@@ -64,8 +64,8 @@
 		}
 	];
 
-	function costLabel(priceCents: number): string {
-		return priceCents === 0 ? 'Free' : formatMoney(priceCents, site.currency);
+	function costLabel(price: number): string {
+		return price === 0 ? 'Free' : formatMoney(price, site.currency);
 	}
 
 	onMount(() => {
@@ -97,7 +97,9 @@
 				class="mt-6 flex flex-col gap-6 rounded-2xl border border-[#e5e5e5] bg-[#f5f5f5] p-6 sm:p-10 md:flex-row md:items-center md:justify-between"
 			>
 				<div class="flex max-w-2xl flex-col gap-3">
-					<h1 class="text-3xl font-bold tracking-tight text-[#0a0a0a] sm:text-4xl">
+					<h1
+						class="text-3xl font-bold tracking-tight text-[#0a0a0a] max-[480px]:text-2xl max-[480px]:leading-8 sm:text-4xl"
+					>
 						Shipping &amp; delivery
 					</h1>
 					<p class="text-base leading-relaxed text-[#737373]">
@@ -168,11 +170,11 @@
 													{option.minDays}–{option.maxDays} days
 												</Table.Cell>
 												<Table.Cell class="py-3 text-right">
-													{#if option.priceCents === 0}
+													{#if option.price === 0}
 														<Badge variant="secondary">Free</Badge>
 													{:else}
 														<span class="font-medium text-[#0a0a0a]">
-															{costLabel(option.priceCents)}
+															{costLabel(option.price)}
 														</span>
 													{/if}
 												</Table.Cell>
@@ -187,11 +189,11 @@
 									<div class="rounded-xl border border-[#e5e5e5] p-4">
 										<div class="flex items-start justify-between gap-3">
 											<span class="font-medium text-[#0a0a0a]">{option.label}</span>
-											{#if option.priceCents === 0}
+											{#if option.price === 0}
 												<Badge variant="secondary">Free</Badge>
 											{:else}
 												<span class="shrink-0 font-medium text-[#0a0a0a]">
-													{costLabel(option.priceCents)}
+													{costLabel(option.price)}
 												</span>
 											{/if}
 										</div>

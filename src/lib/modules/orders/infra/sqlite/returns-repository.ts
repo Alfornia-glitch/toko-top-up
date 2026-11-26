@@ -13,7 +13,7 @@ const rowSelection = {
 	note: returnRequests.note,
 	status: returnRequests.status,
 	resolution: returnRequests.resolution,
-	refundAmountCents: returnRequests.refundAmountCents,
+	refundAmount: returnRequests.refundAmount,
 	exchangeVariantId: returnRequests.exchangeVariantId,
 	pickupAddressJson: returnRequests.pickupAddressJson,
 	resolvedBy: returnRequests.resolvedBy,
@@ -24,7 +24,7 @@ const rowSelection = {
 	productName: orderItems.productNameSnapshot,
 	sku: orderItems.skuSnapshot,
 	quantity: orderItems.quantity,
-	unitPriceCents: orderItems.unitPriceCents
+	unitPrice: orderItems.unitPrice
 };
 
 function whereFor(filter: ReturnFilter): SQL | undefined {

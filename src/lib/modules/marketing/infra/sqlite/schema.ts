@@ -14,7 +14,7 @@ export const coupons = sqliteTable(
 		code: text('code').notNull().unique(),
 		type: text('type', { enum: ['percentage', 'fixed'] }).notNull(),
 		value: integer('value').notNull(),
-		minSubtotalCents: integer('min_subtotal_cents').notNull().default(0),
+		minSubtotal: integer('min_subtotal').notNull().default(0),
 		maxUses: integer('max_uses'),
 		usedCount: integer('used_count').notNull().default(0),
 		startsAt: integer('starts_at', { mode: 'timestamp_ms' }),
@@ -33,8 +33,8 @@ export const giftCards = sqliteTable(
 	{
 		id: text('id').primaryKey(),
 		code: text('code').notNull().unique(),
-		initialAmountCents: integer('initial_amount_cents').notNull(),
-		balanceCents: integer('balance_cents').notNull(),
+		initialAmount: integer('initial_amount').notNull(),
+		balance: integer('balance').notNull(),
 		currency: text('currency').notNull().default('USD'),
 		status: text('status', { enum: ['active', 'redeemed', 'expired', 'disabled'] })
 			.notNull()
@@ -62,7 +62,7 @@ export const giftCardTransactions = sqliteTable(
 			.notNull()
 			.references(() => giftCards.id, { onDelete: 'cascade' }),
 		orderId: text('order_id'),
-		amountCents: integer('amount_cents').notNull(),
+		amount: integer('amount').notNull(),
 		type: text('type', { enum: ['issue', 'redeem', 'refund'] }).notNull(),
 		createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull()
 	},
@@ -94,7 +94,7 @@ export const couponRedemptions = sqliteTable(
 			.references(() => coupons.id, { onDelete: 'cascade' }),
 		orderId: text('order_id').notNull(),
 		userId: text('user_id'),
-		amountCents: integer('amount_cents').notNull(),
+		amount: integer('amount').notNull(),
 		createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull()
 	},
 	(table) => [

@@ -34,11 +34,11 @@ export function runReturnsContract({
 				userId,
 				status: 'delivered',
 				paymentStatus: 'paid',
-				subtotalCents: 2000,
-				discountCents: 0,
-				shippingCents: 0,
-				taxCents: 0,
-				grandTotalCents: 2000,
+				subtotal: 2000,
+				discount: 0,
+				shipping: 0,
+				tax: 0,
+				grandTotal: 2000,
 				currency: 'USD',
 				couponId: null,
 				shippingAddress: {},
@@ -52,8 +52,8 @@ export function runReturnsContract({
 						skuSnapshot: 'W-1',
 						imageUrlSnapshot: null,
 						quantity: 2,
-						unitPriceCents: 1000,
-						totalCents: 2000
+						unitPrice: 1000,
+						total: 2000
 					}
 				],
 				payment: { provider: 'mock', status: 'succeeded' }
@@ -162,20 +162,20 @@ export function runReturnsContract({
 			const refunded = unwrap(
 				await returns.updateReturn(
 					created.id,
-					{ status: 'refunded', refundAmountCents: 1000, note: 'Refunded half' },
+					{ status: 'refunded', refundAmount: 1000, note: 'Refunded half' },
 					admin
 				)
 			);
 
 			expect(refunded).toMatchObject({
 				status: 'refunded',
-				refundAmountCents: 1000,
+				refundAmount: 1000,
 				note: 'Refunded half',
 				resolvedBy: 'user-admin',
 				resolvedAt: new Date('2026-01-03T00:00:00.000Z'),
 				customerName: 'Ada',
 				quantity: 2,
-				unitPriceCents: 1000
+				unitPrice: 1000
 			});
 
 			const timeline = unwrap(await orders.getOrder(order.orderId, admin)).events.filter(

@@ -216,11 +216,11 @@
 >
 	<SiteHeader />
 	<div
-		class="relative flex w-full max-w-[1440px] shrink-0 flex-col content-stretch items-center justify-center bg-white py-[56px]"
+		class="relative flex w-full max-w-[1440px] shrink-0 flex-col content-stretch items-center justify-center bg-white py-[56px] max-[480px]:py-9"
 		data-name="Return and refund"
 	>
 		<div
-			class="relative flex w-full max-w-[1280px] min-w-[328px] shrink-0 content-stretch items-start gap-[24px] px-[32px]"
+			class="relative flex w-full max-w-[1280px] min-w-[328px] shrink-0 content-stretch items-start gap-[24px] px-[32px] max-[480px]:px-3.5"
 			data-name="Flex Horizontal"
 		>
 			<AccountSidebar />
@@ -452,9 +452,7 @@
 											<p
 												class="font-['Geist:Medium'] text-[14px] leading-[20px] font-medium text-[#0a0a0a]"
 											>
-												{entry.refundAmountCents === null
-													? '—'
-													: formatMoney(entry.refundAmountCents)}
+												{entry.refundAmount === null ? '—' : formatMoney(entry.refundAmount)}
 											</p>
 											<p class="font-['Geist:Regular'] text-[12px] leading-[16px] text-[#737373]">
 												{formatDate(entry.createdAt)}
@@ -512,9 +510,7 @@
 											<p
 												class="font-['Geist:SemiBold'] text-[16px] leading-[24px] font-semibold text-[#0a0a0a]"
 											>
-												{selected.refundAmountCents === null
-													? '—'
-													: formatMoney(selected.refundAmountCents)}
+												{selected.refundAmount === null ? '—' : formatMoney(selected.refundAmount)}
 											</p>
 										</div>
 									</div>

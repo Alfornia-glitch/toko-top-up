@@ -53,8 +53,8 @@ export function runProductContract(context: ProductContractContext): void {
 						brandId,
 						categoryId,
 						status: 'active',
-						priceCents: 12999,
-						compareAtPriceCents: 14999,
+						price: 12999,
+						compareAtPrice: 14999,
 						isFeatured: true,
 						images: [
 							{ url: 'https://cdn.example.com/second.png', position: 2 },
@@ -74,7 +74,7 @@ export function runProductContract(context: ProductContractContext): void {
 							{
 								sku: 'AUD-001-BLK',
 								name: 'Black',
-								priceCents: 12999,
+								price: 12999,
 								stock: 4,
 								optionValuesJson: { Color: 'Black' }
 							}
@@ -93,8 +93,8 @@ export function runProductContract(context: ProductContractContext): void {
 				brandName: 'Acme',
 				categoryName: 'Audio',
 				status: 'active',
-				priceCents: 12999,
-				compareAtPriceCents: 14999,
+				price: 12999,
+				compareAtPrice: 14999,
 				currency: 'USD',
 				isFeatured: true,
 				isNewArrival: false,
@@ -121,7 +121,7 @@ export function runProductContract(context: ProductContractContext): void {
 
 		test('applies defaults for a minimal product', async () => {
 			const created = valueOf(
-				await testService.create({ sku: 'MIN-001', name: 'Minimal', priceCents: 100 }, actorId)
+				await testService.create({ sku: 'MIN-001', name: 'Minimal', price: 100 }, actorId)
 			);
 
 			expect(created).toMatchObject({
@@ -144,10 +144,10 @@ export function runProductContract(context: ProductContractContext): void {
 
 		test('generates unique slugs from duplicate names', async () => {
 			const first = valueOf(
-				await testService.create({ sku: 'DUP-1', name: 'Audio', priceCents: 100 }, actorId)
+				await testService.create({ sku: 'DUP-1', name: 'Audio', price: 100 }, actorId)
 			);
 			const second = valueOf(
-				await testService.create({ sku: 'DUP-2', name: 'Audio', priceCents: 100 }, actorId)
+				await testService.create({ sku: 'DUP-2', name: 'Audio', price: 100 }, actorId)
 			);
 
 			expect(first.slug).toBe('audio');
@@ -157,13 +157,13 @@ export function runProductContract(context: ProductContractContext): void {
 		test('normalizes and de-duplicates an explicit slug', async () => {
 			valueOf(
 				await testService.create(
-					{ sku: 'SLUG-1', name: 'First', slug: 'Hello World!', priceCents: 100 },
+					{ sku: 'SLUG-1', name: 'First', slug: 'Hello World!', price: 100 },
 					actorId
 				)
 			);
 			const second = valueOf(
 				await testService.create(
-					{ sku: 'SLUG-2', name: 'Second', slug: 'Hello World!', priceCents: 100 },
+					{ sku: 'SLUG-2', name: 'Second', slug: 'Hello World!', price: 100 },
 					actorId
 				)
 			);
@@ -172,10 +172,10 @@ export function runProductContract(context: ProductContractContext): void {
 		});
 
 		test('rejects a duplicate product SKU', async () => {
-			valueOf(await testService.create({ sku: 'SKU-1', name: 'First', priceCents: 100 }, actorId));
+			valueOf(await testService.create({ sku: 'SKU-1', name: 'First', price: 100 }, actorId));
 
 			const result = await testService.create(
-				{ sku: 'SKU-1', name: 'Second', priceCents: 100 },
+				{ sku: 'SKU-1', name: 'Second', price: 100 },
 				actorId
 			);
 
@@ -194,11 +194,11 @@ export function runProductContract(context: ProductContractContext): void {
 						brandId,
 						categoryId,
 						status: 'active',
-						priceCents: 5000,
+						price: 5000,
 						images: [{ url: 'https://cdn.example.com/primary.png', position: 0 }],
 						variants: [
-							{ sku: 'LIST-1-A', name: 'A', priceCents: 5000, stock: 2 },
-							{ sku: 'LIST-1-B', name: 'B', priceCents: 5000, stock: 3 }
+							{ sku: 'LIST-1-A', name: 'A', price: 5000, stock: 2 },
+							{ sku: 'LIST-1-B', name: 'B', price: 5000, stock: 3 }
 						]
 					},
 					actorId
@@ -213,7 +213,7 @@ export function runProductContract(context: ProductContractContext): void {
 						brandId,
 						categoryId,
 						status: 'draft',
-						priceCents: 3000
+						price: 3000
 					},
 					actorId
 				)
@@ -245,9 +245,9 @@ export function runProductContract(context: ProductContractContext): void {
 		});
 
 		test('sorts and paginates products', async () => {
-			valueOf(await testService.create({ sku: 'SORT-1', name: 'Beta', priceCents: 300 }, actorId));
-			valueOf(await testService.create({ sku: 'SORT-2', name: 'Alpha', priceCents: 100 }, actorId));
-			valueOf(await testService.create({ sku: 'SORT-3', name: 'Gamma', priceCents: 200 }, actorId));
+			valueOf(await testService.create({ sku: 'SORT-1', name: 'Beta', price: 300 }, actorId));
+			valueOf(await testService.create({ sku: 'SORT-2', name: 'Alpha', price: 100 }, actorId));
+			valueOf(await testService.create({ sku: 'SORT-3', name: 'Gamma', price: 200 }, actorId));
 
 			const byPrice = valueOf(await testService.list({ page: 1, pageSize: 25, sort: 'price' }));
 			expect(byPrice.data.map((row) => row.name)).toEqual(['Alpha', 'Gamma', 'Beta']);
@@ -261,9 +261,9 @@ export function runProductContract(context: ProductContractContext): void {
 		});
 
 		test('sorts by updated time by default', async () => {
-			valueOf(await testService.create({ sku: 'TIME-1', name: 'Older', priceCents: 100 }, actorId));
+			valueOf(await testService.create({ sku: 'TIME-1', name: 'Older', price: 100 }, actorId));
 			clock.set(UPDATED);
-			valueOf(await testService.create({ sku: 'TIME-2', name: 'Newer', priceCents: 100 }, actorId));
+			valueOf(await testService.create({ sku: 'TIME-2', name: 'Newer', price: 100 }, actorId));
 
 			const result = valueOf(await testService.list({ page: 1, pageSize: 25 }));
 
@@ -280,7 +280,7 @@ export function runProductContract(context: ProductContractContext): void {
 			const result = await testService.update('missing', {
 				sku: 'MISS-1',
 				name: 'Missing',
-				priceCents: 100
+				price: 100
 			});
 
 			expectError(result, 404, 'Product not found');
@@ -292,7 +292,7 @@ export function runProductContract(context: ProductContractContext): void {
 					{
 						sku: 'EDIT-1',
 						name: 'Original',
-						priceCents: 1000,
+						price: 1000,
 						images: [{ url: 'https://cdn.example.com/old.png', position: 0 }],
 						options: [
 							{
@@ -305,8 +305,8 @@ export function runProductContract(context: ProductContractContext): void {
 							}
 						],
 						variants: [
-							{ sku: 'EDIT-1-S', name: 'Small', priceCents: 1000, stock: 2 },
-							{ sku: 'EDIT-1-M', name: 'Medium', priceCents: 1000, stock: 3 }
+							{ sku: 'EDIT-1-S', name: 'Small', price: 1000, stock: 2 },
+							{ sku: 'EDIT-1-M', name: 'Medium', price: 1000, stock: 3 }
 						]
 					},
 					actorId
@@ -324,7 +324,7 @@ export function runProductContract(context: ProductContractContext): void {
 				await testService.update(created.id, {
 					sku: 'EDIT-1',
 					name: 'Updated',
-					priceCents: 1500,
+					price: 1500,
 					description: 'Updated description',
 					status: 'active',
 					images: [{ url: 'https://cdn.example.com/new.png', position: 0 }],
@@ -340,10 +340,10 @@ export function runProductContract(context: ProductContractContext): void {
 							id: kept?.id,
 							sku: 'EDIT-1-S',
 							name: 'Small Updated',
-							priceCents: 1500,
+							price: 1500,
 							stock: 6
 						},
-						{ sku: 'EDIT-1-L', name: 'Large', priceCents: 1500, stock: 4 }
+						{ sku: 'EDIT-1-L', name: 'Large', price: 1500, stock: 4 }
 					]
 				})
 			);
@@ -352,7 +352,7 @@ export function runProductContract(context: ProductContractContext): void {
 				id: created.id,
 				name: 'Updated',
 				slug: 'updated',
-				priceCents: 1500,
+				price: 1500,
 				description: 'Updated description',
 				status: 'active'
 			});
@@ -376,30 +376,30 @@ export function runProductContract(context: ProductContractContext): void {
 
 		test('checks SKU uniqueness on update while allowing the current SKU', async () => {
 			const first = valueOf(
-				await testService.create({ sku: 'UNIQ-1', name: 'First', priceCents: 100 }, actorId)
+				await testService.create({ sku: 'UNIQ-1', name: 'First', price: 100 }, actorId)
 			);
 			const second = valueOf(
-				await testService.create({ sku: 'UNIQ-2', name: 'Second', priceCents: 100 }, actorId)
+				await testService.create({ sku: 'UNIQ-2', name: 'Second', price: 100 }, actorId)
 			);
 
 			const ownSku = await testService.update(first.id, {
 				sku: 'UNIQ-1',
 				name: 'First Updated',
-				priceCents: 100
+				price: 100
 			});
 			expect(ownSku.ok).toBe(true);
 
 			const result = await testService.update(second.id, {
 				sku: 'UNIQ-1',
 				name: 'Second',
-				priceCents: 100
+				price: 100
 			});
 			expectError(result, 409, 'SKU "UNIQ-1" is already in use');
 		});
 
 		test('updates only the status', async () => {
 			const created = valueOf(
-				await testService.create({ sku: 'STAT-1', name: 'Status', priceCents: 100 }, actorId)
+				await testService.create({ sku: 'STAT-1', name: 'Status', price: 100 }, actorId)
 			);
 			clock.set(UPDATED);
 
@@ -415,11 +415,11 @@ export function runProductContract(context: ProductContractContext): void {
 
 		test('lists archived products and deletes only archived ones', async () => {
 			const archived = valueOf(
-				await testService.create({ sku: 'ARC-1', name: 'Archived', priceCents: 100 }, actorId)
+				await testService.create({ sku: 'ARC-1', name: 'Archived', price: 100 }, actorId)
 			);
 			const live = valueOf(
 				await testService.create(
-					{ sku: 'ARC-2', name: 'Live', priceCents: 100, status: 'active' },
+					{ sku: 'ARC-2', name: 'Live', price: 100, status: 'active' },
 					actorId
 				)
 			);
@@ -444,7 +444,7 @@ export function runProductContract(context: ProductContractContext): void {
 		});
 
 		test('rejects invalid product data', async () => {
-			const input = { sku: 'BAD-1', name: '', priceCents: 100 } as ProductWriteInput;
+			const input = { sku: 'BAD-1', name: '', price: 100 } as ProductWriteInput;
 			const result = await testService.create(input, actorId);
 
 			expect(result.ok).toBe(false);
@@ -455,7 +455,7 @@ export function runProductContract(context: ProductContractContext): void {
 
 		test('rejects unauthorized product mutations', async () => {
 			const result = await service.create(
-				{ sku: 'DENIED-1', name: 'Denied', priceCents: 100 },
+				{ sku: 'DENIED-1', name: 'Denied', price: 100 },
 				createForbiddenActor()
 			);
 

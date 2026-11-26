@@ -60,11 +60,11 @@
 >
 	<SiteHeader />
 	<div
-		class="relative flex w-full max-w-[1440px] shrink-0 flex-col content-stretch items-center justify-center bg-white py-[56px]"
+		class="relative flex w-full max-w-[1440px] shrink-0 flex-col content-stretch items-center justify-center bg-white py-[56px] max-[480px]:py-9"
 		data-name="Gift card"
 	>
 		<div
-			class="relative flex w-full max-w-[1280px] min-w-[328px] shrink-0 content-stretch items-start gap-[24px] px-[32px]"
+			class="relative flex w-full max-w-[1280px] min-w-[328px] shrink-0 content-stretch items-start gap-[24px] px-[32px] max-[480px]:px-3.5"
 			data-name="Flex Horizontal"
 		>
 			<AccountSidebar />
@@ -197,10 +197,10 @@
 										data-name="Flex Horizontal"
 									>
 										<p class="relative shrink-0 text-[#737373]">
-											Initial: {formatMoney(card.initialAmountCents, card.currency)}
+											Initial: {formatMoney(card.initialAmount, card.currency)}
 										</p>
 										<p class="relative shrink-0 text-[#0a0a0a]">
-											Balance: {formatMoney(card.balanceCents, card.currency)}
+											Balance: {formatMoney(card.balance, card.currency)}
 										</p>
 										<p class="relative shrink-0 text-[#737373]">Currency: {card.currency}</p>
 										<p class="relative shrink-0 text-[#737373]">
