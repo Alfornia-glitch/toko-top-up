@@ -1,0 +1,6 @@
+# Figma-exported icons under /assets never change in place; let browsers and the CDN keep them.
+/assets/*
+  Cache-Control: public, max-age=2592000, stale-while-revalidate=86400
+
+/qris.png
+  Cache-Control: public, max-age=604800

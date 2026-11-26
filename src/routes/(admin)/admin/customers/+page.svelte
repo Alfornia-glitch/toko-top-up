@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { formatMoney } from '#lib/frontend/modules/commerce/format.ts';
 	import { onMount } from 'svelte';
 	import { RefreshCw, Search } from '@lucide/svelte';
 	import DataTable from '#lib/frontend/components/admin/DataTable.svelte';
@@ -15,14 +16,14 @@
 		image: string | null;
 		createdAt: string;
 		orderCount: number;
-		spentCents: number;
+		spent: number;
 	};
 
 	const columns = [
 		{ key: 'name', label: 'Customer', sortable: true },
 		{ key: 'email', label: 'Email', sortable: true },
 		{ key: 'orderCount', label: 'Orders', class: 'text-right' },
-		{ key: 'spentCents', label: 'Total spent', class: 'text-right' },
+		{ key: 'spent', label: 'Total spent', class: 'text-right' },
 		{ key: 'createdAt', label: 'Joined', sortable: true },
 		{ key: 'actions', label: '', class: 'text-right' }
 	];
@@ -101,12 +102,6 @@
 		if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
 
 		return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
-	}
-
-	const money = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
-
-	function formatMoney(cents: number) {
-		return money.format(cents / 100);
 	}
 
 	function formatDate(value: string) {
@@ -202,8 +197,8 @@
 				<span class="text-muted-foreground">{String(row.email ?? '—')}</span>
 			{:else if column.key === 'orderCount'}
 				{Number(row.orderCount ?? 0)}
-			{:else if column.key === 'spentCents'}
-				<span class="font-medium">{formatMoney(Number(row.spentCents ?? 0))}</span>
+			{:else if column.key === 'spent'}
+				<span class="font-medium">{formatMoney(Number(row.spent ?? 0))}</span>
 			{:else if column.key === 'createdAt'}
 				<span class="text-muted-foreground">{formatDate(String(row.createdAt ?? ''))}</span>
 			{:else if column.key === 'actions'}

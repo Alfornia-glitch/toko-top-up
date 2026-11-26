@@ -37,7 +37,7 @@ export function createPostgresInventoryRepository(db: PostgresDb): InventoryRepo
 					name: productVariants.name,
 					stock: productVariants.stock,
 					status: productVariants.status,
-					priceCents: productVariants.priceCents,
+					price: productVariants.price,
 					productId: products.id,
 					productName: products.name,
 					productSku: products.sku
@@ -144,7 +144,7 @@ export function createPostgresInventoryRepository(db: PostgresDb): InventoryRepo
 					name: productVariants.name,
 					sku: productVariants.sku,
 					stock: productVariants.stock,
-					priceCents: productVariants.priceCents,
+					price: productVariants.price,
 					status: productVariants.status,
 					productName: products.name
 				})

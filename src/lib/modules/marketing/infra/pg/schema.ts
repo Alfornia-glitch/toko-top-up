@@ -25,7 +25,7 @@ export const coupons = shop.table(
 		code: text('code').notNull().unique(),
 		type: text('type').$type<'percentage' | 'fixed'>().notNull(),
 		value: integer('value').notNull(),
-		minSubtotalCents: integer('min_subtotal_cents').notNull().default(0),
+		minSubtotal: integer('min_subtotal').notNull().default(0),
 		maxUses: integer('max_uses'),
 		usedCount: integer('used_count').notNull().default(0),
 		startsAt: timestamp('starts_at', { withTimezone: true, mode: 'date' }),
@@ -42,8 +42,8 @@ export const giftCards = shop.table(
 	{
 		id: text('id').primaryKey(),
 		code: text('code').notNull().unique(),
-		initialAmountCents: integer('initial_amount_cents').notNull(),
-		balanceCents: integer('balance_cents').notNull(),
+		initialAmount: integer('initial_amount').notNull(),
+		balance: integer('balance').notNull(),
 		currency: text('currency').notNull().default('USD'),
 		status: text('status')
 			.$type<'active' | 'redeemed' | 'expired' | 'disabled'>()
@@ -70,7 +70,7 @@ export const giftCardTransactions = shop.table(
 		id: text('id').primaryKey(),
 		giftCardId: text('gift_card_id').notNull(),
 		orderId: text('order_id'),
-		amountCents: integer('amount_cents').notNull(),
+		amount: integer('amount').notNull(),
 		type: text('type').$type<'issue' | 'redeem' | 'refund'>().notNull(),
 		createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).notNull()
 	},
@@ -108,7 +108,7 @@ export const couponRedemptions = shop.table(
 			.references(() => coupons.id, { onDelete: 'cascade' }),
 		orderId: text('order_id').notNull(),
 		userId: text('user_id'),
-		amountCents: integer('amount_cents').notNull(),
+		amount: integer('amount').notNull(),
 		createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).notNull()
 	},
 	(table) => [

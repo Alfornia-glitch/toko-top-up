@@ -93,25 +93,25 @@ export function createCartService(
 					variantName: variant.name,
 					brandName: variant.brandName,
 					imageUrl: variant.imageUrl,
-					unitPriceCents: record.unitPriceCents,
-					compareAtPriceCents: variant.compareAtPriceCents,
+					unitPrice: record.unitPrice,
+					compareAtPrice: variant.compareAtPrice,
 					quantity: record.quantity,
 					stock: variant.stock
 				}
 			];
 		});
 
-		const subtotalCents = items.reduce((sum, item) => sum + item.unitPriceCents * item.quantity, 0);
+		const subtotal = items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
 		const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
 
 		let coupon: CartCoupon | null = null;
-		let discountCents = 0;
+		let discount = 0;
 		if (cart.couponId) {
 			const row = unwrap(await marketing.marketing.getCouponById(cart.couponId));
 			if (row) {
 				coupon = { code: row.code, type: row.type, value: row.value };
-				if (isCouponApplicable(row, subtotalCents, clock.now().getTime())) {
-					discountCents = discountFor(row, subtotalCents);
+				if (isCouponApplicable(row, subtotal, clock.now().getTime())) {
+					discount = discountFor(row, subtotal);
 				}
 			}
 		}
@@ -120,15 +120,15 @@ export function createCartService(
 		const currency =
 			(firstRecord ? variants.get(firstRecord.variantId)?.productCurrency : undefined) ??
 			cart.currency ??
-			'USD';
+			'IDR';
 
 		return {
 			id: cartId,
 			items,
-			subtotalCents,
-			discountCents,
-			shippingCents: 0,
-			totalCents: subtotalCents - discountCents,
+			subtotal,
+			discount,
+			shipping: 0,
+			total: subtotal - discount,
 			currency,
 			itemCount,
 			coupon
@@ -142,7 +142,7 @@ export function createCartService(
 			id,
 			userId,
 			status: 'active',
-			currency: 'USD',
+			currency: 'IDR',
 			couponId: null,
 			createdAt: now,
 			updatedAt: now
@@ -185,7 +185,7 @@ export function createCartService(
 					cartId: userCartId,
 					variantId: item.variantId,
 					quantity: Math.min(item.quantity, stock),
-					unitPriceCents: item.unitPriceCents,
+					unitPrice: item.unitPrice,
 					createdAt: now,
 					updatedAt: now
 				});
@@ -236,7 +236,7 @@ export function createCartService(
 						cartId,
 						variantId: input.variantId,
 						quantity: input.quantity,
-						unitPriceCents: variant.priceCents,
+						unitPrice: variant.price,
 						createdAt: now,
 						updatedAt: now
 					};
@@ -283,7 +283,7 @@ export function createCartService(
 			run(async () => {
 				const current = await view(cartId);
 				const coupon = unwrap(
-					await marketing.marketing.validateCouponForCart(code, current.subtotalCents)
+					await marketing.marketing.validateCouponForCart(code, current.subtotal)
 				);
 				await repository.updateCart(cartId, { couponId: coupon.id, updatedAt: clock.now() });
 				return view(cartId);

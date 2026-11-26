@@ -2,10 +2,13 @@ export interface SiteShippingMethod {
 	id: string;
 	label: string;
 	description: string;
-	priceCents: number;
+	price: number;
 	minDays: number;
 	maxDays: number;
 }
+
+export const STOREFRONT_LAYOUTS = ['regular', 'topup'] as const;
+export type StorefrontLayout = (typeof STOREFRONT_LAYOUTS)[number];
 
 export interface SiteSettings {
 	contact: { address1: string; address2: string; phone: string; email: string };
@@ -13,6 +16,7 @@ export interface SiteSettings {
 	downloads: { appStore: string; googlePlay: string };
 	shipping: SiteShippingMethod[];
 	currency: string;
+	storefrontLayout: StorefrontLayout;
 }
 
 const defaultSettings: SiteSettings = {
@@ -29,7 +33,7 @@ const defaultSettings: SiteSettings = {
 			id: 'standard',
 			label: 'Standard',
 			description: 'Get your product in 1 week',
-			priceCents: 0,
+			price: 0,
 			minDays: 5,
 			maxDays: 7
 		},
@@ -37,7 +41,7 @@ const defaultSettings: SiteSettings = {
 			id: 'express',
 			label: 'Express',
 			description: 'Get your product in 0-1 days',
-			priceCents: 2000,
+			price: 2000,
 			minDays: 0,
 			maxDays: 1
 		},
@@ -45,13 +49,18 @@ const defaultSettings: SiteSettings = {
 			id: 'basic',
 			label: 'Basic',
 			description: 'Get your product in 3-4 days',
-			priceCents: 1000,
+			price: 1000,
 			minDays: 3,
 			maxDays: 4
 		}
 	],
-	currency: 'USD'
+	currency: 'IDR',
+	storefrontLayout: 'regular'
 };
+
+function isStorefrontLayout(value: unknown): value is StorefrontLayout {
+	return STOREFRONT_LAYOUTS.some((layout) => layout === value);
+}
 
 function isRecord(value: unknown): value is Record<string, unknown> {
 	return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -71,7 +80,8 @@ export function resolveSiteSettings(
 		social: { ...defaultSettings.social },
 		downloads: { ...defaultSettings.downloads },
 		shipping: defaultSettings.shipping.map((method) => ({ ...method })),
-		currency: defaultSettings.currency
+		currency: defaultSettings.currency,
+		storefrontLayout: defaultSettings.storefrontLayout
 	};
 
 	for (const row of rows) {
@@ -93,6 +103,9 @@ export function resolveSiteSettings(
 				break;
 			case 'currency':
 				if (typeof value === 'string') settings.currency = value;
+				break;
+			case 'storefrontLayout':
+				if (isStorefrontLayout(value)) settings.storefrontLayout = value;
 				break;
 		}
 	}

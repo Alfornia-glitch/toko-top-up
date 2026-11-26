@@ -395,7 +395,7 @@ export function runInventoryContract(context: InventoryContractContext): void {
 		test('variant snapshots expose price, stock, product and first image', async () => {
 			const a = await createProductWithVariant({
 				product: { name: 'Widget', slug: 'widget', status: 'active' },
-				variant: { stock: 7, sku: 'SNAP-A', priceCents: 2500 }
+				variant: { stock: 7, sku: 'SNAP-A', price: 2500 }
 			});
 
 			const result = await products.getVariantSnapshots([a.variantId, a.variantId, 'missing']);
@@ -403,7 +403,7 @@ export function runInventoryContract(context: InventoryContractContext): void {
 			expect(result.ok && result.value[0]).toMatchObject({
 				variantId: a.variantId,
 				stock: 7,
-				priceCents: 2500,
+				price: 2500,
 				productName: 'Widget',
 				productSlug: 'widget',
 				brandName: null,

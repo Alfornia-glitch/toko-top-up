@@ -17,7 +17,7 @@ const coupon: CouponInput = {
 	code: 'welcome10',
 	type: 'percentage',
 	value: 10,
-	minSubtotalCents: 0,
+	minSubtotal: 0,
 	status: 'active'
 };
 
@@ -76,7 +76,7 @@ export function runMarketingContract({ service, clock, reset }: MarketingContrac
 					couponId: id,
 					orderId: 'order-1',
 					userId: 'u1',
-					amountCents: 100
+					amount: 100
 				})
 			);
 
@@ -98,7 +98,7 @@ export function runMarketingContract({ service, clock, reset }: MarketingContrac
 
 	describe('coupon redemption contract', () => {
 		const redeem = (couponId: string, orderId: string) =>
-			service.redeemCoupon({ couponId, orderId, userId: 'u1', amountCents: 500 });
+			service.redeemCoupon({ couponId, orderId, userId: 'u1', amount: 500 });
 
 		test('redeeming increments the usage count and is idempotent per order', async () => {
 			const id = unwrap(await service.createCoupon(coupon, admin));
@@ -121,7 +121,7 @@ export function runMarketingContract({ service, clock, reset }: MarketingContrac
 		});
 
 		test('validates a code for a cart, with the reason when it cannot apply', async () => {
-			unwrap(await service.createCoupon({ ...coupon, minSubtotalCents: 1000 }, admin));
+			unwrap(await service.createCoupon({ ...coupon, minSubtotal: 1000 }, admin));
 			unwrap(await service.createCoupon({ ...coupon, code: 'OFF', status: 'disabled' }, admin));
 			unwrap(
 				await service.createCoupon(
@@ -149,24 +149,20 @@ export function runMarketingContract({ service, clock, reset }: MarketingContrac
 	});
 
 	describe('gift cards contract', () => {
-		const card = { initialAmountCents: 5000, currency: 'USD' };
+		const card = { initialAmount: 5000, currency: 'USD' };
 
 		test('issues a card with an issue transaction and updates it', async () => {
 			const id = unwrap(await service.createGiftCard({ ...card, code: 'gift-0001' }, admin));
 
 			const detail = unwrap(await service.getGiftCard(id, admin));
-			expect(detail).toMatchObject({ code: 'GIFT-0001', balanceCents: 5000, status: 'active' });
+			expect(detail).toMatchObject({ code: 'GIFT-0001', balance: 5000, status: 'active' });
 			expect(detail.transactions).toHaveLength(1);
-			expect(detail.transactions[0]).toMatchObject({ type: 'issue', amountCents: 5000 });
+			expect(detail.transactions[0]).toMatchObject({ type: 'issue', amount: 5000 });
 
 			const updated = unwrap(
-				await service.updateGiftCard(
-					id,
-					{ status: 'disabled', balanceCents: 0, message: 'hi' },
-					admin
-				)
+				await service.updateGiftCard(id, { status: 'disabled', balance: 0, message: 'hi' }, admin)
 			);
-			expect(updated).toMatchObject({ status: 'disabled', balanceCents: 0, message: 'hi' });
+			expect(updated).toMatchObject({ status: 'disabled', balance: 0, message: 'hi' });
 			expect(
 				unwrap(await service.listGiftCards({ page: 1, pageSize: 10, status: 'disabled' }, admin))
 					.total

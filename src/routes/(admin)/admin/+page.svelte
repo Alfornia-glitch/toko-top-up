@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { formatMoney } from '#lib/frontend/modules/commerce/format.ts';
 	import { onMount } from 'svelte';
 	import { AlertTriangle, DollarSign, Package, ShoppingCart, Users, Clock } from '@lucide/svelte';
 	import * as Card from '#lib/frontend/components/ui/card/index.ts';
@@ -11,7 +12,7 @@
 		products: number;
 		orders: number;
 		customers: number;
-		revenueCents: number;
+		revenue: number;
 		pendingOrders: number;
 		lowStockVariants: number;
 		recentOrders: Array<{
@@ -19,7 +20,7 @@
 			orderNumber: string;
 			status: string;
 			paymentStatus: string;
-			grandTotalCents: number;
+			grandTotal: number;
 			currency: string;
 			placedAt: string;
 		}>;
@@ -29,14 +30,6 @@
 	let stats = $state<Stats | null>(null);
 	let loading = $state(true);
 	let error = $state('');
-
-	const money = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
-
-	function formatMoney(cents: number, currency = 'USD') {
-		if (currency === 'USD') return money.format(cents / 100);
-
-		return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(cents / 100);
-	}
 
 	function formatDate(value: string) {
 		return new Intl.DateTimeFormat('en-US', {
@@ -84,7 +77,7 @@
 		<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
 			<StatCard
 				title="Revenue"
-				value={formatMoney(stats.revenueCents)}
+				value={formatMoney(stats.revenue)}
 				hint="Paid and fulfilled orders"
 				icon={DollarSign}
 			/>
@@ -138,7 +131,7 @@
 											{formatDate(order.placedAt)}
 										</Table.Cell>
 										<Table.Cell class="text-right">
-											{formatMoney(order.grandTotalCents, order.currency)}
+											{formatMoney(order.grandTotal, order.currency)}
 										</Table.Cell>
 									</Table.Row>
 								{/each}

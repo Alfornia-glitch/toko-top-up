@@ -39,10 +39,10 @@ export function runCheckoutContract(context: CheckoutContractContext): void {
 		clock.set(START);
 	});
 
-	function product(sku: string, stock: number, priceCents = 1000) {
+	function product(sku: string, stock: number, price = 1000) {
 		return context.createProductWithVariant({
 			product: { sku, slug: sku.toLowerCase(), name: `Product ${sku}`, status: 'active' },
-			variant: { sku: `${sku}-V`, stock, priceCents }
+			variant: { sku: `${sku}-V`, stock, price }
 		});
 	}
 
@@ -98,10 +98,10 @@ export function runCheckoutContract(context: CheckoutContractContext): void {
 				userId: 'user-ada',
 				status: 'paid',
 				paymentStatus: 'paid',
-				subtotalCents: 3000,
-				discountCents: 0,
-				shippingCents: 500,
-				grandTotalCents: 3500,
+				subtotal: 3000,
+				discount: 0,
+				shipping: 500,
+				grandTotal: 3500,
 				notes: 'Leave at door',
 				shippingAddressJson: { id: addressId, line1: '1 Main St', city: 'Jakarta' }
 			});
@@ -109,8 +109,8 @@ export function runCheckoutContract(context: CheckoutContractContext): void {
 				productNameSnapshot: 'Product CHK-A',
 				skuSnapshot: 'CHK-A-V',
 				quantity: 2,
-				unitPriceCents: 1500,
-				totalCents: 3000
+				unitPrice: 1500,
+				total: 3000
 			});
 			expect(order.payments[0]).toMatchObject({ provider: 'mock', status: 'succeeded' });
 
@@ -136,7 +136,7 @@ export function runCheckoutContract(context: CheckoutContractContext): void {
 			const addressId = await addressFor(ada);
 			const couponId = unwrap(
 				await marketing.createCoupon(
-					{ code: 'SAVE10', type: 'percentage', value: 10, minSubtotalCents: 0, status: 'active' },
+					{ code: 'SAVE10', type: 'percentage', value: 10, minSubtotal: 0, status: 'active' },
 					admin
 				)
 			);
@@ -146,7 +146,7 @@ export function runCheckoutContract(context: CheckoutContractContext): void {
 			const placed = unwrap(await createCheckout().placeOrder(cartId, input(addressId), ada));
 
 			const order = unwrap(await orders.getOrder(placed.orderId, admin));
-			expect(order).toMatchObject({ discountCents: 200, couponId, grandTotalCents: 2300 });
+			expect(order).toMatchObject({ discount: 200, couponId, grandTotal: 2300 });
 			expect(unwrap(await marketing.getCouponById(couponId))?.usedCount).toBe(1);
 		});
 	});
@@ -237,7 +237,7 @@ export function runCheckoutContract(context: CheckoutContractContext): void {
 			const p = await product('CHK-F', 10, 2000);
 			const couponId = unwrap(
 				await marketing.createCoupon(
-					{ code: 'ONCE', type: 'fixed', value: 500, minSubtotalCents: 0, status: 'active' },
+					{ code: 'ONCE', type: 'fixed', value: 500, minSubtotal: 0, status: 'active' },
 					admin
 				)
 			);
@@ -277,7 +277,7 @@ export function runCheckoutContract(context: CheckoutContractContext): void {
 						code: 'ONCE',
 						type: 'fixed',
 						value: 500,
-						minSubtotalCents: 0,
+						minSubtotal: 0,
 						maxUses: 1,
 						status: 'active'
 					},
@@ -295,7 +295,7 @@ export function runCheckoutContract(context: CheckoutContractContext): void {
 			const placed = unwrap(await createCheckout().placeOrder(bobCart, input(bobAddress), bob));
 
 			const order = unwrap(await orders.getOrder(placed.orderId, admin));
-			expect(order).toMatchObject({ discountCents: 0, couponId: null, grandTotalCents: 2500 });
+			expect(order).toMatchObject({ discount: 0, couponId: null, grandTotal: 2500 });
 		});
 	});
 

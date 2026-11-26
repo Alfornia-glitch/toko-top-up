@@ -1,11 +1,11 @@
 <script lang="ts">
-	import { cn, type WithElementRef } from '#lib/frontend/utils.js';
+	import { cn, type WithElementRef } from '#lib/frontend/utils.ts';
 	import {
 		type CarouselAPI,
 		type CarouselProps,
 		type EmblaContext,
 		setEmblaContext
-	} from './context.js';
+	} from './context.ts';
 
 	let {
 		ref = $bindable(null),

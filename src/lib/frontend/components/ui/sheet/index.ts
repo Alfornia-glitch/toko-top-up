@@ -1,3 +1,4 @@
+// This component is orriginated from bits UI dialog component, and modified to be used as a sheet component.
 import Close from './sheet-close.svelte';
 import Content from './sheet-content.svelte';
 import Description from './sheet-description.svelte';

@@ -46,6 +46,8 @@
 		>
 			<div class="relative h-[233px] w-[288px] shrink-0" data-name="image 27">
 				<img
+					loading="lazy"
+					decoding="async"
 					alt=""
 					class="pointer-events-none absolute inset-0 size-full max-w-none object-bottom"
 					src={imgImage27}

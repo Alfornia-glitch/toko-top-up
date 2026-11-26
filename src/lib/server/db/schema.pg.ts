@@ -8,3 +8,4 @@ export * from '#modules/marketing/infra/pg/schema.ts';
 export * from '#modules/cart/infra/pg/schema.ts';
 export * from '#modules/orders/infra/pg/schema.ts';
 export * from '#modules/audit/infra/pg/schema.ts';
+export * from '#modules/payments/infra/pg/schema.ts';

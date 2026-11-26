@@ -32,12 +32,12 @@ export function runCartContract(context: CartContractContext): void {
 	function product(
 		sku: string,
 		stock: number,
-		priceCents = 1000,
+		price = 1000,
 		status: 'active' | 'inactive' = 'active'
 	) {
 		return createProductWithVariant({
 			product: { sku, slug: sku.toLowerCase(), name: `Product ${sku}`, status: 'active' },
-			variant: { sku: `${sku}-V`, stock, priceCents, status }
+			variant: { sku: `${sku}-V`, stock, price, status }
 		});
 	}
 
@@ -109,10 +109,10 @@ export function runCartContract(context: CartContractContext): void {
 			expect(cart.items[0]).toMatchObject({
 				productName: 'Product ITEM-A',
 				quantity: 3,
-				unitPriceCents: 2500,
+				unitPrice: 2500,
 				stock: 10
 			});
-			expect(cart).toMatchObject({ subtotalCents: 7500, totalCents: 7500, itemCount: 3 });
+			expect(cart).toMatchObject({ subtotal: 7500, total: 7500, itemCount: 3 });
 		});
 
 		test('rejects unknown, inactive and over-stock additions', async () => {
@@ -165,7 +165,7 @@ export function runCartContract(context: CartContractContext): void {
 		test('unknown carts read as empty', async () => {
 			const cartId = await guestCart();
 			const cart = unwrap(await service.getCart('unknown-cart'));
-			expect(cart).toMatchObject({ id: 'unknown-cart', items: [], currency: 'USD' });
+			expect(cart).toMatchObject({ id: 'unknown-cart', items: [], currency: 'IDR' });
 			expect(unwrap(await service.getCart(cartId)).items).toEqual([]);
 		});
 	});
@@ -175,7 +175,7 @@ export function runCartContract(context: CartContractContext): void {
 			code: 'save10',
 			type: 'percentage' as const,
 			value: 10,
-			minSubtotalCents: 2000,
+			minSubtotal: 2000,
 			status: 'active' as const
 		};
 
@@ -187,10 +187,10 @@ export function runCartContract(context: CartContractContext): void {
 
 			const applied = unwrap(await service.applyCoupon(cartId, ' save10 '));
 			expect(applied.coupon).toMatchObject({ code: 'SAVE10', type: 'percentage', value: 10 });
-			expect(applied).toMatchObject({ subtotalCents: 3000, discountCents: 300, totalCents: 2700 });
+			expect(applied).toMatchObject({ subtotal: 3000, discount: 300, total: 2700 });
 
 			const removed = unwrap(await service.removeCoupon(cartId));
-			expect(removed).toMatchObject({ coupon: null, discountCents: 0, totalCents: 3000 });
+			expect(removed).toMatchObject({ coupon: null, discount: 0, total: 3000 });
 		});
 
 		test('refuses coupons that do not apply, with the reason', async () => {
@@ -220,7 +220,7 @@ export function runCartContract(context: CartContractContext): void {
 			unwrap(await service.applyCoupon(cartId, 'SAVE10'));
 
 			const reduced = unwrap(await service.updateItem(cartId, added.items[0]!.id, 1));
-			expect(reduced).toMatchObject({ discountCents: 0, totalCents: 1500 });
+			expect(reduced).toMatchObject({ discount: 0, total: 1500 });
 			expect(reduced.coupon?.code).toBe('SAVE10');
 		});
 	});

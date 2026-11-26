@@ -6,7 +6,7 @@ import { orderEvents, orderItems, orders, payments, shipments } from './schema.t
 const SORTABLE = {
 	orderNumber: orders.orderNumber,
 	status: orders.status,
-	total: orders.grandTotalCents,
+	total: orders.grandTotal,
 	placedAt: orders.placedAt,
 	updatedAt: orders.updatedAt
 } as const;
@@ -160,7 +160,7 @@ export function createPostgresOrdersRepository(db: PostgresDb): OrdersRepository
 				.select({
 					id: orders.id,
 					status: orders.status,
-					grandTotalCents: orders.grandTotalCents,
+					grandTotal: orders.grandTotal,
 					placedAt: orders.placedAt
 				})
 				.from(orders)
@@ -173,7 +173,7 @@ export function createPostgresOrdersRepository(db: PostgresDb): OrdersRepository
 					name: orderItems.productNameSnapshot,
 					sku: orderItems.skuSnapshot,
 					quantity: sum(orderItems.quantity),
-					totalCents: sum(orderItems.totalCents)
+					total: sum(orderItems.total)
 				})
 				.from(orderItems)
 				.innerJoin(orders, eq(orderItems.orderId, orders.id))
@@ -185,14 +185,14 @@ export function createPostgresOrdersRepository(db: PostgresDb): OrdersRepository
 					)
 				)
 				.groupBy(orderItems.productNameSnapshot, orderItems.skuSnapshot)
-				.orderBy(desc(sum(orderItems.totalCents)))
+				.orderBy(desc(sum(orderItems.total)))
 				.limit(limit);
 
 			return rows.map((row) => ({
 				name: row.name,
 				sku: row.sku,
 				quantity: Number(row.quantity ?? 0),
-				totalCents: Number(row.totalCents ?? 0)
+				total: Number(row.total ?? 0)
 			}));
 		},
 
@@ -203,7 +203,7 @@ export function createPostgresOrdersRepository(db: PostgresDb): OrdersRepository
 				.from(orders)
 				.where(eq(orders.status, 'pending'));
 			const [revenue] = await db
-				.select({ value: sum(orders.grandTotalCents), paid: count() })
+				.select({ value: sum(orders.grandTotal), paid: count() })
 				.from(orders)
 				.where(inArray(orders.status, [...REVENUE_STATUSES]));
 
@@ -211,7 +211,7 @@ export function createPostgresOrdersRepository(db: PostgresDb): OrdersRepository
 				orderCount: Number(all?.value ?? 0),
 				pendingCount: Number(pending?.value ?? 0),
 				paidCount: Number(revenue?.paid ?? 0),
-				revenueCents: Number(revenue?.value ?? 0)
+				revenue: Number(revenue?.value ?? 0)
 			};
 		},
 
@@ -236,7 +236,7 @@ export function createPostgresOrdersRepository(db: PostgresDb): OrdersRepository
 				.select({
 					userId: orders.userId,
 					orderCount: count(),
-					spentCents: sum(orders.grandTotalCents)
+					spent: sum(orders.grandTotal)
 				})
 				.from(orders)
 				.where(inArray(orders.userId, userIds))
@@ -247,7 +247,7 @@ export function createPostgresOrdersRepository(db: PostgresDb): OrdersRepository
 							{
 								userId: row.userId,
 								orderCount: Number(row.orderCount),
-								spentCents: Number(row.spentCents ?? 0)
+								spent: Number(row.spent ?? 0)
 							}
 						]
 					: []

@@ -430,6 +430,8 @@
 									>
 										<div class="relative size-[20px] shrink-0" data-name="Left-icon">
 											<img
+												loading="lazy"
+												decoding="async"
 												alt=""
 												class="absolute inset-0 block size-full max-w-none"
 												src={imgLeftIcon}

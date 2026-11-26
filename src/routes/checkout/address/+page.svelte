@@ -68,8 +68,8 @@
 	const selectedShipping = $derived(
 		site.shipping.find((option) => option.id === checkout.shippingId) ?? null
 	);
-	const shippingCents = $derived(selectedShipping?.priceCents ?? 0);
-	const totalCents = $derived(cart.totalCents + shippingCents);
+	const shipping = $derived(selectedShipping?.price ?? 0);
+	const total = $derived(cart.total + shipping);
 
 	function resetForm() {
 		form = {
@@ -400,7 +400,7 @@
 															{option.label}
 														</span>
 														<Badge variant="secondary">
-															{formatMoney(option.priceCents, cart.currency)}
+															{formatMoney(option.price, cart.currency)}
 														</Badge>
 													</div>
 													<p class="text-sm text-muted-foreground">{option.description}</p>
@@ -565,7 +565,7 @@
 											</p>
 											<p class="truncate text-xs text-muted-foreground">{item.variantName}</p>
 											<p class="text-xs font-medium text-emerald-600">
-												{formatMoney(item.unitPriceCents, cart.currency)} × {item.quantity}
+												{formatMoney(item.unitPrice, cart.currency)} × {item.quantity}
 											</p>
 										</div>
 									</div>
@@ -578,19 +578,19 @@
 								<div class="flex items-start justify-between gap-4">
 									<dt class="text-muted-foreground">Subtotal</dt>
 									<dd class="font-medium text-foreground">
-										{formatMoney(cart.subtotalCents, cart.currency)}
+										{formatMoney(cart.subtotal, cart.currency)}
 									</dd>
 								</div>
 								<div class="flex items-start justify-between gap-4">
 									<dt class="text-muted-foreground">Shipping Cost (+)</dt>
 									<dd class="font-medium text-foreground">
-										{formatMoney(shippingCents, cart.currency)}
+										{formatMoney(shipping, cart.currency)}
 									</dd>
 								</div>
 								<div class="flex items-start justify-between gap-4">
 									<dt class="text-muted-foreground">Discount (-)</dt>
 									<dd class="font-medium text-foreground">
-										{formatMoney(cart.discountCents, cart.currency)}
+										{formatMoney(cart.discount, cart.currency)}
 									</dd>
 								</div>
 							</dl>
@@ -601,7 +601,7 @@
 								class="flex items-start justify-between gap-4 text-base font-semibold text-foreground"
 							>
 								<span>Total Payable</span>
-								<span>{formatMoney(totalCents, cart.currency)}</span>
+								<span>{formatMoney(total, cart.currency)}</span>
 							</div>
 						</Card.Content>
 						<Card.Footer class="flex-col items-stretch gap-2">

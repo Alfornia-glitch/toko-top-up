@@ -171,6 +171,51 @@
 			deleting = false;
 		}
 	}
+
+	const layoutOptions = [
+		{
+			value: 'regular',
+			label: 'Regular ecommerce',
+			description: 'Mega menu, deals, brands and new arrivals on the home page.'
+		},
+		{
+			value: 'topup',
+			label: 'Top-up store',
+			description: 'Compact game top-up header, game categories and testimonials.'
+		}
+	] as const;
+
+	const currentLayout = $derived(
+		settings.find((setting) => setting.key === 'storefrontLayout')?.valueJson === 'topup'
+			? 'topup'
+			: 'regular'
+	);
+
+	let layoutSaving = $state(false);
+
+	async function saveLayout(value: 'regular' | 'topup') {
+		if (value === currentLayout || layoutSaving) return;
+
+		layoutSaving = true;
+		error = '';
+
+		try {
+			const response = await fetch('/api/admin/super/settings', {
+				method: 'PUT',
+				headers: { 'content-type': 'application/json' },
+				body: JSON.stringify({ storefrontLayout: value })
+			});
+			const payload = await response.json().catch(() => ({}));
+
+			if (!response.ok) throw new Error(payload.error ?? 'Could not save storefront layout');
+
+			await loadSettings();
+		} catch (err) {
+			error = err instanceof Error ? err.message : 'Could not save storefront layout';
+		} finally {
+			layoutSaving = false;
+		}
+	}
 </script>
 
 <div class="space-y-6">
@@ -194,6 +239,37 @@
 			{error}
 		</div>
 	{/if}
+
+	<section class="space-y-3" aria-labelledby="storefront-layout-heading">
+		<div>
+			<h2 id="storefront-layout-heading" class="text-base font-medium">Storefront layout</h2>
+			<p class="text-sm text-muted-foreground">
+				Choose which look the public storefront uses. Changes apply after the next page load.
+			</p>
+		</div>
+		<div class="grid gap-3 sm:grid-cols-2">
+			{#each layoutOptions as option (option.value)}
+				{@const selected = currentLayout === option.value}
+				<button
+					type="button"
+					aria-pressed={selected}
+					disabled={layoutSaving}
+					onclick={() => saveLayout(option.value)}
+					class="rounded-lg border p-4 text-left transition-colors disabled:opacity-60 {selected
+						? 'border-primary bg-primary/5'
+						: 'border-border hover:bg-muted'}"
+				>
+					<span class="flex items-center justify-between gap-2">
+						<span class="text-sm font-medium">{option.label}</span>
+						{#if selected}
+							<span class="text-xs font-medium text-primary">Active</span>
+						{/if}
+					</span>
+					<span class="mt-1 block text-sm text-muted-foreground">{option.description}</span>
+				</button>
+			{/each}
+		</div>
+	</section>
 
 	<DataTable
 		{columns}

@@ -170,7 +170,7 @@ export function runCustomersContract({ service, clock, reset }: CustomersContrac
 
 			unwrap(await service.createAddress(home, customerActor('directory-customer')));
 			const detail = unwrap(await service.getCustomer('directory-customer', admin));
-			expect(detail).toMatchObject({ orderCount: 1, spentCents: 2500 });
+			expect(detail).toMatchObject({ orderCount: 1, spent: 2500 });
 			expect(detail.addresses).toHaveLength(1);
 
 			const missing = await service.getCustomer('nobody', admin);

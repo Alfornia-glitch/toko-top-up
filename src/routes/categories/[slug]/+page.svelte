@@ -3,6 +3,8 @@
 	import { page } from '$app/state';
 	import SiteHeader from '#lib/frontend/components/SiteHeader.svelte';
 	import SiteFooter from '#lib/frontend/components/SiteFooter.svelte';
+	import Seo from '#lib/frontend/components/Seo.svelte';
+	import { categoryMeta } from '#lib/frontend/modules/seo/index.ts';
 	import ProductGridSidebar from '#lib/frontend/pages/ProductGridSidebar.svelte';
 	import ImagePlaceholder from '#lib/frontend/components/ui/ImagePlaceholder.svelte';
 	import { Badge } from '#lib/frontend/components/ui/badge/index.ts';
@@ -21,13 +23,17 @@
 	});
 </script>
 
+{#if category}
+	<Seo meta={categoryMeta(category)} />
+{/if}
+
 {#if home.loading && !home.data}
 	<div
 		class="relative flex size-full flex-col content-stretch items-center bg-white"
 		data-name="Shopix - Category"
 	>
 		<SiteHeader />
-		<div class="mx-auto w-full max-w-[1280px] px-4 py-10 lg:px-8">
+		<div class="w-full px-4 py-10 sm:px-8">
 			<Skeleton class="mb-6 h-5 w-64" />
 			<Skeleton class="mb-8 h-[220px] w-full rounded-[14px]" />
 			<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -44,7 +50,7 @@
 		data-name="Shopix - Category"
 	>
 		<SiteHeader />
-		<div class="flex min-h-[60vh] w-full items-center justify-center px-4 py-16">
+		<div class="flex min-h-[60vh] w-full items-center justify-center px-4 py-16 sm:px-8">
 			<Card.Root class="w-full max-w-lg">
 				<Card.Content class="flex flex-col items-center gap-4 py-12 text-center">
 					<p class="text-lg font-semibold text-[#0a0a0a]">Category not found</p>

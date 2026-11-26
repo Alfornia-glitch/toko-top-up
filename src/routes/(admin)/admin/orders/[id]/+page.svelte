@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { formatMoney } from '#lib/frontend/modules/commerce/format.ts';
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
 	import { ArrowLeft, LoaderCircle, Package, Save, Truck } from '@lucide/svelte';
@@ -19,8 +20,8 @@
 		skuSnapshot: string;
 		imageUrlSnapshot: string | null;
 		quantity: number;
-		unitPriceCents: number;
-		totalCents: number;
+		unitPrice: number;
+		total: number;
 		status: string;
 	};
 
@@ -46,7 +47,7 @@
 		id: string;
 		provider: string;
 		providerRef: string | null;
-		amountCents: number;
+		amount: number;
 		status: string;
 		paidAt: string | null;
 		failureReason: string | null;
@@ -65,11 +66,11 @@
 		status: string;
 		paymentStatus: string;
 		fulfillmentStatus: string;
-		subtotalCents: number;
-		discountCents: number;
-		shippingCents: number;
-		taxCents: number;
-		grandTotalCents: number;
+		subtotal: number;
+		discount: number;
+		shipping: number;
+		tax: number;
+		grandTotal: number;
 		currency: string;
 		shippingAddressJson: unknown;
 		billingAddressJson: unknown;
@@ -322,10 +323,6 @@
 		}
 	}
 
-	function formatMoney(cents: number, currency = 'USD') {
-		return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(cents / 100);
-	}
-
 	function formatDate(value: string | null) {
 		if (!value) return '—';
 		const date = new Date(value);
@@ -520,10 +517,10 @@
 								</Table.Cell>
 								<Table.Cell class="text-right">{item.quantity}</Table.Cell>
 								<Table.Cell class="text-right">
-									{formatMoney(item.unitPriceCents, order.currency)}
+									{formatMoney(item.unitPrice, order.currency)}
 								</Table.Cell>
 								<Table.Cell class="text-right font-medium">
-									{formatMoney(item.totalCents, order.currency)}
+									{formatMoney(item.total, order.currency)}
 								</Table.Cell>
 								<Table.Cell><StatusBadge status={item.status} /></Table.Cell>
 							</Table.Row>
@@ -542,26 +539,26 @@
 				<Card.Content class="space-y-2 text-sm">
 					<div class="flex items-center justify-between">
 						<span class="text-muted-foreground">Subtotal</span>
-						<span>{formatMoney(order.subtotalCents, order.currency)}</span>
+						<span>{formatMoney(order.subtotal, order.currency)}</span>
 					</div>
-					{#if order.discountCents !== 0}
+					{#if order.discount !== 0}
 						<div class="flex items-center justify-between">
 							<span class="text-muted-foreground">Discount</span>
-							<span>-{formatMoney(order.discountCents, order.currency)}</span>
+							<span>-{formatMoney(order.discount, order.currency)}</span>
 						</div>
 					{/if}
 					<div class="flex items-center justify-between">
 						<span class="text-muted-foreground">Shipping</span>
-						<span>{formatMoney(order.shippingCents, order.currency)}</span>
+						<span>{formatMoney(order.shipping, order.currency)}</span>
 					</div>
 					<div class="flex items-center justify-between">
 						<span class="text-muted-foreground">Tax</span>
-						<span>{formatMoney(order.taxCents, order.currency)}</span>
+						<span>{formatMoney(order.tax, order.currency)}</span>
 					</div>
 					<Separator />
 					<div class="flex items-center justify-between text-base font-semibold">
 						<span>Grand total</span>
-						<span>{formatMoney(order.grandTotalCents, order.currency)}</span>
+						<span>{formatMoney(order.grandTotal, order.currency)}</span>
 					</div>
 				</Card.Content>
 			</Card.Root>
@@ -740,7 +737,7 @@
 										</div>
 										<div class="flex items-center gap-2">
 											<span class="text-sm font-medium">
-												{formatMoney(payment.amountCents, order.currency)}
+												{formatMoney(payment.amount, order.currency)}
 											</span>
 											<StatusBadge status={payment.status} />
 										</div>

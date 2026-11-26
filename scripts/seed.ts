@@ -393,8 +393,8 @@ async function main() {
 			sku: 'PHONE-CASE-001',
 			name: 'iPhone 16 Series - Back Case Cover Liquid Air',
 			slug: 'shield-phone-case',
-			price: 2900,
-			compare: 5900,
+			price: 290000,
+			compare: 590000,
 			brand: 'apple',
 			category: 'phones',
 			image: '/assets/b359f.svg',
@@ -433,8 +433,8 @@ async function main() {
 			sku: 'SHIRT-002',
 			name: "Women's Blue Lazy Garfield Graphic Printed Oversized T-shirt",
 			slug: 'everyday-cotton-shirt',
-			price: 4900,
-			compare: 19900,
+			price: 490000,
+			compare: 1990000,
 			brand: 'nike',
 			category: 't-shirts',
 			image: '/assets/3134e.svg',
@@ -459,8 +459,8 @@ async function main() {
 			sku: 'HEADPHONE-001',
 			name: 'Studio Wireless Headphones',
 			slug: 'studio-wireless-headphones',
-			price: 12900,
-			compare: 15900,
+			price: 1290000,
+			compare: 1590000,
 			brand: 'sony',
 			category: 'audio',
 			image: '/assets/078ee.svg',
@@ -486,8 +486,8 @@ async function main() {
 			sku: 'SPEAKER-001',
 			name: 'Portable Bluetooth Speaker',
 			slug: 'portable-bluetooth-speaker',
-			price: 7900,
-			compare: 9900,
+			price: 790000,
+			compare: 990000,
 			brand: 'jbl',
 			category: 'audio',
 			image: '/assets/008f3.svg',
@@ -513,8 +513,8 @@ async function main() {
 			sku: 'WATCH-001',
 			name: 'Smart Fitness Watch',
 			slug: 'smart-fitness-watch',
-			price: 8900,
-			compare: 10900,
+			price: 890000,
+			compare: 1090000,
 			brand: 'samsung',
 			category: 'smart-watches',
 			image: '/assets/00dd0.svg',
@@ -539,8 +539,8 @@ async function main() {
 			sku: 'SNEAKER-001',
 			name: 'Cloud Runner Sneakers',
 			slug: 'cloud-runner-sneakers',
-			price: 6900,
-			compare: 8400,
+			price: 690000,
+			compare: 840000,
 			brand: 'adidas',
 			category: 'fashion',
 			image: '/assets/01f24.svg',
@@ -565,8 +565,8 @@ async function main() {
 			sku: 'TV-001',
 			name: 'Aurora 4K Smart TV',
 			slug: 'aurora-4k-smart-tv',
-			price: 24900,
-			compare: 29900,
+			price: 2490000,
+			compare: 2990000,
 			brand: 'samsung',
 			category: 'electronics',
 			image: '/assets/02146.svg',
@@ -591,8 +591,8 @@ async function main() {
 			sku: 'MONITOR-001',
 			name: 'LG UltraGear Gaming Monitor',
 			slug: 'lg-ultragear-monitor',
-			price: 18900,
-			compare: 22900,
+			price: 1890000,
+			compare: 2290000,
 			brand: 'lg',
 			category: 'electronics',
 			image: '/assets/02157.svg',
@@ -618,8 +618,8 @@ async function main() {
 			sku: 'PERFUME-001',
 			name: 'Chanel No.5 Eau de Parfum',
 			slug: 'chanel-no5-eau-de-parfum',
-			price: 11900,
-			compare: 13900,
+			price: 1190000,
+			compare: 1390000,
 			brand: 'chanel',
 			category: 'beauty',
 			image: '/assets/026f8.svg',
@@ -644,8 +644,8 @@ async function main() {
 			sku: 'BLAZER-001',
 			name: 'Zara Linen Blend Blazer',
 			slug: 'zara-linen-blazer',
-			price: 8900,
-			compare: 11900,
+			price: 890000,
+			compare: 1190000,
 			brand: 'zara',
 			category: 'clothing',
 			image: '/assets/050fa.svg',
@@ -670,8 +670,8 @@ async function main() {
 			sku: 'JEANS-001',
 			name: 'H&M Relaxed Fit Jeans',
 			slug: 'hm-relaxed-fit-jeans',
-			price: 4900,
-			compare: 6900,
+			price: 490000,
+			compare: 690000,
 			brand: 'hm',
 			category: 'clothing',
 			image: '/assets/0524e.svg',
@@ -697,8 +697,8 @@ async function main() {
 			sku: 'WALLET-001',
 			name: 'Louis Vuitton Slim Card Holder',
 			slug: 'louis-vuitton-card-holder',
-			price: 15900,
-			compare: 17900,
+			price: 1590000,
+			compare: 1790000,
 			brand: 'louis-vuitton',
 			category: 'accessories',
 			image: '/assets/066c7.svg',
@@ -723,8 +723,8 @@ async function main() {
 			sku: 'DINNER-001',
 			name: 'Ceramic Dinner Set',
 			slug: 'ceramic-dinner-set',
-			price: 5900,
-			compare: 7900,
+			price: 590000,
+			compare: 790000,
 			brand: null,
 			category: 'home-decor',
 			image: '/assets/069aa.svg',
@@ -749,8 +749,8 @@ async function main() {
 			sku: 'AIRFRYER-001',
 			name: 'LG XL Air Fryer',
 			slug: 'lg-xl-air-fryer',
-			price: 9900,
-			compare: 12900,
+			price: 990000,
+			compare: 1290000,
 			brand: 'lg',
 			category: 'kitchen-appliances',
 			image: '/assets/075d4.svg',
@@ -776,8 +776,8 @@ async function main() {
 			sku: 'TOY-001',
 			name: 'Wooden Building Blocks',
 			slug: 'wooden-building-blocks',
-			price: 1800,
-			compare: 2900,
+			price: 180000,
+			compare: 290000,
 			brand: null,
 			category: 'toys-games',
 			image: '/assets/0771c.svg',
@@ -813,9 +813,9 @@ async function main() {
 			brandId: product.brand ? brandIds[product.brand] : null,
 			categoryId: categoryIds[product.category] ?? null,
 			status: 'active',
-			priceCents: product.price,
-			compareAtPriceCents: product.compare,
-			currency: 'USD',
+			price: product.price,
+			compareAtPrice: product.compare,
+			currency: 'IDR',
 			ratingAvg: product.ratingAvg,
 			ratingCount: product.ratingCount,
 			soldCount: product.soldCount,
@@ -835,8 +835,8 @@ async function main() {
 				productId,
 				sku: variant.sku,
 				name: variant.name,
-				priceCents: product.price,
-				compareAtPriceCents: product.compare,
+				price: product.price,
+				compareAtPrice: product.compare,
 				stock: variant.stock,
 				status: 'active',
 				optionValuesJson: variant.optionValues
@@ -869,15 +869,15 @@ async function main() {
 		code: 'WELCOME10',
 		type: 'percentage',
 		value: 10,
-		minSubtotalCents: 5000,
+		minSubtotal: 500000,
 		status: 'active',
 		usedCount: 0
 	});
 	await upsertBy(s.coupons, 'code', 'FREESHIP', {
 		code: 'FREESHIP',
 		type: 'fixed',
-		value: 500,
-		minSubtotalCents: 3000,
+		value: 50000,
+		minSubtotal: 300000,
 		status: 'active',
 		usedCount: 0
 	});
@@ -933,8 +933,8 @@ async function main() {
 		position: 0,
 		active: true
 	});
-	await upsertBy(s.announcements, 'text' as any, 'Free shipping over $50', {
-		text: 'Free shipping over $50',
+	await upsertBy(s.announcements, 'text' as any, 'Free shipping over Rp 500.000', {
+		text: 'Free shipping over Rp 500.000',
 		link: '/products',
 		position: 1,
 		active: true
@@ -978,22 +978,22 @@ async function main() {
 			id: 'standard',
 			label: 'Standard Delivery',
 			description: 'Delivered in 5–7 business days',
-			priceCents: 0
+			price: 0
 		},
 		{
 			id: 'express',
 			label: 'Express Delivery',
 			description: 'Delivered in 1–2 business days',
-			priceCents: 2000
+			price: 2000
 		},
 		{
 			id: 'basic',
 			label: 'Basic Delivery',
 			description: 'Delivered in 3–5 business days',
-			priceCents: 1000
+			price: 1000
 		}
 	]);
-	await setSetting('store.currency', 'USD');
+	await setSetting('store.currency', 'IDR');
 
 	const customerEmail = 'seed-customer@example.com';
 	const customerId = await ensureUser(customerEmail, 'Seed Customer');
@@ -1184,12 +1184,12 @@ async function main() {
 		status: 'delivered',
 		paymentStatus: 'paid',
 		fulfillmentStatus: 'fulfilled',
-		subtotalCents: 5000,
-		discountCents: 500,
-		shippingCents: 0,
-		taxCents: 0,
-		grandTotalCents: 4500,
-		currency: 'USD',
+		subtotal: 500000,
+		discount: 50000,
+		shipping: 0,
+		tax: 0,
+		grandTotal: 450000,
+		currency: 'IDR',
 		shippingAddressJson: shippingAddress,
 		billingAddressJson: shippingAddress,
 		placedAt: new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000)
@@ -1201,8 +1201,8 @@ async function main() {
 		productNameSnapshot: 'iPhone 16 Series - Back Case Cover Liquid Air',
 		imageUrlSnapshot: '/assets/b359f.svg',
 		quantity: 2,
-		unitPriceCents: 2500,
-		totalCents: 5000,
+		unitPrice: 2500,
+		total: 500000,
 		status: 'fulfilled'
 	});
 	void order1001ItemId;
@@ -1233,7 +1233,7 @@ async function main() {
 	);
 	await ensurePayment(order1001Id, 'seed_SEED-1001', {
 		provider: 'seed',
-		amountCents: 4500,
+		amount: 450000,
 		status: 'succeeded',
 		paidAt: new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000)
 	});
@@ -1251,12 +1251,12 @@ async function main() {
 		status: 'shipped',
 		paymentStatus: 'paid',
 		fulfillmentStatus: 'shipped',
-		subtotalCents: 7800,
-		discountCents: 0,
-		shippingCents: 0,
-		taxCents: 0,
-		grandTotalCents: 7800,
-		currency: 'USD',
+		subtotal: 780000,
+		discount: 0,
+		shipping: 0,
+		tax: 0,
+		grandTotal: 780000,
+		currency: 'IDR',
 		shippingAddressJson: shippingAddress,
 		billingAddressJson: shippingAddress,
 		trackingNumber: '1Z-SEED-1002',
@@ -1271,8 +1271,8 @@ async function main() {
 		productNameSnapshot: "Women's Blue Lazy Garfield Graphic Printed Oversized T-shirt",
 		imageUrlSnapshot: '/assets/3134e.svg',
 		quantity: 1,
-		unitPriceCents: 4900,
-		totalCents: 4900,
+		unitPrice: 4900,
+		total: 490000,
 		status: 'shipped'
 	});
 	await ensureOrderItem(order1002Id, 'PHONE-CASE-001-BLK', {
@@ -1281,8 +1281,8 @@ async function main() {
 		productNameSnapshot: 'iPhone 16 Series - Back Case Cover Liquid Air',
 		imageUrlSnapshot: '/assets/b359f.svg',
 		quantity: 1,
-		unitPriceCents: 2900,
-		totalCents: 2900,
+		unitPrice: 2900,
+		total: 290000,
 		status: 'shipped'
 	});
 
@@ -1306,7 +1306,7 @@ async function main() {
 	);
 	await ensurePayment(order1002Id, 'seed_SEED-1002', {
 		provider: 'seed',
-		amountCents: 7800,
+		amount: 780000,
 		status: 'succeeded',
 		paidAt: new Date(now.getTime() - 4 * 24 * 60 * 60 * 1000)
 	});
@@ -1382,9 +1382,9 @@ async function main() {
 
 	await upsertBy(s.giftCards, 'code', 'GIFT-SEED-001', {
 		code: 'GIFT-SEED-001',
-		initialAmountCents: 5000,
-		balanceCents: 5000,
-		currency: 'USD',
+		initialAmount: 5000,
+		balance: 500000,
+		currency: 'IDR',
 		status: 'active',
 		purchaserUserId: customerId,
 		recipientEmail: customerEmail,

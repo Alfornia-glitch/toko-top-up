@@ -150,9 +150,9 @@
 		);
 	});
 
-	const displayPrice = $derived(selectedVariant?.priceCents ?? product?.priceCents ?? 0);
+	const displayPrice = $derived(selectedVariant?.price ?? product?.price ?? 0);
 	const compareAt = $derived.by(() => {
-		const value = selectedVariant?.compareAtPriceCents ?? product?.compareAtPriceCents ?? null;
+		const value = selectedVariant?.compareAtPrice ?? product?.compareAtPrice ?? null;
 		return value && value > displayPrice ? value : null;
 	});
 	const displayStock = $derived(selectedVariant?.stock ?? product?.stock ?? 0);

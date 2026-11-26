@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { formatMoney } from '#lib/frontend/modules/commerce/format.ts';
 	import { onDestroy, onMount } from 'svelte';
 	import { Pencil, Plus, Trash2 } from '@lucide/svelte';
 	import DataTable from '#lib/frontend/components/admin/DataTable.svelte';
@@ -16,7 +17,7 @@
 		code: string;
 		type: 'percentage' | 'fixed';
 		value: number;
-		minSubtotalCents: number;
+		minSubtotal: number;
 		maxUses: number | null;
 		usedCount: number;
 		startsAt: string | null;
@@ -31,7 +32,7 @@
 		{ key: 'code', label: 'Code' },
 		{ key: 'type', label: 'Type' },
 		{ key: 'value', label: 'Value', class: 'text-right' },
-		{ key: 'minSubtotalCents', label: 'Min subtotal', class: 'text-right' },
+		{ key: 'minSubtotal', label: 'Min subtotal', class: 'text-right' },
 		{ key: 'usage', label: 'Usage', class: 'text-right' },
 		{ key: 'status', label: 'Status' },
 		{ key: 'endsAt', label: 'Ends' },
@@ -149,10 +150,6 @@
 		}
 	}
 
-	function formatMoney(cents: number, currency = 'USD') {
-		return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(cents / 100);
-	}
-
 	function formatDate(value: string | null) {
 		if (!value) return '—';
 		const date = new Date(value);
@@ -238,9 +235,9 @@
 						? formatMoney(Number(row.value ?? 0))
 						: `${Number(row.value ?? 0)}%`}
 				</span>
-			{:else if column.key === 'minSubtotalCents'}
+			{:else if column.key === 'minSubtotal'}
 				<span class="text-muted-foreground">
-					{formatMoney(Number(row.minSubtotalCents ?? 0))}
+					{formatMoney(Number(row.minSubtotal ?? 0))}
 				</span>
 			{:else if column.key === 'usage'}
 				<span class="text-muted-foreground">

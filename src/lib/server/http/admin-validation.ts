@@ -53,7 +53,7 @@ export const returnUpdateSchema = z.object({
 		.enum(['requested', 'approved', 'rejected', 'received', 'refunded', 'completed'])
 		.optional(),
 	resolution: z.enum(['original_payment', 'gift_card', 'card']).nullable().optional(),
-	refundAmountCents: z.number().int().min(0).nullable().optional(),
+	refundAmount: z.number().int().min(0).nullable().optional(),
 	exchangeVariantId: z.string().trim().max(100).nullable().optional(),
 	note: z.string().trim().max(2000).nullable().optional()
 });
@@ -80,7 +80,7 @@ export const couponWriteSchema = z.object({
 	code: z.string().trim().min(2).max(64),
 	type: z.enum(['percentage', 'fixed']),
 	value: z.number().int().min(1),
-	minSubtotalCents: z.number().int().min(0).default(0),
+	minSubtotal: z.number().int().min(0).default(0),
 	maxUses: z.number().int().min(1).nullable().optional(),
 	startsAt: z.string().datetime().nullable().optional(),
 	endsAt: z.string().datetime().nullable().optional(),
@@ -90,7 +90,7 @@ export const couponWriteSchema = z.object({
 
 export const giftCardWriteSchema = z.object({
 	code: z.string().trim().min(4).max(64).optional(),
-	initialAmountCents: z.number().int().min(1),
+	initialAmount: z.number().int().min(1),
 	currency: z.string().trim().length(3).default('USD'),
 	recipientName: z.string().trim().max(200).nullable().optional(),
 	recipientEmail: z.string().trim().email().max(200).nullable().optional(),
@@ -100,7 +100,7 @@ export const giftCardWriteSchema = z.object({
 
 export const giftCardUpdateSchema = z.object({
 	status: z.enum(['active', 'redeemed', 'expired', 'disabled']).optional(),
-	balanceCents: z.number().int().min(0).optional(),
+	balance: z.number().int().min(0).optional(),
 	recipientName: z.string().trim().max(200).nullable().optional(),
 	recipientEmail: z.string().trim().email().max(200).nullable().optional(),
 	message: z.string().trim().max(1000).nullable().optional(),

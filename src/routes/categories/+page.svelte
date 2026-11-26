@@ -79,10 +79,12 @@
 			data-name="Hero"
 		>
 			<div
-				class="relative flex min-h-[336px] w-full max-w-[1280px] items-center overflow-clip rounded-[8px] bg-[#171717]"
+				class="relative flex min-h-[336px] w-full items-center overflow-clip rounded-[8px] bg-[#171717]"
 			>
 				{#if heroBanner.imageUrl}
 					<img
+						loading="lazy"
+						decoding="async"
 						src={heroBanner.imageUrl}
 						alt={heroBanner.title}
 						class="pointer-events-none absolute inset-0 size-full object-cover"
@@ -252,7 +254,7 @@
 	{/if}
 
 	{#if firstDeal}
-		{@const discount = discountPercent(firstDeal.priceCents, firstDeal.compareAtPriceCents)}
+		{@const discount = discountPercent(firstDeal.price, firstDeal.compareAtPrice)}
 		<section
 			class="relative flex w-full shrink-0 flex-col content-stretch items-center justify-center py-[56px] max-[480px]:py-9"
 			data-name="Feature"
@@ -283,6 +285,8 @@
 				>
 					{#if firstDeal.imageUrl}
 						<img
+							loading="lazy"
+							decoding="async"
 							src={firstDeal.imageUrl}
 							alt={firstDeal.name}
 							class="pointer-events-none absolute inset-0 size-full object-cover"
@@ -313,11 +317,11 @@
 						</div>
 						<div class="flex flex-wrap items-baseline gap-[8px]">
 							<span class="text-[24px] leading-[32px] font-semibold">
-								{formatMoney(firstDeal.priceCents, firstDeal.currency)}
+								{formatMoney(firstDeal.price, firstDeal.currency)}
 							</span>
-							{#if firstDeal.compareAtPriceCents && firstDeal.compareAtPriceCents > firstDeal.priceCents}
+							{#if firstDeal.compareAtPrice && firstDeal.compareAtPrice > firstDeal.price}
 								<span class="text-[18px] leading-[28px] text-white/70 line-through">
-									{formatMoney(firstDeal.compareAtPriceCents, firstDeal.currency)}
+									{formatMoney(firstDeal.compareAtPrice, firstDeal.currency)}
 								</span>
 								<span
 									class="rounded-full bg-[#dc2626] px-[10px] py-[2px] text-[14px] leading-[20px] font-medium"

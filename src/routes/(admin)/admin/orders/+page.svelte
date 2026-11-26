@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { formatMoney } from '#lib/frontend/modules/commerce/format.ts';
 	import { onDestroy, onMount } from 'svelte';
 	import { ShoppingCart } from '@lucide/svelte';
 	import DataTable from '#lib/frontend/components/admin/DataTable.svelte';
@@ -15,7 +16,7 @@
 		status: string;
 		paymentStatus: string;
 		fulfillmentStatus: string;
-		grandTotalCents: number;
+		grandTotal: number;
 		currency: string;
 		placedAt: string;
 		updatedAt: string;
@@ -142,10 +143,6 @@
 	function handlePageChange(nextPage: number) {
 		page = nextPage;
 		void loadOrders();
-	}
-
-	function formatMoney(cents: number, currency = 'USD') {
-		return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(cents / 100);
 	}
 
 	function formatDate(value: string) {
@@ -281,7 +278,7 @@
 				<StatusBadge status={String(row.fulfillmentStatus ?? '')} />
 			{:else if column.key === 'total'}
 				<span class="font-medium">
-					{formatMoney(Number(row.grandTotalCents ?? 0), String(row.currency ?? 'USD'))}
+					{formatMoney(Number(row.grandTotal ?? 0), String(row.currency ?? 'IDR'))}
 				</span>
 			{:else if column.key === 'placedAt'}
 				<span class="text-muted-foreground">{formatDate(String(row.placedAt ?? ''))}</span>

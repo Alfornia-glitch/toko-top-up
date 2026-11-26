@@ -223,14 +223,14 @@ export function createCustomerService(
 				if (!found) throw new NotFoundError('Customer not found');
 
 				const addresses = await repository.listAddresses(id);
-				const spentCents = found.orders.reduce((total, order) => total + order.grandTotalCents, 0);
+				const spent = found.orders.reduce((total, order) => total + order.grandTotal, 0);
 
 				return {
 					...found.profile,
 					orders: found.orders,
 					addresses,
 					orderCount: found.orders.length,
-					spentCents
+					spent
 				};
 			})
 	};

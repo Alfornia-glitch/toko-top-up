@@ -1,7 +1,16 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
-	import { Banknote, CreditCard, Gift, Lock, MapPin, ShoppingCart, Truck } from '@lucide/svelte';
+	import {
+		Banknote,
+		CreditCard,
+		Gift,
+		Lock,
+		MapPin,
+		QrCode,
+		ShoppingCart,
+		Truck
+	} from '@lucide/svelte';
 	import SiteHeader from '#lib/frontend/components/SiteHeader.svelte';
 	import SiteFooter from '#lib/frontend/components/SiteFooter.svelte';
 	import ImagePlaceholder from '#lib/frontend/components/ui/ImagePlaceholder.svelte';
@@ -23,7 +32,7 @@
 	import { formatMoney } from '#lib/frontend/modules/commerce/format.ts';
 	import type { Address, PaymentMethod } from '#lib/frontend/modules/commerce/models.ts';
 
-	type PaymentMode = 'card' | 'cod' | 'gift';
+	type PaymentMode = 'card' | 'cod' | 'gift' | 'qris';
 	type CardType = 'debit' | 'credit';
 
 	interface PaymentPayload {
@@ -59,15 +68,15 @@
 	const selectedShipping = $derived(
 		site.shipping.find((option) => option.id === checkout.shippingId) ?? null
 	);
-	const shippingCents = $derived(selectedShipping?.priceCents ?? 0);
-	const totalCents = $derived(cart.totalCents + shippingCents);
+	const shipping = $derived(selectedShipping?.price ?? 0);
+	const total = $derived(cart.total + shipping);
 	const selectedMethod = $derived(methods.find((method) => method.id === paymentMethodId) ?? null);
 
 	function handleTabChange(value: string) {
 		if (value === 'debit' || value === 'credit') {
 			mode = 'card';
 			cardType = value;
-		} else if (value === 'cod' || value === 'gift') {
+		} else if (value === 'cod' || value === 'gift' || value === 'qris') {
 			mode = value;
 		}
 
@@ -235,7 +244,9 @@
 
 		try {
 			const result = unwrap(
-				await api.post<{ data: { orderId: string; orderNumber: string } }>('/api/checkout', {
+				await api.post<{
+					data: { orderId: string; orderNumber: string; payment?: { id: string } };
+				}>('/api/checkout', {
 					addressId: checkout.addressId,
 					shippingId: checkout.shippingId,
 					couponCode: cart.cart?.coupon?.code ?? null,
@@ -246,6 +257,10 @@
 
 			checkout.clear();
 			await cart.refresh();
+			if (mode === 'qris') {
+				await goto('/account/payments/' + encodeURIComponent(result.payment?.id ?? result.orderId));
+				return;
+			}
 			await goto('/account/order-tracking?order=' + encodeURIComponent(result.orderNumber));
 		} catch (cause) {
 			if (cause instanceof ApiError && cause.status === 401) {
@@ -412,6 +427,9 @@
 										<Tabs.Trigger value="credit" class="h-8 flex-1 whitespace-nowrap">
 											Credit Card
 										</Tabs.Trigger>
+										<Tabs.Trigger value="qris" class="h-8 flex-1 whitespace-nowrap">
+											QRIS
+										</Tabs.Trigger>
 										<Tabs.Trigger value="cod" class="h-8 flex-1 whitespace-nowrap">
 											Cash on delivery
 										</Tabs.Trigger>
@@ -528,6 +546,21 @@
 											</div>
 										</div>
 									{/if}
+								{:else if mode === 'qris'}
+									<div class="flex items-start gap-3 rounded-xl border bg-muted/40 p-4">
+										<span
+											class="flex size-9 shrink-0 items-center justify-center rounded-full bg-background text-muted-foreground"
+										>
+											<QrCode class="size-4" />
+										</span>
+										<div class="flex flex-col gap-0.5">
+											<p class="text-sm font-medium text-foreground">QRIS transfer</p>
+											<p class="text-sm text-muted-foreground">
+												After placing your order you will get a QR code and an exact amount to pay
+												within 30 minutes. Upload your payment proof and we will verify it.
+											</p>
+										</div>
+									</div>
 								{:else if mode === 'cod'}
 									<div class="flex items-start gap-3 rounded-xl border bg-muted/40 p-4">
 										<span
@@ -619,7 +652,7 @@
 											</p>
 											<p class="truncate text-xs text-muted-foreground">{item.variantName}</p>
 											<p class="text-xs font-medium text-emerald-600">
-												{formatMoney(item.unitPriceCents, cart.currency)} × {item.quantity}
+												{formatMoney(item.unitPrice, cart.currency)} × {item.quantity}
 											</p>
 										</div>
 									</div>
@@ -632,19 +665,19 @@
 								<div class="flex items-start justify-between gap-4">
 									<dt class="text-muted-foreground">Subtotal</dt>
 									<dd class="font-medium text-foreground">
-										{formatMoney(cart.subtotalCents, cart.currency)}
+										{formatMoney(cart.subtotal, cart.currency)}
 									</dd>
 								</div>
 								<div class="flex items-start justify-between gap-4">
 									<dt class="text-muted-foreground">Shipping Cost (+)</dt>
 									<dd class="font-medium text-foreground">
-										{formatMoney(shippingCents, cart.currency)}
+										{formatMoney(shipping, cart.currency)}
 									</dd>
 								</div>
 								<div class="flex items-start justify-between gap-4">
 									<dt class="text-muted-foreground">Discount (-)</dt>
 									<dd class="font-medium text-foreground">
-										{formatMoney(cart.discountCents, cart.currency)}
+										{formatMoney(cart.discount, cart.currency)}
 									</dd>
 								</div>
 							</dl>
@@ -655,7 +688,7 @@
 								class="flex items-start justify-between gap-4 text-base font-semibold text-foreground"
 							>
 								<span>Total Payable</span>
-								<span>{formatMoney(totalCents, cart.currency)}</span>
+								<span>{formatMoney(total, cart.currency)}</span>
 							</div>
 						</Card.Content>
 						<Card.Footer class="flex-col items-stretch gap-2">

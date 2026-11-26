@@ -75,6 +75,11 @@ export interface OrdersService {
 	createOrder(input: CreateOrderInput): Outcome<CreatedOrder>;
 	/** Service-to-service compensation: cancels an order and refunds its payment record. Idempotent. */
 	cancelOrder(orderId: string, reason: string): Outcome<void>;
+	/**
+	 * Service-to-service fulfilment hook: a verified payment moves the order to paid.
+	 * Idempotent: an order that is already paid (or further along) is left untouched.
+	 */
+	markPaid(orderId: string, actorUserId: string | null, note?: string): Outcome<void>;
 }
 
 export function createOrdersService(
@@ -266,7 +271,7 @@ export function createOrdersService(
 						status: order.status,
 						paymentStatus: order.paymentStatus,
 						fulfillmentStatus: order.fulfillmentStatus,
-						grandTotalCents: order.grandTotalCents,
+						grandTotal: order.grandTotal,
 						currency: order.currency,
 						placedAt: order.placedAt,
 						itemCount: counts.get(order.id) ?? 0
@@ -295,11 +300,11 @@ export function createOrdersService(
 					status: order.status,
 					paymentStatus: order.paymentStatus,
 					fulfillmentStatus: order.fulfillmentStatus,
-					subtotalCents: order.subtotalCents,
-					discountCents: order.discountCents,
-					shippingCents: order.shippingCents,
-					taxCents: order.taxCents,
-					grandTotalCents: order.grandTotalCents,
+					subtotal: order.subtotal,
+					discount: order.discount,
+					shipping: order.shipping,
+					tax: order.tax,
+					grandTotal: order.grandTotal,
 					currency: order.currency,
 					placedAt: order.placedAt,
 					shippingAddress: order.shippingAddressJson ?? null,
@@ -315,8 +320,8 @@ export function createOrdersService(
 						sku: item.skuSnapshot,
 						imageUrl: item.imageUrlSnapshot,
 						quantity: item.quantity,
-						unitPriceCents: item.unitPriceCents,
-						totalCents: item.totalCents,
+						unitPrice: item.unitPrice,
+						total: item.total,
 						status: item.status
 					})),
 					events: events.map((entry) => ({
@@ -392,11 +397,11 @@ export function createOrdersService(
 						status: input.status,
 						paymentStatus: input.paymentStatus,
 						fulfillmentStatus: 'unfulfilled',
-						subtotalCents: input.subtotalCents,
-						discountCents: input.discountCents,
-						shippingCents: input.shippingCents,
-						taxCents: input.taxCents,
-						grandTotalCents: input.grandTotalCents,
+						subtotal: input.subtotal,
+						discount: input.discount,
+						shipping: input.shipping,
+						tax: input.tax,
+						grandTotal: input.grandTotal,
 						currency: input.currency,
 						couponId: input.couponId,
 						shippingAddressJson: input.shippingAddress,
@@ -423,7 +428,7 @@ export function createOrdersService(
 						orderId,
 						provider: input.payment.provider,
 						providerRef: null,
-						amountCents: input.grandTotalCents,
+						amount: input.grandTotal,
 						status: input.payment.status,
 						paidAt: input.payment.status === 'succeeded' ? now : null,
 						failureReason: null,
@@ -433,6 +438,29 @@ export function createOrdersService(
 				});
 
 				return { orderId, orderNumber };
+			}),
+
+		markPaid: (orderId, actorUserId, note) =>
+			run(async () => {
+				const order = await requireOrder(orderId);
+				if (order.status !== 'pending') {
+					if (order.status === 'cancelled') {
+						throw new UnprocessableError('Cannot mark a cancelled order as paid');
+					}
+					return;
+				}
+
+				const now = clock.now();
+				await repository.updateOrder(
+					orderId,
+					{ status: 'paid', paymentStatus: 'paid', updatedAt: now },
+					[event(orderId, 'payment_verified', note ?? 'Payment verified', actorUserId, now)]
+				);
+				await repository.updatePayments(orderId, {
+					status: 'succeeded',
+					paidAt: now,
+					updatedAt: now
+				});
 			}),
 
 		cancelOrder: (orderId, reason) =>

@@ -10,8 +10,8 @@ export interface ProductValues {
 	brandId: string | null;
 	categoryId: string | null;
 	status: ProductStatus;
-	priceCents: number;
-	compareAtPriceCents: number | null;
+	price: number;
+	compareAtPrice: number | null;
 	currency: string;
 	isFeatured: boolean;
 	isNewArrival: boolean;
@@ -57,8 +57,8 @@ export interface ProductVariantRecord {
 	productId: string;
 	sku: string;
 	name: string;
-	priceCents: number;
-	compareAtPriceCents: number | null;
+	price: number;
+	compareAtPrice: number | null;
 	stock: number;
 	weightGrams: number | null;
 	status: ProductVariantStatus;
@@ -70,8 +70,8 @@ export interface ProductVariantRecord {
 export interface ProductVariantUpdateValues {
 	sku: string;
 	name: string;
-	priceCents: number;
-	compareAtPriceCents: number | null;
+	price: number;
+	compareAtPrice: number | null;
 	stock: number;
 	weightGrams: number | null;
 	status: ProductVariantStatus;
@@ -100,8 +100,8 @@ export function toProductValues(input: ProductWrite, slug: string): ProductValue
 		brandId: input.brandId ?? null,
 		categoryId: input.categoryId ?? null,
 		status: input.status,
-		priceCents: input.priceCents,
-		compareAtPriceCents: input.compareAtPriceCents ?? null,
+		price: input.price,
+		compareAtPrice: input.compareAtPrice ?? null,
 		currency: input.currency,
 		isFeatured: input.isFeatured,
 		isNewArrival: input.isNewArrival,
@@ -170,8 +170,8 @@ export function toVariantRecords(
 		productId,
 		sku: variant.sku,
 		name: variant.name,
-		priceCents: variant.priceCents,
-		compareAtPriceCents: variant.compareAtPriceCents ?? null,
+		price: variant.price,
+		compareAtPrice: variant.compareAtPrice ?? null,
 		stock: variant.stock,
 		weightGrams: variant.weightGrams ?? null,
 		status: variant.status,
@@ -195,8 +195,8 @@ export function toVariantChanges(
 		const values: ProductVariantUpdateValues = {
 			sku: variant.sku,
 			name: variant.name,
-			priceCents: variant.priceCents,
-			compareAtPriceCents: variant.compareAtPriceCents ?? null,
+			price: variant.price,
+			compareAtPrice: variant.compareAtPrice ?? null,
 			stock: variant.stock,
 			weightGrams: variant.weightGrams ?? null,
 			status: variant.status,
@@ -217,8 +217,8 @@ export function toVariantChanges(
 			productId,
 			sku: variant.sku,
 			name: variant.name,
-			priceCents: variant.priceCents,
-			compareAtPriceCents: variant.compareAtPriceCents ?? null,
+			price: variant.price,
+			compareAtPrice: variant.compareAtPrice ?? null,
 			stock: variant.stock,
 			weightGrams: variant.weightGrams ?? null,
 			status: variant.status,

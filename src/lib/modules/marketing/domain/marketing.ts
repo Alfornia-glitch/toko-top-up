@@ -9,7 +9,7 @@ export interface Coupon {
 	code: string;
 	type: CouponType;
 	value: number;
-	minSubtotalCents: number;
+	minSubtotal: number;
 	maxUses: number | null;
 	usedCount: number;
 	startsAt: Date | null;
@@ -24,7 +24,7 @@ export interface CouponInput {
 	code: string;
 	type: CouponType;
 	value: number;
-	minSubtotalCents: number;
+	minSubtotal: number;
 	maxUses?: number | null | undefined;
 	startsAt?: string | null | undefined;
 	endsAt?: string | null | undefined;
@@ -35,8 +35,8 @@ export interface CouponInput {
 export interface GiftCard {
 	id: string;
 	code: string;
-	initialAmountCents: number;
-	balanceCents: number;
+	initialAmount: number;
+	balance: number;
 	currency: string;
 	status: GiftCardStatus;
 	recipientName: string | null;
@@ -54,7 +54,7 @@ export interface GiftCardTransaction {
 	id: string;
 	giftCardId: string;
 	orderId: string | null;
-	amountCents: number;
+	amount: number;
 	type: GiftCardTransactionType;
 	createdAt: Date;
 }
@@ -64,19 +64,12 @@ export type GiftCardDetail = GiftCard & { transactions: GiftCardTransaction[] };
 /** What a customer sees of their own gift cards. */
 export type CustomerGiftCard = Pick<
 	GiftCard,
-	| 'id'
-	| 'code'
-	| 'initialAmountCents'
-	| 'balanceCents'
-	| 'currency'
-	| 'status'
-	| 'expiresAt'
-	| 'createdAt'
+	'id' | 'code' | 'initialAmount' | 'balance' | 'currency' | 'status' | 'expiresAt' | 'createdAt'
 >;
 
 export interface GiftCardInput {
 	code?: string | undefined;
-	initialAmountCents: number;
+	initialAmount: number;
 	currency: string;
 	recipientName?: string | null | undefined;
 	recipientEmail?: string | null | undefined;
@@ -86,7 +79,7 @@ export interface GiftCardInput {
 
 export interface GiftCardUpdateInput {
 	status?: GiftCardStatus | undefined;
-	balanceCents?: number | undefined;
+	balance?: number | undefined;
 	recipientName?: string | null | undefined;
 	recipientEmail?: string | null | undefined;
 	message?: string | null | undefined;
@@ -123,7 +116,7 @@ export interface CouponRedemption {
 	couponId: string;
 	orderId: string;
 	userId: string | null;
-	amountCents: number;
+	amount: number;
 	createdAt: Date;
 }
 
@@ -131,7 +124,7 @@ export interface RedeemCouponInput {
 	couponId: string;
 	orderId: string;
 	userId: string | null;
-	amountCents: number;
+	amount: number;
 }
 
 export type RedeemOutcome = 'redeemed' | 'duplicate' | 'exhausted';
@@ -177,8 +170,8 @@ export function toCustomerGiftCard(card: GiftCard): CustomerGiftCard {
 	return {
 		id: card.id,
 		code: card.code,
-		initialAmountCents: card.initialAmountCents,
-		balanceCents: card.balanceCents,
+		initialAmount: card.initialAmount,
+		balance: card.balance,
 		currency: card.currency,
 		status: card.status,
 		expiresAt: card.expiresAt,
@@ -190,16 +183,16 @@ export function generateGiftCardCode(id: string): string {
 	return id.replaceAll('-', '').slice(0, 16).toUpperCase();
 }
 
-export function discountFor(coupon: Pick<Coupon, 'type' | 'value'>, subtotalCents: number): number {
-	if (coupon.type === 'percentage') return Math.round((subtotalCents * coupon.value) / 100);
-	return Math.min(coupon.value, subtotalCents);
+export function discountFor(coupon: Pick<Coupon, 'type' | 'value'>, subtotal: number): number {
+	if (coupon.type === 'percentage') return Math.round((subtotal * coupon.value) / 100);
+	return Math.min(coupon.value, subtotal);
 }
 
 /** Whether the coupon can be applied to a cart of this subtotal right now. */
-export function isCouponApplicable(coupon: Coupon, subtotalCents: number, now: number): boolean {
+export function isCouponApplicable(coupon: Coupon, subtotal: number, now: number): boolean {
 	if (coupon.status !== 'active') return false;
 	if (coupon.startsAt && now < coupon.startsAt.getTime()) return false;
 	if (coupon.endsAt && now > coupon.endsAt.getTime()) return false;
 	if (coupon.maxUses !== null && coupon.usedCount >= coupon.maxUses) return false;
-	return subtotalCents >= coupon.minSubtotalCents;
+	return subtotal >= coupon.minSubtotal;
 }

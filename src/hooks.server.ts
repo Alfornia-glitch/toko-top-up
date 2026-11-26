@@ -1,10 +1,17 @@
-import { error, isHttpError, isRedirect, redirect } from '@sveltejs/kit';
+import { error, isHttpError, isRedirect, redirect, type RequestEvent } from '@sveltejs/kit';
 import { sequence, type Handle, type HandleServerError } from '@sveltejs/kit/hooks';
 import { building } from '$app/env';
 import { svelteKitHandler } from 'better-auth/svelte-kit';
 import { hasPermission, isAppError } from '#shared';
 import { actorFromUser, adminPermissionForPath } from '#lib/server/actor.server.ts';
 import { answerAppError } from '#lib/server/http/app-error-response.ts';
+import {
+	isAdminWrite,
+	isStorefrontRead,
+	purgeStorefrontCache,
+	storefrontCacheHeaders
+} from '#lib/server/http/cdn-cache.ts';
+import { resolvePageSeo } from '#lib/server/http/seo.ts';
 import { getRuntime } from '#lib/server/runtime.server.ts';
 
 const requestContextHandle: Handle = async ({ event, resolve }) => {
@@ -50,12 +57,61 @@ const requestContextHandle: Handle = async ({ event, resolve }) => {
 };
 
 const runtimeHandle: Handle = ({ event, resolve }) => {
+	// Prerendered pages are static SPA shells and never touch the database.
+	if (building) return resolve(event);
 	event.locals.services = getRuntime().services;
 	return resolve(event);
 };
 
+/**
+ * Pages are SPA shells (`ssr = false`), so only API calls and admin routes (guarded and loaded on
+ * the server) read the session. Public storefront reads skip the database lookup entirely.
+ */
+function needsSession(event: RequestEvent): boolean {
+	const { pathname } = event.url;
+	if (adminPermissionForPath(pathname)) return true;
+	if (!pathname.startsWith('/api/')) return false;
+	return !(event.request.method === 'GET' && pathname.startsWith('/api/storefront/'));
+}
+
+/** Writes title, Open Graph and JSON-LD tags into the shell so crawlers that skip JS see them. */
+const seoHandle: Handle = async ({ event, resolve }) => {
+	if (!event.route.id || event.url.pathname.startsWith('/api/')) return resolve(event);
+
+	const seo = await resolvePageSeo(event);
+	const response = await resolve(event, {
+		transformPageChunk: ({ html }) => html.replace('</head>', `\t${seo.head}\n\t</head>`)
+	});
+
+	if (seo.cacheable) setCacheHeaders(response, 3600);
+	return response;
+};
+
+function setCacheHeaders(response: Response, seconds: number) {
+	if (response.status !== 200 || response.headers.has('set-cookie')) return;
+	for (const [name, value] of Object.entries(storefrontCacheHeaders(seconds))) {
+		response.headers.set(name, value);
+	}
+}
+
+/** Lets Netlify's CDN answer public catalog reads, and refreshes it after admin changes. */
+const cdnCacheHandle: Handle = async ({ event, resolve }) => {
+	const response = await resolve(event);
+
+	if (isStorefrontRead(event)) setCacheHeaders(response, 300);
+	else if (isAdminWrite(event) && response.ok) await purgeStorefrontCache();
+
+	return response;
+};
+
 const authHandle: Handle = async ({ event, resolve }) => {
 	if (building) return resolve(event);
+
+	if (!needsSession(event)) {
+		event.locals.session = null;
+		event.locals.user = null;
+		return resolve(event);
+	}
 
 	const { auth } = await import('#lib/server/platform/auth/index.ts');
 
@@ -97,7 +153,14 @@ const actorGuardHandle: Handle = ({ event, resolve }) => {
 	return resolve(event);
 };
 
-const composed = sequence(requestContextHandle, runtimeHandle, authHandle, actorGuardHandle);
+const composed = sequence(
+	requestContextHandle,
+	runtimeHandle,
+	cdnCacheHandle,
+	seoHandle,
+	authHandle,
+	actorGuardHandle
+);
 
 export const handle: Handle = async (input) => {
 	try {

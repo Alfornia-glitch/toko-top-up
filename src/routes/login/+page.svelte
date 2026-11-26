@@ -54,7 +54,6 @@
 
 <AuthShell title="Welcome back" description="Please enter your details to sign in">
 	<div class="grid gap-6">
-		<SocialButtons callbackURL={redirectTo} />
 		<form class="grid gap-4" onsubmit={handleSubmit}>
 			<Field.Group>
 				<Field.Field>
@@ -99,6 +98,7 @@
 				{/if}
 			</Button>
 		</form>
+		<SocialButtons callbackURL={redirectTo} />
 	</div>
 
 	{#snippet footer()}

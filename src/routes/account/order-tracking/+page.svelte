@@ -313,6 +313,8 @@
 											>
 												{#if item.imageUrl}
 													<img
+														loading="lazy"
+														decoding="async"
 														src={item.imageUrl}
 														alt={item.productName}
 														class="size-[72px] shrink-0 rounded-[8px] object-cover"
@@ -338,16 +340,13 @@
 													<p
 														class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]"
 													>
-														Qty: {item.quantity} · {formatMoney(
-															item.unitPriceCents,
-															order.currency
-														)}
+														Qty: {item.quantity} · {formatMoney(item.unitPrice, order.currency)}
 													</p>
 												</div>
 												<p
 													class="shrink-0 font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-[#0a0a0a]"
 												>
-													{formatMoney(item.totalCents, order.currency)}
+													{formatMoney(item.total, order.currency)}
 												</p>
 											</div>
 										{/each}
@@ -366,7 +365,7 @@
 									<p
 										class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-[#0a0a0a]"
 									>
-										{formatMoney(order.subtotalCents, order.currency)}
+										{formatMoney(order.subtotal, order.currency)}
 									</p>
 								</div>
 								<div class="flex w-full items-center justify-between gap-[12px]">
@@ -376,7 +375,7 @@
 									<p
 										class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-[#0a0a0a]"
 									>
-										-{formatMoney(order.discountCents, order.currency)}
+										-{formatMoney(order.discount, order.currency)}
 									</p>
 								</div>
 								<div class="flex w-full items-center justify-between gap-[12px]">
@@ -386,7 +385,7 @@
 									<p
 										class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-[#0a0a0a]"
 									>
-										{formatMoney(order.shippingCents, order.currency)}
+										{formatMoney(order.shipping, order.currency)}
 									</p>
 								</div>
 								<div
@@ -400,7 +399,7 @@
 									<p
 										class="font-['Geist:SemiBold'] text-[18px] leading-[28px] font-semibold text-[#0a0a0a]"
 									>
-										{formatMoney(order.grandTotalCents, order.currency)}
+										{formatMoney(order.grandTotal, order.currency)}
 									</p>
 								</div>
 							</div>

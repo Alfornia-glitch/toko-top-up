@@ -140,5 +140,5 @@
 			{/if}
 		</section>
 	</main>
-	<SiteFooter features={true} />
+	<SiteFooter />
 </div>

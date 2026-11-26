@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { formatMoney } from '#lib/frontend/modules/commerce/format.ts';
 	import { onMount } from 'svelte';
 	import { getLocalTimeZone, today, type DateValue } from '@internationalized/date';
 	import {
@@ -25,23 +26,23 @@
 	type DailyRow = {
 		date: string;
 		orders: number;
-		revenueCents: number;
+		revenue: number;
 	};
 
 	type TopProductRow = {
 		name: string;
 		sku: string;
 		quantity: number;
-		totalCents: number;
+		total: number;
 	};
 
 	type SalesReport = {
 		from: string;
 		to: string;
-		revenueCents: number;
+		revenue: number;
 		orderCount: number;
 		paidOrders: number;
-		averageOrderCents: number;
+		averageOrder: number;
 		statusCounts: Record<string, number>;
 		daily: DailyRow[];
 		topProducts: TopProductRow[];
@@ -52,7 +53,7 @@
 		name: string;
 		sku: string;
 		stock: number;
-		priceCents: number;
+		price: number;
 		status: string;
 		productName: string;
 	};
@@ -65,7 +66,7 @@
 
 	type InventoryReport = {
 		variantCount: number;
-		stockValueCents: number;
+		stockValue: number;
 		outOfStock: number;
 		lowStock: number;
 		bands: { out: number; low: number; healthy: number };
@@ -141,14 +142,14 @@
 	const dailyColumns = [
 		{ key: 'date', label: 'Date' },
 		{ key: 'orders', label: 'Orders', class: 'text-right' },
-		{ key: 'revenueCents', label: 'Revenue', class: 'text-right' }
+		{ key: 'revenue', label: 'Revenue', class: 'text-right' }
 	];
 
 	const topProductColumns = [
 		{ key: 'name', label: 'Product' },
 		{ key: 'sku', label: 'SKU' },
 		{ key: 'quantity', label: 'Units', class: 'text-right' },
-		{ key: 'totalCents', label: 'Revenue', class: 'text-right' }
+		{ key: 'total', label: 'Revenue', class: 'text-right' }
 	];
 
 	const lowStockColumns = [
@@ -243,7 +244,6 @@
 		return date.toISOString();
 	}
 
-	const money = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
 	const number = new Intl.NumberFormat('en-US');
 	const rangeFormatter = new Intl.DateTimeFormat('en-US', {
 		month: 'short',
@@ -256,10 +256,6 @@
 		year: 'numeric',
 		timeZone: 'UTC'
 	});
-
-	function formatMoney(cents: number) {
-		return money.format((cents ?? 0) / 100);
-	}
 
 	function formatNumber(value: number) {
 		return number.format(value ?? 0);
@@ -367,7 +363,7 @@
 				<div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
 					<StatCard
 						title="Revenue"
-						value={formatMoney(sales.revenueCents)}
+						value={formatMoney(sales.revenue)}
 						hint="Paid orders in range"
 						icon={DollarSign}
 					/>
@@ -379,7 +375,7 @@
 					/>
 					<StatCard
 						title="Average order value"
-						value={formatMoney(sales.averageOrderCents)}
+						value={formatMoney(sales.averageOrder)}
 						hint="Paid orders only"
 						icon={TrendingUp}
 					/>
@@ -433,8 +429,8 @@
 								{formatDay(String(row.date ?? ''))}
 							{:else if column.key === 'orders'}
 								{formatNumber(Number(row.orders ?? 0))}
-							{:else if column.key === 'revenueCents'}
-								<span class="font-medium">{formatMoney(Number(row.revenueCents ?? 0))}</span>
+							{:else if column.key === 'revenue'}
+								<span class="font-medium">{formatMoney(Number(row.revenue ?? 0))}</span>
 							{:else}
 								{String(row[column.key] ?? '—')}
 							{/if}
@@ -464,8 +460,8 @@
 								<code class="text-xs text-muted-foreground">{String(row.sku ?? '')}</code>
 							{:else if column.key === 'quantity'}
 								{formatNumber(Number(row.quantity ?? 0))}
-							{:else if column.key === 'totalCents'}
-								<span class="font-medium">{formatMoney(Number(row.totalCents ?? 0))}</span>
+							{:else if column.key === 'total'}
+								<span class="font-medium">{formatMoney(Number(row.total ?? 0))}</span>
 							{:else}
 								{String(row[column.key] ?? '—')}
 							{/if}
@@ -495,7 +491,7 @@
 				<div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
 					<StatCard
 						title="Stock value"
-						value={formatMoney(inventory.stockValueCents)}
+						value={formatMoney(inventory.stockValue)}
 						hint="Retail value at current prices"
 						icon={DollarSign}
 					/>

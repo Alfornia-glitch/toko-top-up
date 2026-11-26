@@ -39,12 +39,8 @@
 		}))
 	);
 	let page = $state(untrack(() => query.page ?? 1));
-	let minInput = $state(
-		untrack(() => (query.minPrice != null ? String(query.minPrice / 100) : ''))
-	);
-	let maxInput = $state(
-		untrack(() => (query.maxPrice != null ? String(query.maxPrice / 100) : ''))
-	);
+	let minInput = $state(untrack(() => (query.minPrice != null ? String(query.minPrice) : '')));
+	let maxInput = $state(untrack(() => (query.maxPrice != null ? String(query.maxPrice) : '')));
 
 	let requestId = 0;
 
@@ -68,11 +64,11 @@
 	const pageNumbers = $derived(buildPageNumbers(page, totalPages));
 	const priceRanges = $derived.by(() => {
 		const bounds = result?.facets.price;
-		if (!bounds || bounds.maxCents <= bounds.minCents) return [];
-		const step = (bounds.maxCents - bounds.minCents) / 4;
+		if (!bounds || bounds.max <= bounds.min) return [];
+		const step = (bounds.max - bounds.min) / 4;
 		return Array.from({ length: 4 }, (_, index) => ({
-			min: Math.round(bounds.minCents + step * index),
-			max: index === 3 ? bounds.maxCents : Math.round(bounds.minCents + step * (index + 1))
+			min: Math.round(bounds.min + step * index),
+			max: index === 3 ? bounds.max : Math.round(bounds.min + step * (index + 1))
 		}));
 	});
 
@@ -138,8 +134,8 @@
 	}
 
 	function applyPrice() {
-		const min = minInput.trim() === '' ? undefined : Math.round(Number(minInput) * 100);
-		const max = maxInput.trim() === '' ? undefined : Math.round(Number(maxInput) * 100);
+		const min = minInput.trim() === '' ? undefined : Math.round(Number(minInput));
+		const max = maxInput.trim() === '' ? undefined : Math.round(Number(maxInput));
 		filters.minPrice = min != null && Number.isFinite(min) ? min : undefined;
 		filters.maxPrice = max != null && Number.isFinite(max) ? max : undefined;
 		page = 1;
@@ -147,8 +143,8 @@
 	}
 
 	function applyRange(min: number, max: number) {
-		minInput = String(min / 100);
-		maxInput = String(max / 100);
+		minInput = String(min);
+		maxInput = String(max);
 		filters.minPrice = min;
 		filters.maxPrice = max;
 		page = 1;
@@ -243,7 +239,13 @@
 					</p>
 				</a>
 				<div class="relative size-[14px] shrink-0" data-name="Breadcrumb icon placeholder">
-					<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgBreadcrumb} />
+					<img
+						loading="lazy"
+						decoding="async"
+						alt=""
+						class="absolute inset-0 block size-full max-w-none"
+						src={imgBreadcrumb}
+					/>
 				</div>
 				<div
 					class="relative flex shrink-0 content-stretch items-center justify-center"
@@ -259,7 +261,13 @@
 				</div>
 				{#if selectedBrand}
 					<div class="relative size-[14px] shrink-0" data-name="Breadcrumb icon placeholder">
-						<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgBreadcrumb} />
+						<img
+							loading="lazy"
+							decoding="async"
+							alt=""
+							class="absolute inset-0 block size-full max-w-none"
+							src={imgBreadcrumb}
+						/>
 					</div>
 					<div
 						class="relative flex h-[20px] shrink-0 content-stretch items-center justify-center"
@@ -310,7 +318,13 @@
 				>
 					<div class="relative h-0 w-full shrink-0" data-name="Separator">
 						<div class="absolute inset-[-1px_0_0_0]">
-							<img alt="" class="block size-full max-w-none" src={imgSeparator} />
+							<img
+								loading="lazy"
+								decoding="async"
+								alt=""
+								class="block size-full max-w-none"
+								src={imgSeparator}
+							/>
 						</div>
 					</div>
 					<div
@@ -345,6 +359,8 @@
 									{#if filters.brandId === brand.id}
 										<div class="relative size-[16px] shrink-0" data-name="check">
 											<img
+												loading="lazy"
+												decoding="async"
 												alt=""
 												class="absolute inset-0 block size-full max-w-none"
 												src={imgCheck}
@@ -367,7 +383,13 @@
 					</div>
 					<div class="relative h-0 w-full shrink-0" data-name="Separator">
 						<div class="absolute inset-[-1px_0_0_0]">
-							<img alt="" class="block size-full max-w-none" src={imgSeparator} />
+							<img
+								loading="lazy"
+								decoding="async"
+								alt=""
+								class="block size-full max-w-none"
+								src={imgSeparator}
+							/>
 						</div>
 					</div>
 					<div
@@ -412,7 +434,13 @@
 					</div>
 					<div class="relative h-0 w-full shrink-0" data-name="Separator">
 						<div class="absolute inset-[-1px_0_0_0]">
-							<img alt="" class="block size-full max-w-none" src={imgSeparator} />
+							<img
+								loading="lazy"
+								decoding="async"
+								alt=""
+								class="block size-full max-w-none"
+								src={imgSeparator}
+							/>
 						</div>
 					</div>
 					<div
@@ -486,6 +514,8 @@
 									</p>
 									<div class="relative size-[16px] shrink-0" data-name="Left-icon">
 										<img
+											loading="lazy"
+											decoding="async"
 											alt=""
 											class="absolute inset-0 block size-full max-w-none"
 											src={imgMenuIcon}
@@ -517,6 +547,8 @@
 										>
 											<div class="relative size-[16px] shrink-0" data-name="left-icon">
 												<img
+													loading="lazy"
+													decoding="async"
 													alt=""
 													class="absolute inset-0 block size-full max-w-none"
 													src={imgGridIcon}
@@ -535,6 +567,8 @@
 										>
 											<div class="relative size-[16px] shrink-0" data-name="left-icon">
 												<img
+													loading="lazy"
+													decoding="async"
 													alt=""
 													class="absolute inset-0 block size-full max-w-none"
 													src={imgListIcon}
@@ -571,6 +605,8 @@
 										</select>
 										<div class="relative size-[16px] shrink-0" data-name="chevron-down">
 											<img
+												loading="lazy"
+												decoding="async"
 												alt=""
 												class="absolute inset-0 block size-full max-w-none"
 												src={imgSelectIcon}
@@ -599,7 +635,13 @@
 									{selectedCategory}
 								</p>
 								<div class="relative size-[12px] shrink-0" data-name="x">
-									<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgX} />
+									<img
+										loading="lazy"
+										decoding="async"
+										alt=""
+										class="absolute inset-0 block size-full max-w-none"
+										src={imgX}
+									/>
 								</div>
 							</button>
 						{/if}
@@ -617,7 +659,13 @@
 									{selectedBrand}
 								</p>
 								<div class="relative size-[12px] shrink-0" data-name="x">
-									<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgX} />
+									<img
+										loading="lazy"
+										decoding="async"
+										alt=""
+										class="absolute inset-0 block size-full max-w-none"
+										src={imgX}
+									/>
 								</div>
 							</button>
 						{/if}
@@ -646,7 +694,13 @@
 											: `Up to ${formatMoney(filters.maxPrice ?? 0)}`}
 								</p>
 								<div class="relative size-[12px] shrink-0" data-name="x">
-									<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgX} />
+									<img
+										loading="lazy"
+										decoding="async"
+										alt=""
+										class="absolute inset-0 block size-full max-w-none"
+										src={imgX}
+									/>
 								</div>
 							</button>
 						{/if}
@@ -664,7 +718,13 @@
 									{filters.color}
 								</p>
 								<div class="relative size-[12px] shrink-0" data-name="x">
-									<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgX} />
+									<img
+										loading="lazy"
+										decoding="async"
+										alt=""
+										class="absolute inset-0 block size-full max-w-none"
+										src={imgX}
+									/>
 								</div>
 							</button>
 						{/if}
@@ -710,7 +770,7 @@
 								class="relative flex w-full shrink-0 flex-col content-stretch items-start"
 								data-name="lisitng Product Card"
 							>
-								<StorefrontProductCard {product} />
+								<StorefrontProductCard {product} layout="list" />
 							</div>
 						{/each}
 					</div>
@@ -723,7 +783,13 @@
 							data-name="Ghost Button"
 						>
 							<div class="relative size-[16px] shrink-0" data-name="Left icon">
-								<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgLeftIcon} />
+								<img
+									loading="lazy"
+									decoding="async"
+									alt=""
+									class="absolute inset-0 block size-full max-w-none"
+									src={imgLeftIcon}
+								/>
 							</div>
 							<p
 								class="font-['Geist:Medium'] text-[14px] leading-[20px] font-medium text-[#0a0a0a]"
@@ -761,6 +827,8 @@
 							</p>
 							<div class="relative size-[16px] shrink-0" data-name="Left icon">
 								<img
+									loading="lazy"
+									decoding="async"
 									alt=""
 									class="absolute inset-0 block size-full max-w-none"
 									src={imgLeftIcon1}

@@ -18,11 +18,11 @@ function input(userId: string, overrides: Partial<CreateOrderInput> = {}): Creat
 		userId,
 		status: 'paid',
 		paymentStatus: 'paid',
-		subtotalCents: 3000,
-		discountCents: 0,
-		shippingCents: 500,
-		taxCents: 0,
-		grandTotalCents: 3500,
+		subtotal: 3000,
+		discount: 0,
+		shipping: 500,
+		tax: 0,
+		grandTotal: 3500,
 		currency: 'USD',
 		couponId: null,
 		shippingAddress: { line1: '1 Main St', city: 'Jakarta' },
@@ -36,8 +36,8 @@ function input(userId: string, overrides: Partial<CreateOrderInput> = {}): Creat
 				skuSnapshot: 'W-1',
 				imageUrlSnapshot: null,
 				quantity: 2,
-				unitPriceCents: 1500,
-				totalCents: 3000
+				unitPrice: 1500,
+				total: 3000
 			}
 		],
 		payment: { provider: 'mock', status: 'succeeded' },
@@ -69,7 +69,7 @@ export function runOrdersContract({ service, clock, reset }: OrdersContractConte
 			expect(order).toMatchObject({
 				orderNumber: created.orderNumber,
 				status: 'paid',
-				grandTotalCents: 3500,
+				grandTotal: 3500,
 				customerName: 'Ada',
 				customerEmail: 'ada@example.test',
 				shippingAddressJson: { city: 'Jakarta' }
@@ -80,7 +80,7 @@ export function runOrdersContract({ service, clock, reset }: OrdersContractConte
 			expect(order.payments[0]).toMatchObject({
 				provider: 'mock',
 				status: 'succeeded',
-				amountCents: 3500,
+				amount: 3500,
 				paidAt: START
 			});
 		});
@@ -116,8 +116,8 @@ export function runOrdersContract({ service, clock, reset }: OrdersContractConte
 
 	describe('admin back office', () => {
 		test('lists with customers, filters, searches and sorts', async () => {
-			const cheap = await place('user-ada', { grandTotalCents: 1000, status: 'pending' });
-			const dear = await place('user-bob', { grandTotalCents: 9000 });
+			const cheap = await place('user-ada', { grandTotal: 1000, status: 'pending' });
+			const dear = await place('user-bob', { grandTotal: 9000 });
 
 			const all = unwrap(await service.listOrders({ page: 1, pageSize: 10, sort: 'total' }, admin));
 			expect(all.total).toBe(2);
@@ -212,24 +212,24 @@ export function runOrdersContract({ service, clock, reset }: OrdersContractConte
 			await place('user-ada', {
 				status: 'pending',
 				paymentStatus: 'pending',
-				grandTotalCents: 500
+				grandTotal: 500
 			});
-			await place('user-ada', { grandTotalCents: 3000 });
-			await place('user-bob', { status: 'shipped', grandTotalCents: 2000 });
+			await place('user-ada', { grandTotal: 3000 });
+			await place('user-bob', { status: 'shipped', grandTotal: 2000 });
 
 			expect(unwrap(await service.getTotals(admin))).toEqual({
 				orderCount: 3,
 				pendingCount: 1,
 				paidCount: 2,
-				revenueCents: 5000
+				revenue: 5000
 			});
 			expect(unwrap(await service.getUserOrderCount('user-ada', admin))).toBe(2);
 			expect(unwrap(await service.getUserOrderCount('nobody', admin))).toBe(0);
 
 			const totals = unwrap(await service.getUserTotals(['user-ada', 'user-bob', 'nobody'], admin));
 			expect(totals.sort((a, b) => a.userId.localeCompare(b.userId))).toEqual([
-				{ userId: 'user-ada', orderCount: 2, spentCents: 3500 },
-				{ userId: 'user-bob', orderCount: 1, spentCents: 2000 }
+				{ userId: 'user-ada', orderCount: 2, spent: 3500 },
+				{ userId: 'user-bob', orderCount: 1, spent: 2000 }
 			]);
 			expect(unwrap(await service.getUserTotals([], admin))).toEqual([]);
 

@@ -3,7 +3,7 @@
 	import { ArrowRight } from '@lucide/svelte';
 	import SiteHeader from '#lib/frontend/components/SiteHeader.svelte';
 	import SiteFooter from '#lib/frontend/components/SiteFooter.svelte';
-	import HeroSection from '#lib/frontend/modules/landing/components/HeroSection.svelte';
+	import HeroSection from '#lib/frontend/modules/landing/components/regular/HeroSection.svelte';
 	import ImagePlaceholder from '#lib/frontend/components/ui/ImagePlaceholder.svelte';
 	import { Button } from '#lib/frontend/components/ui/button/index.ts';
 	import { Badge } from '#lib/frontend/components/ui/badge/index.ts';
@@ -117,5 +117,5 @@
 		</div>
 	</section>
 
-	<SiteFooter features={true} />
+	<SiteFooter />
 </div>

@@ -34,7 +34,7 @@ export interface ReturnRequest {
 	note: string | null;
 	status: ReturnStatus;
 	resolution: ReturnResolution | null;
-	refundAmountCents: number | null;
+	refundAmount: number | null;
 	exchangeVariantId: string | null;
 	pickupAddressJson: Record<string, unknown> | null;
 	resolvedBy: string | null;
@@ -55,7 +55,7 @@ export interface ReturnRow extends ReturnRequest {
 	productName: string;
 	sku: string;
 	quantity: number;
-	unitPriceCents: number;
+	unitPrice: number;
 }
 
 export interface ReturnCreateInput {
@@ -69,7 +69,7 @@ export interface ReturnCreateInput {
 export interface ReturnUpdateInput {
 	status?: ReturnStatus | undefined;
 	resolution?: ReturnResolution | null | undefined;
-	refundAmountCents?: number | null | undefined;
+	refundAmount?: number | null | undefined;
 	exchangeVariantId?: string | null | undefined;
 	note?: string | null | undefined;
 }
@@ -93,7 +93,7 @@ export interface CustomerReturn {
 	reason: string;
 	status: ReturnStatus;
 	resolution: ReturnResolution | null;
-	refundAmountCents: number | null;
+	refundAmount: number | null;
 	createdAt: Date;
 	updatedAt: Date;
 }
@@ -110,7 +110,7 @@ export interface AdminReturnListItem extends CustomerReturn {
 
 export interface AdminReturnDetail extends AdminReturnListItem {
 	quantity: number;
-	unitPriceCents: number;
+	unitPrice: number;
 	customerName: string | null;
 	note: string | null;
 	exchangeVariantId: string | null;
@@ -158,7 +158,7 @@ export function toCustomerReturn(row: ReturnRow): CustomerReturn {
 		reason: row.reason,
 		status: row.status,
 		resolution: row.resolution,
-		refundAmountCents: row.refundAmountCents,
+		refundAmount: row.refundAmount,
 		createdAt: row.createdAt,
 		updatedAt: row.updatedAt
 	};

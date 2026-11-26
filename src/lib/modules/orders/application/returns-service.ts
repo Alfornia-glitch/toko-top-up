@@ -90,7 +90,7 @@ export function createReturnsService(
 			customerEmail: customer?.email ?? null,
 			customerName: customer?.name ?? null,
 			quantity: row.quantity,
-			unitPriceCents: row.unitPriceCents,
+			unitPrice: row.unitPrice,
 			note: row.note,
 			exchangeVariantId: row.exchangeVariantId,
 			pickupAddressJson: row.pickupAddressJson,
@@ -132,7 +132,7 @@ export function createReturnsService(
 					note: input.note ?? null,
 					status: 'requested',
 					resolution: input.resolution ?? null,
-					refundAmountCents: null,
+					refundAmount: null,
 					exchangeVariantId: null,
 					pickupAddressJson: null,
 					resolvedBy: null,
@@ -194,9 +194,7 @@ export function createReturnsService(
 					{
 						...(input.status ? { status: input.status } : {}),
 						...(input.resolution !== undefined ? { resolution: input.resolution } : {}),
-						...(input.refundAmountCents !== undefined
-							? { refundAmountCents: input.refundAmountCents }
-							: {}),
+						...(input.refundAmount !== undefined ? { refundAmount: input.refundAmount } : {}),
 						...(input.exchangeVariantId !== undefined
 							? { exchangeVariantId: input.exchangeVariantId }
 							: {}),

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { formatMoney } from '#lib/frontend/modules/commerce/format.ts';
 	import { onDestroy, onMount } from 'svelte';
 	import { Eye, LoaderCircle, Pencil, Plus } from '@lucide/svelte';
 	import DataTable from '#lib/frontend/components/admin/DataTable.svelte';
@@ -15,8 +16,8 @@
 	type GiftCardRow = {
 		id: string;
 		code: string;
-		initialAmountCents: number;
-		balanceCents: number;
+		initialAmount: number;
+		balance: number;
 		currency: string;
 		status: string;
 		recipientName: string | null;
@@ -32,7 +33,7 @@
 		id: string;
 		giftCardId: string;
 		orderId: string | null;
-		amountCents: number;
+		amount: number;
 		type: string;
 		createdAt: string;
 	};
@@ -41,8 +42,8 @@
 
 	const columns = [
 		{ key: 'code', label: 'Code' },
-		{ key: 'balanceCents', label: 'Balance', class: 'text-right' },
-		{ key: 'initialAmountCents', label: 'Initial', class: 'text-right' },
+		{ key: 'balance', label: 'Balance', class: 'text-right' },
+		{ key: 'initialAmount', label: 'Initial', class: 'text-right' },
 		{ key: 'status', label: 'Status' },
 		{ key: 'recipient', label: 'Recipient' },
 		{ key: 'expiresAt', label: 'Expires' },
@@ -157,10 +158,6 @@
 		}
 	}
 
-	function formatMoney(cents: number, currency = 'USD') {
-		return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(cents / 100);
-	}
-
 	function formatDate(value: string | null) {
 		if (!value) return '—';
 		const date = new Date(value);
@@ -240,13 +237,13 @@
 		{#snippet cell(row, column)}
 			{#if column.key === 'code'}
 				<code class="font-medium">{String(row.code ?? '')}</code>
-			{:else if column.key === 'balanceCents'}
+			{:else if column.key === 'balance'}
 				<span class="font-medium">
-					{formatMoney(Number(row.balanceCents ?? 0), String(row.currency ?? 'USD'))}
+					{formatMoney(Number(row.balance ?? 0), String(row.currency ?? 'IDR'))}
 				</span>
-			{:else if column.key === 'initialAmountCents'}
+			{:else if column.key === 'initialAmount'}
 				<span class="text-muted-foreground">
-					{formatMoney(Number(row.initialAmountCents ?? 0), String(row.currency ?? 'USD'))}
+					{formatMoney(Number(row.initialAmount ?? 0), String(row.currency ?? 'IDR'))}
 				</span>
 			{:else if column.key === 'status'}
 				<StatusBadge status={String(row.status ?? '')} />
@@ -324,13 +321,13 @@
 						<div class="rounded-lg border p-3">
 							<p class="text-xs text-muted-foreground">Balance</p>
 							<p class="font-medium">
-								{formatMoney(detailCard.balanceCents, detailCard.currency)}
+								{formatMoney(detailCard.balance, detailCard.currency)}
 							</p>
 						</div>
 						<div class="rounded-lg border p-3">
 							<p class="text-xs text-muted-foreground">Initial amount</p>
 							<p class="font-medium">
-								{formatMoney(detailCard.initialAmountCents, detailCard.currency)}
+								{formatMoney(detailCard.initialAmount, detailCard.currency)}
 							</p>
 						</div>
 					</div>
@@ -378,7 +375,7 @@
 											</p>
 										</div>
 										<span class="text-sm font-medium">
-											{formatMoney(transaction.amountCents, detailCard.currency)}
+											{formatMoney(transaction.amount, detailCard.currency)}
 										</span>
 									</li>
 								{/each}

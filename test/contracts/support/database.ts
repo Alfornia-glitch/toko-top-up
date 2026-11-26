@@ -37,7 +37,7 @@ export interface ProductFixtureOptions {
 	sku?: string;
 	name?: string;
 	slug?: string;
-	priceCents?: number;
+	price?: number;
 }
 
 export interface VariantFixtureOptions {
@@ -45,7 +45,7 @@ export interface VariantFixtureOptions {
 	name?: string;
 	stock?: number;
 	status?: VariantStatus;
-	priceCents?: number;
+	price?: number;
 }
 
 export interface ProductVariantFixtureOptions {
@@ -86,7 +86,7 @@ export function createSqliteCatalogTestContext(path: string): {
 			brandId: options.brandId ?? null,
 			categoryId: options.categoryId ?? null,
 			status: options.status ?? 'draft',
-			priceCents: options.priceCents ?? 1000,
+			price: options.price ?? 1000,
 			currency: 'USD',
 			createdAt: FIXTURE_DATE,
 			updatedAt: FIXTURE_DATE
@@ -106,7 +106,7 @@ export function createSqliteCatalogTestContext(path: string): {
 			productId,
 			sku: options.sku ?? `VAR-${id}`,
 			name: options.name ?? 'Contract variant',
-			priceCents: options.priceCents ?? 1000,
+			price: options.price ?? 1000,
 			stock: options.stock ?? 0,
 			status: options.status ?? 'active',
 			createdAt: FIXTURE_DATE,
@@ -203,7 +203,7 @@ export function createPostgresCatalogTestContext(url: string): {
 			brandId: options.brandId ?? null,
 			categoryId: options.categoryId ?? null,
 			status: options.status ?? 'draft',
-			priceCents: options.priceCents ?? 1000,
+			price: options.price ?? 1000,
 			currency: 'USD',
 			createdAt: FIXTURE_DATE,
 			updatedAt: FIXTURE_DATE
@@ -223,7 +223,7 @@ export function createPostgresCatalogTestContext(url: string): {
 			productId,
 			sku: options.sku ?? `VAR-${id}`,
 			name: options.name ?? 'Contract variant',
-			priceCents: options.priceCents ?? 1000,
+			price: options.price ?? 1000,
 			stock: options.stock ?? 0,
 			status: options.status ?? 'active',
 			createdAt: FIXTURE_DATE,

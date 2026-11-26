@@ -107,6 +107,8 @@
 							</div>
 							<div class="relative size-[16px] shrink-0" data-name="Right-icon">
 								<img
+									loading="lazy"
+									decoding="async"
 									alt=""
 									class="absolute inset-0 block size-full max-w-none"
 									src={imgRightIcon}
@@ -121,6 +123,8 @@
 							<div class="relative h-[199.803px] w-[244.093px]" data-name="Hero Image">
 								<div class="pointer-events-none absolute inset-0 overflow-hidden">
 									<img
+										loading="lazy"
+										decoding="async"
 										alt=""
 										class="absolute top-[-8.32%] left-[-26.89%] h-[139.03%] w-[151.74%] max-w-none"
 										src={imgHeroImage}
@@ -193,10 +197,10 @@
 										data-name="Flex Horizontal"
 									>
 										<p class="relative shrink-0 text-[#737373]">
-											Initial: {formatMoney(card.initialAmountCents, card.currency)}
+											Initial: {formatMoney(card.initialAmount, card.currency)}
 										</p>
 										<p class="relative shrink-0 text-[#0a0a0a]">
-											Balance: {formatMoney(card.balanceCents, card.currency)}
+											Balance: {formatMoney(card.balance, card.currency)}
 										</p>
 										<p class="relative shrink-0 text-[#737373]">Currency: {card.currency}</p>
 										<p class="relative shrink-0 text-[#737373]">

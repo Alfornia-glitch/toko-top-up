@@ -1,9 +1,12 @@
 <script lang="ts">
+	import { formatMoney } from '#lib/frontend/modules/commerce/format.ts';
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
 	import { LoaderCircle, Minus, Plus, RotateCcw, Star, Truck } from '@lucide/svelte';
 	import SiteHeader from '#lib/frontend/components/SiteHeader.svelte';
 	import SiteFooter from '#lib/frontend/components/SiteFooter.svelte';
+	import Seo from '#lib/frontend/components/Seo.svelte';
+	import { productMeta } from '#lib/frontend/modules/seo/index.ts';
 	import WishlistButton from '#lib/frontend/components/shared/WishlistButton.svelte';
 	import ImagePlaceholder from '#lib/frontend/components/ui/ImagePlaceholder.svelte';
 	import { cart } from '#lib/frontend/modules/commerce/cart.svelte.ts';
@@ -38,8 +41,8 @@
 		id: string;
 		sku: string;
 		name: string;
-		priceCents: number;
-		compareAtPriceCents: number | null;
+		price: number;
+		compareAtPrice: number | null;
 		stock: number;
 		optionValuesJson: Record<string, string> | null;
 	}
@@ -51,8 +54,8 @@
 		slug: string;
 		description: string | null;
 		shortDescription: string | null;
-		priceCents: number;
-		compareAtPriceCents: number | null;
+		price: number;
+		compareAtPrice: number | null;
 		currency: string;
 		ratingAvg: number;
 		ratingCount: number;
@@ -128,13 +131,6 @@
 		return initial;
 	}
 
-	function formatMoney(cents: number, currency: string) {
-		return new Intl.NumberFormat('en-US', {
-			style: 'currency',
-			currency: currency || 'USD'
-		}).format(cents / 100);
-	}
-
 	function ratingValue(value: number) {
 		if (!Number.isFinite(value) || value <= 0) return 0;
 		return Math.min(5, value > 5 ? value / 100 : value);
@@ -161,9 +157,9 @@
 			}) ?? null
 		);
 	});
-	const displayPrice = $derived(selectedVariant?.priceCents ?? product?.priceCents ?? 0);
+	const displayPrice = $derived(selectedVariant?.price ?? product?.price ?? 0);
 	const compareAt = $derived.by(() => {
-		const value = selectedVariant?.compareAtPriceCents ?? product?.compareAtPriceCents ?? null;
+		const value = selectedVariant?.compareAtPrice ?? product?.compareAtPrice ?? null;
 		return value && value > displayPrice ? value : null;
 	});
 	const displayStock = $derived(selectedVariant?.stock ?? 0);
@@ -173,6 +169,9 @@
 	class="relative flex min-h-screen w-full flex-col items-center bg-white"
 	data-name="Shopix - Product Detail"
 >
+	{#if product}
+		<Seo meta={productMeta(product)} />
+	{/if}
 	<SiteHeader />
 	<main class="mx-auto w-full max-w-[1280px] px-4 py-10 lg:px-8">
 		{#if loading}

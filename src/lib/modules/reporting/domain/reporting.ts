@@ -42,25 +42,25 @@ export interface CatalogProductReader {
 
 export interface DailySales {
 	date: string;
-	revenueCents: number;
+	revenue: number;
 	orders: number;
 }
 
 export interface SalesReport {
 	from: string;
 	to: string;
-	revenueCents: number;
+	revenue: number;
 	orderCount: number;
 	paidOrders: number;
-	averageOrderCents: number;
+	averageOrder: number;
 	statusCounts: Record<string, number>;
 	daily: DailySales[];
-	topProducts: Array<{ name: string; sku: string; quantity: number; totalCents: number }>;
+	topProducts: Array<{ name: string; sku: string; quantity: number; total: number }>;
 }
 
 export interface InventoryReport {
 	variantCount: number;
-	stockValueCents: number;
+	stockValue: number;
 	outOfStock: number;
 	lowStock: number;
 	bands: { out: number; low: number; healthy: number };
@@ -69,7 +69,7 @@ export interface InventoryReport {
 		name: string;
 		sku: string;
 		stock: number;
-		priceCents: number;
+		price: number;
 		status: 'active' | 'inactive';
 		productName: string;
 	}>;
@@ -80,7 +80,7 @@ export interface DashboardStats {
 	products: number;
 	orders: number;
 	customers: number;
-	revenueCents: number;
+	revenue: number;
 	pendingOrders: number;
 	lowStockVariants: number;
 	recentOrders: Array<{
@@ -88,7 +88,7 @@ export interface DashboardStats {
 		orderNumber: string;
 		status: string;
 		paymentStatus: string;
-		grandTotalCents: number;
+		grandTotal: number;
 		currency: string;
 		placedAt: Date;
 	}>;
@@ -96,7 +96,7 @@ export interface DashboardStats {
 }
 
 export interface SalesInput {
-	orders: Array<{ id: string; status: string; grandTotalCents: number; placedAt: Date }>;
+	orders: Array<{ id: string; status: string; grandTotal: number; placedAt: Date }>;
 	topProducts: SalesReport['topProducts'];
 }
 
@@ -105,7 +105,7 @@ export interface CommerceReader {
 	orderTotals(actor: Actor): Promise<{
 		orderCount: number;
 		pendingCount: number;
-		revenueCents: number;
+		revenue: number;
 	}>;
 	recentOrders(limit: number, actor: Actor): Promise<DashboardStats['recentOrders']>;
 	inventoryData(actor: Actor): Promise<{
@@ -131,34 +131,34 @@ export function buildSalesReport(
 	range: { start: Date; end: Date },
 	input: SalesInput
 ): SalesReport {
-	let revenueCents = 0;
+	let revenue = 0;
 	let paidOrders = 0;
 	const statusCounts: Record<string, number> = {};
-	const daily = new Map<string, { revenueCents: number; orders: number }>();
+	const daily = new Map<string, { revenue: number; orders: number }>();
 
 	for (const order of input.orders) {
 		statusCounts[order.status] = (statusCounts[order.status] ?? 0) + 1;
 		const paid = PAID_STATUSES.includes(order.status);
 
 		if (paid) {
-			revenueCents += order.grandTotalCents;
+			revenue += order.grandTotal;
 			paidOrders += 1;
 		}
 
 		const day = new Date(order.placedAt).toISOString().slice(0, 10);
-		const bucket = daily.get(day) ?? { revenueCents: 0, orders: 0 };
+		const bucket = daily.get(day) ?? { revenue: 0, orders: 0 };
 		bucket.orders += 1;
-		if (paid) bucket.revenueCents += order.grandTotalCents;
+		if (paid) bucket.revenue += order.grandTotal;
 		daily.set(day, bucket);
 	}
 
 	return {
 		from: range.start.toISOString(),
 		to: range.end.toISOString(),
-		revenueCents,
+		revenue,
 		orderCount: input.orders.length,
 		paidOrders,
-		averageOrderCents: paidOrders ? Math.round(revenueCents / paidOrders) : 0,
+		averageOrder: paidOrders ? Math.round(revenue / paidOrders) : 0,
 		statusCounts,
 		daily: [...daily.entries()]
 			.sort(([a], [b]) => a.localeCompare(b))
@@ -171,11 +171,11 @@ export function buildInventoryReport(
 	variants: InventoryReport['lowStockVariants'],
 	recentMovements: InventoryReport['recentMovements']
 ): InventoryReport {
-	let stockValueCents = 0;
+	let stockValue = 0;
 	const bands = { out: 0, low: 0, healthy: 0 };
 
 	for (const variant of variants) {
-		stockValueCents += variant.stock * variant.priceCents;
+		stockValue += variant.stock * variant.price;
 		if (variant.stock === 0) bands.out += 1;
 		else if (variant.stock <= LOW_STOCK_LEVEL) bands.low += 1;
 		else bands.healthy += 1;
@@ -183,7 +183,7 @@ export function buildInventoryReport(
 
 	return {
 		variantCount: variants.length,
-		stockValueCents,
+		stockValue,
 		outOfStock: bands.out,
 		lowStock: bands.low,
 		bands,

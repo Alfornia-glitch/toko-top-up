@@ -2,6 +2,8 @@ export interface CheckoutInput {
 	addressId: string;
 	shippingId: string;
 	note?: string | null | undefined;
+	/** 'qris' leaves the order pending until a verified payment marks it paid; anything else is the legacy instant path. */
+	paymentMode?: string | undefined;
 }
 
 export interface PlacedOrder {
@@ -11,7 +13,7 @@ export interface PlacedOrder {
 
 export interface ShippingMethod {
 	id: string;
-	priceCents: number;
+	price: number;
 }
 
 /**
@@ -30,6 +32,6 @@ export interface OrderLine {
 	skuSnapshot: string;
 	imageUrlSnapshot: string | null;
 	quantity: number;
-	unitPriceCents: number;
-	totalCents: number;
+	unitPrice: number;
+	total: number;
 }

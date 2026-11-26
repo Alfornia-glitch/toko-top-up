@@ -43,8 +43,8 @@ export const productVariantSchema = z.object({
 	id: z.string().trim().max(100).optional(),
 	sku: z.string().trim().min(1).max(100),
 	name: z.string().trim().min(1).max(200),
-	priceCents: z.number().int().min(0),
-	compareAtPriceCents: z.number().int().min(0).nullable().optional(),
+	price: z.number().int().min(0),
+	compareAtPrice: z.number().int().min(0).nullable().optional(),
 	stock: z.number().int().min(0).default(0),
 	weightGrams: z.number().int().min(0).nullable().optional(),
 	status: productVariantStatusSchema.default('active'),
@@ -60,8 +60,8 @@ export const productWriteSchema = z.object({
 	brandId: z.string().trim().max(100).nullable().optional(),
 	categoryId: z.string().trim().max(100).nullable().optional(),
 	status: productStatusSchema.default('draft'),
-	priceCents: z.number().int().min(0),
-	compareAtPriceCents: z.number().int().min(0).nullable().optional(),
+	price: z.number().int().min(0),
+	compareAtPrice: z.number().int().min(0).nullable().optional(),
 	currency: z.string().trim().length(3).default('USD'),
 	isFeatured: z.boolean().default(false),
 	isNewArrival: z.boolean().default(false),
@@ -91,8 +91,8 @@ export interface Product {
 	brandId: string | null;
 	categoryId: string | null;
 	status: ProductStatus;
-	priceCents: number;
-	compareAtPriceCents: number | null;
+	price: number;
+	compareAtPrice: number | null;
 	currency: string;
 	isFeatured: boolean;
 	isNewArrival: boolean;
@@ -141,8 +141,8 @@ export interface ProductVariant {
 	productId: string;
 	sku: string;
 	name: string;
-	priceCents: number;
-	compareAtPriceCents: number | null;
+	price: number;
+	compareAtPrice: number | null;
 	stock: number;
 	weightGrams: number | null;
 	status: ProductVariantStatus;
@@ -165,8 +165,8 @@ export interface ProductSummary {
 	name: string;
 	slug: string;
 	status: ProductStatus;
-	priceCents: number;
-	compareAtPriceCents: number | null;
+	price: number;
+	compareAtPrice: number | null;
 	currency: string;
 	isFeatured: boolean;
 	updatedAt: Date;
@@ -193,8 +193,8 @@ export interface VariantSnapshot {
 	sku: string;
 	name: string;
 	status: 'active' | 'inactive';
-	priceCents: number;
-	compareAtPriceCents: number | null;
+	price: number;
+	compareAtPrice: number | null;
 	stock: number;
 	productId: string;
 	productSlug: string;

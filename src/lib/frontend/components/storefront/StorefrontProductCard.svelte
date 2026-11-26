@@ -1,12 +1,13 @@
 <script lang="ts" module>
+	import { formatMoney } from '#lib/frontend/modules/commerce/format.ts';
 	export interface StorefrontProduct {
 		id: string;
 		sku: string;
 		name: string;
 		slug: string;
 		shortDescription: string | null;
-		priceCents: number;
-		compareAtPriceCents: number | null;
+		price: number;
+		compareAtPrice: number | null;
 		currency: string;
 		ratingAvg: number;
 		ratingCount: number;
@@ -27,16 +28,10 @@
 	import ImagePlaceholder from '#lib/frontend/components/ui/ImagePlaceholder.svelte';
 	import { Badge } from '#lib/frontend/components/ui/badge/index.ts';
 
-	let { product }: { product: StorefrontProduct } = $props();
+	let { product, layout = 'grid' }: { product: StorefrontProduct; layout?: 'grid' | 'list' } =
+		$props();
 
 	let failedUrl = $state<string | null>(null);
-
-	function formatMoney(cents: number, currency: string) {
-		return new Intl.NumberFormat('en-US', {
-			style: 'currency',
-			currency: currency || 'USD'
-		}).format(cents / 100);
-	}
 
 	function ratingValue(value: number) {
 		if (!Number.isFinite(value) || value <= 0) return 0;
@@ -45,22 +40,26 @@
 
 	const rating = $derived(ratingValue(product.ratingAvg));
 	const compareAt = $derived(
-		product.compareAtPriceCents && product.compareAtPriceCents > product.priceCents
-			? product.compareAtPriceCents
-			: null
+		product.compareAtPrice && product.compareAtPrice > product.price ? product.compareAtPrice : null
 	);
 	const discount = $derived(
-		compareAt ? Math.round(((compareAt - product.priceCents) / compareAt) * 100) : 0
+		compareAt ? Math.round(((compareAt - product.price) / compareAt) * 100) : 0
 	);
 </script>
 
-<div class="group relative h-full">
+<div class="group relative h-full w-full">
 	<a
 		href={`/products/${product.slug}`}
 		data-name="Product Card"
-		class="flex h-full flex-col overflow-hidden rounded-[14px] border border-[#e5e5e5] bg-white transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(10,10,10,0.12)]"
+		class={`flex h-full w-full overflow-hidden rounded-[14px] border border-[#e5e5e5] bg-white transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(10,10,10,0.12)] ${
+			layout === 'list' ? 'flex-col sm:flex-row' : 'flex-col'
+		}`}
 	>
-		<div class="relative aspect-square w-full overflow-hidden bg-[#f5f5f5]">
+		<div
+			class={`relative shrink-0 overflow-hidden bg-[#f5f5f5] ${
+				layout === 'list' ? 'h-[200px] w-full sm:h-[220px] sm:w-[201px]' : 'h-[280px] w-full'
+			}`}
+		>
 			{#if product.imageUrl && failedUrl !== product.imageUrl}
 				<img
 					src={product.imageUrl}
@@ -81,7 +80,7 @@
 				{/if}
 			</div>
 		</div>
-		<div class="flex flex-1 flex-col gap-3 px-4 py-4">
+		<div class="flex min-w-0 flex-1 flex-col gap-3 px-4 py-4">
 			<div class="flex flex-col gap-1">
 				{#if product.brandName}
 					<p class="text-xs font-medium tracking-wide text-[#737373] uppercase">
@@ -104,7 +103,7 @@
 			</div>
 			<div class="mt-auto flex items-baseline gap-2">
 				<span class="text-base font-semibold text-[#0a0a0a]">
-					{formatMoney(product.priceCents, product.currency)}
+					{formatMoney(product.price, product.currency)}
 				</span>
 				{#if compareAt}
 					<span class="text-sm text-[#737373] line-through">
@@ -114,7 +113,11 @@
 			</div>
 		</div>
 	</a>
-	<div class="absolute top-3 right-3 z-10">
+	<div
+		class={`absolute top-3 z-10 ${
+			layout === 'list' ? 'right-3 sm:right-auto sm:left-[157px]' : 'right-3'
+		}`}
+	>
 		<WishlistButton productId={product.id} />
 	</div>
 </div>

@@ -186,7 +186,7 @@
 									</Table.Cell>
 									<Table.Cell>{order.itemCount ?? 0}</Table.Cell>
 									<Table.Cell class="font-medium">
-										{formatMoney(order.grandTotalCents, order.currency)}
+										{formatMoney(order.grandTotal, order.currency)}
 									</Table.Cell>
 									<Table.Cell class="pr-6 text-right">
 										<a
@@ -217,7 +217,7 @@
 								</Card.Description>
 							</div>
 							<p class="shrink-0 text-base font-semibold text-foreground">
-								{formatMoney(order.grandTotalCents, order.currency)}
+								{formatMoney(order.grandTotal, order.currency)}
 							</p>
 						</div>
 					</Card.Header>

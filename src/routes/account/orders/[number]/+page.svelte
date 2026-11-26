@@ -147,6 +147,9 @@
 	description={order ? `Placed ${formatDate(order.placedAt)}` : 'View your order details.'}
 >
 	{#snippet actions()}
+		{#if order && order.status === 'pending' && order.paymentStatus === 'pending'}
+			<Button href={`/account/payments/${order.id}`}>Complete payment</Button>
+		{/if}
 		<Button variant="outline" href="/account/orders">
 			<ChevronLeft class="size-4" aria-hidden="true" />
 			Back to orders
@@ -263,7 +266,7 @@
 					<div class="min-w-0">
 						<dt class="text-xs text-muted-foreground">Grand total</dt>
 						<dd class="text-sm font-medium text-foreground tabular-nums">
-							{formatMoney(order.grandTotalCents, order.currency)}
+							{formatMoney(order.grandTotal, order.currency)}
 						</dd>
 					</div>
 				</dl>
@@ -300,13 +303,13 @@
 									<p class="text-sm font-medium break-words text-foreground">{item.productName}</p>
 									<p class="text-xs text-muted-foreground">SKU: {item.sku}</p>
 									<p class="text-sm text-muted-foreground">
-										{item.quantity} × {formatMoney(item.unitPriceCents, order.currency)}
+										{item.quantity} × {formatMoney(item.unitPrice, order.currency)}
 									</p>
 								</div>
 								<div class="flex items-center justify-between gap-3 sm:flex-col sm:items-end">
 									<OrderStatusBadge status={item.status} kind="order" />
 									<p class="text-sm font-medium text-foreground tabular-nums">
-										{formatMoney(item.totalCents, order.currency)}
+										{formatMoney(item.total, order.currency)}
 									</p>
 								</div>
 							</li>
@@ -325,32 +328,32 @@
 					<div class="flex items-center justify-between gap-3">
 						<dt class="text-muted-foreground">Subtotal</dt>
 						<dd class="font-medium text-foreground tabular-nums">
-							{formatMoney(order.subtotalCents, order.currency)}
+							{formatMoney(order.subtotal, order.currency)}
 						</dd>
 					</div>
 					<div class="flex items-center justify-between gap-3">
 						<dt class="text-muted-foreground">Discount</dt>
 						<dd class="font-medium text-foreground tabular-nums">
-							-{formatMoney(order.discountCents, order.currency)}
+							-{formatMoney(order.discount, order.currency)}
 						</dd>
 					</div>
 					<div class="flex items-center justify-between gap-3">
 						<dt class="text-muted-foreground">Shipping</dt>
 						<dd class="font-medium text-foreground tabular-nums">
-							{formatMoney(order.shippingCents, order.currency)}
+							{formatMoney(order.shipping, order.currency)}
 						</dd>
 					</div>
 					<div class="flex items-center justify-between gap-3">
 						<dt class="text-muted-foreground">Tax</dt>
 						<dd class="font-medium text-foreground tabular-nums">
-							{formatMoney(order.taxCents, order.currency)}
+							{formatMoney(order.tax, order.currency)}
 						</dd>
 					</div>
 					<Separator />
 					<div class="flex items-center justify-between gap-3 text-base">
 						<dt class="font-semibold text-foreground">Total</dt>
 						<dd class="font-semibold text-foreground tabular-nums">
-							{formatMoney(order.grandTotalCents, order.currency)}
+							{formatMoney(order.grandTotal, order.currency)}
 						</dd>
 					</div>
 				</dl>

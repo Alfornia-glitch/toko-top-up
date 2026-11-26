@@ -72,7 +72,6 @@
 
 <AuthShell title="Sign up to Shopix" description="Please enter your details to create an account">
 	<div class="grid gap-6">
-		<SocialButtons callbackURL={redirectTo} />
 		<form class="grid gap-4" onsubmit={handleSubmit}>
 			<Field.Group>
 				<Field.Field>
@@ -135,6 +134,7 @@
 				{/if}
 			</Button>
 		</form>
+		<SocialButtons callbackURL={redirectTo} />
 	</div>
 
 	{#snippet footer()}
