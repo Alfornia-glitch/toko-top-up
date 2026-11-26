@@ -41,7 +41,6 @@
 	"components_admin_sidebar_storage": "Storage",
 	"components_admin_sidebar_system": "System",
 	"components_admin_sidebar_danger": "Danger zone",
-	"components_admin_sidebar_brand": "Commerce",
 	"components_admin_sidebar_console": "Admin console",
 	"components_admin_sidebar_store": "Store",
 	"components_admin_sidebar_superadmin": "Superadmin",
@@ -303,7 +302,7 @@
 	"components_auth_hide_password": "Hide password",
 	"components_auth_show_password": "Show password",
 	"components_auth_checking_session": "Checking your session",
-	"components_auth_logo_home": "Shopix home",
+	"components_auth_logo_home": "{name} home",
 	"components_auth_or_continue_with": "Or continue with",
 	"components_auth_continue_google": "Continue with Google",
 	"components_customer_service": "CUSTOMER SERVICE",
@@ -420,5 +419,5 @@
 	"components_regular_footer_order_tracking": "Order Tracking",
 	"components_regular_footer_terms": "Terms & Policies",
 	"components_regular_footer_returns": "Returns & Exchanges",
-	"components_regular_footer_legal": "© {year} Shopix, Made with ❤ for a better web."
+	"components_regular_footer_legal": "© {year} {brand}, Made with ❤ for a better web."
 }

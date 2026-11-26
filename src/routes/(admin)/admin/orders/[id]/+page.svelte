@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { readAccountDetails } from '#lib/frontend/modules/commerce/account-form.ts';
 	import {
 		formatDate as formatDateOnlyRaw,
 		formatDateTime,
@@ -428,51 +429,68 @@
 				</Card.Content>
 			</Card.Root>
 
-			<Card.Root>
-				<Card.Header>
-					<Card.Title>{m.admin_ops_order_shipping_address()}</Card.Title>
-				</Card.Header>
-				<Card.Content>
-					{#if parseAddress(order.shippingAddressJson)}
-						{@const address = parseAddress(order.shippingAddressJson) as AddressShape}
-						<address class="space-y-0.5 text-sm text-muted-foreground not-italic">
-							{#if address.recipientName}
-								<p class="font-medium text-foreground">{address.recipientName}</p>
-							{/if}
-							{#if address.line1}<p>{address.line1}</p>{/if}
-							{#if address.line2}<p>{address.line2}</p>{/if}
-							{#if addressLine(address)}<p>{addressLine(address)}</p>{/if}
-							{#if address.country}<p>{address.country}</p>{/if}
-							{#if address.phone}<p>{address.phone}</p>{/if}
-						</address>
-					{:else}
-						<p class="text-sm text-muted-foreground">{m.admin_ops_order_no_shipping_address()}</p>
-					{/if}
-				</Card.Content>
-			</Card.Root>
+			{#if readAccountDetails(order.shippingAddressJson)}
+				{@const details = readAccountDetails(order.shippingAddressJson) ?? []}
+				<Card.Root>
+					<Card.Header>
+						<Card.Title>{m.admin_ops_order_account_details()}</Card.Title>
+					</Card.Header>
+					<Card.Content>
+						<dl class="grid gap-x-4 gap-y-0.5 text-sm sm:grid-cols-[auto_1fr]">
+							{#each details as detail (detail.id)}
+								<dt class="text-muted-foreground">{detail.label}</dt>
+								<dd class="font-medium break-words text-foreground">{detail.value}</dd>
+							{/each}
+						</dl>
+					</Card.Content>
+				</Card.Root>
+			{:else}
+				<Card.Root>
+					<Card.Header>
+						<Card.Title>{m.admin_ops_order_shipping_address()}</Card.Title>
+					</Card.Header>
+					<Card.Content>
+						{#if parseAddress(order.shippingAddressJson)}
+							{@const address = parseAddress(order.shippingAddressJson) as AddressShape}
+							<address class="space-y-0.5 text-sm text-muted-foreground not-italic">
+								{#if address.recipientName}
+									<p class="font-medium text-foreground">{address.recipientName}</p>
+								{/if}
+								{#if address.line1}<p>{address.line1}</p>{/if}
+								{#if address.line2}<p>{address.line2}</p>{/if}
+								{#if addressLine(address)}<p>{addressLine(address)}</p>{/if}
+								{#if address.country}<p>{address.country}</p>{/if}
+								{#if address.phone}<p>{address.phone}</p>{/if}
+							</address>
+						{:else}
+							<p class="text-sm text-muted-foreground">{m.admin_ops_order_no_shipping_address()}</p>
+						{/if}
+					</Card.Content>
+				</Card.Root>
 
-			<Card.Root>
-				<Card.Header>
-					<Card.Title>{m.admin_ops_order_billing_address()}</Card.Title>
-				</Card.Header>
-				<Card.Content>
-					{#if parseAddress(order.billingAddressJson)}
-						{@const address = parseAddress(order.billingAddressJson) as AddressShape}
-						<address class="space-y-0.5 text-sm text-muted-foreground not-italic">
-							{#if address.recipientName}
-								<p class="font-medium text-foreground">{address.recipientName}</p>
-							{/if}
-							{#if address.line1}<p>{address.line1}</p>{/if}
-							{#if address.line2}<p>{address.line2}</p>{/if}
-							{#if addressLine(address)}<p>{addressLine(address)}</p>{/if}
-							{#if address.country}<p>{address.country}</p>{/if}
-							{#if address.phone}<p>{address.phone}</p>{/if}
-						</address>
-					{:else}
-						<p class="text-sm text-muted-foreground">{m.admin_ops_order_no_billing_address()}</p>
-					{/if}
-				</Card.Content>
-			</Card.Root>
+				<Card.Root>
+					<Card.Header>
+						<Card.Title>{m.admin_ops_order_billing_address()}</Card.Title>
+					</Card.Header>
+					<Card.Content>
+						{#if parseAddress(order.billingAddressJson)}
+							{@const address = parseAddress(order.billingAddressJson) as AddressShape}
+							<address class="space-y-0.5 text-sm text-muted-foreground not-italic">
+								{#if address.recipientName}
+									<p class="font-medium text-foreground">{address.recipientName}</p>
+								{/if}
+								{#if address.line1}<p>{address.line1}</p>{/if}
+								{#if address.line2}<p>{address.line2}</p>{/if}
+								{#if addressLine(address)}<p>{addressLine(address)}</p>{/if}
+								{#if address.country}<p>{address.country}</p>{/if}
+								{#if address.phone}<p>{address.phone}</p>{/if}
+							</address>
+						{:else}
+							<p class="text-sm text-muted-foreground">{m.admin_ops_order_no_billing_address()}</p>
+						{/if}
+					</Card.Content>
+				</Card.Root>
+			{/if}
 		</div>
 
 		<Card.Root>

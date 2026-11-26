@@ -19,6 +19,6 @@
 		{#if site.contact.email}
 			<p>{site.contact.email}</p>
 		{/if}
-		<p class="text-xs">{footerLegal()}</p>
+		<p class="text-xs">{footerLegal(site.storeName)}</p>
 	</div>
 </footer>

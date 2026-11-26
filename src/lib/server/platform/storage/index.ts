@@ -17,6 +17,7 @@ export const ADMIN_FOLDERS = [
 	'reviews',
 	'returns',
 	'support',
+	'store',
 	'media'
 ] as const;
 

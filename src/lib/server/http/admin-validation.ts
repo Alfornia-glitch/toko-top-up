@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { STORE_NAME_MAX_LENGTH } from '#modules/storefront/index.ts';
 
 export const paginationSchema = z.object({
 	page: z.coerce.number().int().min(1).default(1),
@@ -173,6 +174,11 @@ export const superBanSchema = z.object({
 	expiresAt: z.string().datetime().nullable().optional()
 });
 export const settingsWriteSchema = z.record(z.string(), z.unknown());
+/** Store name and logo. The logo is a media id from `/api/upload` (folder `store`), never a raw URL. */
+export const storeIdentityWriteSchema = z.object({
+	storeName: z.string().trim().min(1).max(STORE_NAME_MAX_LENGTH),
+	logoMediaId: z.string().trim().min(1).max(100).nullable().optional()
+});
 export const dangerActionSchema = z.object({
 	action: z.enum(['purge_archived_products', 'purge_old_audit_logs']),
 	confirm: z.literal('DELETE')

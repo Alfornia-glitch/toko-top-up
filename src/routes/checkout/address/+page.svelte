@@ -26,6 +26,7 @@
 	import { Skeleton } from '#lib/frontend/components/ui/skeleton/index.ts';
 	import { Spinner } from '#lib/frontend/components/ui/spinner/index.ts';
 	import { api, ApiError, unwrap } from '#lib/frontend/modules/shared/http.ts';
+	import CheckoutSteps from '#lib/frontend/modules/commerce/components/CheckoutSteps.svelte';
 	import { cart } from '#lib/frontend/modules/commerce/cart.svelte.ts';
 	import { site } from '#lib/frontend/modules/commerce/site.svelte.ts';
 	import { checkout } from '#lib/frontend/modules/commerce/checkout.svelte.ts';
@@ -196,6 +197,10 @@
 	async function init() {
 		checkout.load();
 		await Promise.all([cart.refresh(), site.ensure()]);
+		if (site.storefrontLayout === 'topup') {
+			await goto('/checkout/account', { replaceState: true });
+			return;
+		}
 		await loadAddresses();
 		applyShippingDefault();
 		ready = true;
@@ -222,43 +227,7 @@
 				</p>
 			</div>
 
-			<nav
-				aria-label={m.cart_checkout_progress()}
-				class="mt-6 rounded-xl border bg-muted/40 p-4 sm:p-5"
-			>
-				<div class="flex items-center gap-2 sm:gap-4">
-					<a href="/cart" class="flex items-center gap-2 sm:gap-3">
-						<span
-							class="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm"
-						>
-							<ShoppingCart class="size-4" />
-						</span>
-						<span class="text-sm font-medium text-foreground sm:text-base">{m.common_cart()}</span>
-					</a>
-					<div class="h-px flex-1 bg-border" aria-hidden="true"></div>
-					<a href="/checkout/address" aria-current="step" class="flex items-center gap-2 sm:gap-3">
-						<span
-							class="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm"
-						>
-							<MapPin class="size-4" />
-						</span>
-						<span class="text-sm font-medium text-foreground sm:text-base"
-							>{m.common_address()}</span
-						>
-					</a>
-					<div class="h-px flex-1 bg-border" aria-hidden="true"></div>
-					<a href="/checkout/payment" class="flex items-center gap-2 sm:gap-3">
-						<span
-							class="flex size-9 shrink-0 items-center justify-center rounded-full border bg-background text-muted-foreground"
-						>
-							<CreditCard class="size-4" />
-						</span>
-						<span class="text-sm font-medium text-muted-foreground sm:text-base"
-							>{m.common_payment()}</span
-						>
-					</a>
-				</div>
-			</nav>
+			<CheckoutSteps current="details" />
 
 			{#if !ready}
 				<div

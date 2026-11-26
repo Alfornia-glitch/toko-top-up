@@ -11,6 +11,7 @@
 	import { Button } from '#lib/frontend/components/ui/button/index.ts';
 	import { Spinner } from '#lib/frontend/components/ui/spinner/index.ts';
 	import { authClient, authErrorMessage, safeRedirect } from '#frontend/modules/auth/index.ts';
+	import { site } from '#lib/frontend/modules/commerce/site.svelte.ts';
 
 	const session = authClient.useSession();
 	const redirectTo = safeRedirect(page.url.searchParams.get('redirectTo'));
@@ -71,7 +72,10 @@
 	}
 </script>
 
-<AuthShell title={m.auth_signup_title()} description={m.auth_signup_description()}>
+<AuthShell
+	title={m.auth_signup_title({ store: site.storeName })}
+	description={m.auth_signup_description()}
+>
 	<div class="grid gap-6">
 		<form class="grid gap-4" onsubmit={handleSubmit}>
 			<Field.Group>

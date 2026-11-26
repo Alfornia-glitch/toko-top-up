@@ -1,8 +1,5 @@
 import { m } from '#lib/paraglide/messages.js';
 
-/** Brand name; never translated. */
-export const BRAND_NAME = 'Top Up Store';
-
 // `label` is a getter so it resolves with the locale at render time, not at module load.
 export const HEADER_NAV_LINKS = [
 	{
@@ -83,6 +80,6 @@ export const FOOTER_LINKS = [
 ];
 
 /** Footer legal line in the active locale. Call it at render time. */
-export function footerLegal(): string {
-	return m.storefront_footer_legal({ year: new Date().getFullYear(), brand: BRAND_NAME });
+export function footerLegal(brand: string): string {
+	return m.storefront_footer_legal({ year: new Date().getFullYear(), brand });
 }

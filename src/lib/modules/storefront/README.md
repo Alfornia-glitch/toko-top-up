@@ -12,7 +12,8 @@ The public shop, composed from other modules. It owns no tables.
 - `getHome` — banners, announcements and testimonials (content) with categories, brands and the deal / new / featured / popular product rows (catalog).
 - `listProducts`, `listCategories` — pass-through of catalog browsing.
 - `getProduct` — the catalog product page plus approved reviews, rating buckets and up to 8 related products (same category or brand). 404 when the product is missing or not active.
-- `getSiteSettings` — stored site settings layered over built-in defaults (contact details, social links, shipping methods, currency).
+- `getSiteSettings` — stored site settings layered over built-in defaults (store name, logo, contact details, social links, shipping methods, currency, storefront layout).
+  The store name and logo are written by `PUT /api/admin/super/store-identity` (superadmin only); the logo is an uploaded `store` media asset.
 - `listWishlist`, `addToWishlist`, `removeFromWishlist` — the customer's wishlist with product cards. Adding fails with 404 unless the product is active.
 
 ## Ports

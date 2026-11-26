@@ -78,6 +78,8 @@
 	"errors_content_not_found": "Content not found.",
 	"errors_media_not_found": "Media asset not found.",
 	"errors_setting_not_found": "Setting not found.",
+	"errors_store_name_invalid": "Enter a store name of 1 to 80 characters.",
+	"errors_store_logo_invalid": "The logo must be a PNG, JPEG, WebP, AVIF or GIF image of at most 2 MiB.",
 	"errors_review_not_found": "Review not found.",
 	"errors_gift_card_not_found": "Gift card not found.",
 	"errors_gift_card_code_exists": "Gift card code \"{code}\" already exists.",
@@ -94,5 +96,8 @@
 	"errors_payment_method_not_found": "Payment method not found.",
 	"errors_wishlist_item_not_found": "Wishlist item not found.",
 	"errors_customer_not_found": "Customer not found.",
-	"errors_own_superadmin_forbidden": "You cannot modify your own superadmin access here."
+	"errors_own_superadmin_forbidden": "You cannot modify your own superadmin access here.",
+	"errors_address_required": "A delivery address is required.",
+	"errors_account_detail_required": "{field} is required.",
+	"errors_account_detail_invalid": "Invalid value for {field}."
 }

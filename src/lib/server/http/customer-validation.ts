@@ -41,8 +41,9 @@ export const paymentMethodWriteSchema = z.object({
 });
 
 export const checkoutSchema = z.object({
-	addressId: z.string().min(1),
-	shippingId: z.string().min(1),
+	addressId: z.string().min(1).optional().nullable(),
+	shippingId: z.string().min(1).optional().nullable(),
+	accountDetails: z.record(z.string().max(40), z.string().max(1000)).optional().nullable(),
 	couponCode: z.string().trim().max(64).optional().nullable(),
 	note: z.string().max(500).optional().nullable(),
 	payment: z.object({

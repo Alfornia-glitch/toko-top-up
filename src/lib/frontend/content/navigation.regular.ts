@@ -66,6 +66,6 @@ export const FOOTER_FEATURES = [
 ];
 
 /** Footer legal line in the active locale. Call it at render time. */
-export function footerLegal(): string {
-	return m.components_regular_footer_legal({ year: new Date().getFullYear() });
+export function footerLegal(brand: string): string {
+	return m.components_regular_footer_legal({ year: new Date().getFullYear(), brand });
 }

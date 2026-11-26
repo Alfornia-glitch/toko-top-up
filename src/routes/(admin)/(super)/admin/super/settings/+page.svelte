@@ -1,7 +1,9 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { Pencil, Plus, Trash2 } from '@lucide/svelte';
+	import { ImagePlus, Pencil, Plus, Trash2 } from '@lucide/svelte';
 	import DataTable from '#lib/frontend/components/admin/DataTable.svelte';
+	import AccountFormEditor from '#lib/frontend/components/admin/super/AccountFormEditor.svelte';
+	import MediaPicker from '#lib/frontend/components/admin/MediaPicker.svelte';
 	import * as Dialog from '#lib/frontend/components/ui/dialog/index.ts';
 	import * as AlertDialog from '#lib/frontend/components/ui/alert-dialog/index.ts';
 	import * as Field from '#lib/frontend/components/ui/field/index.ts';
@@ -11,6 +13,11 @@
 	import { m } from '#lib/paraglide/messages.js';
 	import { errorMessage } from '#lib/frontend/i18n/index.ts';
 	import { formatDateTime } from '#lib/frontend/modules/commerce/format.ts';
+	import {
+		STORE_LOGO_FOLDER,
+		STORE_NAME_MAX_LENGTH,
+		site
+	} from '#lib/frontend/modules/commerce/site.svelte.ts';
 
 	type SettingRow = {
 		key: string;
@@ -54,7 +61,68 @@
 
 	onMount(() => {
 		void loadSettings();
+		void loadStoreIdentity();
 	});
+
+	let storeNameInput = $state('');
+	let storeLogoUrl = $state<string | null>(null);
+	/** Media id picked from the library; `undefined` keeps the stored logo and `null` removes it. */
+	let pendingLogoId = $state<string | null | undefined>(undefined);
+	let storePickerOpen = $state(false);
+	let storeSaving = $state(false);
+	let storeSaved = $state(false);
+	let storeError = $state('');
+
+	async function loadStoreIdentity() {
+		await site.load();
+		storeNameInput = site.storeName;
+		storeLogoUrl = site.logoUrl;
+		pendingLogoId = undefined;
+	}
+
+	function pickLogo(asset: { id: string; url: string }) {
+		pendingLogoId = asset.id;
+		storeLogoUrl = asset.url;
+		storeSaved = false;
+	}
+
+	function removeLogo() {
+		pendingLogoId = null;
+		storeLogoUrl = null;
+		storeSaved = false;
+	}
+
+	async function saveStoreIdentity(event: SubmitEvent) {
+		event.preventDefault();
+		storeError = '';
+		storeSaved = false;
+
+		const storeName = storeNameInput.trim();
+		if (!storeName || storeName.length > STORE_NAME_MAX_LENGTH) {
+			storeError = m.admin_super_store_name_invalid();
+			return;
+		}
+
+		storeSaving = true;
+
+		try {
+			const response = await fetch('/api/admin/super/store-identity', {
+				method: 'PUT',
+				headers: { 'content-type': 'application/json' },
+				body: JSON.stringify({ storeName, logoMediaId: pendingLogoId })
+			});
+			const payload = await response.json().catch(() => ({}));
+
+			if (!response.ok) throw payload;
+
+			storeSaved = true;
+			await loadStoreIdentity();
+		} catch (err) {
+			storeError = errorMessage(err, 'admin_super_store_save_failed');
+		} finally {
+			storeSaving = false;
+		}
+	}
 
 	async function loadSettings() {
 		loading = true;
@@ -234,6 +302,81 @@
 		</div>
 	{/if}
 
+	<section class="space-y-4" aria-labelledby="store-identity-heading">
+		<div>
+			<h2 id="store-identity-heading" class="text-base font-medium">
+				{m.admin_super_store_title()}
+			</h2>
+			<p class="text-sm text-muted-foreground">
+				{m.admin_super_store_desc()}
+			</p>
+		</div>
+
+		<form class="grid gap-4 sm:max-w-xl" onsubmit={saveStoreIdentity}>
+			<Field.Group>
+				<Field.Field>
+					<Field.Label for="store-name">{m.admin_super_store_name_label()}</Field.Label>
+					<Input
+						id="store-name"
+						bind:value={storeNameInput}
+						maxlength={STORE_NAME_MAX_LENGTH}
+						required
+					/>
+					<Field.Description>{m.admin_super_store_name_hint()}</Field.Description>
+				</Field.Field>
+
+				<Field.Field>
+					<Field.Label for="store-logo-choose">{m.admin_super_store_logo_label()}</Field.Label>
+					<div class="flex items-center gap-4">
+						<div
+							class="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-lg border bg-muted/40"
+						>
+							{#if storeLogoUrl}
+								<img
+									src={storeLogoUrl}
+									alt={m.admin_super_store_logo_preview()}
+									class="size-full object-contain"
+								/>
+							{:else}
+								<ImagePlus class="size-6 text-muted-foreground" />
+							{/if}
+						</div>
+						<div class="flex flex-wrap gap-2">
+							<Button
+								id="store-logo-choose"
+								type="button"
+								variant="outline"
+								onclick={() => (storePickerOpen = true)}
+							>
+								{m.admin_super_store_logo_choose()}
+							</Button>
+							{#if storeLogoUrl}
+								<Button type="button" variant="ghost" onclick={removeLogo}>
+									{m.admin_super_store_logo_remove()}
+								</Button>
+							{/if}
+						</div>
+					</div>
+					<Field.Description>{m.admin_super_store_logo_hint()}</Field.Description>
+				</Field.Field>
+			</Field.Group>
+
+			{#if storeError}
+				<Field.Error>{storeError}</Field.Error>
+			{/if}
+
+			{#if storeSaved}
+				<p class="text-sm text-primary" role="status">{m.admin_super_store_saved()}</p>
+			{/if}
+
+			<div>
+				<Button type="submit" disabled={storeSaving}>
+					{storeSaving ? m.common_saving() : m.admin_super_store_save()}
+				</Button>
+			</div>
+		</form>
+	</section>
+
 	<section class="space-y-3" aria-labelledby="storefront-layout-heading">
 		<div>
 			<h2 id="storefront-layout-heading" class="text-base font-medium">
@@ -266,6 +409,10 @@
 			{/each}
 		</div>
 	</section>
+
+	{#if !loading}
+		<AccountFormEditor active={currentLayout === 'topup'} />
+	{/if}
 
 	<DataTable
 		{columns}
@@ -314,6 +461,8 @@
 		{/snippet}
 	</DataTable>
 </div>
+
+<MediaPicker bind:open={storePickerOpen} folder={STORE_LOGO_FOLDER} onSelect={pickLogo} />
 
 {#if dialogOpen}
 	<Dialog.Root bind:open={dialogOpen}>

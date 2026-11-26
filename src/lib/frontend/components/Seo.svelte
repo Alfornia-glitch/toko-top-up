@@ -2,11 +2,12 @@
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
 	import { jsonLdText, metaTags, type PageMeta } from '#lib/frontend/modules/seo/index.ts';
+	import { site } from '#lib/frontend/modules/commerce/site.svelte.ts';
 
 	let { meta }: { meta: PageMeta } = $props();
 
 	const url = $derived(`${page.url.origin}${page.url.pathname}`);
-	const tags = $derived(metaTags(meta, url, page.url.origin));
+	const tags = $derived(metaTags(meta, url, page.url.origin, site.storeName));
 	const jsonLd = $derived(
 		meta.jsonLd ? `<script type="application/ld+json">${jsonLdText(meta.jsonLd)}</` + 'script>' : ''
 	);

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { m } from '#lib/paraglide/messages.js';
+	import { site } from '#lib/frontend/modules/commerce/site.svelte.ts';
 	import {
 		ChevronDown,
 		CreditCard,
@@ -29,7 +30,7 @@
 		},
 		{
 			title: m.storefront_help_topic_protection_title(),
-			description: m.storefront_help_topic_protection_desc(),
+			description: m.storefront_help_topic_protection_desc({ store: site.storeName }),
 			href: '/help/purchase-protection',
 			icon: ShieldCheck
 		},

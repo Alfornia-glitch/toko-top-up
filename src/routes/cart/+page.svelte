@@ -2,16 +2,7 @@
 	import { m } from '#lib/paraglide/messages.js';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
-	import {
-		ArrowRight,
-		CreditCard,
-		MapPin,
-		Minus,
-		Plus,
-		ShoppingCart,
-		Tag,
-		Trash2
-	} from '@lucide/svelte';
+	import { ArrowRight, Minus, Plus, ShoppingCart, Tag, Trash2 } from '@lucide/svelte';
 	import SiteHeader from '#lib/frontend/components/SiteHeader.svelte';
 	import SiteFooter from '#lib/frontend/components/SiteFooter.svelte';
 	import ImagePlaceholder from '#lib/frontend/components/ui/ImagePlaceholder.svelte';
@@ -22,7 +13,9 @@
 	import { Separator } from '#lib/frontend/components/ui/separator/index.ts';
 	import { Skeleton } from '#lib/frontend/components/ui/skeleton/index.ts';
 	import { Spinner } from '#lib/frontend/components/ui/spinner/index.ts';
+	import CheckoutSteps from '#lib/frontend/modules/commerce/components/CheckoutSteps.svelte';
 	import { cart } from '#lib/frontend/modules/commerce/cart.svelte.ts';
+	import { site } from '#lib/frontend/modules/commerce/site.svelte.ts';
 	import { formatMoney } from '#lib/frontend/modules/commerce/format.ts';
 
 	let couponCode = $state('');
@@ -30,12 +23,20 @@
 
 	onMount(() => {
 		void cart.refresh();
+		void site.ensure();
 	});
+
+	const isTopup = $derived(site.storefrontLayout === 'topup');
+	const nextStep = $derived(isTopup ? '/checkout/account' : '/checkout/address');
 
 	const discountAmount = $derived(cart.discount > 0 ? -cart.discount : 0);
 	const shipping = $derived(cart.cart?.shipping ?? 0);
 	const shippingLabel = $derived(
-		shipping > 0 ? formatMoney(shipping, cart.currency) : m.cart_calculated_at_checkout()
+		shipping > 0
+			? formatMoney(shipping, cart.currency)
+			: isTopup
+				? formatMoney(0, cart.currency)
+				: m.cart_calculated_at_checkout()
 	);
 
 	async function applyCoupon() {
@@ -73,43 +74,7 @@
 				</p>
 			</div>
 
-			<nav
-				aria-label={m.cart_checkout_progress()}
-				class="mt-6 rounded-xl border bg-muted/40 p-4 sm:p-5"
-			>
-				<div class="flex items-center gap-2 sm:gap-4">
-					<a href="/cart" aria-current="step" class="flex items-center gap-2 sm:gap-3">
-						<span
-							class="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm"
-						>
-							<ShoppingCart class="size-4" />
-						</span>
-						<span class="text-sm font-medium text-foreground sm:text-base">{m.common_cart()}</span>
-					</a>
-					<div class="h-px flex-1 bg-border" aria-hidden="true"></div>
-					<a href="/checkout/address" class="flex items-center gap-2 sm:gap-3">
-						<span
-							class="flex size-9 shrink-0 items-center justify-center rounded-full border bg-background text-muted-foreground"
-						>
-							<MapPin class="size-4" />
-						</span>
-						<span class="text-sm font-medium text-muted-foreground sm:text-base"
-							>{m.common_address()}</span
-						>
-					</a>
-					<div class="h-px flex-1 bg-border" aria-hidden="true"></div>
-					<a href="/checkout/payment" class="flex items-center gap-2 sm:gap-3">
-						<span
-							class="flex size-9 shrink-0 items-center justify-center rounded-full border bg-background text-muted-foreground"
-						>
-							<CreditCard class="size-4" />
-						</span>
-						<span class="text-sm font-medium text-muted-foreground sm:text-base"
-							>{m.common_payment()}</span
-						>
-					</a>
-				</div>
-			</nav>
+			<CheckoutSteps current="cart" />
 
 			{#if cart.loading && !cart.cart}
 				<div
@@ -377,14 +342,14 @@
 							<Button
 								size="lg"
 								class="h-10 w-full"
-								onclick={() => goto('/checkout/address')}
+								onclick={() => goto(nextStep)}
 								disabled={cart.items.length === 0 || cart.loading}
 							>
 								{m.cart_continue()}
 								<ArrowRight class="size-4" />
 							</Button>
 							<p class="text-center text-xs text-muted-foreground">
-								{m.cart_shipping_note()}
+								{isTopup ? m.cart_account_note() : m.cart_shipping_note()}
 							</p>
 						</Card.Footer>
 					</Card.Root>

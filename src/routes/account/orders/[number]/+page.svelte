@@ -13,7 +13,16 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
-	import { ChevronLeft, Clock, LifeBuoy, MapPin, Package, RotateCcw, Truck } from '@lucide/svelte';
+	import {
+		ChevronLeft,
+		Clock,
+		LifeBuoy,
+		MapPin,
+		Package,
+		RotateCcw,
+		Truck,
+		UserRound
+	} from '@lucide/svelte';
 	import AccountPageShell from '#lib/frontend/modules/account/components/AccountPageShell.svelte';
 	import ImagePlaceholder from '#lib/frontend/components/ui/ImagePlaceholder.svelte';
 	import { Button } from '#lib/frontend/components/ui/button/index.ts';
@@ -27,6 +36,7 @@
 		formatMoney
 	} from '#lib/frontend/modules/commerce/format.ts';
 	import type { OrderDetail } from '#lib/frontend/modules/commerce/models.ts';
+	import { readAccountDetails } from '#lib/frontend/modules/commerce/account-form.ts';
 	import { ApiError } from '#lib/frontend/modules/shared/http.ts';
 
 	const number = $derived((page.params as { number?: string }).number);
@@ -41,6 +51,7 @@
 		order ? (order.itemCount ?? order.items.reduce((total, item) => total + item.quantity, 0)) : 0
 	);
 
+	const accountDetails = $derived(readAccountDetails(order?.shippingAddress ?? null));
 	const shippingLines = $derived(addressLines(order?.shippingAddress ?? null));
 	const billingLines = $derived(addressLines(order?.billingAddress ?? null));
 
@@ -380,47 +391,70 @@
 			</Card.Content>
 		</Card.Root>
 
-		<div class="grid gap-4 sm:grid-cols-2">
+		{#if accountDetails}
 			<Card.Root>
 				<Card.Header>
 					<Card.Title class="flex items-center gap-2">
-						<MapPin class="size-4" aria-hidden="true" />
-						{m.account_order_detail_shipping_address()}
+						<UserRound class="size-4" aria-hidden="true" />
+						{m.checkout_account_card_title()}
 					</Card.Title>
 				</Card.Header>
 				<Card.Content>
-					{#if shippingLines.length > 0}
-						<address class="flex flex-col gap-1 text-sm text-muted-foreground not-italic">
-							{#each shippingLines as line, index (index)}
-								<span>{line}</span>
+					{#if accountDetails.length > 0}
+						<dl class="grid gap-x-6 gap-y-1 text-sm sm:grid-cols-[auto_1fr]">
+							{#each accountDetails as detail (detail.id)}
+								<dt class="text-muted-foreground">{detail.label}</dt>
+								<dd class="font-medium break-words text-foreground">{detail.value}</dd>
 							{/each}
-						</address>
+						</dl>
 					{:else}
 						<p class="text-sm text-muted-foreground">{m.account_order_detail_not_provided()}</p>
 					{/if}
 				</Card.Content>
 			</Card.Root>
+		{:else}
+			<div class="grid gap-4 sm:grid-cols-2">
+				<Card.Root>
+					<Card.Header>
+						<Card.Title class="flex items-center gap-2">
+							<MapPin class="size-4" aria-hidden="true" />
+							{m.account_order_detail_shipping_address()}
+						</Card.Title>
+					</Card.Header>
+					<Card.Content>
+						{#if shippingLines.length > 0}
+							<address class="flex flex-col gap-1 text-sm text-muted-foreground not-italic">
+								{#each shippingLines as line, index (index)}
+									<span>{line}</span>
+								{/each}
+							</address>
+						{:else}
+							<p class="text-sm text-muted-foreground">{m.account_order_detail_not_provided()}</p>
+						{/if}
+					</Card.Content>
+				</Card.Root>
 
-			<Card.Root>
-				<Card.Header>
-					<Card.Title class="flex items-center gap-2">
-						<MapPin class="size-4" aria-hidden="true" />
-						{m.account_order_detail_billing_address()}
-					</Card.Title>
-				</Card.Header>
-				<Card.Content>
-					{#if billingLines.length > 0}
-						<address class="flex flex-col gap-1 text-sm text-muted-foreground not-italic">
-							{#each billingLines as line, index (index)}
-								<span>{line}</span>
-							{/each}
-						</address>
-					{:else}
-						<p class="text-sm text-muted-foreground">{m.account_order_detail_not_provided()}</p>
-					{/if}
-				</Card.Content>
-			</Card.Root>
-		</div>
+				<Card.Root>
+					<Card.Header>
+						<Card.Title class="flex items-center gap-2">
+							<MapPin class="size-4" aria-hidden="true" />
+							{m.account_order_detail_billing_address()}
+						</Card.Title>
+					</Card.Header>
+					<Card.Content>
+						{#if billingLines.length > 0}
+							<address class="flex flex-col gap-1 text-sm text-muted-foreground not-italic">
+								{#each billingLines as line, index (index)}
+									<span>{line}</span>
+								{/each}
+							</address>
+						{:else}
+							<p class="text-sm text-muted-foreground">{m.account_order_detail_not_provided()}</p>
+						{/if}
+					</Card.Content>
+				</Card.Root>
+			</div>
+		{/if}
 
 		<Card.Root>
 			<Card.Header>

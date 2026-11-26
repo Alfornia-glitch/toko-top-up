@@ -4,6 +4,14 @@ interface CheckoutSnapshot {
 	addressId: string;
 	shippingId: string;
 	note: string;
+	accountDetails: Record<string, string>;
+}
+
+function readDetails(value: unknown): Record<string, string> {
+	if (typeof value !== 'object' || value === null || Array.isArray(value)) return {};
+	return Object.fromEntries(
+		Object.entries(value).filter((entry): entry is [string, string] => typeof entry[1] === 'string')
+	);
 }
 
 function readSnapshot(): CheckoutSnapshot | null {
@@ -16,7 +24,8 @@ function readSnapshot(): CheckoutSnapshot | null {
 		return {
 			addressId: typeof parsed.addressId === 'string' ? parsed.addressId : '',
 			shippingId: typeof parsed.shippingId === 'string' ? parsed.shippingId : '',
-			note: typeof parsed.note === 'string' ? parsed.note : ''
+			note: typeof parsed.note === 'string' ? parsed.note : '',
+			accountDetails: readDetails(parsed.accountDetails)
 		};
 	} catch {
 		return null;
@@ -27,6 +36,8 @@ class CheckoutStore {
 	addressId = $state('');
 	shippingId = $state('');
 	note = $state('');
+	/** Top-up flow: values of the admin-configured account form, keyed by field id. */
+	accountDetails = $state<Record<string, string>>({});
 
 	load(): void {
 		const snapshot = readSnapshot();
@@ -35,6 +46,7 @@ class CheckoutStore {
 		this.addressId = snapshot.addressId;
 		this.shippingId = snapshot.shippingId;
 		this.note = snapshot.note;
+		this.accountDetails = snapshot.accountDetails;
 	}
 
 	persist(): void {
@@ -45,7 +57,8 @@ class CheckoutStore {
 			JSON.stringify({
 				addressId: this.addressId,
 				shippingId: this.shippingId,
-				note: this.note
+				note: this.note,
+				accountDetails: this.accountDetails
 			})
 		);
 	}
@@ -60,10 +73,16 @@ class CheckoutStore {
 		this.persist();
 	}
 
+	setAccountDetails(values: Record<string, string>): void {
+		this.accountDetails = { ...values };
+		this.persist();
+	}
+
 	clear(): void {
 		this.addressId = '';
 		this.shippingId = '';
 		this.note = '';
+		this.accountDetails = {};
 
 		if (typeof sessionStorage !== 'undefined') {
 			sessionStorage.removeItem(STORAGE_KEY);

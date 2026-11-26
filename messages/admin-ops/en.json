@@ -246,6 +246,7 @@
 	"admin_ops_order_billing_address": "Billing address",
 	"admin_ops_order_no_shipping_address": "No shipping address on file.",
 	"admin_ops_order_no_billing_address": "No billing address on file.",
+	"admin_ops_order_account_details": "Account details",
 	"admin_ops_order_items": "Items",
 	"admin_ops_order_items_desc": [
 		{

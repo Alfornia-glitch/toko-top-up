@@ -21,11 +21,11 @@
 	import UserAvatar from '#lib/frontend/components/UserAvatar.svelte';
 	import { authClient, signOutUser } from '#frontend/modules/auth/index.ts';
 	import { home } from '#lib/frontend/modules/commerce/home.svelte.ts';
+	import { site } from '#lib/frontend/modules/commerce/site.svelte.ts';
 	import { cart } from '#lib/frontend/modules/commerce/cart.svelte.ts';
 
 	type MenuName = 'shops' | 'deals' | 'new';
 
-	const BRAND = 'Shopix';
 	const ROTATE_MS = 5000;
 
 	let { announcementCount = 6 }: { announcementCount?: number } = $props();
@@ -46,6 +46,7 @@
 
 	onMount(() => {
 		void home.ensure();
+		void site.ensure();
 		void cart.refresh();
 
 		const timer = setInterval(() => {
@@ -125,7 +126,7 @@
 				</Sheet.Trigger>
 				<Sheet.Content side="left" class="overflow-y-auto p-4">
 					<Sheet.Header class="p-0">
-						<Sheet.Title>{BRAND}</Sheet.Title>
+						<Sheet.Title>{site.storeName}</Sheet.Title>
 						<Sheet.Description class="sr-only"
 							>{m.components_regular_header_site_nav()}</Sheet.Description
 						>
@@ -215,14 +216,18 @@
 			<a
 				href="/"
 				class="flex shrink-0 items-center gap-2"
-				aria-label={m.components_auth_logo_home()}
+				aria-label={m.components_auth_logo_home({ name: site.storeName })}
 			>
-				<span
-					class="flex size-8 items-center justify-center rounded-lg bg-foreground text-background"
-				>
-					<Store class="size-4" />
-				</span>
-				<span class="text-lg font-semibold sm:text-xl">{BRAND}</span>
+				{#if site.logoUrl}
+					<img src={site.logoUrl} alt="" class="size-8 rounded-lg object-contain" />
+				{:else}
+					<span
+						class="flex size-8 items-center justify-center rounded-lg bg-foreground text-background"
+					>
+						<Store class="size-4" />
+					</span>
+				{/if}
+				<span class="text-lg font-semibold sm:text-xl">{site.storeName}</span>
 			</a>
 
 			<div class="mx-auto hidden w-full max-w-xl md:block">

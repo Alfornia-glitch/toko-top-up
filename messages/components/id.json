@@ -41,7 +41,6 @@
 	"components_admin_sidebar_storage": "Penyimpanan",
 	"components_admin_sidebar_system": "Sistem",
 	"components_admin_sidebar_danger": "Zona berbahaya",
-	"components_admin_sidebar_brand": "Commerce",
 	"components_admin_sidebar_console": "Konsol admin",
 	"components_admin_sidebar_store": "Toko",
 	"components_admin_sidebar_superadmin": "Superadmin",
@@ -303,7 +302,7 @@
 	"components_auth_hide_password": "Sembunyikan kata sandi",
 	"components_auth_show_password": "Tampilkan kata sandi",
 	"components_auth_checking_session": "Memeriksa sesi Anda",
-	"components_auth_logo_home": "Beranda Shopix",
+	"components_auth_logo_home": "Beranda {name}",
 	"components_auth_or_continue_with": "Atau lanjutkan dengan",
 	"components_auth_continue_google": "Lanjutkan dengan Google",
 	"components_customer_service": "LAYANAN PELANGGAN",
@@ -402,5 +401,5 @@
 	"components_regular_footer_order_tracking": "Lacak pesanan",
 	"components_regular_footer_terms": "Syarat & kebijakan",
 	"components_regular_footer_returns": "Pengembalian & penukaran",
-	"components_regular_footer_legal": "© {year} Shopix, dibuat dengan ❤ untuk web yang lebih baik."
+	"components_regular_footer_legal": "© {year} {brand}, dibuat dengan ❤ untuk web yang lebih baik."
 }

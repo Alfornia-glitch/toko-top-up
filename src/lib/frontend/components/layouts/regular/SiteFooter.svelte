@@ -218,37 +218,45 @@
 					class="relative flex h-[32px] shrink-0 content-stretch items-center gap-[6px]"
 					data-name="shopix-logo"
 				>
-					<div
-						class="relative inline-grid shrink-0 grid-cols-[max-content] grid-rows-[max-content] place-items-start leading-[0]"
-					>
-						<div class="relative col-1 row-1 mt-0 ml-0 size-[28px]">
-							<div class="absolute inset-[-3.57%]">
-								<img alt="" class="block size-full max-w-none" src={imgEllipse90} />
-							</div>
-						</div>
+					{#if site.logoUrl}
+						<img src={site.logoUrl} alt="" class="size-[32px] shrink-0 rounded-lg object-contain" />
+					{:else}
 						<div
-							class="relative col-1 row-1 mt-0 ml-0 inline-grid grid-cols-[max-content] grid-rows-[max-content] place-items-start"
-							data-name="Mask group"
+							class="relative inline-grid shrink-0 grid-cols-[max-content] grid-rows-[max-content] place-items-start leading-[0]"
 						>
+							<div class="relative col-1 row-1 mt-0 ml-0 size-[28px]">
+								<div class="absolute inset-[-3.57%]">
+									<img alt="" class="block size-full max-w-none" src={imgEllipse90} />
+								</div>
+							</div>
 							<div
-								class="relative col-1 row-1 mt-[5px] ml-[4px] inline-grid grid-cols-[max-content] grid-rows-[max-content] place-items-start"
-								data-name="Group"
+								class="relative col-1 row-1 mt-0 ml-0 inline-grid grid-cols-[max-content] grid-rows-[max-content] place-items-start"
+								data-name="Mask group"
 							>
 								<div
-									class="relative col-1 row-1 mt-0 ml-0 h-[23.917px] w-[20px] mask-intersect mask-alpha mask-size-[28px_28px] mask-no-clip mask-position-[-4px_-5px] mask-no-repeat"
-									style="mask-image: url('{imgGroup}')"
+									class="relative col-1 row-1 mt-[5px] ml-[4px] inline-grid grid-cols-[max-content] grid-rows-[max-content] place-items-start"
 									data-name="Group"
 								>
-									<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgGroup3} />
+									<div
+										class="relative col-1 row-1 mt-0 ml-0 h-[23.917px] w-[20px] mask-intersect mask-alpha mask-size-[28px_28px] mask-no-clip mask-position-[-4px_-5px] mask-no-repeat"
+										style="mask-image: url('{imgGroup}')"
+										data-name="Group"
+									>
+										<img
+											alt=""
+											class="absolute inset-0 block size-full max-w-none"
+											src={imgGroup3}
+										/>
+									</div>
 								</div>
 							</div>
 						</div>
-					</div>
+					{/if}
 					<div class="relative flex shrink-0 content-stretch items-center justify-center pt-[2px]">
 						<div
 							class="relative flex shrink-0 flex-col justify-end font-['Inter:Semi_Bold'] text-[20px] leading-[0] font-semibold [word-break:break-word] whitespace-nowrap text-[#0a0a0a] not-italic"
 						>
-							<p class="leading-[26px]">Shopix</p>
+							<p class="leading-[26px]">{site.storeName}</p>
 						</div>
 					</div>
 				</a>
@@ -577,7 +585,7 @@
 					<p
 						class="relative min-w-[329px] flex-[1_0_0] font-['Geist:Medium'] text-[16px] leading-[0] font-medium [word-break:break-word] text-[#0a0a0a]"
 					>
-						<span class="leading-[24px]">{footerLegal()}</span>
+						<span class="leading-[24px]">{footerLegal(site.storeName)}</span>
 					</p>
 				</div>
 				<div

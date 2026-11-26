@@ -28,7 +28,7 @@
 	import { home } from '#lib/frontend/modules/commerce/home.svelte.ts';
 	import { site } from '#lib/frontend/modules/commerce/site.svelte.ts';
 	import { cart } from '#lib/frontend/modules/commerce/cart.svelte.ts';
-	import { BRAND_NAME, HEADER_NAV_LINKS } from '#lib/frontend/content/navigation.topup.ts';
+	import { HEADER_NAV_LINKS } from '#lib/frontend/content/navigation.topup.ts';
 
 	const icons = {
 		home: House,
@@ -81,7 +81,7 @@
 				</Sheet.Trigger>
 				<Sheet.Content side="left" class="w-72">
 					<Sheet.Header>
-						<Sheet.Title>{BRAND_NAME}</Sheet.Title>
+						<Sheet.Title>{site.storeName}</Sheet.Title>
 					</Sheet.Header>
 					<nav class="flex flex-col gap-1 px-4">
 						{#each HEADER_NAV_LINKS as link (link.href)}
@@ -103,13 +103,22 @@
 				</Sheet.Content>
 			</Sheet.Root>
 
-			<a href="/" class="flex shrink-0 items-center gap-2 text-sm font-bold" data-name="Logo">
-				<span
-					class="grid size-8 place-items-center rounded-lg bg-primary text-xs text-primary-foreground"
-				>
-					{BRAND_NAME.slice(0, 2).toUpperCase()}
-				</span>
-				<span class="hidden tracking-wide uppercase sm:inline">{BRAND_NAME}</span>
+			<a
+				href="/"
+				class="flex shrink-0 items-center gap-2 text-sm font-bold"
+				data-name="Logo"
+				aria-label={m.components_auth_logo_home({ name: site.storeName })}
+			>
+				{#if site.logoUrl}
+					<img src={site.logoUrl} alt="" class="size-8 rounded-lg object-contain" />
+				{:else}
+					<span
+						class="grid size-8 place-items-center rounded-lg bg-primary text-xs text-primary-foreground"
+					>
+						{site.storeName.slice(0, 2).toUpperCase()}
+					</span>
+				{/if}
+				<span class="hidden tracking-wide uppercase sm:inline">{site.storeName}</span>
 			</a>
 
 			<form onsubmit={submitSearch} class="max-w-2xl flex-1" role="search">

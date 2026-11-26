@@ -57,7 +57,7 @@
 					{m.storefront_privacy_breadcrumb()}
 				</h1>
 				<p class="max-w-2xl text-sm leading-relaxed text-muted-foreground">
-					{m.storefront_privacy_intro()}
+					{m.storefront_privacy_intro({ store: site.storeName })}
 				</p>
 				<p class="text-xs text-muted-foreground">
 					{m.storefront_privacy_updated({ date: formatDate(LAST_UPDATED) })}
@@ -98,7 +98,7 @@
 							{m.storefront_privacy_section_collect()}
 						</h2>
 						<p class="text-sm leading-relaxed text-muted-foreground">
-							{m.storefront_privacy_collect_intro()}
+							{m.storefront_privacy_collect_intro({ store: site.storeName })}
 						</p>
 						<ul class="list-disc space-y-2 pl-5 text-sm leading-relaxed text-muted-foreground">
 							<li>
@@ -139,7 +139,7 @@
 							{m.storefront_privacy_section_use()}
 						</h2>
 						<p class="text-sm leading-relaxed text-muted-foreground">
-							{m.storefront_privacy_use_intro()}
+							{m.storefront_privacy_use_intro({ store: site.storeName })}
 						</p>
 						<ul class="list-disc space-y-2 pl-5 text-sm leading-relaxed text-muted-foreground">
 							<li>
@@ -158,7 +158,7 @@
 								<span class="font-medium text-foreground"
 									>{m.storefront_privacy_use_fraud_lead()}</span
 								>
-								{m.storefront_privacy_use_fraud_text()}
+								{m.storefront_privacy_use_fraud_text({ store: site.storeName })}
 							</li>
 							<li>
 								<span class="font-medium text-foreground"
@@ -322,7 +322,7 @@
 							{m.storefront_privacy_section_children()}
 						</h2>
 						<p class="text-sm leading-relaxed text-muted-foreground">
-							{m.storefront_privacy_children_1()}
+							{m.storefront_privacy_children_1({ store: site.storeName })}
 						</p>
 						<p class="text-sm leading-relaxed text-muted-foreground">
 							{m.storefront_privacy_children_2()}
@@ -352,7 +352,7 @@
 							<Card.Content class="flex flex-col gap-4 py-4">
 								<div class="flex flex-col gap-1 text-sm">
 									<span class="font-medium text-foreground"
-										>{m.storefront_privacy_contact_team()}</span
+										>{m.storefront_privacy_contact_team({ store: site.storeName })}</span
 									>
 									{#if site.contact.email}
 										<a

@@ -9,6 +9,7 @@
 	import SiteFooter from '#lib/frontend/components/SiteFooter.svelte';
 	import Seo from '#lib/frontend/components/Seo.svelte';
 	import { productMeta } from '#lib/frontend/modules/seo/index.ts';
+	import { site } from '#lib/frontend/modules/commerce/site.svelte.ts';
 	import WishlistButton from '#lib/frontend/components/shared/WishlistButton.svelte';
 	import ImagePlaceholder from '#lib/frontend/components/ui/ImagePlaceholder.svelte';
 	import { cart } from '#lib/frontend/modules/commerce/cart.svelte.ts';
@@ -175,7 +176,7 @@
 	data-name="Shopix - Product Detail"
 >
 	{#if product}
-		<Seo meta={productMeta(product)} />
+		<Seo meta={productMeta(product, site.storeName)} />
 	{/if}
 	<SiteHeader />
 	<main class="mx-auto w-full max-w-[1280px] px-4 py-10 lg:px-8">

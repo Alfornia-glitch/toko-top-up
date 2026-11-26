@@ -31,6 +31,7 @@
 	} from '@lucide/svelte';
 	import * as Sidebar from '#lib/frontend/components/ui/sidebar/index.ts';
 	import { authClient } from '#frontend/modules/auth/index.ts';
+	import { site } from '#lib/frontend/modules/commerce/site.svelte.ts';
 
 	type NavItem = { label: () => string; href: string; icon: Component<{ class?: string }> };
 
@@ -108,13 +109,21 @@
 				<Sidebar.MenuButton size="lg">
 					{#snippet child({ props })}
 						<a href="/admin" {...props}>
-							<div
-								class="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground"
-							>
-								<ShoppingCart class="size-4" />
-							</div>
+							{#if site.logoUrl}
+								<img
+									src={site.logoUrl}
+									alt=""
+									class="aspect-square size-8 rounded-lg object-contain"
+								/>
+							{:else}
+								<div
+									class="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground"
+								>
+									<ShoppingCart class="size-4" />
+								</div>
+							{/if}
 							<div class="grid flex-1 text-left text-sm leading-tight">
-								<span class="truncate font-semibold">{m.components_admin_sidebar_brand()}</span>
+								<span class="truncate font-semibold">{site.storeName}</span>
 								<span class="truncate text-xs text-muted-foreground"
 									>{m.components_admin_sidebar_console()}</span
 								>

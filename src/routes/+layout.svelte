@@ -5,10 +5,16 @@
 	import { syncDocumentLang } from '#lib/frontend/i18n/locale.ts';
 	import Seo from '#lib/frontend/components/Seo.svelte';
 	import { DYNAMIC_SEO_ROUTES, metaForRoute } from '#lib/frontend/modules/seo/index.ts';
+	import { site } from '#lib/frontend/modules/commerce/site.svelte.ts';
+	import { onMount } from 'svelte';
 
 	let { children } = $props();
 
 	syncDocumentLang();
+
+	onMount(() => {
+		void site.ensure();
+	});
 
 	if (import.meta.env.DEV) {
 		window.addEventListener(
@@ -27,10 +33,10 @@
 	}
 </script>
 
-<svelte:head><link rel="icon" href={favicon} /></svelte:head>
+<svelte:head><link rel="icon" href={site.logoUrl ?? favicon} /></svelte:head>
 
 {#if !DYNAMIC_SEO_ROUTES.has(page.route.id ?? '')}
-	<Seo meta={metaForRoute(page.route.id)} />
+	<Seo meta={metaForRoute(page.route.id, site.storeName)} />
 {/if}
 
 <div class="commerce-app min-h-screen w-full">

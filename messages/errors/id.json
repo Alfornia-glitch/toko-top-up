@@ -78,6 +78,8 @@
 	"errors_content_not_found": "Konten tidak ditemukan.",
 	"errors_media_not_found": "Aset media tidak ditemukan.",
 	"errors_setting_not_found": "Pengaturan tidak ditemukan.",
+	"errors_store_name_invalid": "Isi nama toko 1 sampai 80 karakter.",
+	"errors_store_logo_invalid": "Logo harus berupa gambar PNG, JPEG, WebP, AVIF atau GIF dengan ukuran maksimal 2 MiB.",
 	"errors_review_not_found": "Ulasan tidak ditemukan.",
 	"errors_gift_card_not_found": "Kartu hadiah tidak ditemukan.",
 	"errors_gift_card_code_exists": "Kode kartu hadiah \"{code}\" sudah ada.",
@@ -94,5 +96,8 @@
 	"errors_payment_method_not_found": "Metode pembayaran tidak ditemukan.",
 	"errors_wishlist_item_not_found": "Item wishlist tidak ditemukan.",
 	"errors_customer_not_found": "Pelanggan tidak ditemukan.",
-	"errors_own_superadmin_forbidden": "Anda tidak dapat mengubah akses superadmin Anda sendiri di sini."
+	"errors_own_superadmin_forbidden": "Anda tidak dapat mengubah akses superadmin Anda sendiri di sini.",
+	"errors_address_required": "Alamat pengiriman wajib diisi.",
+	"errors_account_detail_required": "{field} wajib diisi.",
+	"errors_account_detail_invalid": "Nilai {field} tidak valid."
 }

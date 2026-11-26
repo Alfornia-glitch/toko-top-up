@@ -237,6 +237,7 @@
 	"admin_ops_order_billing_address": "Alamat penagihan",
 	"admin_ops_order_no_shipping_address": "Tidak ada alamat pengiriman.",
 	"admin_ops_order_no_billing_address": "Tidak ada alamat penagihan.",
+	"admin_ops_order_account_details": "Detail akun",
 	"admin_ops_order_items": "Item",
 	"admin_ops_order_items_desc": "{count} baris item dalam pesanan ini.",
 	"admin_ops_order_col_qty": "Jml",

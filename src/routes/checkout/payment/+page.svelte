@@ -10,8 +10,8 @@
 		Lock,
 		MapPin,
 		QrCode,
-		ShoppingCart,
-		Truck
+		Truck,
+		UserRound
 	} from '@lucide/svelte';
 	import SiteHeader from '#lib/frontend/components/SiteHeader.svelte';
 	import SiteFooter from '#lib/frontend/components/SiteFooter.svelte';
@@ -28,6 +28,11 @@
 	import { Spinner } from '#lib/frontend/components/ui/spinner/index.ts';
 	import * as Tabs from '#lib/frontend/components/ui/tabs/index.ts';
 	import { api, ApiError, unwrap } from '#lib/frontend/modules/shared/http.ts';
+	import CheckoutSteps from '#lib/frontend/modules/commerce/components/CheckoutSteps.svelte';
+	import {
+		accountFormPayload,
+		isAccountFormComplete
+	} from '#lib/frontend/modules/commerce/account-form.ts';
 	import { cart } from '#lib/frontend/modules/commerce/cart.svelte.ts';
 	import { site } from '#lib/frontend/modules/commerce/site.svelte.ts';
 	import { checkout } from '#lib/frontend/modules/commerce/checkout.svelte.ts';
@@ -62,6 +67,17 @@
 	let error = $state('');
 	let notice = $state('');
 
+	const isTopup = $derived(site.storefrontLayout === 'topup');
+	const accountDetails = $derived(
+		site.accountForm
+			.map((field) => ({
+				id: field.id,
+				label: field.label,
+				value: (checkout.accountDetails[field.id] ?? '').trim()
+			}))
+			.filter((detail) => detail.value)
+	);
+	const detailsStep = $derived(isTopup ? '/checkout/account' : '/checkout/address');
 	const activeTab = $derived(mode === 'card' ? cardType : mode);
 	const isCard = $derived(mode === 'card');
 	const selectedAddress = $derived(
@@ -70,7 +86,7 @@
 	const selectedShipping = $derived(
 		site.shipping.find((option) => option.id === checkout.shippingId) ?? null
 	);
-	const shipping = $derived(selectedShipping?.price ?? 0);
+	const shipping = $derived(isTopup ? 0 : (selectedShipping?.price ?? 0));
 	const total = $derived(cart.total + shipping);
 	const selectedMethod = $derived(methods.find((method) => method.id === paymentMethodId) ?? null);
 
@@ -199,8 +215,8 @@
 		error = '';
 		notice = '';
 
-		if (!checkout.addressId || !checkout.shippingId) {
-			await goto('/checkout/address');
+		if (!detailsReady()) {
+			await goto(detailsStep);
 			return;
 		}
 
@@ -249,8 +265,9 @@
 				await api.post<{
 					data: { orderId: string; orderNumber: string; payment?: { id: string } };
 				}>('/api/checkout', {
-					addressId: checkout.addressId,
-					shippingId: checkout.shippingId,
+					...(isTopup
+						? { accountDetails: accountFormPayload(site.accountForm, checkout.accountDetails) }
+						: { addressId: checkout.addressId, shippingId: checkout.shippingId }),
 					couponCode: cart.cart?.coupon?.code ?? null,
 					note: checkout.note || null,
 					payment
@@ -276,17 +293,24 @@
 		}
 	}
 
+	function detailsReady(): boolean {
+		if (isTopup) return isAccountFormComplete(site.accountForm, checkout.accountDetails);
+		return Boolean(
+			checkout.addressId && checkout.shippingId && selectedAddress && selectedShipping
+		);
+	}
+
 	async function loadData() {
 		loading = true;
 		error = '';
 
 		try {
 			const [addressPayload, methodPayload] = await Promise.all([
-				api.get<{ data: Address[] }>('/api/addresses'),
+				isTopup ? null : api.get<{ data: Address[] }>('/api/addresses'),
 				api.get<{ data: PaymentMethod[] }>('/api/payment-methods')
 			]);
 
-			addresses = unwrap(addressPayload);
+			addresses = addressPayload ? unwrap(addressPayload) : [];
 			methods = unwrap(methodPayload);
 		} catch (cause) {
 			if (cause instanceof ApiError && cause.status === 401) {
@@ -306,9 +330,7 @@
 		await loadData();
 		ready = true;
 
-		if (!checkout.addressId || !checkout.shippingId || !selectedAddress || !selectedShipping) {
-			await goto('/checkout/address');
-		}
+		if (!detailsReady()) await goto(detailsStep);
 	}
 
 	onMount(() => {
@@ -332,43 +354,7 @@
 				</p>
 			</div>
 
-			<nav
-				aria-label={m.cart_checkout_progress()}
-				class="mt-6 rounded-xl border bg-muted/40 p-4 sm:p-5"
-			>
-				<div class="flex items-center gap-2 sm:gap-4">
-					<a href="/cart" class="flex items-center gap-2 sm:gap-3">
-						<span
-							class="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm"
-						>
-							<ShoppingCart class="size-4" />
-						</span>
-						<span class="text-sm font-medium text-foreground sm:text-base">{m.common_cart()}</span>
-					</a>
-					<div class="h-px flex-1 bg-border" aria-hidden="true"></div>
-					<a href="/checkout/address" class="flex items-center gap-2 sm:gap-3">
-						<span
-							class="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm"
-						>
-							<MapPin class="size-4" />
-						</span>
-						<span class="text-sm font-medium text-foreground sm:text-base"
-							>{m.common_address()}</span
-						>
-					</a>
-					<div class="h-px flex-1 bg-border" aria-hidden="true"></div>
-					<a href="/checkout/payment" aria-current="step" class="flex items-center gap-2 sm:gap-3">
-						<span
-							class="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm"
-						>
-							<CreditCard class="size-4" />
-						</span>
-						<span class="text-sm font-medium text-foreground sm:text-base"
-							>{m.common_payment()}</span
-						>
-					</a>
-				</div>
-			</nav>
+			<CheckoutSteps current="payment" />
 
 			{#if !ready}
 				<div
@@ -385,7 +371,36 @@
 			{:else}
 				<div class="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_380px] lg:items-start">
 					<div class="flex min-w-0 flex-col gap-6">
-						{#if selectedAddress && selectedShipping}
+						{#if isTopup}
+							<Card.Root>
+								<Card.Content class="flex flex-col gap-4 py-4 sm:flex-row sm:items-start">
+									<div class="flex min-w-0 flex-1 items-start gap-3">
+										<span
+											class="flex size-9 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground"
+										>
+											<UserRound class="size-4" />
+										</span>
+										<div class="flex min-w-0 flex-col gap-1">
+											<p class="text-sm font-medium text-foreground">
+												{m.checkout_account_card_title()}
+											</p>
+											<dl class="grid gap-x-4 gap-y-0.5 text-sm sm:grid-cols-[auto_1fr]">
+												{#each accountDetails as detail (detail.id)}
+													<dt class="text-muted-foreground">{detail.label}</dt>
+													<dd class="font-medium break-words text-foreground">{detail.value}</dd>
+												{/each}
+											</dl>
+										</div>
+									</div>
+									<a
+										href="/checkout/account"
+										class="text-sm font-medium underline-offset-4 hover:underline"
+									>
+										{m.checkout_payment_change()}
+									</a>
+								</Card.Content>
+							</Card.Root>
+						{:else if selectedAddress && selectedShipping}
 							<Card.Root>
 								<Card.Content class="flex flex-col gap-4 py-4 sm:flex-row sm:items-start">
 									<div class="flex min-w-0 flex-1 items-start gap-3">

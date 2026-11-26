@@ -11,6 +11,7 @@
 	import { Button } from '#lib/frontend/components/ui/button/index.ts';
 	import { Spinner } from '#lib/frontend/components/ui/spinner/index.ts';
 	import { authClient, authErrorMessage, safeRedirect } from '#frontend/modules/auth/index.ts';
+	import { site } from '#lib/frontend/modules/commerce/site.svelte.ts';
 
 	const session = authClient.useSession();
 	const redirectTo = safeRedirect(page.url.searchParams.get('redirectTo'));
@@ -95,7 +96,7 @@
 					<Spinner />
 					{m.auth_login_submitting()}
 				{:else}
-					{m.auth_login_submit()}
+					{m.auth_login_submit({ store: site.storeName })}
 				{/if}
 			</Button>
 		</form>
