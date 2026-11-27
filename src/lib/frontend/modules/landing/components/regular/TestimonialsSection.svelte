@@ -6,6 +6,7 @@
 
 	const imgLeftIcon5 = '/assets/d8cda.svg';
 
+	const testimonials = $derived(home.testimonials);
 	const instagram = $derived(site.social.instagram);
 </script>
 
@@ -20,78 +21,80 @@
 	</div>
 {/snippet}
 
-<div
-	class="relative flex w-full shrink-0 flex-col content-stretch items-center justify-center gap-[32px] overflow-clip bg-card py-[96px] max-[480px]:py-9"
-	data-name="Testimonials"
->
-	<p
-		class="relative w-[min-content] min-w-full shrink-0 text-center font-['Geist:Bold'] text-[30px] leading-[36px] font-bold [word-break:break-word] text-foreground max-[480px]:text-2xl max-[480px]:leading-8"
-	>
-		{m.components_regular_testimonials_title()}
-	</p>
+{#if home.testimonials.length > 0}
 	<div
-		class="relative flex w-[1600px] shrink-0 content-stretch items-center gap-[16px]"
-		data-name="Flex Horizontal"
+		class="relative flex w-full shrink-0 flex-col content-stretch items-center justify-center gap-[32px] overflow-clip bg-card py-[96px] max-[480px]:py-9"
+		data-name="Testimonials"
 	>
-		{#each home.testimonials as testimonial (testimonial.id)}
-			{#if testimonial.link}
-				<a
-					href={testimonial.link}
-					class="group relative aspect-[240/240] min-w-px flex-[1_0_0] overflow-hidden rounded-[8px]"
-					data-name="Image"
-				>
-					{#if testimonial.imageUrl}
-						<img
-							src={testimonial.imageUrl}
-							alt={testimonial.caption ?? m.components_regular_testimonials_photo()}
-							loading="lazy"
-							class="absolute inset-0 size-full object-cover transition duration-300 group-hover:scale-105"
-						/>
-					{:else}
-						<ImagePlaceholder
-							class="pointer-events-none absolute inset-0 rounded-[8px]"
-							label={testimonial.caption ?? m.components_regular_testimonials_photo()}
-						/>
-					{/if}
-				</a>
-			{:else}
-				<div
-					class="relative aspect-[240/240] min-w-px flex-[1_0_0] overflow-hidden rounded-[8px]"
-					data-name="Image"
-				>
-					{#if testimonial.imageUrl}
-						<img
-							src={testimonial.imageUrl}
-							alt={testimonial.caption ?? m.components_regular_testimonials_photo()}
-							loading="lazy"
-							class="absolute inset-0 size-full object-cover"
-						/>
-					{:else}
-						<ImagePlaceholder
-							class="pointer-events-none absolute inset-0 rounded-[8px]"
-							label={testimonial.caption ?? m.components_regular_testimonials_photo()}
-						/>
-					{/if}
-				</div>
-			{/if}
-		{/each}
-	</div>
-	{#if instagram}
-		<a
-			href={instagram}
-			target="_blank"
-			rel="noreferrer"
-			class="relative flex shrink-0 content-stretch items-center justify-center gap-[6px] overflow-clip rounded-[10px] border border-solid border-border bg-card px-[16px] py-[8px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.1),0px_1px_2px_-1px_rgba(0,0,0,0.1)]"
-			data-name="Outline Button"
+		<p
+			class="relative w-[min-content] min-w-full shrink-0 text-center font-['Geist:Bold'] text-[30px] leading-[36px] font-bold [word-break:break-word] text-foreground max-[480px]:text-2xl max-[480px]:leading-8"
 		>
-			{@render followContent()}
-		</a>
-	{:else}
+			{m.components_regular_testimonials_title()}
+		</p>
 		<div
-			class="relative flex shrink-0 content-stretch items-center justify-center gap-[6px] overflow-clip rounded-[10px] border border-solid border-border bg-card px-[16px] py-[8px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.1),0px_1px_2px_-1px_rgba(0,0,0,0.1)]"
-			data-name="Outline Button"
+			class="relative flex w-[1600px] shrink-0 content-stretch items-center gap-[16px]"
+			data-name="Flex Horizontal"
 		>
-			{@render followContent()}
+			{#each home.testimonials as testimonial (testimonial.id)}
+				{#if testimonial.link}
+					<a
+						href={testimonial.link}
+						class="group relative aspect-[240/240] min-w-px flex-[1_0_0] overflow-hidden rounded-[8px]"
+						data-name="Image"
+					>
+						{#if testimonial.imageUrl}
+							<img
+								src={testimonial.imageUrl}
+								alt={testimonial.caption ?? m.components_regular_testimonials_photo()}
+								loading="lazy"
+								class="absolute inset-0 size-full object-cover transition duration-300 group-hover:scale-105"
+							/>
+						{:else}
+							<ImagePlaceholder
+								class="pointer-events-none absolute inset-0 rounded-[8px]"
+								label={testimonial.caption ?? m.components_regular_testimonials_photo()}
+							/>
+						{/if}
+					</a>
+				{:else}
+					<div
+						class="relative aspect-[240/240] min-w-px flex-[1_0_0] overflow-hidden rounded-[8px]"
+						data-name="Image"
+					>
+						{#if testimonial.imageUrl}
+							<img
+								src={testimonial.imageUrl}
+								alt={testimonial.caption ?? m.components_regular_testimonials_photo()}
+								loading="lazy"
+								class="absolute inset-0 size-full object-cover"
+							/>
+						{:else}
+							<ImagePlaceholder
+								class="pointer-events-none absolute inset-0 rounded-[8px]"
+								label={testimonial.caption ?? m.components_regular_testimonials_photo()}
+							/>
+						{/if}
+					</div>
+				{/if}
+			{/each}
 		</div>
-	{/if}
-</div>
+		{#if instagram}
+			<a
+				href={instagram}
+				target="_blank"
+				rel="noreferrer"
+				class="relative flex shrink-0 content-stretch items-center justify-center gap-[6px] overflow-clip rounded-[10px] border border-solid border-border bg-card px-[16px] py-[8px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.1),0px_1px_2px_-1px_rgba(0,0,0,0.1)]"
+				data-name="Outline Button"
+			>
+				{@render followContent()}
+			</a>
+		{:else}
+			<div
+				class="relative flex shrink-0 content-stretch items-center justify-center gap-[6px] overflow-clip rounded-[10px] border border-solid border-border bg-card px-[16px] py-[8px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.1),0px_1px_2px_-1px_rgba(0,0,0,0.1)]"
+				data-name="Outline Button"
+			>
+				{@render followContent()}
+			</div>
+		{/if}
+	</div>
+{/if}
