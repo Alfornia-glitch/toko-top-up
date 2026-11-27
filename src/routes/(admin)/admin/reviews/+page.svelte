@@ -277,7 +277,7 @@
 					{#each Array(5) as _, index (index)}
 						<Star
 							class={index < Number(row.rating ?? 0)
-								? 'size-3.5 fill-amber-400 text-amber-400'
+								? 'size-3.5 fill-rating text-rating'
 								: 'size-3.5 text-muted-foreground'}
 						/>
 					{/each}
@@ -301,7 +301,7 @@
 						<Button
 							variant="ghost"
 							size="icon-sm"
-							class="text-emerald-600 hover:bg-emerald-500/10"
+							class="text-success hover:bg-success/10"
 							aria-label={m.admin_catalog_reviews_approve_aria()}
 							disabled={mutatingId === String(row.id)}
 							onclick={() => approveReview(row as unknown as ReviewRow)}

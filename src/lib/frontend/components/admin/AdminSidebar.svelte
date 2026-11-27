@@ -15,6 +15,7 @@
 		LifeBuoy,
 		Mail,
 		Package,
+		Palette,
 		Plug,
 		RotateCcw,
 		ScrollText,
@@ -74,6 +75,7 @@
 			icon: ScrollText
 		},
 		{ label: () => m.common_settings(), href: '/admin/super/settings', icon: Settings },
+		{ label: () => m.components_admin_sidebar_theme(), href: '/admin/super/theme', icon: Palette },
 		{
 			label: () => m.components_admin_sidebar_integrations(),
 			href: '/admin/super/integrations',

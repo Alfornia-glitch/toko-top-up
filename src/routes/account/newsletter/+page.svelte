@@ -103,12 +103,12 @@
 </script>
 
 <div
-	class="relative flex size-full flex-col content-stretch items-center bg-white"
+	class="relative flex size-full flex-col content-stretch items-center bg-card"
 	data-name="Shopix - Email Newsletter"
 >
 	<SiteHeader />
 	<div
-		class="relative flex w-full max-w-[1440px] shrink-0 flex-col content-stretch items-center justify-center bg-white py-[56px] max-[480px]:py-9"
+		class="relative flex w-full max-w-[1440px] shrink-0 flex-col content-stretch items-center justify-center bg-card py-[56px] max-[480px]:py-9"
 		data-name="Email Newsletter"
 	>
 		<div
@@ -121,7 +121,7 @@
 				data-name="Flex Vertical"
 			>
 				<div
-					class="relative flex w-full shrink-0 content-stretch items-center gap-[10px] overflow-clip rounded-[6px] bg-[#f5f5f5] p-[24px]"
+					class="relative flex w-full shrink-0 content-stretch items-center gap-[10px] overflow-clip rounded-[6px] bg-muted p-[24px]"
 					data-name="Flex Horizontal"
 				>
 					<div
@@ -133,23 +133,23 @@
 							data-name="block-heading"
 						>
 							<p
-								class="relative w-[min-content] min-w-full shrink-0 font-['Geist:SemiBold'] text-[24px] leading-[32px] font-semibold text-[#0a0a0a]"
+								class="relative w-[min-content] min-w-full shrink-0 font-['Geist:SemiBold'] text-[24px] leading-[32px] font-semibold text-foreground"
 							>
 								{m.account_newsletter_hero_title()}
 							</p>
 							<p
-								class="relative w-[min-content] min-w-full shrink-0 font-['Geist:Regular'] text-[16px] leading-[24px] font-normal text-[#737373]"
+								class="relative w-[min-content] min-w-full shrink-0 font-['Geist:Regular'] text-[16px] leading-[24px] font-normal text-muted-foreground"
 							>
 								{m.account_newsletter_hero_description()}
 							</p>
 						</div>
 						<a
 							href="#newsletter-subscription"
-							class="relative flex shrink-0 content-stretch items-center justify-center gap-[6px] overflow-clip rounded-[10px] bg-[#171717] px-[16px] py-[8px]"
+							class="relative flex shrink-0 content-stretch items-center justify-center gap-[6px] overflow-clip rounded-[10px] bg-primary px-[16px] py-[8px]"
 							data-name="Button"
 						>
 							<div
-								class="relative flex shrink-0 flex-col justify-center font-['Geist:Medium'] text-[14px] leading-[0] font-medium [word-break:break-word] whitespace-nowrap text-[#fafafa]"
+								class="relative flex shrink-0 flex-col justify-center font-['Geist:Medium'] text-[14px] leading-[0] font-medium [word-break:break-word] whitespace-nowrap text-primary-foreground"
 							>
 								<p class="leading-[20px]">{m.account_newsletter_get_updates()}</p>
 							</div>
@@ -183,7 +183,7 @@
 
 				<div
 					id="newsletter-subscription"
-					class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-white py-[24px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)]"
+					class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-card py-[24px] shadow-[0px_0px_0px_1px_color-mix(in_oklab,var(--foreground)_10%,transparent)]"
 					data-name="Card"
 				>
 					<div
@@ -191,13 +191,13 @@
 						data-name="card-body"
 					>
 						<p
-							class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[24px] leading-[32px] font-semibold [word-break:break-word] text-[#0a0a0a]"
+							class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[24px] leading-[32px] font-semibold [word-break:break-word] text-foreground"
 						>
 							{m.account_newsletter_title()}
 						</p>
 
 						{#if loadError}
-							<p class="w-full text-[14px] leading-[20px] text-[#dc2626]">{loadError}</p>
+							<p class="w-full text-[14px] leading-[20px] text-destructive">{loadError}</p>
 						{/if}
 
 						{#if loading}
@@ -214,22 +214,22 @@
 									data-name="Flex Horizontal"
 								>
 									<p
-										class="relative font-['Geist:Medium'] text-[16px] leading-[24px] font-medium [word-break:break-word] text-[#0a0a0a]"
+										class="relative font-['Geist:Medium'] text-[16px] leading-[24px] font-medium [word-break:break-word] text-foreground"
 									>
 										{subscription.email}
 									</p>
 									<div
-										class="relative flex shrink-0 content-stretch items-center justify-center gap-[2px] rounded-[9999px] border border-solid border-[#e5e5e5] px-[6px] py-[2px]"
+										class="relative flex shrink-0 content-stretch items-center justify-center gap-[2px] rounded-[9999px] border border-solid border-border px-[6px] py-[2px]"
 										data-name="Outline Badge"
 									>
 										<p
-											class="relative flex shrink-0 flex-col justify-center text-center font-['Geist:Medium'] text-[12px] leading-[16px] font-medium whitespace-nowrap text-[#0a0a0a] capitalize"
+											class="relative flex shrink-0 flex-col justify-center text-center font-['Geist:Medium'] text-[12px] leading-[16px] font-medium whitespace-nowrap text-foreground capitalize"
 										>
 											{statusLabel('newsletter', subscription.status)}
 										</p>
 									</div>
 								</div>
-								<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
+								<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-muted-foreground">
 									{m.account_newsletter_member_since({ date: formatDate(subscription.createdAt) })}
 								</p>
 							</div>
@@ -249,7 +249,7 @@
 								{/if}
 							</Button>
 						{:else}
-							<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
+							<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-muted-foreground">
 								{m.account_newsletter_not_subscribed()}
 							</p>
 							<form class="flex w-full flex-col items-start gap-[12px]" onsubmit={subscribe}>
@@ -265,7 +265,7 @@
 									/>
 								</div>
 								{#if formError}
-									<p class="text-[14px] leading-[20px] text-[#dc2626]">{formError}</p>
+									<p class="text-[14px] leading-[20px] text-destructive">{formError}</p>
 								{/if}
 								<Button type="submit" disabled={saving}>
 									{#if saving}

@@ -4,7 +4,7 @@
 </script>
 
 <div
-	class="relative flex w-full shrink-0 flex-col content-stretch items-center justify-end bg-white py-[56px] max-[480px]:py-9"
+	class="relative flex w-full shrink-0 flex-col content-stretch items-center justify-end bg-card py-[56px] max-[480px]:py-9"
 	data-name="Flex Vertical"
 >
 	<div
@@ -12,7 +12,7 @@
 		data-name="Flex Vertical"
 	>
 		<p
-			class="relative w-full shrink-0 text-start font-['Geist:Bold'] text-[30px] leading-[36px] font-bold [word-break:break-word] text-[#0a0a0a] max-[480px]:text-2xl max-[480px]:leading-8"
+			class="relative w-full shrink-0 text-start font-['Geist:Bold'] text-[30px] leading-[36px] font-bold [word-break:break-word] text-foreground max-[480px]:text-2xl max-[480px]:leading-8"
 		>
 			{m.components_shop_by_brand()}
 		</p>
@@ -23,7 +23,7 @@
 			{#each home.brands as brand (brand.id)}
 				<a
 					href={`/products?brandId=${brand.id}`}
-					class="relative flex w-[136px] shrink-0 flex-col content-stretch items-center gap-[16px] overflow-clip rounded-[14px] border border-solid border-[#e5e5e5] bg-white py-[24px] transition hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(10,10,10,0.12)]"
+					class="relative flex w-[136px] shrink-0 flex-col content-stretch items-center gap-[16px] overflow-clip rounded-[14px] border border-solid border-border bg-card py-[24px] transition hover:-translate-y-0.5 hover:shadow-[0_12px_30px_color-mix(in_oklab,var(--foreground)_12%,transparent)]"
 					data-name="Card"
 				>
 					<div
@@ -38,7 +38,7 @@
 								class="h-[32px] w-auto max-w-full object-contain"
 							/>
 						{:else}
-							<span class="text-center text-[14px] leading-[20px] font-semibold text-[#0a0a0a]">
+							<span class="text-center text-[14px] leading-[20px] font-semibold text-foreground">
 								{brand.name}
 							</span>
 						{/if}

@@ -7,7 +7,6 @@
 	import * as Breadcrumb from '#lib/frontend/components/ui/breadcrumb/index.ts';
 	import * as DropdownMenu from '#lib/frontend/components/ui/dropdown-menu/index.ts';
 	import { Input } from '#lib/frontend/components/ui/input/index.ts';
-	import { Separator } from '#lib/frontend/components/ui/separator/index.ts';
 	import UserAvatar from '#lib/frontend/components/UserAvatar.svelte';
 	import { authClient, signOutUser } from '#frontend/modules/auth/index.ts';
 
@@ -38,7 +37,6 @@
 
 <header class="flex h-14 shrink-0 items-center gap-2 border-b bg-background px-3 md:px-4">
 	<Sidebar.Trigger />
-	<Separator orientation="vertical" class="mr-1 data-[orientation=vertical]:h-4" />
 
 	<Breadcrumb.Root>
 		<Breadcrumb.List>

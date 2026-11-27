@@ -66,7 +66,7 @@
 	});
 </script>
 
-<div class="flex min-h-screen w-full flex-col bg-white">
+<div class="flex min-h-screen w-full flex-col bg-background">
 	<SiteHeader />
 	<main class="flex-1">
 		<div class="mx-auto w-full max-w-[1280px] px-4 pt-8 pb-16 sm:px-8">
@@ -87,15 +87,15 @@
 			</Breadcrumb.Root>
 
 			<section
-				class="mt-6 flex flex-col gap-6 rounded-2xl border border-[#e5e5e5] bg-[#f5f5f5] p-6 sm:p-10 md:flex-row md:items-center md:justify-between"
+				class="mt-6 flex flex-col gap-6 rounded-2xl border border-border bg-muted p-6 sm:p-10 md:flex-row md:items-center md:justify-between"
 			>
 				<div class="flex max-w-2xl flex-col gap-3">
 					<h1
-						class="text-3xl font-bold tracking-tight text-[#0a0a0a] max-[480px]:text-2xl max-[480px]:leading-8 sm:text-4xl"
+						class="text-3xl font-bold tracking-tight text-foreground max-[480px]:text-2xl max-[480px]:leading-8 sm:text-4xl"
 					>
 						{m.storefront_shipping_title()}
 					</h1>
-					<p class="text-base leading-relaxed text-[#737373]">
+					<p class="text-base leading-relaxed text-muted-foreground">
 						{m.storefront_shipping_intro()}
 					</p>
 				</div>
@@ -109,10 +109,10 @@
 
 			<section class="mt-12" aria-labelledby="delivery-options-heading">
 				<div class="mb-4 flex flex-col gap-1">
-					<h2 id="delivery-options-heading" class="text-2xl font-semibold text-[#0a0a0a]">
+					<h2 id="delivery-options-heading" class="text-2xl font-semibold text-foreground">
 						{m.storefront_shipping_options_title()}
 					</h2>
-					<p class="text-sm text-[#737373]">
+					<p class="text-sm text-muted-foreground">
 						{m.storefront_shipping_options_desc()}
 					</p>
 				</div>
@@ -128,11 +128,11 @@
 							</div>
 						{:else if site.shipping.length === 0}
 							<div class="flex flex-col items-center gap-2 py-10 text-center">
-								<Package class="size-8 text-[#737373]" />
-								<p class="text-base font-medium text-[#0a0a0a]">
+								<Package class="size-8 text-muted-foreground" />
+								<p class="text-base font-medium text-foreground">
 									{m.storefront_shipping_none_title()}
 								</p>
-								<p class="text-sm text-[#737373]">
+								<p class="text-sm text-muted-foreground">
 									{m.storefront_shipping_none_desc()}
 								</p>
 							</div>
@@ -151,9 +151,9 @@
 											<Table.Row>
 												<Table.Cell class="py-3 whitespace-normal">
 													<div class="flex flex-col gap-1">
-														<span class="font-medium text-[#0a0a0a]">{option.label}</span>
+														<span class="font-medium text-foreground">{option.label}</span>
 														{#if option.description}
-															<span class="text-xs text-[#737373]">{option.description}</span>
+															<span class="text-xs text-muted-foreground">{option.description}</span>
 														{/if}
 													</div>
 												</Table.Cell>
@@ -164,7 +164,7 @@
 													{#if option.price === 0}
 														<Badge variant="secondary">{m.common_free()}</Badge>
 													{:else}
-														<span class="font-medium text-[#0a0a0a]">
+														<span class="font-medium text-foreground">
 															{costLabel(option.price)}
 														</span>
 													{/if}
@@ -177,23 +177,23 @@
 
 							<div class="flex flex-col gap-3 md:hidden">
 								{#each site.shipping as option (option.id)}
-									<div class="rounded-xl border border-[#e5e5e5] p-4">
+									<div class="rounded-xl border border-border p-4">
 										<div class="flex items-start justify-between gap-3">
-											<span class="font-medium text-[#0a0a0a]">{option.label}</span>
+											<span class="font-medium text-foreground">{option.label}</span>
 											{#if option.price === 0}
 												<Badge variant="secondary">{m.common_free()}</Badge>
 											{:else}
-												<span class="shrink-0 font-medium text-[#0a0a0a]">
+												<span class="shrink-0 font-medium text-foreground">
 													{costLabel(option.price)}
 												</span>
 											{/if}
 										</div>
 										{#if option.description}
-											<p class="mt-1 text-xs text-[#737373]">{option.description}</p>
+											<p class="mt-1 text-xs text-muted-foreground">{option.description}</p>
 										{/if}
 										<div class="mt-3 flex items-center justify-between text-sm">
-											<span class="text-[#737373]">{m.storefront_shipping_col_time()}</span>
-											<span class="font-medium text-[#0a0a0a]">
+											<span class="text-muted-foreground">{m.storefront_shipping_col_time()}</span>
+											<span class="font-medium text-foreground">
 												{m.storefront_shipping_days({ min: option.minDays, max: option.maxDays })}
 											</span>
 										</div>
@@ -207,31 +207,31 @@
 
 			<section class="mt-12" aria-labelledby="shipping-faq-heading">
 				<div class="mb-4 flex flex-col gap-1">
-					<h2 id="shipping-faq-heading" class="text-2xl font-semibold text-[#0a0a0a]">
+					<h2 id="shipping-faq-heading" class="text-2xl font-semibold text-foreground">
 						{m.storefront_shipping_faq_title()}
 					</h2>
-					<p class="text-sm text-[#737373]">
+					<p class="text-sm text-muted-foreground">
 						{m.storefront_shipping_faq_desc()}
 					</p>
 				</div>
 
 				<Card.Root>
 					<Card.Content class="p-0">
-						<div class="divide-y divide-[#e5e5e5]">
+						<div class="divide-y divide-border">
 							{#each faqs as faq (faq.id)}
 								<Collapsible.Root class="group/collapsible">
 									<Collapsible.Trigger
-										class="group/trigger flex w-full items-center justify-between gap-4 px-6 py-4 text-left transition-colors hover:bg-[#f5f5f5] focus-visible:ring-2 focus-visible:ring-[#0a0a0a] focus-visible:outline-none"
+										class="group/trigger flex w-full items-center justify-between gap-4 px-6 py-4 text-left transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-foreground focus-visible:outline-none"
 									>
-										<span class="text-sm font-medium text-[#0a0a0a] sm:text-base">
+										<span class="text-sm font-medium text-foreground sm:text-base">
 											{faq.question}
 										</span>
 										<ChevronDown
-											class="size-4 shrink-0 text-[#737373] transition-transform duration-200 group-data-[state=open]/trigger:rotate-180"
+											class="size-4 shrink-0 text-muted-foreground transition-transform duration-200 group-data-[state=open]/trigger:rotate-180"
 										/>
 									</Collapsible.Trigger>
 									<Collapsible.Content>
-										<p class="px-6 pb-4 text-sm leading-relaxed text-[#737373]">
+										<p class="px-6 pb-4 text-sm leading-relaxed text-muted-foreground">
 											{faq.answer}
 										</p>
 									</Collapsible.Content>
@@ -248,10 +248,10 @@
 						class="flex flex-col gap-4 py-8 md:flex-row md:items-center md:justify-between"
 					>
 						<div class="flex flex-col gap-1">
-							<h2 id="shipping-help-heading" class="text-xl font-semibold text-[#0a0a0a]">
+							<h2 id="shipping-help-heading" class="text-xl font-semibold text-foreground">
 								{m.storefront_shipping_help_title()}
 							</h2>
-							<p class="text-sm text-[#737373]">
+							<p class="text-sm text-muted-foreground">
 								{m.storefront_shipping_help_desc()}
 							</p>
 						</div>

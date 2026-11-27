@@ -21,7 +21,7 @@
 					<img alt="" class="absolute inset-0 block size-full max-w-none" src="/assets/ca51b.svg" />
 				</div>
 				<div
-					class="relative flex shrink-0 flex-col justify-center font-['Geist:Medium'] text-[14px] leading-[0] font-medium [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
+					class="relative flex shrink-0 flex-col justify-center font-['Geist:Medium'] text-[14px] leading-[0] font-medium [word-break:break-word] whitespace-nowrap text-foreground"
 				>
 					<p class="leading-[20px]">{m.common_previous()}</p>
 				</div>
@@ -31,17 +31,17 @@
 				data-name="Ghost Button"
 			>
 				<div
-					class="relative flex shrink-0 flex-col justify-center font-['Geist:Medium'] text-[14px] leading-[0] font-medium [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
+					class="relative flex shrink-0 flex-col justify-center font-['Geist:Medium'] text-[14px] leading-[0] font-medium [word-break:break-word] whitespace-nowrap text-foreground"
 				>
 					<p class="leading-[20px]">1</p>
 				</div>
 			</div>
 			<div
-				class="relative flex size-[32px] shrink-0 content-stretch items-center justify-center rounded-[10px] border border-solid border-[#e5e5e5] bg-white"
+				class="relative flex size-[32px] shrink-0 content-stretch items-center justify-center rounded-[10px] border border-solid border-border bg-card"
 				data-name="Outline Button"
 			>
 				<div
-					class="relative flex shrink-0 flex-col justify-center font-['Geist:Medium'] text-[14px] leading-[0] font-medium [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
+					class="relative flex shrink-0 flex-col justify-center font-['Geist:Medium'] text-[14px] leading-[0] font-medium [word-break:break-word] whitespace-nowrap text-foreground"
 				>
 					<p class="leading-[20px]">2</p>
 				</div>
@@ -51,7 +51,7 @@
 				data-name="Ghost Button"
 			>
 				<div
-					class="relative flex shrink-0 flex-col justify-center font-['Geist:Medium'] text-[14px] leading-[0] font-medium [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
+					class="relative flex shrink-0 flex-col justify-center font-['Geist:Medium'] text-[14px] leading-[0] font-medium [word-break:break-word] whitespace-nowrap text-foreground"
 				>
 					<p class="leading-[20px]">3</p>
 				</div>
@@ -69,7 +69,7 @@
 				data-name="Ghost Button"
 			>
 				<div
-					class="relative flex shrink-0 flex-col justify-center font-['Geist:Medium'] text-[14px] leading-[0] font-medium [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
+					class="relative flex shrink-0 flex-col justify-center font-['Geist:Medium'] text-[14px] leading-[0] font-medium [word-break:break-word] whitespace-nowrap text-foreground"
 				>
 					<p class="leading-[20px]">{m.common_next()}</p>
 				</div>

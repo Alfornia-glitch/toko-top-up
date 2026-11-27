@@ -172,7 +172,7 @@
 </script>
 
 <div
-	class="relative flex min-h-screen w-full flex-col items-center bg-white"
+	class="relative flex min-h-screen w-full flex-col items-center bg-background"
 	data-name="Shopix - Product Detail"
 >
 	{#if product}
@@ -196,8 +196,8 @@
 		{:else if notFound}
 			<Card.Root class="mx-auto max-w-lg">
 				<Card.Content class="flex flex-col items-center gap-4 py-12 text-center">
-					<p class="text-lg font-semibold text-[#0a0a0a]">{m.storefront_product_not_found()}</p>
-					<p class="text-sm text-[#737373]">
+					<p class="text-lg font-semibold text-foreground">{m.storefront_product_not_found()}</p>
+					<p class="text-sm text-muted-foreground">
 						{m.storefront_product_not_found_desc()}
 					</p>
 					<Button href="/products">{m.common_browse_products()}</Button>
@@ -217,7 +217,7 @@
 			<div class="grid gap-10 lg:grid-cols-2">
 				<div class="flex flex-col gap-4">
 					<div
-						class="relative aspect-square overflow-hidden rounded-[14px] border border-[#e5e5e5] bg-[#f5f5f5]"
+						class="relative aspect-square overflow-hidden rounded-[14px] border border-border bg-muted"
 					>
 						{#if images[activeImage]}
 							<img
@@ -236,10 +236,10 @@
 									type="button"
 									onclick={() => (activeImage = index)}
 									aria-label={m.storefront_product_view_image({ name: image.alt ?? product.name })}
-									class={`relative size-20 shrink-0 overflow-hidden rounded-[10px] border bg-[#f5f5f5] transition ${
+									class={`relative size-20 shrink-0 overflow-hidden rounded-[10px] border bg-muted transition ${
 										index === activeImage
-											? 'border-[#0a0a0a] ring-2 ring-[#0a0a0a]/10'
-											: 'border-[#e5e5e5] hover:border-[#a3a3a3]'
+											? 'border-foreground ring-2 ring-foreground/10'
+											: 'border-border hover:border-ring'
 									}`}
 								>
 									<img src={image.url} alt="" class="size-full object-cover" loading="lazy" />
@@ -251,17 +251,17 @@
 
 				<div class="flex flex-col gap-6">
 					<div class="flex flex-col gap-3">
-						<div class="flex flex-wrap items-center gap-2 text-xs text-[#737373]">
+						<div class="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
 							{#if product.categoryName}
 								<span>{product.categoryName}</span>
 								<span aria-hidden="true">/</span>
 							{/if}
 							{#if product.brandName}
-								<span class="font-medium text-[#0a0a0a]">{product.brandName}</span>
+								<span class="font-medium text-foreground">{product.brandName}</span>
 							{/if}
 						</div>
 						<h1
-							class="text-3xl leading-tight font-bold text-[#0a0a0a] max-[480px]:text-2xl max-[480px]:leading-8"
+							class="text-3xl leading-tight font-bold text-foreground max-[480px]:text-2xl max-[480px]:leading-8"
 						>
 							{product.name}
 						</h1>
@@ -271,13 +271,13 @@
 									<Star
 										class={`size-4 ${
 											index < Math.round(rating)
-												? 'fill-[#d97706] text-[#d97706]'
-												: 'text-[#d4d4d4]'
+												? 'fill-rating text-rating'
+												: 'text-muted-foreground/40'
 										}`}
 									/>
 								{/each}
 							</div>
-							<span class="text-sm text-[#737373]">
+							<span class="text-sm text-muted-foreground">
 								{m.storefront_product_rating_sold({
 									rating: formatNumber(rating, {
 										minimumFractionDigits: 1,
@@ -291,18 +291,18 @@
 					</div>
 
 					<div class="flex flex-wrap items-baseline gap-3">
-						<span class="text-3xl font-bold text-[#0a0a0a]">
+						<span class="text-3xl font-bold text-foreground">
 							{formatMoney(displayPrice, product.currency)}
 						</span>
 						{#if compareAt}
-							<span class="text-lg text-[#737373] line-through">
+							<span class="text-lg text-muted-foreground line-through">
 								{formatMoney(compareAt, product.currency)}
 							</span>
 						{/if}
 					</div>
 
 					{#if product.shortDescription}
-						<p class="text-sm leading-6 text-[#525252]">{product.shortDescription}</p>
+						<p class="text-sm leading-6 text-muted-foreground">{product.shortDescription}</p>
 					{/if}
 
 					<Separator />
@@ -311,7 +311,7 @@
 						<div class="flex flex-col gap-4">
 							{#each product.options as option (option.id)}
 								<div class="flex flex-col gap-2">
-									<span class="text-sm font-medium text-[#0a0a0a]">{option.name}</span>
+									<span class="text-sm font-medium text-foreground">{option.name}</span>
 									<Select.Root type="single" bind:value={selectedOptions[option.name]}>
 										<Select.Trigger class="w-full justify-between">
 											<Select.Value
@@ -333,21 +333,21 @@
 
 					<div class="flex flex-wrap items-center gap-3">
 						{#if displayStock > 10}
-							<Badge class="bg-[#16a34a]/10 text-[#16a34a]">{m.storefront_product_in_stock()}</Badge
+							<Badge class="bg-success/10 text-success">{m.storefront_product_in_stock()}</Badge
 							>
 						{:else if displayStock > 0}
-							<Badge class="bg-[#d97706]/10 text-[#b45309]"
+							<Badge class="bg-warning/10 text-warning"
 								>{m.storefront_product_low_stock({ count: displayStock })}</Badge
 							>
 						{:else}
 							<Badge variant="destructive">{m.storefront_product_out_of_stock()}</Badge>
 						{/if}
 						{#if selectedVariant}
-							<span class="text-xs text-[#737373]"
+							<span class="text-xs text-muted-foreground"
 								>{m.storefront_product_sku({ sku: selectedVariant.sku })}</span
 							>
 						{:else}
-							<span class="text-xs text-[#737373]"
+							<span class="text-xs text-muted-foreground"
 								>{m.storefront_product_sku({ sku: product.sku })}</span
 							>
 						{/if}
@@ -393,14 +393,14 @@
 					</div>
 
 					<div
-						class="grid gap-3 rounded-[14px] border border-[#e5e5e5] bg-[#fafafa] p-4 text-sm text-[#525252]"
+						class="grid gap-3 rounded-[14px] border border-border bg-primary-foreground p-4 text-sm text-muted-foreground"
 					>
 						<div class="flex items-start gap-2">
-							<Truck class="mt-0.5 size-4 shrink-0 text-[#0a0a0a]" />
+							<Truck class="mt-0.5 size-4 shrink-0 text-foreground" />
 							<span>{product.shippingInfo ?? m.storefront_product_default_shipping()}</span>
 						</div>
 						<div class="flex items-start gap-2">
-							<RotateCcw class="mt-0.5 size-4 shrink-0 text-[#0a0a0a]" />
+							<RotateCcw class="mt-0.5 size-4 shrink-0 text-foreground" />
 							<span>{product.returnPolicy ?? m.storefront_product_default_returns()}</span>
 						</div>
 					</div>
@@ -417,13 +417,13 @@
 								>{m.storefront_product_tab_returns()}</Tabs.Trigger
 							>
 						</Tabs.List>
-						<Tabs.Content value="description" class="pt-4 text-sm leading-6 text-[#525252]">
+						<Tabs.Content value="description" class="pt-4 text-sm leading-6 text-muted-foreground">
 							{product.description ?? m.storefront_product_no_description()}
 						</Tabs.Content>
-						<Tabs.Content value="shipping" class="pt-4 text-sm leading-6 text-[#525252]">
+						<Tabs.Content value="shipping" class="pt-4 text-sm leading-6 text-muted-foreground">
 							{product.shippingInfo ?? m.storefront_product_default_shipping()}
 						</Tabs.Content>
-						<Tabs.Content value="returns" class="pt-4 text-sm leading-6 text-[#525252]">
+						<Tabs.Content value="returns" class="pt-4 text-sm leading-6 text-muted-foreground">
 							{product.returnPolicy ?? m.storefront_product_default_returns()}
 						</Tabs.Content>
 					</Tabs.Root>

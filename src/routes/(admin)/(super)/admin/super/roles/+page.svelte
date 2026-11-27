@@ -180,7 +180,7 @@
 										{#each roleOrder as role (role)}
 											<Table.Cell class="text-center">
 												{#if hasPermission(role, permission)}
-													<Check class="mx-auto size-4 text-emerald-600" />
+													<Check class="mx-auto size-4 text-success" />
 													<span class="sr-only">{m.admin_super_roles_granted()}</span>
 												{:else}
 													<Minus class="mx-auto size-4 text-muted-foreground" />

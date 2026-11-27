@@ -208,12 +208,12 @@
 </script>
 
 <div
-	class="relative flex size-full flex-col content-stretch items-center bg-white"
+	class="relative flex size-full flex-col content-stretch items-center bg-card"
 	data-name="Shopix - Return & Refunds"
 >
 	<SiteHeader />
 	<div
-		class="relative flex w-full max-w-[1440px] shrink-0 flex-col content-stretch items-center justify-center bg-white py-[56px] max-[480px]:py-9"
+		class="relative flex w-full max-w-[1440px] shrink-0 flex-col content-stretch items-center justify-center bg-card py-[56px] max-[480px]:py-9"
 		data-name="Return and refund"
 	>
 		<div
@@ -227,13 +227,13 @@
 				data-name="Flex Vertical"
 			>
 				<p
-					class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] text-[#0a0a0a]"
+					class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] text-foreground"
 				>
 					{m.account_returns_title()}
 				</p>
 
 				<div
-					class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-white py-[24px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)]"
+					class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-card py-[24px] shadow-[0px_0px_0px_1px_color-mix(in_oklab,var(--foreground)_10%,transparent)]"
 					data-name="Card"
 				>
 					<div
@@ -241,7 +241,7 @@
 						data-name="card-body"
 					>
 						<p
-							class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] text-[#0a0a0a]"
+							class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] text-foreground"
 						>
 							{m.account_returns_request()}
 						</p>
@@ -267,7 +267,7 @@
 										</Select.Content>
 									</Select.Root>
 									{#if orders.length === 0}
-										<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]">
+										<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground">
 											{m.account_returns_no_orders()}
 										</p>
 									{/if}
@@ -357,7 +357,7 @@
 							</div>
 
 							{#if formError}
-								<p class="text-sm text-[#b91c1c]" role="alert">{formError}</p>
+								<p class="text-sm text-destructive" role="alert">{formError}</p>
 							{/if}
 
 							<div>
@@ -371,17 +371,17 @@
 
 				{#if loading}
 					<div
-						class="relative flex w-full items-center justify-center gap-3 rounded-[14px] bg-white px-[24px] py-[64px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)]"
+						class="relative flex w-full items-center justify-center gap-3 rounded-[14px] bg-card px-[24px] py-[64px] shadow-[0px_0px_0px_1px_color-mix(in_oklab,var(--foreground)_10%,transparent)]"
 						data-name="Card"
 					>
 						<Spinner class="size-5" aria-label={m.account_returns_loading()} />
-						<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
+						<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-muted-foreground">
 							{m.account_returns_loading()}
 						</p>
 					</div>
 				{:else if error}
 					<div
-						class="relative flex w-full rounded-[14px] border border-[#fecaca] bg-[#fef2f2] px-[24px] py-[16px] text-[#b91c1c]"
+						class="relative flex w-full rounded-[14px] border border-destructive/30 bg-destructive/10 px-[24px] py-[16px] text-destructive"
 						data-name="Card"
 						role="alert"
 					>
@@ -389,27 +389,27 @@
 					</div>
 				{:else if returns.length === 0}
 					<div
-						class="relative flex w-full flex-col items-start gap-[12px] rounded-[14px] bg-white px-[24px] py-[32px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)]"
+						class="relative flex w-full flex-col items-start gap-[12px] rounded-[14px] bg-card px-[24px] py-[32px] shadow-[0px_0px_0px_1px_color-mix(in_oklab,var(--foreground)_10%,transparent)]"
 						data-name="Card"
 					>
 						<p
-							class="font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold text-[#0a0a0a]"
+							class="font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold text-foreground"
 						>
 							{m.account_returns_empty_title()}
 						</p>
-						<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
+						<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-muted-foreground">
 							{m.account_returns_empty_description()}
 						</p>
 						<a
 							href="/products"
-							class="rounded-[8px] bg-[#171717] px-[16px] py-[10px] font-['Geist:Medium'] text-[14px] leading-[20px] font-medium text-[#fafafa]"
+							class="rounded-[8px] bg-primary px-[16px] py-[10px] font-['Geist:Medium'] text-[14px] leading-[20px] font-medium text-primary-foreground"
 						>
 							{m.common_browse_products()}
 						</a>
 					</div>
 				{:else}
 					<div
-						class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-white py-[24px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)]"
+						class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-card py-[24px] shadow-[0px_0px_0px_1px_color-mix(in_oklab,var(--foreground)_10%,transparent)]"
 						data-name="Card"
 					>
 						<div
@@ -417,7 +417,7 @@
 							data-name="card-body"
 						>
 							<p
-								class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] text-[#0a0a0a]"
+								class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] text-foreground"
 							>
 								{m.account_returns_list_title()}
 							</p>
@@ -425,22 +425,22 @@
 								{#each returns as entry (entry.id)}
 									<button
 										type="button"
-										class={`flex w-full flex-wrap items-start justify-between gap-[12px] rounded-[8px] border border-[#e5e5e5] p-[16px] text-left transition-colors ${
-											selected?.id === entry.id ? 'bg-[#f5f5f5]' : 'bg-white hover:bg-[#fafafa]'
+										class={`flex w-full flex-wrap items-start justify-between gap-[12px] rounded-[8px] border border-border p-[16px] text-left transition-colors ${
+											selected?.id === entry.id ? 'bg-muted' : 'bg-card hover:bg-primary-foreground'
 										}`}
 										aria-pressed={selected?.id === entry.id}
 										onclick={() => loadReturn(entry.id)}
 									>
 										<div class="min-w-0 flex-1">
 											<p
-												class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-[#0a0a0a]"
+												class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-foreground"
 											>
 												{entry.productName}
 											</p>
-											<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]">
+											<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground">
 												{m.account_shared_sku({ sku: entry.sku })}
 											</p>
-											<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]">
+											<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground">
 												{typeLabel(entry.type)} · {entry.reason}
 											</p>
 										</div>
@@ -449,11 +449,11 @@
 												{statusLabel(RETURN_STATUS_LABELS, entry.status)}
 											</Badge>
 											<p
-												class="font-['Geist:Medium'] text-[14px] leading-[20px] font-medium text-[#0a0a0a]"
+												class="font-['Geist:Medium'] text-[14px] leading-[20px] font-medium text-foreground"
 											>
 												{entry.refundAmount === null ? '—' : formatMoney(entry.refundAmount)}
 											</p>
-											<p class="font-['Geist:Regular'] text-[12px] leading-[16px] text-[#737373]">
+											<p class="font-['Geist:Regular'] text-[12px] leading-[16px] text-muted-foreground">
 												{formatDate(entry.createdAt)}
 											</p>
 										</div>
@@ -464,7 +464,7 @@
 					</div>
 
 					<div
-						class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-white py-[24px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)]"
+						class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-card py-[24px] shadow-[0px_0px_0px_1px_color-mix(in_oklab,var(--foreground)_10%,transparent)]"
 						data-name="Card"
 					>
 						<div
@@ -472,7 +472,7 @@
 							data-name="card-body"
 						>
 							<p
-								class="relative w-[min-content] min-w-full shrink-0 font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] text-[#0a0a0a]"
+								class="relative w-[min-content] min-w-full shrink-0 font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] text-foreground"
 							>
 								{m.account_returns_progress_title()}
 							</p>
@@ -480,25 +480,25 @@
 							{#if detailLoading}
 								<div class="flex items-center gap-[12px]">
 									<Spinner class="size-5" aria-label={m.account_returns_loading_one()} />
-									<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
+									<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-muted-foreground">
 										{m.account_returns_loading_one()}
 									</p>
 								</div>
 							{:else if detailError}
-								<p class="text-sm text-[#b91c1c]" role="alert">{detailError}</p>
+								<p class="text-sm text-destructive" role="alert">{detailError}</p>
 							{:else if selected}
 								<div class="flex w-full flex-col gap-[16px]">
 									<div class="flex w-full flex-wrap items-start justify-between gap-[12px]">
 										<div class="min-w-0 flex-1">
 											<p
-												class="font-['Geist:Medium'] text-[18px] leading-[28px] font-medium text-[#0a0a0a]"
+												class="font-['Geist:Medium'] text-[18px] leading-[28px] font-medium text-foreground"
 											>
 												{selected.productName}
 											</p>
-											<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]">
+											<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground">
 												{m.account_shared_sku({ sku: selected.sku })}
 											</p>
-											<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]">
+											<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground">
 												{m.account_shared_order_number({ orderNumber: selected.orderNumber })}
 											</p>
 										</div>
@@ -507,7 +507,7 @@
 												{statusLabel(RETURN_STATUS_LABELS, selected.status)}
 											</Badge>
 											<p
-												class="font-['Geist:SemiBold'] text-[16px] leading-[24px] font-semibold text-[#0a0a0a]"
+												class="font-['Geist:SemiBold'] text-[16px] leading-[24px] font-semibold text-foreground"
 											>
 												{selected.refundAmount === null ? '—' : formatMoney(selected.refundAmount)}
 											</p>
@@ -516,39 +516,39 @@
 
 									<div class="grid w-full gap-[12px] sm:grid-cols-2">
 										<div>
-											<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]">
+											<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground">
 												{m.account_returns_type()}
 											</p>
 											<p
-												class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-[#0a0a0a]"
+												class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-foreground"
 											>
 												{typeLabel(selected.type)}
 											</p>
 										</div>
 										<div>
-											<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]">
+											<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground">
 												{m.account_returns_resolution()}
 											</p>
 											<p
-												class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-[#0a0a0a]"
+												class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-foreground"
 											>
 												{resolutionLabel(selected.resolution)}
 											</p>
 										</div>
 										<div class="sm:col-span-2">
-											<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]">
+											<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground">
 												{m.account_returns_reason()}
 											</p>
-											<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#0a0a0a]">
+											<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-foreground">
 												{selected.reason}
 											</p>
 										</div>
 										{#if selected.note}
 											<div class="sm:col-span-2">
-												<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]">
+												<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground">
 													{m.account_returns_note()}
 												</p>
-												<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#0a0a0a]">
+												<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-foreground">
 													{selected.note}
 												</p>
 											</div>
@@ -569,25 +569,25 @@
 										</div>
 									{/if}
 
-									<div class="flex w-full flex-col gap-[8px] border-l border-[#e5e5e5] pl-[16px]">
+									<div class="flex w-full flex-col gap-[8px] border-l border-border pl-[16px]">
 										<div>
 											<p
-												class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-[#0a0a0a]"
+												class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-foreground"
 											>
 												{m.account_returns_requested()}
 											</p>
-											<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]">
+											<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground">
 												{formatDateTime(selected.createdAt) || '—'}
 											</p>
 										</div>
 										{#if selected.updatedAt !== selected.createdAt}
 											<div>
 												<p
-													class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-[#0a0a0a]"
+													class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-foreground"
 												>
 													{statusLabel(RETURN_STATUS_LABELS, selected.status)}
 												</p>
-												<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]">
+												<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground">
 													{formatDateTime(selected.updatedAt) || '—'}
 												</p>
 											</div>
@@ -595,7 +595,7 @@
 									</div>
 								</div>
 							{:else}
-								<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
+								<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-muted-foreground">
 									{m.account_returns_select_to_view()}
 								</p>
 							{/if}
@@ -605,7 +605,7 @@
 
 				<a
 					href="/account/support-tickets"
-					class="relative flex w-full shrink-0 flex-col content-stretch items-start rounded-[8px] bg-[#f5f5f5] p-[16px]"
+					class="relative flex w-full shrink-0 flex-col content-stretch items-start rounded-[8px] bg-muted p-[16px]"
 					data-name="Flex Horizontal"
 				>
 					<div
@@ -613,12 +613,12 @@
 						data-name="Flex Horizontal"
 					>
 						<p
-							class="relative shrink-0 font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
+							class="relative shrink-0 font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] whitespace-nowrap text-foreground"
 						>
 							{m.account_returns_help()}
 						</p>
 						<span
-							class="relative flex h-[24px] shrink-0 content-stretch items-center justify-center gap-[4px] rounded-[9999px] bg-[#171717] px-[12px] py-[4px] font-['Geist:Medium'] text-[12px] leading-[16px] font-medium whitespace-nowrap text-[#fafafa]"
+							class="relative flex h-[24px] shrink-0 content-stretch items-center justify-center gap-[4px] rounded-[9999px] bg-primary px-[12px] py-[4px] font-['Geist:Medium'] text-[12px] leading-[16px] font-medium whitespace-nowrap text-primary-foreground"
 						>
 							{m.account_returns_contact_support()}
 						</span>

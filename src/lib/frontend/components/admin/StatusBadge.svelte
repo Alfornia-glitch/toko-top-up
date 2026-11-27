@@ -30,8 +30,16 @@
 		'resolved'
 	]);
 
+	const pending = new Set(['pending', 'processing', 'open', 'requested', 'awaiting_payment']);
+
 	const variant = $derived<BadgeVariant>(
-		destructive.has(status) ? 'destructive' : positive.has(status) ? 'default' : 'secondary'
+		destructive.has(status)
+			? 'destructive'
+			: positive.has(status)
+				? 'success'
+				: pending.has(status)
+					? 'warning'
+					: 'secondary'
 	);
 	const label = $derived(kind ? statusLabel(kind, status) : anyStatusLabel(status));
 </script>

@@ -197,7 +197,7 @@
 				</p>
 
 				{#if payment.status === 'paid'}
-					<p class="flex items-center gap-2 text-sm font-medium text-emerald-700" role="status">
+					<p class="flex items-center gap-2 text-sm font-medium text-success" role="status">
 						<CircleCheck class="size-4" aria-hidden="true" />
 						{m.account_payment_detail_confirmed()}
 					</p>
@@ -230,7 +230,7 @@
 					{/if}
 
 					<div
-						class="flex items-start gap-2 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900"
+						class="flex items-start gap-2 rounded-lg border border-warning/30 bg-warning/10 p-3 text-sm text-warning"
 					>
 						<TriangleAlert class="mt-0.5 size-4 shrink-0" aria-hidden="true" />
 						<p>
@@ -250,7 +250,7 @@
 							decoding="async"
 							src={payment.qrisImageUrl}
 							alt={m.account_payment_detail_qris_alt()}
-							class="size-64 rounded-lg border bg-white object-contain p-2"
+							class="size-64 rounded-lg border bg-card object-contain p-2"
 						/>
 					{:else}
 						<p class="text-sm text-destructive" role="alert">

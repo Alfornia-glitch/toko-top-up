@@ -77,7 +77,7 @@
 	data-name="Shopix - Account details"
 >
 	<SiteHeader />
-	<div class="flex w-full flex-col items-center bg-white py-10 sm:py-14">
+	<div class="flex w-full flex-col items-center bg-card py-10 sm:py-14">
 		<main class="mx-auto w-full max-w-[1280px] px-4 sm:px-8">
 			<div class="flex flex-col gap-1">
 				<h1 class="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">

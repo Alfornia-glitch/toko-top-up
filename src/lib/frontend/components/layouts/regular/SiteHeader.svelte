@@ -135,7 +135,7 @@
 					<nav aria-label={m.components_regular_header_mobile_nav()} class="flex flex-col gap-1">
 						<a
 							href="/products?deal=true"
-							class="rounded-lg px-3 py-2 font-medium text-red-600 hover:bg-muted"
+							class="rounded-lg px-3 py-2 font-medium text-destructive hover:bg-muted"
 						>
 							{m.components_regular_nav_deals()}
 						</a>
@@ -201,7 +201,7 @@
 							<button
 								type="button"
 								onclick={() => void signOutUser('/login')}
-								class="flex items-center gap-2 rounded-lg px-3 py-2 text-left text-red-600 hover:bg-muted"
+								class="flex items-center gap-2 rounded-lg px-3 py-2 text-left text-destructive hover:bg-muted"
 							>
 								<LogOut class="size-4" />
 								{m.common_logout()}
@@ -264,7 +264,7 @@
 					<ShoppingCart />
 					{#if cart.count > 0}
 						<span
-							class="absolute -top-0.5 -right-0.5 flex min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] leading-4 font-medium text-white"
+							class="absolute -top-0.5 -right-0.5 flex min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] leading-4 font-medium text-white"
 						>
 							{cart.count}
 						</span>

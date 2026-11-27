@@ -401,5 +401,6 @@
 	"components_regular_footer_order_tracking": "Lacak pesanan",
 	"components_regular_footer_terms": "Syarat & kebijakan",
 	"components_regular_footer_returns": "Pengembalian & penukaran",
-	"components_regular_footer_legal": "© {year} {brand}, dibuat dengan ❤ untuk web yang lebih baik."
+	"components_regular_footer_legal": "© {year} {brand}, dibuat dengan ❤ untuk web yang lebih baik.",
+	"components_admin_sidebar_theme": "Tema"
 }

@@ -236,7 +236,7 @@
 			onclick={() => void copyUrl(asset)}
 		>
 			{#if copiedId === asset.id}
-				<Check class="size-4 text-emerald-600" />
+				<Check class="size-4 text-success" />
 			{:else}
 				<Copy class="size-4" />
 			{/if}

@@ -8,7 +8,7 @@
 
 	const tones = {
 		light: { box: 'bg-black/5', icon: 'text-black/25' },
-		dark: { box: 'bg-neutral-800', icon: 'text-white/40' },
+		dark: { box: 'bg-primary/90', icon: 'text-white/40' },
 		ghost: { box: '', icon: 'text-black/25' }
 	};
 </script>

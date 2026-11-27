@@ -183,12 +183,12 @@
 </script>
 
 <div
-	class="relative flex size-full flex-col content-stretch items-center bg-white"
+	class="relative flex size-full flex-col content-stretch items-center bg-card"
 	data-name="Shopix - Support Tickets"
 >
 	<SiteHeader />
 	<div
-		class="relative flex w-full max-w-[1440px] shrink-0 flex-col content-stretch items-center justify-center bg-white py-[56px] max-[480px]:py-9"
+		class="relative flex w-full max-w-[1440px] shrink-0 flex-col content-stretch items-center justify-center bg-card py-[56px] max-[480px]:py-9"
 		data-name="Support tickets"
 	>
 		<div
@@ -202,13 +202,13 @@
 				data-name="Flex Vertical"
 			>
 				<p
-					class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] text-[#0a0a0a]"
+					class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] text-foreground"
 				>
 					{m.account_tickets_title()}
 				</p>
 
 				<div
-					class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-white py-[24px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)]"
+					class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-card py-[24px] shadow-[0px_0px_0px_1px_color-mix(in_oklab,var(--foreground)_10%,transparent)]"
 					data-name="Card"
 				>
 					<div
@@ -216,7 +216,7 @@
 						data-name="card-body"
 					>
 						<p
-							class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] text-[#0a0a0a]"
+							class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] text-foreground"
 						>
 							{m.account_tickets_new()}
 						</p>
@@ -291,7 +291,7 @@
 							</div>
 
 							{#if formError}
-								<p class="text-sm text-[#b91c1c]" role="alert">{formError}</p>
+								<p class="text-sm text-destructive" role="alert">{formError}</p>
 							{/if}
 
 							<div>
@@ -305,17 +305,17 @@
 
 				{#if loading}
 					<div
-						class="relative flex w-full items-center justify-center gap-3 rounded-[14px] bg-white px-[24px] py-[64px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)]"
+						class="relative flex w-full items-center justify-center gap-3 rounded-[14px] bg-card px-[24px] py-[64px] shadow-[0px_0px_0px_1px_color-mix(in_oklab,var(--foreground)_10%,transparent)]"
 						data-name="Card"
 					>
 						<Spinner class="size-5" aria-label={m.account_tickets_loading()} />
-						<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
+						<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-muted-foreground">
 							{m.account_tickets_loading()}
 						</p>
 					</div>
 				{:else if error}
 					<div
-						class="relative flex w-full rounded-[14px] border border-[#fecaca] bg-[#fef2f2] px-[24px] py-[16px] text-[#b91c1c]"
+						class="relative flex w-full rounded-[14px] border border-destructive/30 bg-destructive/10 px-[24px] py-[16px] text-destructive"
 						data-name="Card"
 						role="alert"
 					>
@@ -323,21 +323,21 @@
 					</div>
 				{:else if tickets.length === 0}
 					<div
-						class="relative flex w-full flex-col items-start gap-[12px] rounded-[14px] bg-white px-[24px] py-[32px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)]"
+						class="relative flex w-full flex-col items-start gap-[12px] rounded-[14px] bg-card px-[24px] py-[32px] shadow-[0px_0px_0px_1px_color-mix(in_oklab,var(--foreground)_10%,transparent)]"
 						data-name="Card"
 					>
 						<p
-							class="font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold text-[#0a0a0a]"
+							class="font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold text-foreground"
 						>
 							{m.account_tickets_empty_title()}
 						</p>
-						<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
+						<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-muted-foreground">
 							{m.account_tickets_empty_description()}
 						</p>
 					</div>
 				{:else}
 					<div
-						class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[12px] overflow-clip rounded-[14px] bg-white py-[16px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)]"
+						class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[12px] overflow-clip rounded-[14px] bg-card py-[16px] shadow-[0px_0px_0px_1px_color-mix(in_oklab,var(--foreground)_10%,transparent)]"
 						data-name="Card"
 					>
 						<div
@@ -347,22 +347,22 @@
 							{#each tickets as entry (entry.id)}
 								<button
 									type="button"
-									class={`flex w-full flex-wrap items-start justify-between gap-[12px] rounded-[8px] border border-[#e5e5e5] p-[16px] text-left transition-colors ${
-										selected?.id === entry.id ? 'bg-[#f5f5f5]' : 'bg-white hover:bg-[#fafafa]'
+									class={`flex w-full flex-wrap items-start justify-between gap-[12px] rounded-[8px] border border-border p-[16px] text-left transition-colors ${
+										selected?.id === entry.id ? 'bg-muted' : 'bg-card hover:bg-primary-foreground'
 									}`}
 									aria-pressed={selected?.id === entry.id}
 									onclick={() => loadTicket(entry.id)}
 								>
 									<div class="min-w-0 flex-1">
 										<p
-											class="font-['Geist:Medium'] text-[18px] leading-[28px] font-medium text-[#0a0a0a]"
+											class="font-['Geist:Medium'] text-[18px] leading-[28px] font-medium text-foreground"
 										>
 											{entry.subject}
 										</p>
-										<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]">
+										<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground">
 											{entry.ticketNumber} · {entry.category} · {priorityLabel(entry.priority)}
 										</p>
-										<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]">
+										<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground">
 											{m.account_tickets_updated({ date: formatDateTime(entry.updatedAt) || '—' })}
 										</p>
 									</div>
@@ -377,7 +377,7 @@
 					</div>
 
 					<div
-						class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-white py-[24px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)]"
+						class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-card py-[24px] shadow-[0px_0px_0px_1px_color-mix(in_oklab,var(--foreground)_10%,transparent)]"
 						data-name="Card"
 					>
 						<div
@@ -387,21 +387,21 @@
 							{#if detailLoading}
 								<div class="flex items-center gap-[12px]">
 									<Spinner class="size-5" aria-label={m.account_tickets_loading_one()} />
-									<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
+									<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-muted-foreground">
 										{m.account_tickets_loading_one()}
 									</p>
 								</div>
 							{:else if detailError}
-								<p class="text-sm text-[#b91c1c]" role="alert">{detailError}</p>
+								<p class="text-sm text-destructive" role="alert">{detailError}</p>
 							{:else if selected}
 								<div class="flex w-full flex-wrap items-start justify-between gap-[12px]">
 									<div class="min-w-0 flex-1">
 										<p
-											class="font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold text-[#0a0a0a]"
+											class="font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold text-foreground"
 										>
 											{selected.subject}
 										</p>
-										<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]">
+										<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground">
 											{selected.ticketNumber} · {selected.category} · {priorityLabel(
 												selected.priority
 											)}
@@ -414,19 +414,19 @@
 
 								<div class="flex w-full flex-col gap-[12px]">
 									{#each selected.messages as message (message.id)}
-										<div class="flex w-full flex-col gap-[4px] rounded-[8px] bg-[#f5f5f5] p-[16px]">
+										<div class="flex w-full flex-col gap-[4px] rounded-[8px] bg-muted p-[16px]">
 											<div class="flex flex-wrap items-center justify-between gap-[8px]">
 												<p
-													class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-[#0a0a0a]"
+													class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-foreground"
 												>
 													{message.senderName ?? message.senderEmail ?? m.account_tickets_support()}
 												</p>
-												<p class="font-['Geist:Regular'] text-[12px] leading-[16px] text-[#737373]">
+												<p class="font-['Geist:Regular'] text-[12px] leading-[16px] text-muted-foreground">
 													{formatDateTime(message.createdAt) || '—'}
 												</p>
 											</div>
 											<p
-												class="font-['Geist:Regular'] text-[16px] leading-[24px] whitespace-pre-wrap text-[#0a0a0a]"
+												class="font-['Geist:Regular'] text-[16px] leading-[24px] whitespace-pre-wrap text-foreground"
 											>
 												{message.body}
 											</p>
@@ -442,7 +442,7 @@
 										placeholder={m.account_tickets_reply_placeholder()}
 									/>
 									{#if replyError}
-										<p class="text-sm text-[#b91c1c]" role="alert">{replyError}</p>
+										<p class="text-sm text-destructive" role="alert">{replyError}</p>
 									{/if}
 									<div>
 										<Button type="submit" disabled={replying}>
@@ -451,7 +451,7 @@
 									</div>
 								</form>
 							{:else}
-								<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
+								<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-muted-foreground">
 									{m.account_tickets_select_to_read()}
 								</p>
 							{/if}

@@ -17,7 +17,7 @@
 					text: m.components_regular_mega_deals_text(),
 					href: '/products?deal=true',
 					cta: m.components_regular_mega_deals_cta(),
-					tone: 'bg-sky-50'
+					tone: 'bg-muted'
 				}
 			: menu === 'new'
 				? {
@@ -25,7 +25,7 @@
 						text: m.components_regular_mega_new_text(),
 						href: '/products?newArrival=true',
 						cta: m.components_regular_mega_new_cta(),
-						tone: 'bg-emerald-50'
+						tone: 'bg-success/10'
 					}
 				: {
 						title: m.components_shop_by_category(),

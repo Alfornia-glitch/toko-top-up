@@ -8,11 +8,11 @@
 	const categories = $derived(home.categories);
 </script>
 
-<section class="flex w-full flex-col items-center bg-white pt-24" data-name="Category">
+<section class="flex w-full flex-col items-center bg-card pt-24" data-name="Category">
 	<div class="flex w-full max-w-[1280px] flex-col gap-8 px-8">
-		<div class="flex items-end justify-between gap-8 text-[#0a0a0a]">
+		<div class="flex items-end justify-between gap-8 text-foreground">
 			<h2 class="text-3xl leading-9 font-bold">{m.components_shop_by_category()}</h2>
-			<Button variant="link" href="/categories" class="text-lg font-medium text-[#0a0a0a]">
+			<Button variant="link" href="/categories" class="text-lg font-medium text-foreground">
 				{m.common_view_all()}
 			</Button>
 		</div>
@@ -23,10 +23,10 @@
 					<Carousel.Item class="basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/6">
 						<a
 							href={`/products?categoryId=${category.id}`}
-							class="group flex flex-col items-center gap-4 rounded-xl p-2 transition-colors outline-none hover:bg-[#f5f5f5] focus-visible:ring-3 focus-visible:ring-ring/50"
+							class="group flex flex-col items-center gap-4 rounded-xl p-2 transition-colors outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50"
 						>
 							<div
-								class="relative size-[124px] shrink-0 overflow-hidden rounded-full bg-[#f5f5f5] ring-1 ring-black/5 transition-transform group-hover:scale-105"
+								class="relative size-[124px] shrink-0 overflow-hidden rounded-full bg-muted ring-1 ring-black/5 transition-transform group-hover:scale-105"
 							>
 								{#if category.imageUrl}
 									<img
@@ -44,10 +44,10 @@
 								{/if}
 							</div>
 							<div class="flex flex-col items-center gap-0.5 text-center">
-								<p class="text-lg leading-7 font-medium break-words text-[#0a0a0a]">
+								<p class="text-lg leading-7 font-medium break-words text-foreground">
 									{category.name}
 								</p>
-								<p class="text-sm leading-5 text-[#737373]">
+								<p class="text-sm leading-5 text-muted-foreground">
 									{m.components_category_grid_products({ count: category.productCount })}
 								</p>
 							</div>

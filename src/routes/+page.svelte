@@ -40,7 +40,7 @@
 	</div>
 {:else}
 	<div
-		class="shopix-page relative flex min-h-screen w-full flex-col content-stretch items-center bg-white"
+		class="shopix-page relative flex min-h-screen w-full flex-col content-stretch items-center bg-background"
 		data-name="Shopix - Home page"
 	>
 		<SiteHeader announcementCount={2} />

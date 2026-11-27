@@ -7,6 +7,8 @@
 	import { DYNAMIC_SEO_ROUTES, metaForRoute } from '#lib/frontend/modules/seo/index.ts';
 	import { site } from '#lib/frontend/modules/commerce/site.svelte.ts';
 	import { onMount } from 'svelte';
+	import { applyThemeMode } from '#lib/frontend/modules/commerce/theme-mode.ts';
+	import { themeToCss } from '#shared/theme.ts';
 
 	let { children } = $props();
 
@@ -15,6 +17,11 @@
 	onMount(() => {
 		void site.ensure();
 	});
+
+	// The superadmin picks the colour scheme; there is no visitor toggle yet.
+	$effect(() => applyThemeMode(site.theme.mode));
+
+	const themeCss = $derived(themeToCss(site.theme));
 
 	if (import.meta.env.DEV) {
 		window.addEventListener(
@@ -33,7 +40,11 @@
 	}
 </script>
 
-<svelte:head><link rel="icon" href={site.logoUrl || favicon} /></svelte:head>
+<svelte:head>
+	<link rel="icon" href={site.logoUrl || favicon} />
+	<!-- Mirrors the style tag the server writes, so a saved theme applies without a reload. -->
+	{@html `<style id="theme-overrides-live">${themeCss}</style>`}
+</svelte:head>
 
 {#if !DYNAMIC_SEO_ROUTES.has(page.route.id ?? '')}
 	<Seo meta={metaForRoute(page.route.id, site.storeName)} />

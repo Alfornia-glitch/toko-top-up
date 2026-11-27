@@ -315,7 +315,7 @@
 				{:else if column.key === 'delta'}
 					<span
 						class={Number(row.delta) >= 0
-							? 'font-semibold text-emerald-600'
+							? 'font-semibold text-success'
 							: 'font-semibold text-destructive'}
 					>
 						{Number(row.delta) > 0 ? '+' : ''}{Number(row.delta)}

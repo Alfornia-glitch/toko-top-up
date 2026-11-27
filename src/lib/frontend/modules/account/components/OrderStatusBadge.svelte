@@ -26,7 +26,7 @@
 	});
 
 	const badgeClass = $derived(
-		SUCCESS_STATUSES.has(status) ? 'bg-emerald-600 text-white' : undefined
+		SUCCESS_STATUSES.has(status) ? 'bg-success text-success-foreground' : undefined
 	);
 </script>
 

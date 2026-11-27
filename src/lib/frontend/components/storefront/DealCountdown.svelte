@@ -74,11 +74,11 @@
 				data-name="Timer Blocks"
 			>
 				<div
-					class="relative flex h-[55px] w-full shrink-0 flex-col content-stretch items-center justify-center rounded-[6px] bg-white p-[6px]"
+					class="relative flex h-[55px] w-full shrink-0 flex-col content-stretch items-center justify-center rounded-[6px] bg-card p-[6px]"
 					data-name="Timer/Number/Cell"
 				>
 					<p
-						class="relative shrink-0 text-center font-['Geist:SemiBold'] text-[18px] leading-[28px] font-semibold [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
+						class="relative shrink-0 text-center font-['Geist:SemiBold'] text-[18px] leading-[28px] font-semibold [word-break:break-word] whitespace-nowrap text-foreground"
 					>
 						{block.value}
 					</p>

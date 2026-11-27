@@ -31,7 +31,7 @@
 	});
 </script>
 
-<div class="flex min-h-screen w-full flex-col bg-white">
+<div class="flex min-h-screen w-full flex-col bg-background">
 	<SiteHeader />
 	<main class="flex-1">
 		<div class="mx-auto w-full max-w-[1280px] px-4 pt-6 sm:px-8">

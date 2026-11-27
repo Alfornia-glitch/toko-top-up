@@ -33,16 +33,16 @@
 </script>
 
 <div
-	class="relative flex size-full flex-col content-stretch items-center bg-white"
+	class="relative flex size-full flex-col content-stretch items-center bg-card"
 	data-name="Shopix - Empty Cart"
 >
 	<SiteHeader />
 	<div
-		class="relative flex w-full max-w-[1440px] shrink-0 flex-col content-stretch items-center justify-center bg-white py-[56px] max-[480px]:py-9"
+		class="relative flex w-full max-w-[1440px] shrink-0 flex-col content-stretch items-center justify-center bg-card py-[56px] max-[480px]:py-9"
 		data-name="Error"
 	>
 		<div
-			class="relative flex w-full max-w-[1216px] shrink-0 flex-col content-stretch items-center justify-center gap-[24px] overflow-clip rounded-[6px] bg-[#f5f5f5] px-[24px] py-[48px]"
+			class="relative flex w-full max-w-[1216px] shrink-0 flex-col content-stretch items-center justify-center gap-[24px] overflow-clip rounded-[6px] bg-muted px-[24px] py-[48px]"
 			data-name="Flex Horizontal"
 		>
 			<div class="relative h-[233px] w-[288px] shrink-0" data-name="image 27">
@@ -59,24 +59,24 @@
 				data-name="Product details"
 			>
 				<p
-					class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[30px] leading-[36px] font-semibold text-[#0a0a0a] max-[480px]:text-2xl max-[480px]:leading-8"
+					class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[30px] leading-[36px] font-semibold text-foreground max-[480px]:text-2xl max-[480px]:leading-8"
 				>
 					{m.cart_empty_page_title()}
 				</p>
 				<p
-					class="relative w-full shrink-0 font-['Geist:Regular'] text-[0px] leading-[0] font-normal text-[#737373]"
+					class="relative w-full shrink-0 font-['Geist:Regular'] text-[0px] leading-[0] font-normal text-muted-foreground"
 				>
 					<span class="text-[14px] leading-[20px]">{m.cart_empty_page_description()}&#32;</span>
 					<a
 						href="/products"
-						class="text-[14px] leading-[20px] text-[#0a0a0a] underline decoration-solid decoration-from-font [text-decoration-skip-ink:none] [text-underline-position:from-font] hover:underline"
+						class="text-[14px] leading-[20px] text-foreground underline decoration-solid decoration-from-font [text-decoration-skip-ink:none] [text-underline-position:from-font] hover:underline"
 						>{m.common_continue_shopping()}</a
 					>
 				</p>
 				{#if cart.count > 0}
 					<a
 						href="/cart"
-						class="inline-flex items-center justify-center self-center rounded-[10px] border border-solid border-[#171717] bg-[#171717] px-[16px] py-[8px] font-['Geist:Medium'] text-[14px] leading-[20px] font-medium text-[#fafafa] transition hover:bg-[#262626]"
+						class="inline-flex items-center justify-center self-center rounded-[10px] border border-solid border-primary bg-primary px-[16px] py-[8px] font-['Geist:Medium'] text-[14px] leading-[20px] font-medium text-primary-foreground transition hover:bg-primary/90"
 					>
 						{m.cart_empty_page_view_cart()}
 					</a>

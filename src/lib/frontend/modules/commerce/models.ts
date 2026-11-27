@@ -1,3 +1,5 @@
+import type { Theme } from '#shared/theme.ts';
+
 export interface Banner {
 	id: string;
 	key: 'hero' | 'promo' | 'cta' | 'category';
@@ -175,6 +177,7 @@ export interface SiteSettings {
 	topupAccountForm: AccountFormField[];
 	storeName: string;
 	logoUrl: string | null;
+	theme: Theme;
 }
 
 export interface HomeData {

@@ -112,7 +112,7 @@
 				<Card.Content class="space-y-4">
 					<p class="text-sm text-muted-foreground">{action.description}</p>
 					{#if results[action.key]}
-						<p class="text-sm font-medium text-emerald-600 dark:text-emerald-400">
+						<p class="text-sm font-medium text-success dark:text-success">
 							{results[action.key]}
 						</p>
 					{/if}

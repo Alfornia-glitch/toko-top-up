@@ -164,7 +164,7 @@
 </script>
 
 <div
-	class="relative flex size-full flex-col content-stretch items-center bg-white"
+	class="relative flex size-full flex-col content-stretch items-center bg-card"
 	data-name="Shopix - Product Listing List View With Banner"
 >
 	<SiteHeader />
@@ -178,7 +178,7 @@
 				data-name="Flex Horizontal"
 			>
 				<div
-					class="relative flex h-[370px] min-w-px flex-[1_0_0] content-stretch items-start justify-between overflow-clip rounded-[8px] bg-[#171717] pt-[40px] pl-[40px]"
+					class="relative flex h-[370px] min-w-px flex-[1_0_0] content-stretch items-start justify-between overflow-clip rounded-[8px] bg-primary pt-[40px] pl-[40px]"
 					data-name="Flex Horizontal"
 				>
 					<div
@@ -204,11 +204,11 @@
 						{#if banner.ctaLabel && banner.ctaUrl}
 							<a
 								href={banner.ctaUrl}
-								class="relative flex shrink-0 content-stretch items-center justify-center gap-[6px] overflow-clip rounded-[10px] border border-solid border-[#f5f5f5] bg-[#f5f5f5] px-[16px] py-[8px]"
+								class="relative flex shrink-0 content-stretch items-center justify-center gap-[6px] overflow-clip rounded-[10px] border border-solid border-muted bg-muted px-[16px] py-[8px]"
 								data-name="Solid button"
 							>
 								<div
-									class="relative flex shrink-0 flex-col justify-center font-['Geist:Medium'] text-[14px] leading-[0] font-medium [word-break:break-word] whitespace-nowrap text-[#171717]"
+									class="relative flex shrink-0 flex-col justify-center font-['Geist:Medium'] text-[14px] leading-[0] font-medium [word-break:break-word] whitespace-nowrap text-primary"
 								>
 									<p class="leading-[20px]">{banner.ctaLabel}</p>
 								</div>
@@ -238,7 +238,7 @@
 		</div>
 	{/if}
 	<div
-		class="relative flex w-full max-w-[1440px] shrink-0 content-stretch items-center justify-center bg-white py-[56px] max-[480px]:py-9"
+		class="relative flex w-full max-w-[1440px] shrink-0 content-stretch items-center justify-center bg-card py-[56px] max-[480px]:py-9"
 		data-name="Category filter"
 	>
 		<div
@@ -271,8 +271,8 @@
 									<p
 										class={`relative shrink-0 font-['Geist:Medium'] text-[16px] leading-[24px] font-medium [word-break:break-word] whitespace-nowrap ${
 											filters.categoryId === category.id
-												? 'text-[#171717]'
-												: 'text-[#0a0a0a] opacity-60'
+												? 'text-primary'
+												: 'text-foreground opacity-60'
 										}`}
 									>
 										{category.name}
@@ -298,7 +298,7 @@
 								data-name="Flex Horizontal"
 							>
 								<div
-									class="relative isolate flex shrink-0 flex-wrap content-center items-center overflow-clip rounded-[10px] bg-[#f5f5f5] p-[3px]"
+									class="relative isolate flex shrink-0 flex-wrap content-center items-center overflow-clip rounded-[10px] bg-muted p-[3px]"
 									data-name="Advance Tabs"
 								>
 									<div
@@ -320,14 +320,14 @@
 												/>
 											</div>
 											<p
-												class="relative shrink-0 font-['Geist:Medium'] text-[14px] leading-[20px] font-medium [word-break:break-word] whitespace-nowrap text-[#0a0a0a] opacity-60"
+												class="relative shrink-0 font-['Geist:Medium'] text-[14px] leading-[20px] font-medium [word-break:break-word] whitespace-nowrap text-foreground opacity-60"
 											>
 												{m.storefront_listing_view_grid()}
 											</p>
 										</a>
 										<a
 											href={viewHref(true)}
-											class="relative flex shrink-0 content-stretch items-center justify-center gap-[4px] overflow-clip rounded-[10px] border border-solid border-[#e5e5e5] bg-white px-[8px] py-[4px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.1),0px_1px_2px_-1px_rgba(0,0,0,0.1)]"
+											class="relative flex shrink-0 content-stretch items-center justify-center gap-[4px] overflow-clip rounded-[10px] border border-solid border-border bg-card px-[8px] py-[4px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.1),0px_1px_2px_-1px_rgba(0,0,0,0.1)]"
 											data-name="Tab 02"
 										>
 											<div class="relative size-[16px] shrink-0" data-name="left-icon">
@@ -340,7 +340,7 @@
 												/>
 											</div>
 											<p
-												class="relative shrink-0 font-['Geist:Medium'] text-[14px] leading-[20px] font-medium [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
+												class="relative shrink-0 font-['Geist:Medium'] text-[14px] leading-[20px] font-medium [word-break:break-word] whitespace-nowrap text-foreground"
 											>
 												{m.storefront_listing_view_list()}
 											</p>
@@ -354,11 +354,11 @@
 									data-name="Default Select"
 								>
 									<div
-										class="relative flex min-h-px w-full flex-[1_0_0] content-stretch items-center gap-[6px] rounded-[10px] border border-solid border-[#e5e5e5] bg-white px-[10px] py-[6px]"
+										class="relative flex min-h-px w-full flex-[1_0_0] content-stretch items-center gap-[6px] rounded-[10px] border border-solid border-border bg-card px-[10px] py-[6px]"
 										data-name="SelectValue"
 									>
 										<select
-											class="w-full cursor-pointer appearance-none bg-transparent font-['Geist:Regular'] text-[12px] leading-[16px] font-normal text-[#737373] outline-none"
+											class="w-full cursor-pointer appearance-none bg-transparent font-['Geist:Regular'] text-[12px] leading-[16px] font-normal text-muted-foreground outline-none"
 											value={filters.sort ?? 'recommended'}
 											onchange={(event) => changeSort(event.currentTarget.value as SortValue)}
 										>
@@ -390,12 +390,12 @@
 							<button
 								type="button"
 								class="relative flex h-[26px] shrink-0 cursor-pointer content-stretch items-center justify-center gap-[4px] rounded-[9999px] px-[12px] py-[4px]"
-								style="background-image: linear-gradient(90deg, rgba(23, 23, 23, 0.1) 0%, rgba(23, 23, 23, 0.1) 100%), linear-gradient(90deg, rgb(255, 255, 255) 0%, rgb(255, 255, 255) 100%)"
+								style="background-image: linear-gradient(90deg, color-mix(in oklab, var(--foreground) 10%, transparent) 0%, color-mix(in oklab, var(--foreground) 10%, transparent) 100%), linear-gradient(90deg, var(--background) 0%, var(--background) 100%)"
 								data-name="Soft Badge"
 								onclick={() => selectCategory(filters.categoryId ?? '')}
 							>
 								<p
-									class="font-['Geist:Medium'] text-[12px] leading-[16px] font-medium text-[#171717]"
+									class="font-['Geist:Medium'] text-[12px] leading-[16px] font-medium text-primary"
 								>
 									{selectedCategory}
 								</p>
@@ -414,7 +414,7 @@
 							<button
 								type="button"
 								class="relative flex h-[26px] shrink-0 cursor-pointer content-stretch items-center justify-center gap-[4px] rounded-[9999px] px-[12px] py-[4px]"
-								style="background-image: linear-gradient(90deg, rgba(23, 23, 23, 0.1) 0%, rgba(23, 23, 23, 0.1) 100%), linear-gradient(90deg, rgb(255, 255, 255) 0%, rgb(255, 255, 255) 100%)"
+								style="background-image: linear-gradient(90deg, color-mix(in oklab, var(--foreground) 10%, transparent) 0%, color-mix(in oklab, var(--foreground) 10%, transparent) 100%), linear-gradient(90deg, var(--background) 0%, var(--background) 100%)"
 								data-name="Soft Badge"
 								onclick={() => {
 									filters.brandId = undefined;
@@ -423,7 +423,7 @@
 								}}
 							>
 								<p
-									class="font-['Geist:Medium'] text-[12px] leading-[16px] font-medium text-[#171717]"
+									class="font-['Geist:Medium'] text-[12px] leading-[16px] font-medium text-primary"
 								>
 									{brandName}
 								</p>
@@ -442,12 +442,12 @@
 							<button
 								type="button"
 								class="relative flex h-[26px] shrink-0 cursor-pointer content-stretch items-center justify-center gap-[4px] rounded-[9999px] px-[12px] py-[4px]"
-								style="background-image: linear-gradient(90deg, rgba(23, 23, 23, 0.1) 0%, rgba(23, 23, 23, 0.1) 100%), linear-gradient(90deg, rgb(255, 255, 255) 0%, rgb(255, 255, 255) 100%)"
+								style="background-image: linear-gradient(90deg, color-mix(in oklab, var(--foreground) 10%, transparent) 0%, color-mix(in oklab, var(--foreground) 10%, transparent) 100%), linear-gradient(90deg, var(--background) 0%, var(--background) 100%)"
 								data-name="Soft Badge"
 								onclick={clearPrice}
 							>
 								<p
-									class="font-['Geist:Medium'] text-[12px] leading-[16px] font-medium text-[#171717]"
+									class="font-['Geist:Medium'] text-[12px] leading-[16px] font-medium text-primary"
 								>
 									{priceLabel}
 								</p>
@@ -466,7 +466,7 @@
 							<button
 								type="button"
 								class="relative flex h-[26px] shrink-0 cursor-pointer content-stretch items-center justify-center gap-[4px] rounded-[9999px] px-[12px] py-[4px]"
-								style="background-image: linear-gradient(90deg, rgba(23, 23, 23, 0.1) 0%, rgba(23, 23, 23, 0.1) 100%), linear-gradient(90deg, rgb(255, 255, 255) 0%, rgb(255, 255, 255) 100%)"
+								style="background-image: linear-gradient(90deg, color-mix(in oklab, var(--foreground) 10%, transparent) 0%, color-mix(in oklab, var(--foreground) 10%, transparent) 100%), linear-gradient(90deg, var(--background) 0%, var(--background) 100%)"
 								data-name="Soft Badge"
 								onclick={() => {
 									filters.color = undefined;
@@ -475,7 +475,7 @@
 								}}
 							>
 								<p
-									class="font-['Geist:Medium'] text-[12px] leading-[16px] font-medium text-[#171717]"
+									class="font-['Geist:Medium'] text-[12px] leading-[16px] font-medium text-primary"
 								>
 									{filters.color}
 								</p>
@@ -493,7 +493,7 @@
 					</div>
 				</div>
 				<div class="flex w-full items-center justify-between" data-name="Flex Horizontal">
-					<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]">
+					<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground">
 						{loading
 							? m.storefront_listing_loading()
 							: m.storefront_listing_total({ count: result?.total ?? 0 })}
@@ -510,18 +510,18 @@
 								data-name="lisitng Product Card"
 							>
 								<div
-									class="h-[220px] w-full shrink-0 animate-pulse rounded-[14px] bg-[#f5f5f5]"
+									class="h-[220px] w-full shrink-0 animate-pulse rounded-[14px] bg-muted"
 									data-name="Card"
 								></div>
 							</div>
 						{/each}
 					</div>
 				{:else if error}
-					<p class="w-full font-['Geist:Regular'] text-[16px] leading-[24px] text-[#dc2626]">
+					<p class="w-full font-['Geist:Regular'] text-[16px] leading-[24px] text-destructive">
 						{error}
 					</p>
 				{:else if result && result.data.length === 0}
-					<p class="w-full font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
+					<p class="w-full font-['Geist:Regular'] text-[16px] leading-[24px] text-muted-foreground">
 						{m.storefront_listing_empty()}
 					</p>
 				{:else if result}
@@ -556,7 +556,7 @@
 								/>
 							</div>
 							<p
-								class="font-['Geist:Medium'] text-[14px] leading-[20px] font-medium text-[#0a0a0a]"
+								class="font-['Geist:Medium'] text-[14px] leading-[20px] font-medium text-foreground"
 							>
 								{m.common_previous()}
 							</p>
@@ -566,12 +566,12 @@
 								type="button"
 								onclick={() => selectPage(number)}
 								class={`relative flex size-[32px] shrink-0 cursor-pointer content-stretch items-center justify-center rounded-[10px] ${
-									number === page ? 'border border-solid border-[#e5e5e5] bg-white' : ''
+									number === page ? 'border border-solid border-border bg-card' : ''
 								}`}
 								data-name={number === page ? 'Outline Button' : 'Ghost Button'}
 							>
 								<p
-									class="font-['Geist:Medium'] text-[14px] leading-[20px] font-medium text-[#0a0a0a]"
+									class="font-['Geist:Medium'] text-[14px] leading-[20px] font-medium text-foreground"
 								>
 									{number}
 								</p>
@@ -585,7 +585,7 @@
 							data-name="Ghost Button"
 						>
 							<p
-								class="font-['Geist:Medium'] text-[14px] leading-[20px] font-medium text-[#0a0a0a]"
+								class="font-['Geist:Medium'] text-[14px] leading-[20px] font-medium text-foreground"
 							>
 								{m.common_next()}
 							</p>

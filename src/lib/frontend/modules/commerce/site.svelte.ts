@@ -1,5 +1,6 @@
 import { errorMessage } from '#lib/frontend/i18n/index.ts';
 import { api, unwrap } from '../shared/http.ts';
+import { DEFAULT_THEME } from '#shared/theme.ts';
 import type { SiteSettings } from './models.ts';
 
 /** Store name until the server answers; the superadmin's value replaces it. */
@@ -22,7 +23,8 @@ const DEFAULTS: SiteSettings = {
 	storefrontLayout: 'regular',
 	topupAccountForm: [],
 	storeName: DEFAULT_STORE_NAME,
-	logoUrl: null
+	logoUrl: null,
+	theme: DEFAULT_THEME
 };
 
 const LAYOUT_CACHE_KEY = 'shopix:storefront-layout';
@@ -91,6 +93,7 @@ class SiteStore {
 	readonly storefrontLayout = $derived(this.settings?.storefrontLayout ?? this.cachedLayout);
 	readonly storeName = $derived(this.settings?.storeName ?? this.cachedIdentity.storeName);
 	readonly logoUrl = $derived(this.settings ? this.settings.logoUrl : this.cachedIdentity.logoUrl);
+	readonly theme = $derived(this.settings?.theme ?? DEFAULTS.theme);
 	readonly accountForm = $derived(this.settings?.topupAccountForm ?? DEFAULTS.topupAccountForm);
 
 	async ensure(): Promise<void> {

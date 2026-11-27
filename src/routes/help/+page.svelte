@@ -111,23 +111,23 @@
 	const filteredFaqs = $derived(faqs.filter((faq) => matchesSearch(faq.question, faq.answer)));
 </script>
 
-<div class="flex min-h-screen w-full flex-col bg-white">
+<div class="flex min-h-screen w-full flex-col bg-background">
 	<SiteHeader />
 	<main class="flex-1">
 		<section class="mx-auto max-w-[1280px] px-4 py-12 text-center sm:px-8 sm:py-16">
 			<div class="mx-auto flex max-w-2xl flex-col items-center gap-4">
 				<Badge variant="secondary">{m.storefront_help_badge()}</Badge>
 				<h1
-					class="font-['Geist:Bold'] text-3xl leading-tight text-[#0a0a0a] max-[480px]:text-2xl max-[480px]:leading-8 sm:text-4xl"
+					class="font-['Geist:Bold'] text-3xl leading-tight text-foreground max-[480px]:text-2xl max-[480px]:leading-8 sm:text-4xl"
 				>
 					{m.storefront_help_title()}
 				</h1>
-				<p class="font-['Geist:Regular'] text-base text-[#737373] sm:text-lg">
+				<p class="font-['Geist:Regular'] text-base text-muted-foreground sm:text-lg">
 					{m.storefront_help_subtitle()}
 				</p>
 				<div class="relative mt-2 w-full max-w-xl">
 					<Search
-						class="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-[#737373]"
+						class="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
 						aria-hidden="true"
 					/>
 					<Input
@@ -145,7 +145,7 @@
 			class="mx-auto max-w-[1280px] px-4 pb-12 sm:px-8 sm:pb-16"
 			aria-labelledby="topics-heading"
 		>
-			<h2 id="topics-heading" class="mb-6 font-['Geist:Bold'] text-2xl text-[#0a0a0a]">
+			<h2 id="topics-heading" class="mb-6 font-['Geist:Bold'] text-2xl text-foreground">
 				{m.storefront_help_browse_topics()}
 			</h2>
 			<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -153,17 +153,17 @@
 					{@const Icon = topic.icon}
 					<Card.Root class="h-full">
 						<Card.Header>
-							<div class="mb-2 flex size-10 items-center justify-center rounded-full bg-[#f5f5f5]">
-								<Icon class="size-5 text-[#0a0a0a]" aria-hidden="true" />
+							<div class="mb-2 flex size-10 items-center justify-center rounded-full bg-muted">
+								<Icon class="size-5 text-foreground" aria-hidden="true" />
 							</div>
 							<Card.Title
 								role="heading"
 								aria-level={3}
-								class="font-['Geist:SemiBold'] text-lg text-[#0a0a0a]"
+								class="font-['Geist:SemiBold'] text-lg text-foreground"
 							>
 								{topic.title}
 							</Card.Title>
-							<Card.Description class="font-['Geist:Regular'] text-[#737373]">
+							<Card.Description class="font-['Geist:Regular'] text-muted-foreground">
 								{topic.description}
 							</Card.Description>
 						</Card.Header>
@@ -175,9 +175,9 @@
 					</Card.Root>
 				{/each}
 				{#if filteredTopics.length === 0}
-					<Card.Root class="bg-[#f5f5f5] sm:col-span-2 lg:col-span-3">
+					<Card.Root class="bg-muted sm:col-span-2 lg:col-span-3">
 						<Card.Content class="py-10 text-center">
-							<p class="font-['Geist:Regular'] text-sm text-[#737373]">
+							<p class="font-['Geist:Regular'] text-sm text-muted-foreground">
 								{m.storefront_help_no_topics()}
 							</p>
 						</Card.Content>
@@ -186,35 +186,35 @@
 			</div>
 		</section>
 
-		<section class="border-t border-[#e5e5e5]" aria-labelledby="faq-heading">
+		<section class="border-t border-border" aria-labelledby="faq-heading">
 			<div class="mx-auto max-w-[1280px] px-4 py-12 sm:px-8 sm:py-16">
 				<div class="mx-auto max-w-3xl">
-					<h2 id="faq-heading" class="font-['Geist:Bold'] text-2xl text-[#0a0a0a]">
+					<h2 id="faq-heading" class="font-['Geist:Bold'] text-2xl text-foreground">
 						{m.storefront_help_faq_title()}
 					</h2>
 					<div class="mt-6 flex flex-col gap-3">
 						{#each filteredFaqs as faq (faq.id)}
-							<Collapsible.Root class="rounded-xl border border-[#e5e5e5] bg-white">
+							<Collapsible.Root class="rounded-xl border border-border bg-card">
 								<Collapsible.Trigger
-									class="group flex w-full items-center justify-between gap-4 px-4 py-4 text-left font-['Geist:Medium'] text-sm text-[#0a0a0a] sm:text-base"
+									class="group flex w-full items-center justify-between gap-4 px-4 py-4 text-left font-['Geist:Medium'] text-sm text-foreground sm:text-base"
 								>
 									<span>{faq.question}</span>
 									<ChevronDown
-										class="size-4 shrink-0 text-[#737373] transition-transform group-data-[state=open]:rotate-180"
+										class="size-4 shrink-0 text-muted-foreground transition-transform group-data-[state=open]:rotate-180"
 										aria-hidden="true"
 									/>
 								</Collapsible.Trigger>
 								<Collapsible.Content>
-									<p class="px-4 pb-4 font-['Geist:Regular'] text-sm text-[#737373]">
+									<p class="px-4 pb-4 font-['Geist:Regular'] text-sm text-muted-foreground">
 										{faq.answer}
 									</p>
 								</Collapsible.Content>
 							</Collapsible.Root>
 						{/each}
 						{#if filteredFaqs.length === 0}
-							<Card.Root class="bg-[#f5f5f5]">
+							<Card.Root class="bg-muted">
 								<Card.Content class="py-8 text-center">
-									<p class="font-['Geist:Regular'] text-sm text-[#737373]">
+									<p class="font-['Geist:Regular'] text-sm text-muted-foreground">
 										{m.storefront_help_no_faqs()}
 									</p>
 								</Card.Content>
@@ -226,13 +226,13 @@
 		</section>
 
 		<section class="mx-auto max-w-[1280px] px-4 pb-16 sm:px-8 sm:pb-20">
-			<Card.Root class="bg-[#f5f5f5]">
+			<Card.Root class="bg-muted">
 				<Card.Content class="flex flex-col items-center gap-4 py-10 text-center sm:py-12">
-					<LifeBuoy class="size-8 text-[#0a0a0a]" aria-hidden="true" />
-					<h2 class="font-['Geist:Bold'] text-2xl text-[#0a0a0a]">
+					<LifeBuoy class="size-8 text-foreground" aria-hidden="true" />
+					<h2 class="font-['Geist:Bold'] text-2xl text-foreground">
 						{m.storefront_help_still_need()}
 					</h2>
-					<p class="max-w-xl font-['Geist:Regular'] text-sm text-[#737373] sm:text-base">
+					<p class="max-w-xl font-['Geist:Regular'] text-sm text-muted-foreground sm:text-base">
 						{m.storefront_help_still_need_desc()}
 					</p>
 					<div class="flex flex-wrap items-center justify-center gap-3">

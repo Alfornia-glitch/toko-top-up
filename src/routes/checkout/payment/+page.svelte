@@ -343,7 +343,7 @@
 	data-name="Shopix - Payment"
 >
 	<SiteHeader />
-	<div class="flex w-full flex-col items-center bg-white py-10 sm:py-14">
+	<div class="flex w-full flex-col items-center bg-card py-10 sm:py-14">
 		<main class="mx-auto w-full max-w-[1280px] px-4 sm:px-8">
 			<div class="flex flex-col gap-1">
 				<h1 class="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
@@ -642,7 +642,7 @@
 								{/if}
 								{#if notice}
 									<div
-										class="rounded-lg border border-emerald-600/30 bg-emerald-50 px-4 py-3 text-sm text-emerald-700"
+										class="rounded-lg border border-success/30 bg-success/10 px-4 py-3 text-sm text-success"
 										role="status"
 									>
 										{notice}
@@ -693,7 +693,7 @@
 												{item.productName}
 											</p>
 											<p class="truncate text-xs text-muted-foreground">{item.variantName}</p>
-											<p class="text-xs font-medium text-emerald-600">
+											<p class="text-xs font-medium text-success">
 												{formatMoney(item.unitPrice, cart.currency)} × {item.quantity}
 											</p>
 										</div>

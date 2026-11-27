@@ -86,7 +86,7 @@
 	];
 </script>
 
-<div class="flex min-h-screen w-full flex-col bg-white">
+<div class="flex min-h-screen w-full flex-col bg-background">
 	<SiteHeader />
 	<main class="flex-1">
 		<div
@@ -109,11 +109,11 @@
 			</Breadcrumb.Root>
 
 			<section
-				class="flex flex-col items-start gap-5 rounded-[14px] border bg-[#f5f5f5] p-6 sm:p-10"
+				class="flex flex-col items-start gap-5 rounded-[14px] border bg-muted p-6 sm:p-10"
 			>
 				<Badge variant="secondary">{m.storefront_pp_badge()}</Badge>
 				<h1
-					class="font-['Geist:Bold'] text-3xl leading-tight text-[#0a0a0a] max-[480px]:text-2xl max-[480px]:leading-8 sm:text-4xl"
+					class="font-['Geist:Bold'] text-3xl leading-tight text-foreground max-[480px]:text-2xl max-[480px]:leading-8 sm:text-4xl"
 				>
 					{m.storefront_pp_title()}
 				</h1>
@@ -129,7 +129,7 @@
 			</section>
 
 			<section class="flex flex-col gap-6">
-				<h2 class="font-['Geist:Bold'] text-2xl leading-tight text-[#0a0a0a] sm:text-3xl">
+				<h2 class="font-['Geist:Bold'] text-2xl leading-tight text-foreground sm:text-3xl">
 					{m.storefront_pp_includes_title()}
 				</h2>
 				<div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -138,7 +138,7 @@
 						<Card.Root class="h-full">
 							<Card.Header>
 								<div
-									class="flex size-11 items-center justify-center rounded-full bg-[#f5f5f5] text-[#0a0a0a]"
+									class="flex size-11 items-center justify-center rounded-full bg-muted text-foreground"
 								>
 									<Icon class="size-5" aria-hidden="true" />
 								</div>
@@ -153,14 +153,14 @@
 			</section>
 
 			<section class="flex flex-col gap-6">
-				<h2 class="font-['Geist:Bold'] text-2xl leading-tight text-[#0a0a0a] sm:text-3xl">
+				<h2 class="font-['Geist:Bold'] text-2xl leading-tight text-foreground sm:text-3xl">
 					{m.storefront_pp_coverage_title()}
 				</h2>
 				<div class="grid gap-6 md:grid-cols-2">
 					<Card.Root class="h-full">
 						<Card.Header>
-							<h3 class="flex items-center gap-2 text-lg font-semibold text-[#0a0a0a]">
-								<Check class="size-5 text-[#16a34a]" aria-hidden="true" />
+							<h3 class="flex items-center gap-2 text-lg font-semibold text-foreground">
+								<Check class="size-5 text-success" aria-hidden="true" />
 								{m.storefront_pp_covered_title()}
 							</h3>
 						</Card.Header>
@@ -168,7 +168,7 @@
 							<ul class="flex flex-col gap-3">
 								{#each covered as item (item)}
 									<li class="flex items-start gap-3 text-sm text-muted-foreground">
-										<Check class="mt-0.5 size-4 shrink-0 text-[#16a34a]" aria-hidden="true" />
+										<Check class="mt-0.5 size-4 shrink-0 text-success" aria-hidden="true" />
 										<span>{item}</span>
 									</li>
 								{/each}
@@ -178,8 +178,8 @@
 
 					<Card.Root class="h-full">
 						<Card.Header>
-							<h3 class="flex items-center gap-2 text-lg font-semibold text-[#0a0a0a]">
-								<X class="size-5 text-[#dc2626]" aria-hidden="true" />
+							<h3 class="flex items-center gap-2 text-lg font-semibold text-foreground">
+								<X class="size-5 text-destructive" aria-hidden="true" />
 								{m.storefront_pp_not_covered_title()}
 							</h3>
 						</Card.Header>
@@ -187,7 +187,7 @@
 							<ul class="flex flex-col gap-3">
 								{#each notCovered as item (item)}
 									<li class="flex items-start gap-3 text-sm text-muted-foreground">
-										<X class="mt-0.5 size-4 shrink-0 text-[#dc2626]" aria-hidden="true" />
+										<X class="mt-0.5 size-4 shrink-0 text-destructive" aria-hidden="true" />
 										<span>{item}</span>
 									</li>
 								{/each}
@@ -198,7 +198,7 @@
 			</section>
 
 			<section class="flex flex-col gap-6">
-				<h2 class="font-['Geist:Bold'] text-2xl leading-tight text-[#0a0a0a] sm:text-3xl">
+				<h2 class="font-['Geist:Bold'] text-2xl leading-tight text-foreground sm:text-3xl">
 					{m.storefront_pp_how_title()}
 				</h2>
 				<ol class="grid list-none gap-4 md:grid-cols-2">
@@ -207,13 +207,13 @@
 							<Card.Root class="h-full">
 								<Card.Content class="flex items-start gap-4 py-2">
 									<span
-										class="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#0a0a0a] text-sm font-semibold text-white"
+										class="flex size-9 shrink-0 items-center justify-center rounded-full bg-foreground text-sm font-semibold text-background"
 										aria-hidden="true"
 									>
 										{index + 1}
 									</span>
 									<div class="flex flex-col gap-1">
-										<h3 class="text-base font-semibold text-[#0a0a0a]">{step.title}</h3>
+										<h3 class="text-base font-semibold text-foreground">{step.title}</h3>
 										<p class="text-sm text-muted-foreground">{step.description}</p>
 									</div>
 								</Card.Content>
@@ -223,9 +223,9 @@
 				</ol>
 			</section>
 
-			<Card.Root class="items-center gap-4 bg-[#f5f5f5] py-10 text-center ring-0">
+			<Card.Root class="items-center gap-4 bg-muted py-10 text-center ring-0">
 				<Card.Content class="flex flex-col items-center gap-4">
-					<h2 class="font-['Geist:Bold'] text-2xl leading-tight text-[#0a0a0a] sm:text-3xl">
+					<h2 class="font-['Geist:Bold'] text-2xl leading-tight text-foreground sm:text-3xl">
 						{m.storefront_pp_cta_title()}
 					</h2>
 					<p class="max-w-xl text-sm text-muted-foreground sm:text-base">

@@ -64,7 +64,7 @@
 
 <header class="sticky top-0 z-40 w-full bg-background" data-name="Header">
 	<div class="w-full">
-		<div class="flex h-16 items-center gap-3 px-8 md:gap-5">
+		<div class="flex h-16 items-center gap-3 px-2 md:px-8 md:gap-5">
 			<Sheet.Root bind:open={mobileOpen}>
 				<Sheet.Trigger>
 					{#snippet child({ props })}

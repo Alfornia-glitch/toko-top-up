@@ -1,3 +1,5 @@
+import { DEFAULT_THEME, sanitizeTheme, type Theme } from '#shared/theme.ts';
+
 export interface SiteShippingMethod {
 	id: string;
 	label: string;
@@ -61,6 +63,8 @@ export interface SiteSettings {
 	storeName: string;
 	/** Public URL of the logo image; null means the built-in mark is shown. */
 	logoUrl: string | null;
+	/** Colour overrides for the whole site, edited by superadmins at `/admin/super/theme`. */
+	theme: Theme;
 }
 
 const defaultSettings: SiteSettings = {
@@ -121,7 +125,8 @@ const defaultSettings: SiteSettings = {
 		}
 	],
 	storeName: DEFAULT_STORE_NAME,
-	logoUrl: null
+	logoUrl: null,
+	theme: DEFAULT_THEME
 };
 
 function isStorefrontLayout(value: unknown): value is StorefrontLayout {
@@ -236,7 +241,8 @@ export function resolveSiteSettings(
 			options: [...field.options]
 		})),
 		storeName: defaultSettings.storeName,
-		logoUrl: defaultSettings.logoUrl
+		logoUrl: defaultSettings.logoUrl,
+		theme: defaultSettings.theme
 	};
 
 	for (const row of rows) {
@@ -275,6 +281,9 @@ export function resolveSiteSettings(
 				if (logo !== undefined) settings.logoUrl = logo;
 				break;
 			}
+			case 'theme':
+				settings.theme = sanitizeTheme(value);
+				break;
 		}
 	}
 

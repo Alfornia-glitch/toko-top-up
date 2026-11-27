@@ -42,7 +42,7 @@
 	<title>{copy.title}</title>
 </svelte:head>
 
-<div class="flex min-h-screen w-full flex-col bg-white">
+<div class="flex min-h-screen w-full flex-col bg-background">
 	<SiteHeader />
 	<main class="flex flex-1 items-center justify-center px-4 py-16 sm:px-8">
 		<div class="flex max-w-md flex-col items-center gap-4 text-center">

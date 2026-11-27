@@ -14,6 +14,7 @@ import {
 } from '#lib/server/http/cdn-cache.ts';
 import { applyZodLocale } from '#lib/server/http/zod-locale.ts';
 import { resolvePageSeo } from '#lib/server/http/seo.ts';
+import { resolveThemeHead } from '#lib/server/http/theme.ts';
 import { getRuntime } from '#lib/server/runtime.server.ts';
 
 /**
@@ -92,9 +93,10 @@ function needsSession(event: RequestEvent): boolean {
 const seoHandle: Handle = async ({ event, resolve }) => {
 	if (!event.route.id || event.url.pathname.startsWith('/api/')) return resolve(event);
 
-	const seo = await resolvePageSeo(event);
+	const [seo, themeHead] = await Promise.all([resolvePageSeo(event), resolveThemeHead(event)]);
 	const response = await resolve(event, {
-		transformPageChunk: ({ html }) => html.replace('</head>', `\t${seo.head}\n\t</head>`)
+		transformPageChunk: ({ html }) =>
+			html.replace('</head>', `\t${seo.head}\n\t${themeHead}\n\t</head>`)
 	});
 
 	if (seo.cacheable) setCacheHeaders(response, 3600);

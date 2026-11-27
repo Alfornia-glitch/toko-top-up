@@ -10,7 +10,7 @@
 
 <Button
 	{href}
-	class="fixed right-4 bottom-0 z-50 h-10 rounded-t-xl rounded-b-none text-xs"
+	class="fixed bottom-0 left-4 z-50 h-10 rounded-t-xl rounded-b-none text-xs"
 	data-name="Customer Service"
 >
 	<Headset />

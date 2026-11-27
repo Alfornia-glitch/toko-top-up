@@ -203,7 +203,7 @@
 									<Table.Cell
 										class="text-right tabular-nums {movement.delta < 0
 											? 'text-destructive'
-											: 'text-emerald-600'}"
+											: 'text-success'}"
 									>
 										{movement.delta > 0 ? `+${movement.delta}` : movement.delta}
 									</Table.Cell>

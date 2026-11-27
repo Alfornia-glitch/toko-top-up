@@ -22,7 +22,7 @@
 </script>
 
 <div
-	class="relative flex size-full flex-col content-stretch items-center bg-white"
+	class="relative flex size-full flex-col content-stretch items-center bg-card"
 	data-name="Category"
 >
 	<SiteHeader />
@@ -38,7 +38,7 @@
 				{#each categoryBanners as banner (banner.id)}
 					<a
 						href={banner.ctaUrl ?? '/products'}
-						class="group relative flex min-h-[240px] flex-col justify-end overflow-clip rounded-[8px] bg-[#171717] p-[24px] text-white"
+						class="group relative flex min-h-[240px] flex-col justify-end overflow-clip rounded-[8px] bg-primary p-[24px] text-primary-foreground"
 						data-name="Card"
 					>
 						{#if banner.imageUrl}
@@ -63,7 +63,7 @@
 							{/if}
 							{#if banner.ctaLabel}
 								<span
-									class="mt-[8px] inline-flex w-fit items-center gap-[6px] rounded-[10px] bg-[#f5f5f5] px-[16px] py-[8px] font-['Geist:Medium'] text-[14px] leading-[20px] font-medium text-[#171717]"
+									class="mt-[8px] inline-flex w-fit items-center gap-[6px] rounded-[10px] bg-muted px-[16px] py-[8px] font-['Geist:Medium'] text-[14px] leading-[20px] font-medium text-primary"
 								>
 									{banner.ctaLabel}
 									<ArrowRight class="size-[16px]" />
@@ -80,7 +80,7 @@
 			data-name="Hero"
 		>
 			<div
-				class="relative flex min-h-[336px] w-full items-center overflow-clip rounded-[8px] bg-[#171717]"
+				class="relative flex min-h-[336px] w-full items-center overflow-clip rounded-[8px] bg-primary"
 			>
 				{#if heroBanner.imageUrl}
 					<img
@@ -110,7 +110,7 @@
 					{#if heroBanner.ctaLabel}
 						<a
 							href={heroBanner.ctaUrl ?? '/products'}
-							class="flex items-center justify-center gap-[6px] overflow-clip rounded-[10px] border border-solid border-[#f5f5f5] bg-[#f5f5f5] px-[16px] py-[8px] text-[#171717]"
+							class="flex items-center justify-center gap-[6px] overflow-clip rounded-[10px] border border-solid border-muted bg-muted px-[16px] py-[8px] text-primary"
 							data-name="Solid button"
 						>
 							<span
@@ -142,13 +142,13 @@
 					data-name="Flex Horizontal"
 				>
 					<h2
-						class="relative min-w-px flex-[1_0_0] font-['Geist:Bold'] text-[30px] leading-[36px] font-bold [word-break:break-word] text-[#0a0a0a] max-[480px]:text-2xl max-[480px]:leading-8"
+						class="relative min-w-px flex-[1_0_0] font-['Geist:Bold'] text-[30px] leading-[36px] font-bold [word-break:break-word] text-foreground max-[480px]:text-2xl max-[480px]:leading-8"
 					>
 						{root.name}
 					</h2>
 					<a
 						href={`/products?categoryId=${root.id}`}
-						class="shrink-0 font-['Geist:Medium'] text-[18px] leading-[28px] font-medium text-[#0a0a0a] transition hover:text-[#525252]"
+						class="shrink-0 font-['Geist:Medium'] text-[18px] leading-[28px] font-medium text-foreground transition hover:text-muted-foreground"
 					>
 						{m.common_view_all()}
 					</a>
@@ -160,11 +160,11 @@
 					{#each cards as category (category.id)}
 						<a
 							href={`/products?categoryId=${category.id}`}
-							class="group flex flex-col overflow-hidden rounded-[14px] bg-white pb-[16px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)] transition hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(10,10,10,0.12)]"
+							class="group flex flex-col overflow-hidden rounded-[14px] bg-card pb-[16px] shadow-[0px_0px_0px_1px_color-mix(in_oklab,var(--foreground)_10%,transparent)] transition hover:-translate-y-0.5 hover:shadow-[0_12px_30px_color-mix(in_oklab,var(--foreground)_12%,transparent)]"
 							data-name="Categories Card"
 						>
 							<div
-								class="relative aspect-square w-full overflow-hidden bg-[#f5f5f5]"
+								class="relative aspect-square w-full overflow-hidden bg-muted"
 								data-name="card-header"
 							>
 								{#if category.imageUrl}
@@ -180,11 +180,11 @@
 							</div>
 							<div class="flex w-full flex-col gap-[4px] px-[16px] pt-[16px]" data-name="card-body">
 								<p
-									class="font-['Geist:SemiBold'] text-[18px] leading-[28px] font-semibold [word-break:break-word] text-[#0a0a0a]"
+									class="font-['Geist:SemiBold'] text-[18px] leading-[28px] font-semibold [word-break:break-word] text-foreground"
 								>
 									{category.name}
 								</p>
-								<p class="text-[14px] leading-[20px] text-[#737373]">
+								<p class="text-[14px] leading-[20px] text-muted-foreground">
 									{m.storefront_categories_products_count({ count: category.productCount })}
 								</p>
 							</div>
@@ -209,7 +209,7 @@
 					data-name="Flex Horizontal"
 				>
 					<h2
-						class="relative min-w-px flex-[1_0_0] font-['Geist:Bold'] text-[30px] leading-[36px] font-bold [word-break:break-word] text-[#0a0a0a] max-[480px]:text-2xl max-[480px]:leading-8"
+						class="relative min-w-px flex-[1_0_0] font-['Geist:Bold'] text-[30px] leading-[36px] font-bold [word-break:break-word] text-foreground max-[480px]:text-2xl max-[480px]:leading-8"
 					>
 						{m.storefront_categories_brands_title()}
 					</h2>
@@ -221,7 +221,7 @@
 					{#each home.brands as brand (brand.id)}
 						<a
 							href={`/products?brandId=${brand.id}`}
-							class="group flex flex-col items-center gap-[12px] rounded-[14px] bg-white px-[16px] py-[24px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)] transition hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(10,10,10,0.12)]"
+							class="group flex flex-col items-center gap-[12px] rounded-[14px] bg-card px-[16px] py-[24px] shadow-[0px_0px_0px_1px_color-mix(in_oklab,var(--foreground)_10%,transparent)] transition hover:-translate-y-0.5 hover:shadow-[0_12px_30px_color-mix(in_oklab,var(--foreground)_12%,transparent)]"
 							data-name="Categories Card"
 						>
 							<div class="flex h-[64px] w-full items-center justify-center" data-name="card-header">
@@ -234,7 +234,7 @@
 									/>
 								{:else}
 									<span
-										class="font-['Geist:SemiBold'] text-[18px] leading-[28px] font-semibold text-[#0a0a0a]"
+										class="font-['Geist:SemiBold'] text-[18px] leading-[28px] font-semibold text-foreground"
 									>
 										{brand.name}
 									</span>
@@ -242,7 +242,7 @@
 							</div>
 							<div class="flex w-full flex-col items-center" data-name="card-body">
 								<p
-									class="text-center font-['Geist:Medium'] text-[14px] leading-[20px] text-[#0a0a0a]"
+									class="text-center font-['Geist:Medium'] text-[14px] leading-[20px] text-foreground"
 								>
 									{brand.name}
 								</p>
@@ -269,19 +269,19 @@
 					data-name="Flex Horizontal"
 				>
 					<h2
-						class="relative min-w-px flex-[1_0_0] font-['Geist:Bold'] text-[30px] leading-[36px] font-bold [word-break:break-word] text-[#0a0a0a] max-[480px]:text-2xl max-[480px]:leading-8"
+						class="relative min-w-px flex-[1_0_0] font-['Geist:Bold'] text-[30px] leading-[36px] font-bold [word-break:break-word] text-foreground max-[480px]:text-2xl max-[480px]:leading-8"
 					>
 						{m.storefront_categories_deals_title()}
 					</h2>
 					<a
 						href="/products?deal=true"
-						class="shrink-0 font-['Geist:Medium'] text-[18px] leading-[28px] font-medium text-[#0a0a0a] transition hover:text-[#525252]"
+						class="shrink-0 font-['Geist:Medium'] text-[18px] leading-[28px] font-medium text-foreground transition hover:text-muted-foreground"
 					>
 						{m.common_view_all()}
 					</a>
 				</div>
 				<div
-					class="relative flex w-full shrink-0 overflow-clip rounded-[14px] bg-[#171717]"
+					class="relative flex w-full shrink-0 overflow-clip rounded-[14px] bg-primary"
 					data-name="Card"
 				>
 					{#if firstDeal.imageUrl}
@@ -325,7 +325,7 @@
 									{formatMoney(firstDeal.compareAtPrice, firstDeal.currency)}
 								</span>
 								<span
-									class="rounded-full bg-[#dc2626] px-[10px] py-[2px] text-[14px] leading-[20px] font-medium"
+									class="rounded-full bg-destructive px-[10px] py-[2px] text-[14px] leading-[20px] font-medium"
 								>
 									-{discount}%
 								</span>
@@ -339,7 +339,7 @@
 						</div>
 						<a
 							href={`/products/${firstDeal.slug}`}
-							class="flex w-fit items-center justify-center gap-[6px] overflow-clip rounded-[10px] bg-[#dc2626] px-[16px] py-[8px] text-white"
+							class="flex w-fit items-center justify-center gap-[6px] overflow-clip rounded-[10px] bg-destructive px-[16px] py-[8px] text-white"
 							data-name="Solid Button"
 						>
 							<span

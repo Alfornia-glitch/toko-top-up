@@ -31,7 +31,7 @@
 
 {#if home.loading && !home.data}
 	<div
-		class="relative flex size-full flex-col content-stretch items-center bg-white"
+		class="relative flex size-full flex-col content-stretch items-center bg-card"
 		data-name="Shopix - Category"
 	>
 		<SiteHeader />
@@ -48,14 +48,14 @@
 	</div>
 {:else if !category}
 	<div
-		class="relative flex size-full flex-col content-stretch items-center bg-white"
+		class="relative flex size-full flex-col content-stretch items-center bg-card"
 		data-name="Shopix - Category"
 	>
 		<SiteHeader />
 		<div class="flex min-h-[60vh] w-full items-center justify-center px-4 py-16 sm:px-8">
 			<Card.Root class="w-full max-w-lg">
 				<Card.Content class="flex flex-col items-center gap-4 py-12 text-center">
-					<p class="text-lg font-semibold text-[#0a0a0a]">{m.storefront_category_not_found()}</p>
+					<p class="text-lg font-semibold text-foreground">{m.storefront_category_not_found()}</p>
 					<p class="text-sm text-muted-foreground">
 						{m.storefront_category_not_found_desc()}
 					</p>
@@ -92,11 +92,11 @@
 				</div>
 				<div class="mx-auto w-full max-w-[1280px] px-[32px] max-[480px]:px-3.5">
 					<div
-						class="grid gap-6 overflow-hidden rounded-[14px] border bg-[#f5f5f5] p-6 sm:p-10 md:grid-cols-[1.2fr_1fr]"
+						class="grid gap-6 overflow-hidden rounded-[14px] border bg-muted p-6 sm:p-10 md:grid-cols-[1.2fr_1fr]"
 					>
 						<div class="flex flex-col items-start gap-4">
 							<h1
-								class="text-3xl font-bold text-[#0a0a0a] max-[480px]:text-2xl max-[480px]:leading-8 sm:text-4xl"
+								class="text-3xl font-bold text-foreground max-[480px]:text-2xl max-[480px]:leading-8 sm:text-4xl"
 							>
 								{category.name}
 							</h1>

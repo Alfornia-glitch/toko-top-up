@@ -419,5 +419,6 @@
 	"components_regular_footer_order_tracking": "Order Tracking",
 	"components_regular_footer_terms": "Terms & Policies",
 	"components_regular_footer_returns": "Returns & Exchanges",
-	"components_regular_footer_legal": "© {year} {brand}, Made with ❤ for a better web."
+	"components_regular_footer_legal": "© {year} {brand}, Made with ❤ for a better web.",
+	"components_admin_sidebar_theme": "Theme"
 }
