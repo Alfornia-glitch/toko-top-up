@@ -513,14 +513,14 @@
 								href={site.downloads.appStore}
 								target="_blank"
 								rel="noopener noreferrer"
-								class="relative flex shrink-0 content-stretch items-center gap-[13.469px] rounded-[5.051px] bg-black px-[10.102px] py-[5.051px]"
+								class="relative flex shrink-0 content-stretch items-center gap-[13.469px] rounded-[5.051px] border border-white/15 bg-black px-[10.102px] py-[5.051px]"
 								data-name="Button"
 							>
 								{@render appStoreBadge()}
 							</a>
 						{:else}
 							<div
-								class="relative flex shrink-0 content-stretch items-center gap-[13.469px] rounded-[5.051px] bg-black px-[10.102px] py-[5.051px]"
+								class="relative flex shrink-0 content-stretch items-center gap-[13.469px] rounded-[5.051px] border border-white/15 bg-black px-[10.102px] py-[5.051px]"
 								data-name="Button"
 							>
 								{@render appStoreBadge()}
@@ -531,14 +531,14 @@
 								href={site.downloads.googlePlay}
 								target="_blank"
 								rel="noopener noreferrer"
-								class="relative flex shrink-0 content-stretch items-center justify-center gap-[13.037px] rounded-[4.889px] bg-black px-[9.778px] py-[4.889px]"
+								class="relative flex shrink-0 content-stretch items-center justify-center gap-[13.037px] rounded-[4.889px] border border-white/15 bg-black px-[9.778px] py-[4.889px]"
 								data-name="Button"
 							>
 								{@render googlePlayBadge()}
 							</a>
 						{:else}
 							<div
-								class="relative flex shrink-0 content-stretch items-center justify-center gap-[13.037px] rounded-[4.889px] bg-black px-[9.778px] py-[4.889px]"
+								class="relative flex shrink-0 content-stretch items-center justify-center gap-[13.037px] rounded-[4.889px] border border-white/15 bg-black px-[9.778px] py-[4.889px]"
 								data-name="Button"
 							>
 								{@render googlePlayBadge()}

@@ -111,5 +111,9 @@
 	"common_age_minutes_ago": "{count} menit lalu",
 	"common_age_hours_ago": "{count} jam lalu",
 	"common_age_days_ago": "{count} hari lalu",
-	"common_dash": "—"
+	"common_dash": "—",
+	"common_theme_label": "Tema warna",
+	"common_theme_light": "Terang",
+	"common_theme_dark": "Gelap",
+	"common_theme_system": "Sistem"
 }

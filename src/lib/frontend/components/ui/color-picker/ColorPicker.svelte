@@ -239,7 +239,11 @@
 			></span>
 		</div>
 
-		<div class="grid grid-cols-4 gap-1" role="group" aria-label={m.admin_super_theme_picker_format()}>
+		<div
+			class="grid grid-cols-4 gap-1"
+			role="group"
+			aria-label={m.admin_super_theme_picker_format()}
+		>
 			{#each COLOR_FORMATS as option (option)}
 				<button
 					type="button"

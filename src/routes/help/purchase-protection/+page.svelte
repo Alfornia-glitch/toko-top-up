@@ -108,9 +108,7 @@
 				</Breadcrumb.List>
 			</Breadcrumb.Root>
 
-			<section
-				class="flex flex-col items-start gap-5 rounded-[14px] border bg-muted p-6 sm:p-10"
-			>
+			<section class="flex flex-col items-start gap-5 rounded-[14px] border bg-muted p-6 sm:p-10">
 				<Badge variant="secondary">{m.storefront_pp_badge()}</Badge>
 				<h1
 					class="font-['Geist:Bold'] text-3xl leading-tight text-foreground max-[480px]:text-2xl max-[480px]:leading-8 sm:text-4xl"

@@ -7,6 +7,9 @@
 export const THEME_MODES = ['light', 'dark', 'system'] as const;
 export type ThemeMode = (typeof THEME_MODES)[number];
 
+/** `localStorage` key holding a visitor's own colour scheme, which overrides the site default. */
+export const THEME_PREFERENCE_KEY = 'theme-preference';
+
 export const THEME_GROUPS = ['surface', 'text', 'brand', 'status', 'line', 'sidebar'] as const;
 export type ThemeGroup = (typeof THEME_GROUPS)[number];
 

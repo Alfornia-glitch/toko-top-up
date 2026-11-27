@@ -189,7 +189,7 @@
 					</div>
 				{:else if order}
 					<div
-						class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-card py-[24px] shadow-[0px_0px_0px_1px_color-mix(in_oklab,var(--foreground)_10%,transparent)]"
+						class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[16px] rounded-[14px] bg-card py-[24px] shadow-[0px_0px_0px_1px_color-mix(in_oklab,var(--foreground)_10%,transparent)]"
 						data-name="Card"
 					>
 						<div
@@ -252,7 +252,9 @@
 
 								<div class="grid w-full gap-[12px] sm:grid-cols-2">
 									<div>
-										<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground">
+										<p
+											class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground"
+										>
 											{m.account_order_tracking_carrier()}
 										</p>
 										<p
@@ -262,7 +264,9 @@
 										</p>
 									</div>
 									<div>
-										<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground">
+										<p
+											class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground"
+										>
 											{m.account_order_tracking_number()}
 										</p>
 										<p
@@ -272,7 +276,9 @@
 										</p>
 									</div>
 									<div>
-										<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground">
+										<p
+											class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground"
+										>
 											{m.account_order_tracking_estimated_delivery()}
 										</p>
 										<p
@@ -282,7 +288,9 @@
 										</p>
 									</div>
 									<div>
-										<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground">
+										<p
+											class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground"
+										>
 											{m.account_order_tracking_placed()}
 										</p>
 										<p
@@ -304,7 +312,9 @@
 									{m.account_order_tracking_items()}
 								</p>
 								{#if order.items.length === 0}
-									<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-muted-foreground">
+									<p
+										class="font-['Geist:Regular'] text-[16px] leading-[24px] text-muted-foreground"
+									>
 										{m.account_order_tracking_no_items()}
 									</p>
 								{:else}
@@ -365,7 +375,9 @@
 								data-name="Pricing Details"
 							>
 								<div class="flex w-full items-center justify-between gap-[12px]">
-									<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-muted-foreground">
+									<p
+										class="font-['Geist:Regular'] text-[16px] leading-[24px] text-muted-foreground"
+									>
 										{m.common_subtotal()}
 									</p>
 									<p
@@ -375,7 +387,9 @@
 									</p>
 								</div>
 								<div class="flex w-full items-center justify-between gap-[12px]">
-									<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-muted-foreground">
+									<p
+										class="font-['Geist:Regular'] text-[16px] leading-[24px] text-muted-foreground"
+									>
 										{m.common_discount()}
 									</p>
 									<p
@@ -385,7 +399,9 @@
 									</p>
 								</div>
 								<div class="flex w-full items-center justify-between gap-[12px]">
-									<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-muted-foreground">
+									<p
+										class="font-['Geist:Regular'] text-[16px] leading-[24px] text-muted-foreground"
+									>
 										{m.common_shipping()}
 									</p>
 									<p
@@ -420,7 +436,9 @@
 									{m.account_order_tracking_activity()}
 								</p>
 								{#if timeline.length === 0}
-									<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-muted-foreground">
+									<p
+										class="font-['Geist:Regular'] text-[16px] leading-[24px] text-muted-foreground"
+									>
 										{m.account_order_tracking_no_activity()}
 									</p>
 								{:else}
@@ -438,7 +456,7 @@
 													data-name="TimelineDot"
 												></div>
 												<div
-													class="relative flex min-w-px flex-[1_0_0] flex-col content-stretch items-start gap-[4px] border-l border-border pb-[20px] pl-[16px]"
+													class="relative flex min-w-px flex-[1_0_0] flex-col content-stretch items-start gap-[4px] pb-[20px] pl-[16px]"
 													data-name="Data"
 												>
 													<p

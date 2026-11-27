@@ -1,11 +1,20 @@
 import type { RequestEvent } from '@sveltejs/kit';
-import { DEFAULT_THEME, themeToCss, type ThemeMode } from '#shared/theme.ts';
+import { DEFAULT_THEME, THEME_PREFERENCE_KEY, themeToCss, type ThemeMode } from '#shared/theme.ts';
 
-/** Sets `.dark` before first paint; the SPA shell cannot know the scheme until its JS runs. */
-function modeScript(mode: ThemeMode): string {
-	if (mode === 'light') return '';
-	const dark = mode === 'dark' ? 'true' : "matchMedia('(prefers-color-scheme: dark)').matches";
-	return `<script>document.documentElement.classList.toggle('dark',${dark})</script>`;
+/**
+ * Sets `.dark` before first paint; the SPA shell cannot know the scheme until its JS runs. The
+ * visitor's stored choice wins over the site default, so it is emitted even for `light`.
+ */
+export function modeScript(mode: ThemeMode): string {
+	return (
+		'<script>(function(){var m=' +
+		JSON.stringify(mode) +
+		';try{var p=localStorage.getItem(' +
+		JSON.stringify(THEME_PREFERENCE_KEY) +
+		");if(p==='light'||p==='dark'||p==='system')m=p}catch(e){}" +
+		"var d=m==='dark'||(m==='system'&&matchMedia('(prefers-color-scheme: dark)').matches);" +
+		"var r=document.documentElement;r.classList.toggle('dark',d);r.style.colorScheme=d?'dark':'light'})()</script>"
+	);
 }
 
 /**

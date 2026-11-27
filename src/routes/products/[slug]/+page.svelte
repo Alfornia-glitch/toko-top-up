@@ -333,8 +333,7 @@
 
 					<div class="flex flex-wrap items-center gap-3">
 						{#if displayStock > 10}
-							<Badge class="bg-success/10 text-success">{m.storefront_product_in_stock()}</Badge
-							>
+							<Badge class="bg-success/10 text-success">{m.storefront_product_in_stock()}</Badge>
 						{:else if displayStock > 0}
 							<Badge class="bg-warning/10 text-warning"
 								>{m.storefront_product_low_stock({ count: displayStock })}</Badge

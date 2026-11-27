@@ -19,6 +19,7 @@
 	import { page } from '$app/state';
 	import { m } from '#lib/paraglide/messages.js';
 	import LanguageSwitcher from '#lib/frontend/components/LanguageSwitcher.svelte';
+	import ThemeToggle from '#lib/frontend/components/ThemeToggle.svelte';
 	import { Button } from '#lib/frontend/components/ui/button/index.ts';
 	import * as DropdownMenu from '#lib/frontend/components/ui/dropdown-menu/index.ts';
 	import * as InputGroup from '#lib/frontend/components/ui/input-group/index.ts';
@@ -44,6 +45,11 @@
 
 	const session = authClient.useSession();
 	const user = $derived($session.data?.user);
+	$effect(() => {
+		if (user) {
+			console.log('user: ', user);
+		}
+	});
 
 	function isActive(href: string) {
 		return href === '/' ? page.url.pathname === '/' : page.url.pathname.startsWith(href);
@@ -64,7 +70,7 @@
 
 <header class="sticky top-0 z-40 w-full bg-background" data-name="Header">
 	<div class="w-full">
-		<div class="flex h-16 items-center gap-3 px-2 md:px-8 md:gap-5">
+		<div class="flex h-16 items-center gap-3 px-2 md:gap-5 md:px-8">
 			<Sheet.Root bind:open={mobileOpen}>
 				<Sheet.Trigger>
 					{#snippet child({ props })}
@@ -136,6 +142,7 @@
 
 			<div class="ml-auto flex items-center gap-2">
 				<LanguageSwitcher />
+				<ThemeToggle />
 				<Button
 					variant="ghost"
 					size="icon"
@@ -163,7 +170,13 @@
 									class="shrink-0 cursor-pointer"
 									aria-label={m.components_site_header_account_menu()}
 								>
-									<UserAvatar image={user.image} name={user.name} email={user.email} />
+									<UserAvatar
+										image={user.image}
+										name={user.name}
+										email={user.email}
+										class="size-8"
+										labelClass="text-xs"
+									/>
 								</button>
 							{/snippet}
 						</DropdownMenu.Trigger>

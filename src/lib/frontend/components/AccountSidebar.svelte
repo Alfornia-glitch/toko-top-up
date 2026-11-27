@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { m } from '#lib/paraglide/messages.js';
 	import UserAvatar from '#lib/frontend/components/UserAvatar.svelte';
+	import { Separator } from '#lib/frontend/components/ui/separator/index.ts';
 	import { authClient, signOutUser } from '#frontend/modules/auth/index.ts';
 
 	const session = authClient.useSession();
 	const user = $derived($session.data?.user);
 
-	const imgSeparator = '/assets/42c25.svg';
 	const imgIcon = '/assets/f0c09.svg';
 	const imgIcon1 = '/assets/95ca5.svg';
 	const imgIcon2 = '/assets/9bb2e.svg';
@@ -76,9 +76,7 @@
 				</button>
 			</div>
 
-			<div class="relative hidden h-[8px] w-full shrink-0 lg:block" data-name="separator">
-				<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgSeparator} />
-			</div>
+			<Separator class="hidden lg:block" />
 
 			<div
 				class={`${mobileExpanded ? 'flex' : 'hidden lg:flex'} relative w-full shrink-0 flex-col content-stretch items-center`}
@@ -94,7 +92,11 @@
 						data-name="Flex Horizontal"
 					>
 						<div class="relative size-[20px] shrink-0" data-name="Icon">
-							<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgIcon} />
+							<span
+								aria-hidden="true"
+								class="absolute inset-0 block size-full max-w-none bg-foreground mask-no-repeat"
+								style="mask-image: url('{imgIcon}')"
+							></span>
 						</div>
 						<p
 							class="relative h-full min-w-px flex-[1_0_0] font-['Geist:Medium'] text-[16px] leading-[24px] font-medium [word-break:break-word] text-foreground"
@@ -108,7 +110,11 @@
 						data-name="Flex Horizontal"
 					>
 						<div class="relative size-[20px] shrink-0" data-name="Icon">
-							<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgIcon1} />
+							<span
+								aria-hidden="true"
+								class="absolute inset-0 block size-full max-w-none bg-foreground mask-no-repeat"
+								style="mask-image: url('{imgIcon1}')"
+							></span>
 						</div>
 						<p
 							class="relative h-full min-w-px flex-[1_0_0] font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-foreground"
@@ -122,7 +128,11 @@
 						data-name="Flex Horizontal"
 					>
 						<div class="relative size-[20px] shrink-0" data-name="Icon">
-							<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgIcon2} />
+							<span
+								aria-hidden="true"
+								class="absolute inset-0 block size-full max-w-none bg-foreground mask-no-repeat"
+								style="mask-image: url('{imgIcon2}')"
+							></span>
 						</div>
 						<p
 							class="relative h-full min-w-px flex-[1_0_0] font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-foreground"
@@ -136,7 +146,11 @@
 						data-name="Flex Horizontal"
 					>
 						<div class="relative size-[20px] shrink-0" data-name="Icon">
-							<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgIcon3} />
+							<span
+								aria-hidden="true"
+								class="absolute inset-0 block size-full max-w-none bg-foreground mask-no-repeat"
+								style="mask-image: url('{imgIcon3}')"
+							></span>
 						</div>
 						<p
 							class="relative h-full min-w-px flex-[1_0_0] font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-foreground"
@@ -150,7 +164,11 @@
 						data-name="Flex Horizontal"
 					>
 						<div class="relative size-[20px] shrink-0" data-name="Icon">
-							<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgIcon4} />
+							<span
+								aria-hidden="true"
+								class="absolute inset-0 block size-full max-w-none bg-foreground mask-no-repeat"
+								style="mask-image: url('{imgIcon4}')"
+							></span>
 						</div>
 						<p
 							class="relative min-w-px flex-[1_0_0] font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-foreground"
@@ -164,7 +182,11 @@
 						data-name="Flex Horizontal"
 					>
 						<div class="relative size-[20px] shrink-0" data-name="Icon">
-							<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgIcon5} />
+							<span
+								aria-hidden="true"
+								class="absolute inset-0 block size-full max-w-none bg-foreground mask-no-repeat"
+								style="mask-image: url('{imgIcon5}')"
+							></span>
 						</div>
 						<p
 							class="relative h-full min-w-px flex-[1_0_0] font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-foreground"
@@ -172,16 +194,18 @@
 							{m.components_account_sidebar_wallet()}
 						</p>
 					</a>
-					<div class="relative h-[8px] w-full shrink-0" data-name="separator">
-						<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgSeparator} />
-					</div>
+					<Separator />
 					<a
 						href="/account/payment"
 						class="relative flex w-full shrink-0 content-stretch items-center gap-[8px] rounded-[6px] px-[12px] py-[10px] hover:bg-muted"
 						data-name="Flex Horizontal"
 					>
 						<div class="relative size-[20px] shrink-0" data-name="Icon">
-							<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgIcon6} />
+							<span
+								aria-hidden="true"
+								class="absolute inset-0 block size-full max-w-none bg-foreground mask-no-repeat"
+								style="mask-image: url('{imgIcon6}')"
+							></span>
 						</div>
 						<p
 							class="relative h-full min-w-px flex-[1_0_0] font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-foreground"
@@ -195,7 +219,11 @@
 						data-name="Flex Horizontal"
 					>
 						<div class="relative size-[20px] shrink-0" data-name="Icon">
-							<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgIcon7} />
+							<span
+								aria-hidden="true"
+								class="absolute inset-0 block size-full max-w-none bg-foreground mask-no-repeat"
+								style="mask-image: url('{imgIcon7}')"
+							></span>
 						</div>
 						<p
 							class="relative h-full min-w-px flex-[1_0_0] font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-foreground"
@@ -209,7 +237,11 @@
 						data-name="Flex Horizontal"
 					>
 						<div class="relative size-[20px] shrink-0" data-name="Icon">
-							<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgIcon8} />
+							<span
+								aria-hidden="true"
+								class="absolute inset-0 block size-full max-w-none bg-foreground mask-no-repeat"
+								style="mask-image: url('{imgIcon8}')"
+							></span>
 						</div>
 						<p
 							class="relative h-full min-w-px flex-[1_0_0] font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-foreground"
@@ -223,7 +255,11 @@
 						data-name="Flex Horizontal"
 					>
 						<div class="relative size-[20px] shrink-0" data-name="Icon">
-							<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgIcon9} />
+							<span
+								aria-hidden="true"
+								class="absolute inset-0 block size-full max-w-none bg-foreground mask-no-repeat"
+								style="mask-image: url('{imgIcon9}')"
+							></span>
 						</div>
 						<p
 							class="relative h-full min-w-px flex-[1_0_0] font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-foreground"
@@ -237,7 +273,11 @@
 						data-name="Flex Horizontal"
 					>
 						<div class="relative size-[20px] shrink-0" data-name="Icon">
-							<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgIcon10} />
+							<span
+								aria-hidden="true"
+								class="absolute inset-0 block size-full max-w-none bg-foreground mask-no-repeat"
+								style="mask-image: url('{imgIcon10}')"
+							></span>
 						</div>
 						<p
 							class="relative h-full min-w-px flex-[1_0_0] font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-foreground"
@@ -245,9 +285,7 @@
 							{m.components_account_sidebar_support_tickets()}
 						</p>
 					</a>
-					<div class="relative h-[8px] w-full shrink-0" data-name="separator">
-						<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgSeparator} />
-					</div>
+					<Separator />
 					<button
 						type="button"
 						class="relative flex w-full shrink-0 cursor-pointer content-stretch items-center gap-[8px] rounded-[6px] px-[12px] py-[10px] text-left text-destructive hover:bg-muted"
@@ -255,7 +293,11 @@
 						onclick={() => signOutUser()}
 					>
 						<div class="relative size-[20px] shrink-0" data-name="Icon">
-							<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgIcon11} />
+							<span
+								aria-hidden="true"
+								class="absolute inset-0 block size-full max-w-none bg-foreground mask-no-repeat"
+								style="mask-image: url('{imgIcon11}')"
+							></span>
 						</div>
 						<p
 							class="relative h-full shrink-0 font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word]"

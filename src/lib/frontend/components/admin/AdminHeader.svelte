@@ -3,6 +3,7 @@
 	import { LogOut, Search } from '@lucide/svelte';
 	import { m } from '#lib/paraglide/messages.js';
 	import LanguageSwitcher from '#lib/frontend/components/LanguageSwitcher.svelte';
+	import ThemeToggle from '#lib/frontend/components/ThemeToggle.svelte';
 	import * as Sidebar from '#lib/frontend/components/ui/sidebar/index.ts';
 	import * as Breadcrumb from '#lib/frontend/components/ui/breadcrumb/index.ts';
 	import * as DropdownMenu from '#lib/frontend/components/ui/dropdown-menu/index.ts';
@@ -57,6 +58,7 @@
 
 	<div class="ml-auto flex items-center gap-2">
 		<LanguageSwitcher />
+		<ThemeToggle />
 		<div class="relative hidden sm:block">
 			<Search class="absolute top-1/2 left-2 size-4 -translate-y-1/2 text-muted-foreground" />
 			<Input

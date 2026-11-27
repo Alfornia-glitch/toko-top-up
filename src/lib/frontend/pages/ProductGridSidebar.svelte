@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Separator } from '#lib/frontend/components/ui/separator/index.ts';
 	import { m } from '#lib/paraglide/messages.js';
 	import { onMount, untrack, type Snippet } from 'svelte';
 	import { goto } from '$app/navigation';
@@ -224,7 +225,6 @@
 	const imgCheck = '/assets/82e9f.svg';
 	const imgLeftIcon = '/assets/ca51b.svg';
 	const imgLeftIcon1 = '/assets/6b5ef.svg';
-	const imgSeparator = '/assets/402db.svg';
 </script>
 
 <div
@@ -334,17 +334,7 @@
 					class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[24px] px-[16px]"
 					data-name="card-body"
 				>
-					<div class="relative h-0 w-full shrink-0" data-name="Separator">
-						<div class="absolute inset-[-1px_0_0_0]">
-							<img
-								loading="lazy"
-								decoding="async"
-								alt=""
-								class="block size-full max-w-none"
-								src={imgSeparator}
-							/>
-						</div>
-					</div>
+					<Separator />
 					<div
 						class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[16px]"
 						data-name="Flex Vertical"
@@ -399,17 +389,7 @@
 							</button>
 						{/each}
 					</div>
-					<div class="relative h-0 w-full shrink-0" data-name="Separator">
-						<div class="absolute inset-[-1px_0_0_0]">
-							<img
-								loading="lazy"
-								decoding="async"
-								alt=""
-								class="block size-full max-w-none"
-								src={imgSeparator}
-							/>
-						</div>
-					</div>
+					<Separator />
 					<div
 						class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[16px]"
 						data-name="Advance slider"
@@ -450,17 +430,7 @@
 							</button>
 						{/each}
 					</div>
-					<div class="relative h-0 w-full shrink-0" data-name="Separator">
-						<div class="absolute inset-[-1px_0_0_0]">
-							<img
-								loading="lazy"
-								decoding="async"
-								alt=""
-								class="block size-full max-w-none"
-								src={imgSeparator}
-							/>
-						</div>
-					</div>
+					<Separator />
 					<div
 						class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[16px]"
 						data-name="Flex Vertical"

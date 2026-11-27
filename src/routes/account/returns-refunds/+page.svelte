@@ -267,7 +267,9 @@
 										</Select.Content>
 									</Select.Root>
 									{#if orders.length === 0}
-										<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground">
+										<p
+											class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground"
+										>
 											{m.account_returns_no_orders()}
 										</p>
 									{/if}
@@ -437,10 +439,14 @@
 											>
 												{entry.productName}
 											</p>
-											<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground">
+											<p
+												class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground"
+											>
 												{m.account_shared_sku({ sku: entry.sku })}
 											</p>
-											<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground">
+											<p
+												class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground"
+											>
 												{typeLabel(entry.type)} · {entry.reason}
 											</p>
 										</div>
@@ -453,7 +459,9 @@
 											>
 												{entry.refundAmount === null ? '—' : formatMoney(entry.refundAmount)}
 											</p>
-											<p class="font-['Geist:Regular'] text-[12px] leading-[16px] text-muted-foreground">
+											<p
+												class="font-['Geist:Regular'] text-[12px] leading-[16px] text-muted-foreground"
+											>
 												{formatDate(entry.createdAt)}
 											</p>
 										</div>
@@ -480,7 +488,9 @@
 							{#if detailLoading}
 								<div class="flex items-center gap-[12px]">
 									<Spinner class="size-5" aria-label={m.account_returns_loading_one()} />
-									<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-muted-foreground">
+									<p
+										class="font-['Geist:Regular'] text-[16px] leading-[24px] text-muted-foreground"
+									>
 										{m.account_returns_loading_one()}
 									</p>
 								</div>
@@ -495,10 +505,14 @@
 											>
 												{selected.productName}
 											</p>
-											<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground">
+											<p
+												class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground"
+											>
 												{m.account_shared_sku({ sku: selected.sku })}
 											</p>
-											<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground">
+											<p
+												class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground"
+											>
 												{m.account_shared_order_number({ orderNumber: selected.orderNumber })}
 											</p>
 										</div>
@@ -516,7 +530,9 @@
 
 									<div class="grid w-full gap-[12px] sm:grid-cols-2">
 										<div>
-											<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground">
+											<p
+												class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground"
+											>
 												{m.account_returns_type()}
 											</p>
 											<p
@@ -526,7 +542,9 @@
 											</p>
 										</div>
 										<div>
-											<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground">
+											<p
+												class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground"
+											>
 												{m.account_returns_resolution()}
 											</p>
 											<p
@@ -536,7 +554,9 @@
 											</p>
 										</div>
 										<div class="sm:col-span-2">
-											<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground">
+											<p
+												class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground"
+											>
 												{m.account_returns_reason()}
 											</p>
 											<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-foreground">
@@ -545,10 +565,14 @@
 										</div>
 										{#if selected.note}
 											<div class="sm:col-span-2">
-												<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground">
+												<p
+													class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground"
+												>
 													{m.account_returns_note()}
 												</p>
-												<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-foreground">
+												<p
+													class="font-['Geist:Regular'] text-[16px] leading-[24px] text-foreground"
+												>
 													{selected.note}
 												</p>
 											</div>
@@ -576,7 +600,9 @@
 											>
 												{m.account_returns_requested()}
 											</p>
-											<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground">
+											<p
+												class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground"
+											>
 												{formatDateTime(selected.createdAt) || '—'}
 											</p>
 										</div>
@@ -587,7 +613,9 @@
 												>
 													{statusLabel(RETURN_STATUS_LABELS, selected.status)}
 												</p>
-												<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground">
+												<p
+													class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground"
+												>
 													{formatDateTime(selected.updatedAt) || '—'}
 												</p>
 											</div>

@@ -322,7 +322,9 @@
 								data-name="Card"
 							>
 								<div class="px-[16px]" data-name="card-body">
-									<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-muted-foreground">
+									<p
+										class="font-['Geist:Regular'] text-[16px] leading-[24px] text-muted-foreground"
+									>
 										{m.account_payment_empty()}
 									</p>
 								</div>

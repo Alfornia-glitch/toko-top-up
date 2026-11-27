@@ -8,6 +8,7 @@
 	import { site } from '#lib/frontend/modules/commerce/site.svelte.ts';
 	import { onMount } from 'svelte';
 	import { applyThemeMode } from '#lib/frontend/modules/commerce/theme-mode.ts';
+	import { themePreference } from '#lib/frontend/modules/commerce/theme-preference.svelte.ts';
 	import { themeToCss } from '#shared/theme.ts';
 
 	let { children } = $props();
@@ -18,8 +19,8 @@
 		void site.ensure();
 	});
 
-	// The superadmin picks the colour scheme; there is no visitor toggle yet.
-	$effect(() => applyThemeMode(site.theme.mode));
+	// A visitor's own choice wins; otherwise the superadmin's scheme applies.
+	$effect(() => applyThemeMode(themePreference.effective(site.theme.mode)));
 
 	const themeCss = $derived(themeToCss(site.theme));
 

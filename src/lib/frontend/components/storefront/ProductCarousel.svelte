@@ -44,7 +44,9 @@
 			{/if}
 		</div>
 		{#if products.length === 0}
-			<p class="relative w-full shrink-0 text-center text-[16px] leading-[24px] text-muted-foreground">
+			<p
+				class="relative w-full shrink-0 text-center text-[16px] leading-[24px] text-muted-foreground"
+			>
 				{emptyLabel}
 			</p>
 		{:else}

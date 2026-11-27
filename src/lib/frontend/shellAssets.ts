@@ -14,7 +14,6 @@ export const imgLeftIcon3 = `${assetPathPrefix}/a3682.svg`;
 export const imgLeftIcon4 = `${assetPathPrefix}/dad92.svg`;
 export const imgIcon2 = `${assetPathPrefix}/303ae.svg`;
 export const imgIcon3 = `${assetPathPrefix}/bf68c.svg`;
-export const imgSeparator = `${assetPathPrefix}/7c830.svg`;
 export const imgGroup3 = `${assetPathPrefix}/bf7d8.svg`;
 export const imgIcon4 = `${assetPathPrefix}/f7856.svg`;
 export const imgIcon5 = `${assetPathPrefix}/008f3.svg`;

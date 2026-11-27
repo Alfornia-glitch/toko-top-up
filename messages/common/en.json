@@ -129,5 +129,9 @@
 	"common_age_minutes_ago": "{count} minutes ago",
 	"common_age_hours_ago": "{count} hours ago",
 	"common_age_days_ago": "{count} days ago",
-	"common_dash": "—"
+	"common_dash": "—",
+	"common_theme_label": "Color theme",
+	"common_theme_light": "Light",
+	"common_theme_dark": "Dark",
+	"common_theme_system": "System"
 }

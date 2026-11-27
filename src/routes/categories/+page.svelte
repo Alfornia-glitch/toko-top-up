@@ -11,7 +11,6 @@
 	import { discountPercent, formatMoney } from '#lib/frontend/modules/commerce/format.ts';
 
 	const categoryBanners = $derived(home.banners.filter((banner) => banner.key === 'category'));
-	const heroBanner = $derived(home.banner('category') ?? home.banner('hero'));
 	const rootCategories = $derived(home.categories.filter((category) => category.parentId === null));
 	const firstDeal = $derived(home.deals[0]);
 	const remainingDeals = $derived(home.deals.slice(1));
@@ -72,56 +71,6 @@
 						</div>
 					</a>
 				{/each}
-			</div>
-		</section>
-	{:else if heroBanner}
-		<section
-			class="relative flex w-full max-w-[1440px] shrink-0 content-stretch items-center justify-center overflow-clip py-[56px] max-[480px]:py-9"
-			data-name="Hero"
-		>
-			<div
-				class="relative flex min-h-[336px] w-full items-center overflow-clip rounded-[8px] bg-primary"
-			>
-				{#if heroBanner.imageUrl}
-					<img
-						loading="lazy"
-						decoding="async"
-						src={heroBanner.imageUrl}
-						alt={heroBanner.title}
-						class="pointer-events-none absolute inset-0 size-full object-cover"
-					/>
-					<div class="pointer-events-none absolute inset-0 bg-black/40"></div>
-				{:else}
-					<ImagePlaceholder variant="dark" class="pointer-events-none absolute inset-0" />
-				{/if}
-				<div
-					class="relative flex w-full max-w-[600px] flex-col items-start gap-[16px] px-[40px] py-[40px] text-white"
-				>
-					<h1
-						class="font-['Geist:Bold'] text-[36px] leading-[40px] font-bold max-[480px]:text-2xl max-[480px]:leading-8"
-					>
-						{heroBanner.title}
-					</h1>
-					{#if heroBanner.subtitle}
-						<p class="font-['Geist:Regular'] text-[18px] leading-[28px]">
-							{heroBanner.subtitle}
-						</p>
-					{/if}
-					{#if heroBanner.ctaLabel}
-						<a
-							href={heroBanner.ctaUrl ?? '/products'}
-							class="flex items-center justify-center gap-[6px] overflow-clip rounded-[10px] border border-solid border-muted bg-muted px-[16px] py-[8px] text-primary"
-							data-name="Solid button"
-						>
-							<span
-								class="font-['Geist:Medium'] text-[14px] leading-[20px] font-medium whitespace-nowrap"
-							>
-								{heroBanner.ctaLabel}
-							</span>
-							<ArrowRight class="size-[16px]" />
-						</a>
-					{/if}
-				</div>
 			</div>
 		</section>
 	{/if}

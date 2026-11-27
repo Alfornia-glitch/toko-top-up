@@ -344,7 +344,9 @@
 											>
 												{m.account_shared_order_number({ orderNumber: selectedOrder.orderNumber })}
 											</p>
-											<p class="font-['Geist:Regular'] text-[12px] leading-[16px] text-muted-foreground">
+											<p
+												class="font-['Geist:Regular'] text-[12px] leading-[16px] text-muted-foreground"
+											>
 												{formatDate(selectedOrder.placedAt)}
 											</p>
 										</div>
@@ -356,12 +358,16 @@
 									{#if orderLoading}
 										<div class="flex items-center gap-[12px]">
 											<Spinner class="size-5" aria-label={m.account_shared_loading_order_items()} />
-											<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground">
+											<p
+												class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground"
+											>
 												{m.account_shared_loading_items()}
 											</p>
 										</div>
 									{:else if selectedOrder.items.length === 0}
-										<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground">
+										<p
+											class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground"
+										>
 											{m.account_return_item_no_items()}
 										</p>
 									{:else}
@@ -429,7 +435,9 @@
 											data-name="Pricing Details"
 										>
 											<div class="flex w-full items-center justify-between gap-[12px]">
-												<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-muted-foreground">
+												<p
+													class="font-['Geist:Regular'] text-[16px] leading-[24px] text-muted-foreground"
+												>
 													{m.common_subtotal()}
 												</p>
 												<p
@@ -439,7 +447,9 @@
 												</p>
 											</div>
 											<div class="flex w-full items-center justify-between gap-[12px]">
-												<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-muted-foreground">
+												<p
+													class="font-['Geist:Regular'] text-[16px] leading-[24px] text-muted-foreground"
+												>
 													{m.common_discount()}
 												</p>
 												<p
@@ -449,7 +459,9 @@
 												</p>
 											</div>
 											<div class="flex w-full items-center justify-between gap-[12px]">
-												<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-muted-foreground">
+												<p
+													class="font-['Geist:Regular'] text-[16px] leading-[24px] text-muted-foreground"
+												>
 													{m.account_shared_shipping_cost()}
 												</p>
 												<p

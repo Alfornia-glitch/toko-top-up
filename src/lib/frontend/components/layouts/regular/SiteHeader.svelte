@@ -13,6 +13,7 @@
 	import { onMount } from 'svelte';
 	import { m } from '#lib/paraglide/messages.js';
 	import LanguageSwitcher from '#lib/frontend/components/LanguageSwitcher.svelte';
+	import ThemeToggle from '#lib/frontend/components/ThemeToggle.svelte';
 	import { afterNavigate, goto } from '$app/navigation';
 	import MegaMenu from './MegaMenu.svelte';
 	import { Button } from '#lib/frontend/components/ui/button/index.ts';
@@ -236,6 +237,7 @@
 
 			<div class="ml-auto flex items-center gap-1 sm:gap-2">
 				<LanguageSwitcher />
+				<ThemeToggle />
 				<Button
 					href="/products"
 					variant="ghost"

@@ -153,7 +153,8 @@
 													<div class="flex flex-col gap-1">
 														<span class="font-medium text-foreground">{option.label}</span>
 														{#if option.description}
-															<span class="text-xs text-muted-foreground">{option.description}</span>
+															<span class="text-xs text-muted-foreground">{option.description}</span
+															>
 														{/if}
 													</div>
 												</Table.Cell>

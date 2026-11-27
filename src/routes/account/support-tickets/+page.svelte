@@ -188,12 +188,11 @@
 >
 	<SiteHeader />
 	<div
-		class="relative flex w-full max-w-[1440px] shrink-0 flex-col content-stretch items-center justify-center bg-card py-[56px] max-[480px]:py-9"
+		class="relative flex w-full max-w-[1440px] shrink-0 flex-col flex-wrap content-stretch items-center justify-center bg-card py-[56px]"
 		data-name="Support tickets"
 	>
 		<div
-			class="relative flex w-full max-w-[1280px] min-w-[328px] shrink-0 content-stretch items-start gap-[24px] overflow-clip px-[32px] max-[480px]:px-3.5"
-			data-name="Flex Horizontal"
+			class="relative flex w-full max-w-[1280px] min-w-[328px] content-stretch items-start gap-[24px] px-[32px]"
 		>
 			<AccountSidebar />
 
@@ -359,10 +358,14 @@
 										>
 											{entry.subject}
 										</p>
-										<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground">
+										<p
+											class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground"
+										>
 											{entry.ticketNumber} · {entry.category} · {priorityLabel(entry.priority)}
 										</p>
-										<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground">
+										<p
+											class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground"
+										>
 											{m.account_tickets_updated({ date: formatDateTime(entry.updatedAt) || '—' })}
 										</p>
 									</div>
@@ -387,7 +390,9 @@
 							{#if detailLoading}
 								<div class="flex items-center gap-[12px]">
 									<Spinner class="size-5" aria-label={m.account_tickets_loading_one()} />
-									<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-muted-foreground">
+									<p
+										class="font-['Geist:Regular'] text-[16px] leading-[24px] text-muted-foreground"
+									>
 										{m.account_tickets_loading_one()}
 									</p>
 								</div>
@@ -401,7 +406,9 @@
 										>
 											{selected.subject}
 										</p>
-										<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground">
+										<p
+											class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground"
+										>
 											{selected.ticketNumber} · {selected.category} · {priorityLabel(
 												selected.priority
 											)}
@@ -421,7 +428,9 @@
 												>
 													{message.senderName ?? message.senderEmail ?? m.account_tickets_support()}
 												</p>
-												<p class="font-['Geist:Regular'] text-[12px] leading-[16px] text-muted-foreground">
+												<p
+													class="font-['Geist:Regular'] text-[12px] leading-[16px] text-muted-foreground"
+												>
 													{formatDateTime(message.createdAt) || '—'}
 												</p>
 											</div>

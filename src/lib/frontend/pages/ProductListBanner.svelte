@@ -213,13 +213,11 @@
 									<p class="leading-[20px]">{banner.ctaLabel}</p>
 								</div>
 								<div class="relative size-[16px] shrink-0" data-name="Right-icon">
-									<img
-										loading="lazy"
-										decoding="async"
-										alt=""
-										class="absolute inset-0 block size-full max-w-none"
-										src={imgRightIcon}
-									/>
+									<span
+										aria-hidden="true"
+										class="absolute inset-0 block size-full max-w-none bg-foreground mask-no-repeat"
+										style="mask-image: url('{imgRightIcon}')"
+									></span>
 								</div>
 							</a>
 						{/if}
@@ -278,13 +276,11 @@
 										{category.name}
 									</p>
 									<div class="relative size-[16px] shrink-0" data-name="Left-icon">
-										<img
-											loading="lazy"
-											decoding="async"
-											alt=""
-											class="absolute inset-0 block size-full max-w-none"
-											src={imgMenuIcon}
-										/>
+										<span
+											aria-hidden="true"
+											class="absolute inset-0 block size-full max-w-none bg-foreground mask-no-repeat"
+											style="mask-image: url('{imgMenuIcon}')"
+										></span>
 									</div>
 								</button>
 							{/each}
@@ -311,13 +307,11 @@
 											data-name="Tab 01"
 										>
 											<div class="relative size-[16px] shrink-0" data-name="left-icon">
-												<img
-													loading="lazy"
-													decoding="async"
-													alt=""
-													class="absolute inset-0 block size-full max-w-none"
-													src={imgGridIcon}
-												/>
+												<span
+													aria-hidden="true"
+													class="absolute inset-0 block size-full max-w-none bg-foreground mask-no-repeat"
+													style="mask-image: url('{imgGridIcon}')"
+												></span>
 											</div>
 											<p
 												class="relative shrink-0 font-['Geist:Medium'] text-[14px] leading-[20px] font-medium [word-break:break-word] whitespace-nowrap text-foreground opacity-60"
@@ -331,13 +325,11 @@
 											data-name="Tab 02"
 										>
 											<div class="relative size-[16px] shrink-0" data-name="left-icon">
-												<img
-													loading="lazy"
-													decoding="async"
-													alt=""
-													class="absolute inset-0 block size-full max-w-none"
-													src={imgListIcon}
-												/>
+												<span
+													aria-hidden="true"
+													class="absolute inset-0 block size-full max-w-none bg-foreground mask-no-repeat"
+													style="mask-image: url('{imgListIcon}')"
+												></span>
 											</div>
 											<p
 												class="relative shrink-0 font-['Geist:Medium'] text-[14px] leading-[20px] font-medium [word-break:break-word] whitespace-nowrap text-foreground"
@@ -369,13 +361,11 @@
 											<option value="newest">{m.storefront_listing_sort_newest()}</option>
 										</select>
 										<div class="relative size-[16px] shrink-0" data-name="chevron-down">
-											<img
-												loading="lazy"
-												decoding="async"
-												alt=""
-												class="absolute inset-0 block size-full max-w-none"
-												src={imgSelectIcon}
-											/>
+											<span
+												aria-hidden="true"
+												class="absolute inset-0 block size-full max-w-none bg-foreground mask-no-repeat"
+												style="mask-image: url('{imgSelectIcon}')"
+											></span>
 										</div>
 									</div>
 								</div>
@@ -400,13 +390,11 @@
 									{selectedCategory}
 								</p>
 								<div class="relative size-[12px] shrink-0" data-name="x">
-									<img
-										loading="lazy"
-										decoding="async"
-										alt=""
-										class="absolute inset-0 block size-full max-w-none"
-										src={imgX}
-									/>
+									<span
+										aria-hidden="true"
+										class="absolute inset-0 block size-full max-w-none bg-foreground mask-no-repeat"
+										style="mask-image: url('{imgX}')"
+									></span>
 								</div>
 							</button>
 						{/if}
@@ -428,13 +416,11 @@
 									{brandName}
 								</p>
 								<div class="relative size-[12px] shrink-0" data-name="x">
-									<img
-										loading="lazy"
-										decoding="async"
-										alt=""
-										class="absolute inset-0 block size-full max-w-none"
-										src={imgX}
-									/>
+									<span
+										aria-hidden="true"
+										class="absolute inset-0 block size-full max-w-none bg-foreground mask-no-repeat"
+										style="mask-image: url('{imgX}')"
+									></span>
 								</div>
 							</button>
 						{/if}
@@ -452,13 +438,11 @@
 									{priceLabel}
 								</p>
 								<div class="relative size-[12px] shrink-0" data-name="x">
-									<img
-										loading="lazy"
-										decoding="async"
-										alt=""
-										class="absolute inset-0 block size-full max-w-none"
-										src={imgX}
-									/>
+									<span
+										aria-hidden="true"
+										class="absolute inset-0 block size-full max-w-none bg-foreground mask-no-repeat"
+										style="mask-image: url('{imgX}')"
+									></span>
 								</div>
 							</button>
 						{/if}
@@ -480,13 +464,11 @@
 									{filters.color}
 								</p>
 								<div class="relative size-[12px] shrink-0" data-name="x">
-									<img
-										loading="lazy"
-										decoding="async"
-										alt=""
-										class="absolute inset-0 block size-full max-w-none"
-										src={imgX}
-									/>
+									<span
+										aria-hidden="true"
+										class="absolute inset-0 block size-full max-w-none bg-foreground mask-no-repeat"
+										style="mask-image: url('{imgX}')"
+									></span>
 								</div>
 							</button>
 						{/if}
@@ -547,13 +529,11 @@
 							data-name="Ghost Button"
 						>
 							<div class="relative size-[16px] shrink-0" data-name="Left icon">
-								<img
-									loading="lazy"
-									decoding="async"
-									alt=""
-									class="absolute inset-0 block size-full max-w-none"
-									src={imgLeftIcon}
-								/>
+								<span
+									aria-hidden="true"
+									class="absolute inset-0 block size-full max-w-none bg-foreground mask-no-repeat"
+									style="mask-image: url('{imgLeftIcon}')"
+								></span>
 							</div>
 							<p
 								class="font-['Geist:Medium'] text-[14px] leading-[20px] font-medium text-foreground"
@@ -590,13 +570,11 @@
 								{m.common_next()}
 							</p>
 							<div class="relative size-[16px] shrink-0" data-name="Left icon">
-								<img
-									loading="lazy"
-									decoding="async"
-									alt=""
-									class="absolute inset-0 block size-full max-w-none"
-									src={imgLeftIcon1}
-								/>
+								<span
+									aria-hidden="true"
+									class="absolute inset-0 block size-full max-w-none bg-foreground mask-no-repeat"
+									style="mask-image: url('{imgLeftIcon1}')"
+								></span>
 							</div>
 						</button>
 					</Pagination>
