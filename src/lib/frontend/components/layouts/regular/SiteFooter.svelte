@@ -1,10 +1,11 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { m } from '#lib/paraglide/messages.js';
 	import { site } from '#lib/frontend/modules/commerce/site.svelte.ts';
 	import {
 		FOOTER_EXPLORE,
 		FOOTER_FEATURES,
-		FOOTER_LEGAL,
+		footerLegal,
 		FOOTER_TERMS
 	} from '#lib/frontend/content/navigation.regular.ts';
 	import {
@@ -55,21 +56,21 @@
 				body: JSON.stringify({ email })
 			});
 
-			if (!response.ok) throw new Error('Could not subscribe. Please try again.');
+			if (!response.ok) throw new Error(m.components_regular_newsletter_failed());
 
 			newsletterState = 'success';
-			newsletterMessage = 'Subscribed! Check your inbox for offers.';
+			newsletterMessage = m.components_regular_newsletter_success();
 			email = '';
 		} catch (error) {
 			newsletterState = 'error';
 			newsletterMessage =
-				error instanceof Error ? error.message : 'Could not subscribe. Please try again.';
+				error instanceof Error ? error.message : m.components_regular_newsletter_failed();
 		}
 	}
 </script>
 
 <div
-	class="relative flex w-full max-w-[1440px] shrink-0 flex-col content-stretch items-center justify-center gap-[32px] bg-white"
+	class="relative flex w-full max-w-[1440px] shrink-0 flex-col content-stretch items-center justify-center gap-[32px] bg-card"
 	data-name="Footer"
 >
 	{#if features}
@@ -78,7 +79,7 @@
 			data-name="Flex Horizontal"
 		>
 			<div
-				class="relative flex min-w-px flex-[1_0_0] flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-white py-[16px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)] max-md:w-full"
+				class="relative flex min-w-px flex-[1_0_0] flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-card py-[16px] shadow-[0px_0px_0px_1px_color-mix(in_oklab,var(--foreground)_10%,transparent)] max-md:w-full"
 				data-name="Card"
 			>
 				<div
@@ -87,7 +88,7 @@
 				>
 					<div class="relative flex w-full shrink-0 content-stretch items-start gap-[24px]">
 						<div
-							class="relative flex shrink-0 content-stretch items-center justify-center rounded-[9999px] bg-[#f5f5f5] p-[12px]"
+							class="relative flex shrink-0 content-stretch items-center justify-center rounded-[9999px] bg-muted p-[12px]"
 							data-name="icon"
 						>
 							<div class="relative size-[24px] shrink-0" data-name="ICON">
@@ -103,12 +104,12 @@
 							data-name="Free delivery"
 						>
 							<p
-								class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[20px] font-semibold text-[#0a0a0a]"
+								class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[20px] font-semibold text-foreground"
 							>
 								{FOOTER_FEATURES[0].title}
 							</p>
 							<p
-								class="relative w-full shrink-0 font-['Geist:Regular'] text-[18px] font-normal text-[#737373]"
+								class="relative w-full shrink-0 font-['Geist:Regular'] text-[18px] font-normal text-muted-foreground"
 							>
 								{FOOTER_FEATURES[0].text}
 							</p>
@@ -117,7 +118,7 @@
 				</div>
 			</div>
 			<div
-				class="relative flex min-w-px flex-[1_0_0] flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-white py-[16px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)] max-md:w-full"
+				class="relative flex min-w-px flex-[1_0_0] flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-card py-[16px] shadow-[0px_0px_0px_1px_color-mix(in_oklab,var(--foreground)_10%,transparent)] max-md:w-full"
 				data-name="Card"
 			>
 				<div
@@ -126,7 +127,7 @@
 				>
 					<div class="relative flex w-full shrink-0 content-stretch items-start gap-[24px]">
 						<div
-							class="relative flex shrink-0 content-stretch items-center justify-center rounded-[9999px] bg-[#f5f5f5] p-[12px]"
+							class="relative flex shrink-0 content-stretch items-center justify-center rounded-[9999px] bg-muted p-[12px]"
 							data-name="icon"
 						>
 							<div class="relative size-[24px] shrink-0" data-name="ICON">
@@ -142,12 +143,12 @@
 							data-name="Free delivery"
 						>
 							<p
-								class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[20px] font-semibold text-[#0a0a0a]"
+								class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[20px] font-semibold text-foreground"
 							>
 								{FOOTER_FEATURES[1].title}
 							</p>
 							<p
-								class="relative w-full shrink-0 font-['Geist:Regular'] text-[18px] font-normal text-[#737373]"
+								class="relative w-full shrink-0 font-['Geist:Regular'] text-[18px] font-normal text-muted-foreground"
 							>
 								{FOOTER_FEATURES[1].text}
 							</p>
@@ -156,7 +157,7 @@
 				</div>
 			</div>
 			<div
-				class="relative flex min-w-px flex-[1_0_0] flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-white py-[16px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)] max-md:w-full"
+				class="relative flex min-w-px flex-[1_0_0] flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-card py-[16px] shadow-[0px_0px_0px_1px_color-mix(in_oklab,var(--foreground)_10%,transparent)] max-md:w-full"
 				data-name="Card"
 			>
 				<div
@@ -165,7 +166,7 @@
 				>
 					<div class="relative flex w-full shrink-0 content-stretch items-start gap-[24px]">
 						<div
-							class="relative flex shrink-0 content-stretch items-center justify-center rounded-[9999px] bg-[#f5f5f5] p-[12px]"
+							class="relative flex shrink-0 content-stretch items-center justify-center rounded-[9999px] bg-muted p-[12px]"
 							data-name="icon"
 						>
 							<div class="relative flex shrink-0 items-center justify-center">
@@ -185,12 +186,12 @@
 							data-name="Free delivery"
 						>
 							<p
-								class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[20px] font-semibold text-[#0a0a0a]"
+								class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[20px] font-semibold text-foreground"
 							>
 								{FOOTER_FEATURES[2].title}
 							</p>
 							<p
-								class="relative w-full shrink-0 font-['Geist:Regular'] text-[18px] font-normal text-[#737373]"
+								class="relative w-full shrink-0 font-['Geist:Regular'] text-[18px] font-normal text-muted-foreground"
 							>
 								{FOOTER_FEATURES[2].text}
 							</p>
@@ -201,7 +202,7 @@
 		</div>
 	{/if}
 	<div
-		class="relative flex w-full shrink-0 flex-col content-stretch items-center justify-center border-t border-b border-solid border-[#e5e5e5]"
+		class="relative flex w-full shrink-0 flex-col content-stretch items-center justify-center border-t border-b border-solid border-border"
 		data-name="Flex Vertical"
 	>
 		<div
@@ -217,37 +218,45 @@
 					class="relative flex h-[32px] shrink-0 content-stretch items-center gap-[6px]"
 					data-name="shopix-logo"
 				>
-					<div
-						class="relative inline-grid shrink-0 grid-cols-[max-content] grid-rows-[max-content] place-items-start leading-[0]"
-					>
-						<div class="relative col-1 row-1 mt-0 ml-0 size-[28px]">
-							<div class="absolute inset-[-3.57%]">
-								<img alt="" class="block size-full max-w-none" src={imgEllipse90} />
-							</div>
-						</div>
+					{#if site.logoUrl}
+						<img src={site.logoUrl} alt="" class="size-[32px] shrink-0 rounded-lg object-contain" />
+					{:else}
 						<div
-							class="relative col-1 row-1 mt-0 ml-0 inline-grid grid-cols-[max-content] grid-rows-[max-content] place-items-start"
-							data-name="Mask group"
+							class="relative inline-grid shrink-0 grid-cols-[max-content] grid-rows-[max-content] place-items-start leading-[0]"
 						>
+							<div class="relative col-1 row-1 mt-0 ml-0 size-[28px]">
+								<div class="absolute inset-[-3.57%]">
+									<img alt="" class="block size-full max-w-none" src={imgEllipse90} />
+								</div>
+							</div>
 							<div
-								class="relative col-1 row-1 mt-[5px] ml-[4px] inline-grid grid-cols-[max-content] grid-rows-[max-content] place-items-start"
-								data-name="Group"
+								class="relative col-1 row-1 mt-0 ml-0 inline-grid grid-cols-[max-content] grid-rows-[max-content] place-items-start"
+								data-name="Mask group"
 							>
 								<div
-									class="relative col-1 row-1 mt-0 ml-0 h-[23.917px] w-[20px] mask-intersect mask-alpha mask-size-[28px_28px] mask-no-clip mask-position-[-4px_-5px] mask-no-repeat"
-									style="mask-image: url('{imgGroup}')"
+									class="relative col-1 row-1 mt-[5px] ml-[4px] inline-grid grid-cols-[max-content] grid-rows-[max-content] place-items-start"
 									data-name="Group"
 								>
-									<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgGroup3} />
+									<div
+										class="relative col-1 row-1 mt-0 ml-0 h-[23.917px] w-[20px] mask-intersect mask-alpha mask-size-[28px_28px] mask-no-clip mask-position-[-4px_-5px] mask-no-repeat"
+										style="mask-image: url('{imgGroup}')"
+										data-name="Group"
+									>
+										<img
+											alt=""
+											class="absolute inset-0 block size-full max-w-none"
+											src={imgGroup3}
+										/>
+									</div>
 								</div>
 							</div>
 						</div>
-					</div>
+					{/if}
 					<div class="relative flex shrink-0 content-stretch items-center justify-center pt-[2px]">
 						<div
-							class="relative flex shrink-0 flex-col justify-end font-['Inter:Semi_Bold'] text-[20px] leading-[0] font-semibold [word-break:break-word] whitespace-nowrap text-[#0a0a0a] not-italic"
+							class="relative flex shrink-0 flex-col justify-end font-['Inter:Semi_Bold'] text-[20px] leading-[0] font-semibold [word-break:break-word] whitespace-nowrap text-foreground not-italic"
 						>
-							<p class="leading-[26px]">Shopix</p>
+							<p class="leading-[26px]">{site.storeName}</p>
 						</div>
 					</div>
 				</a>
@@ -263,7 +272,7 @@
 							<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgIcon4} />
 						</div>
 						<div
-							class="relative w-[255px] shrink-0 font-['Geist:Regular'] text-[16px] leading-[0] font-normal [word-break:break-word] text-[#0a0a0a]"
+							class="relative w-[255px] shrink-0 font-['Geist:Regular'] text-[16px] leading-[0] font-normal [word-break:break-word] text-foreground"
 						>
 							<p class="mb-0 leading-[24px]">{site.contact.address1}</p>
 							<p class="leading-[24px]">{site.contact.address2}</p>
@@ -277,7 +286,7 @@
 							<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgIcon5} />
 						</div>
 						<p
-							class="relative min-w-px flex-[1_0_0] font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-[#0a0a0a]"
+							class="relative min-w-px flex-[1_0_0] font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-foreground"
 						>
 							{site.contact.phone}
 						</p>
@@ -290,7 +299,7 @@
 							<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgIcon6} />
 						</div>
 						<p
-							class="relative min-w-px flex-[1_0_0] font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-[#0a0a0a]"
+							class="relative min-w-px flex-[1_0_0] font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-foreground"
 						>
 							{site.contact.email}
 						</p>
@@ -306,31 +315,31 @@
 					data-name="Header"
 				>
 					<p
-						class="relative min-w-px flex-[1_0_0] font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] text-[#0a0a0a]"
+						class="relative min-w-px flex-[1_0_0] font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] text-foreground"
 					>
-						Explore
+						{m.components_regular_footer_explore()}
 					</p>
 				</div>
 				<p
-					class="relative w-full shrink-0 font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-[#737373]"
+					class="relative w-full shrink-0 font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-muted-foreground"
 				>
-					{FOOTER_EXPLORE[0]}
+					{FOOTER_EXPLORE[0].label}
 				</p>
 				<p
-					class="relative w-full shrink-0 font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-[#737373]"
+					class="relative w-full shrink-0 font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-muted-foreground"
 				>
-					{FOOTER_EXPLORE[1]}
+					{FOOTER_EXPLORE[1].label}
 				</p>
 				<a
 					href="/account/order-tracking"
-					class="relative w-full shrink-0 font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-[#737373] hover:text-[#0a0a0a] hover:underline"
+					class="relative w-full shrink-0 font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-muted-foreground hover:text-foreground hover:underline"
 				>
-					Order Tracking
+					{m.components_regular_footer_order_tracking()}
 				</a>
 				<p
-					class="relative w-full shrink-0 font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-[#737373]"
+					class="relative w-full shrink-0 font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-muted-foreground"
 				>
-					{FOOTER_EXPLORE[2]}
+					{FOOTER_EXPLORE[2].label}
 				</p>
 			</div>
 			<div
@@ -342,33 +351,33 @@
 					data-name="Header"
 				>
 					<p
-						class="relative min-w-px flex-[1_0_0] font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] text-[#0a0a0a]"
+						class="relative min-w-px flex-[1_0_0] font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] text-foreground"
 					>
-						Terms & Policies
+						{m.components_regular_footer_terms()}
 					</p>
 				</div>
 				<a
 					href="/account/returns-refunds"
-					class="relative w-full shrink-0 font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-[#737373] hover:text-[#0a0a0a] hover:underline"
-					>Returns & Exchanges</a
+					class="relative w-full shrink-0 font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-muted-foreground hover:text-foreground hover:underline"
+					>{m.components_regular_footer_returns()}</a
 				>
 				<a
 					href="/privacy-policy"
-					class="relative w-full shrink-0 font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-[#737373] hover:text-[#0a0a0a] hover:underline"
+					class="relative w-full shrink-0 font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-muted-foreground hover:text-foreground hover:underline"
 				>
-					{FOOTER_TERMS[0]}
+					{FOOTER_TERMS[0].label}
 				</a>
 				<a
 					href="/help/purchase-protection"
-					class="relative w-full shrink-0 font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-[#737373] hover:text-[#0a0a0a] hover:underline"
+					class="relative w-full shrink-0 font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-muted-foreground hover:text-foreground hover:underline"
 				>
-					{FOOTER_TERMS[1]}
+					{FOOTER_TERMS[1].label}
 				</a>
 				<a
 					href="/help"
-					class="relative w-full shrink-0 font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-[#737373] hover:text-[#0a0a0a] hover:underline"
+					class="relative w-full shrink-0 font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-muted-foreground hover:text-foreground hover:underline"
 				>
-					{FOOTER_TERMS[2]}
+					{FOOTER_TERMS[2].label}
 				</a>
 			</div>
 			<div
@@ -380,9 +389,9 @@
 					data-name="Container"
 				>
 					<p
-						class="relative shrink-0 font-['Geist:SemiBold'] text-[18px] leading-[28px] font-semibold [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
+						class="relative shrink-0 font-['Geist:SemiBold'] text-[18px] leading-[28px] font-semibold [word-break:break-word] whitespace-nowrap text-foreground"
 					>
-						Get the Latest Offers & Discounts
+						{m.components_regular_newsletter_title()}
 					</p>
 					<div
 						class="relative flex w-full shrink-0 content-stretch items-center justify-end"
@@ -398,31 +407,33 @@
 								onsubmit={subscribe}
 							>
 								<div
-									class="relative flex h-[36px] min-w-px flex-[1_0_0] content-stretch items-center gap-[8px] rounded-[10px] border border-solid border-[#e5e5e5] bg-white px-[10px] py-[4px]"
+									class="relative flex h-[36px] min-w-px flex-[1_0_0] content-stretch items-center gap-[8px] rounded-[10px] border border-solid border-border bg-card px-[10px] py-[4px]"
 									data-name="input"
 								>
 									<input
 										type="email"
 										required
 										bind:value={email}
-										placeholder="Your email address"
-										aria-label="Your email address"
-										class="min-w-0 flex-[1_0_0] border-none bg-transparent font-['Geist:Regular'] text-[14px] leading-[20px] font-normal text-[#0a0a0a] outline-none placeholder:text-[#737373]"
+										placeholder={m.components_regular_newsletter_email()}
+										aria-label={m.components_regular_newsletter_email()}
+										class="min-w-0 flex-[1_0_0] border-none bg-transparent font-['Geist:Regular'] text-[14px] leading-[20px] font-normal text-foreground outline-none placeholder:text-muted-foreground"
 									/>
 									<button
 										type="submit"
 										disabled={newsletterState === 'loading'}
-										class="shrink-0 rounded-[6px] bg-[#0a0a0a] px-[10px] py-[4px] font-['Geist:Medium'] text-[12px] leading-[16px] font-medium text-white disabled:opacity-50"
+										class="shrink-0 rounded-[6px] bg-foreground px-[10px] py-[4px] font-['Geist:Medium'] text-[12px] leading-[16px] font-medium text-background disabled:opacity-50"
 									>
-										{newsletterState === 'loading' ? 'Joining…' : 'Subscribe'}
+										{newsletterState === 'loading'
+											? m.components_regular_newsletter_joining()
+											: m.components_regular_newsletter_subscribe()}
 									</button>
 								</div>
 							</form>
 							{#if newsletterMessage}
 								<p
 									class={newsletterState === 'success'
-										? "font-['Geist:Regular'] text-[12px] leading-[16px] text-[#16a34a]"
-										: "font-['Geist:Regular'] text-[12px] leading-[16px] text-[#dc2626]"}
+										? "font-['Geist:Regular'] text-[12px] leading-[16px] text-success"
+										: "font-['Geist:Regular'] text-[12px] leading-[16px] text-destructive"}
 									role="status"
 									aria-live="polite"
 								>
@@ -434,9 +445,9 @@
 				</div>
 				<div class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[10px]">
 					<p
-						class="relative w-[min-content] min-w-full shrink-0 font-['Geist:SemiBold'] text-[18px] leading-[28px] font-semibold [word-break:break-word] text-[#0a0a0a]"
+						class="relative w-[min-content] min-w-full shrink-0 font-['Geist:SemiBold'] text-[18px] leading-[28px] font-semibold [word-break:break-word] text-foreground"
 					>
-						Download App
+						{m.components_regular_footer_download()}
 					</p>
 					<div
 						class="relative flex shrink-0 content-stretch items-start gap-[16px]"
@@ -457,7 +468,7 @@
 								<p
 									class="relative shrink-0 font-['Geist:Regular'] text-[10.102px] leading-[13.469px] font-normal"
 								>
-									Download on the
+									{m.components_regular_footer_download_on()}
 								</p>
 								<p
 									class="relative shrink-0 font-['Geist:Medium'] text-[11.786px] leading-[16.837px] font-medium opacity-92"
@@ -488,7 +499,7 @@
 								<p
 									class="relative shrink-0 font-['Geist:Regular'] text-[9.778px] leading-[13.037px] font-normal"
 								>
-									Download on the
+									{m.components_regular_footer_download_on()}
 								</p>
 								<p
 									class="relative shrink-0 font-['Geist:Medium'] text-[11.407px] leading-[16.296px] font-medium opacity-92"
@@ -502,14 +513,14 @@
 								href={site.downloads.appStore}
 								target="_blank"
 								rel="noopener noreferrer"
-								class="relative flex shrink-0 content-stretch items-center gap-[13.469px] rounded-[5.051px] bg-black px-[10.102px] py-[5.051px]"
+								class="relative flex shrink-0 content-stretch items-center gap-[13.469px] rounded-[5.051px] border border-white/15 bg-black px-[10.102px] py-[5.051px]"
 								data-name="Button"
 							>
 								{@render appStoreBadge()}
 							</a>
 						{:else}
 							<div
-								class="relative flex shrink-0 content-stretch items-center gap-[13.469px] rounded-[5.051px] bg-black px-[10.102px] py-[5.051px]"
+								class="relative flex shrink-0 content-stretch items-center gap-[13.469px] rounded-[5.051px] border border-white/15 bg-black px-[10.102px] py-[5.051px]"
 								data-name="Button"
 							>
 								{@render appStoreBadge()}
@@ -520,14 +531,14 @@
 								href={site.downloads.googlePlay}
 								target="_blank"
 								rel="noopener noreferrer"
-								class="relative flex shrink-0 content-stretch items-center justify-center gap-[13.037px] rounded-[4.889px] bg-black px-[9.778px] py-[4.889px]"
+								class="relative flex shrink-0 content-stretch items-center justify-center gap-[13.037px] rounded-[4.889px] border border-white/15 bg-black px-[9.778px] py-[4.889px]"
 								data-name="Button"
 							>
 								{@render googlePlayBadge()}
 							</a>
 						{:else}
 							<div
-								class="relative flex shrink-0 content-stretch items-center justify-center gap-[13.037px] rounded-[4.889px] bg-black px-[9.778px] py-[4.889px]"
+								class="relative flex shrink-0 content-stretch items-center justify-center gap-[13.037px] rounded-[4.889px] border border-white/15 bg-black px-[9.778px] py-[4.889px]"
 								data-name="Button"
 							>
 								{@render googlePlayBadge()}
@@ -538,7 +549,7 @@
 			</div>
 		</div>
 		<div
-			class="relative flex w-full shrink-0 flex-wrap content-center items-center justify-center gap-y-[32px] border-t border-b border-solid border-[#e5e5e5] px-[96px] py-[24px]"
+			class="relative flex w-full shrink-0 flex-wrap content-center items-center justify-center gap-y-[32px] border-t border-b border-solid border-border px-[96px] py-[24px]"
 			data-name="Payments Method"
 		>
 			<div
@@ -546,16 +557,16 @@
 				data-name="icon"
 			>
 				<div
-					class="relative flex shrink-0 content-stretch items-center gap-[8px] rounded-[9999px] border border-solid border-[#e5e5e5] px-[14px] py-[4px]"
+					class="relative flex shrink-0 content-stretch items-center gap-[8px] rounded-[9999px] border border-solid border-border px-[14px] py-[4px]"
 					data-name="Secure Payment"
 				>
 					<div class="relative size-[20px] shrink-0" data-name="shield">
 						<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgShield} />
 					</div>
 					<p
-						class="relative shrink-0 font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
+						class="relative shrink-0 font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] whitespace-nowrap text-foreground"
 					>
-						Secure Payment
+						{m.components_regular_footer_secure_payment()}
 					</p>
 				</div>
 			</div>
@@ -572,9 +583,9 @@
 					data-name="Row"
 				>
 					<p
-						class="relative min-w-[329px] flex-[1_0_0] font-['Geist:Medium'] text-[16px] leading-[0] font-medium [word-break:break-word] text-[#0a0a0a]"
+						class="relative min-w-[329px] flex-[1_0_0] font-['Geist:Medium'] text-[16px] leading-[0] font-medium [word-break:break-word] text-foreground"
 					>
-						<span class="leading-[24px]">{FOOTER_LEGAL}</span>
+						<span class="leading-[24px]">{footerLegal(site.storeName)}</span>
 					</p>
 				</div>
 				<div

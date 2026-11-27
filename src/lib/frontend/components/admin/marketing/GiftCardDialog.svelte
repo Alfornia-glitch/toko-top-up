@@ -17,6 +17,9 @@
 </script>
 
 <script lang="ts">
+	import { statusLabel } from '#lib/frontend/i18n/index.ts';
+	import { errorMessage } from '#lib/frontend/i18n/index.ts';
+	import { m } from '#lib/paraglide/messages.js';
 	import * as Dialog from '#lib/frontend/components/ui/dialog/index.ts';
 	import * as Field from '#lib/frontend/components/ui/field/index.ts';
 	import * as Select from '#lib/frontend/components/ui/select/index.ts';
@@ -87,7 +90,7 @@
 		const expiresAtValue = fromDatetimeLocal(expiresAt);
 
 		if (trimmedRecipientEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedRecipientEmail)) {
-			error = 'Recipient email is not valid.';
+			error = m.components_gift_card_dialog_email_invalid();
 			return;
 		}
 
@@ -97,7 +100,7 @@
 			if (isEdit && card) {
 				const numericBalance = Number(balance);
 				if (!Number.isFinite(numericBalance) || numericBalance < 0) {
-					error = 'Balance must be zero or more.';
+					error = m.components_gift_card_dialog_balance_invalid();
 					return;
 				}
 
@@ -117,11 +120,13 @@
 				});
 				const result = await response.json().catch(() => ({}));
 
-				if (!response.ok) throw new Error(result.error ?? 'Could not save gift card');
+				if (!response.ok) {
+					throw new Error(errorMessage(result, 'components_gift_card_dialog_save_failed'));
+				}
 			} else {
 				const numericAmount = Number(initialAmount);
 				if (!Number.isFinite(numericAmount) || numericAmount <= 0) {
-					error = 'Initial amount must be greater than zero.';
+					error = m.components_gift_card_dialog_amount_invalid();
 					return;
 				}
 
@@ -145,13 +150,15 @@
 				});
 				const result = await response.json().catch(() => ({}));
 
-				if (!response.ok) throw new Error(result.error ?? 'Could not issue gift card');
+				if (!response.ok) {
+					throw new Error(errorMessage(result, 'components_gift_card_dialog_issue_failed'));
+				}
 			}
 
 			open = false;
 			await onsaved?.();
 		} catch (err) {
-			error = err instanceof Error ? err.message : 'Could not save gift card';
+			error = errorMessage(err, 'components_gift_card_dialog_save_failed');
 		} finally {
 			saving = false;
 		}
@@ -161,11 +168,15 @@
 <Dialog.Root bind:open>
 	<Dialog.Content class="sm:max-w-lg">
 		<Dialog.Header>
-			<Dialog.Title>{isEdit ? 'Edit gift card' : 'Issue gift card'}</Dialog.Title>
+			<Dialog.Title
+				>{isEdit
+					? m.components_gift_card_dialog_edit_title()
+					: m.components_gift_card_dialog_issue_title()}</Dialog.Title
+			>
 			<Dialog.Description>
 				{isEdit
-					? 'Adjust the balance, status, recipient details and expiry.'
-					: 'Create a new gift card with an initial balance.'}
+					? m.components_gift_card_dialog_edit_description()
+					: m.components_gift_card_dialog_issue_description()}
 			</Dialog.Description>
 		</Dialog.Header>
 
@@ -174,28 +185,38 @@
 				{#if isEdit && card}
 					<div class="grid gap-4 sm:grid-cols-2">
 						<Field.Field>
-							<Field.Label for="gift-card-code">Code</Field.Label>
+							<Field.Label for="gift-card-code">{m.components_form_code()}</Field.Label>
 							<Input id="gift-card-code" value={card.code} readonly />
 						</Field.Field>
 
 						<Field.Field>
-							<Field.Label for="gift-card-status">Status</Field.Label>
+							<Field.Label for="gift-card-status">{m.common_status()}</Field.Label>
 							<Select.Root type="single" bind:value={status}>
 								<Select.Trigger id="gift-card-status" class="w-full">
-									<Select.Value placeholder="Select status" />
+									<Select.Value placeholder={m.components_form_select_status()} />
 								</Select.Trigger>
 								<Select.Content>
-									<Select.Item value="active" label="Active">Active</Select.Item>
-									<Select.Item value="redeemed" label="Redeemed">Redeemed</Select.Item>
-									<Select.Item value="expired" label="Expired">Expired</Select.Item>
-									<Select.Item value="disabled" label="Disabled">Disabled</Select.Item>
+									<Select.Item value="active" label={statusLabel('gift_card', 'active')}
+										>{statusLabel('gift_card', 'active')}</Select.Item
+									>
+									<Select.Item value="redeemed" label={statusLabel('gift_card', 'redeemed')}
+										>{statusLabel('gift_card', 'redeemed')}</Select.Item
+									>
+									<Select.Item value="expired" label={statusLabel('gift_card', 'expired')}
+										>{statusLabel('gift_card', 'expired')}</Select.Item
+									>
+									<Select.Item value="disabled" label={statusLabel('gift_card', 'disabled')}
+										>{statusLabel('gift_card', 'disabled')}</Select.Item
+									>
 								</Select.Content>
 							</Select.Root>
 						</Field.Field>
 					</div>
 
 					<Field.Field>
-						<Field.Label for="gift-card-balance">Balance (rupiah)</Field.Label>
+						<Field.Label for="gift-card-balance"
+							>{m.components_gift_card_dialog_balance()}</Field.Label
+						>
 						<Input
 							id="gift-card-balance"
 							type="number"
@@ -204,27 +225,29 @@
 							bind:value={balance}
 							required
 						/>
-						<Field.Description>Whole rupiah.</Field.Description>
+						<Field.Description>{m.components_form_whole_rupiah()}</Field.Description>
 					</Field.Field>
 				{:else}
 					<div class="grid gap-4 sm:grid-cols-2">
 						<Field.Field>
-							<Field.Label for="gift-card-code">Code</Field.Label>
+							<Field.Label for="gift-card-code">{m.components_form_code()}</Field.Label>
 							<Input
 								id="gift-card-code"
 								bind:value={code}
-								placeholder="Auto-generated when empty"
+								placeholder={m.components_gift_card_dialog_code_placeholder()}
 							/>
 						</Field.Field>
 
 						<Field.Field>
-							<Field.Label for="gift-card-currency">Currency</Field.Label>
+							<Field.Label for="gift-card-currency">{m.components_form_currency()}</Field.Label>
 							<Input id="gift-card-currency" bind:value={currency} maxlength={3} required />
 						</Field.Field>
 					</div>
 
 					<Field.Field>
-						<Field.Label for="gift-card-amount">Initial amount (rupiah)</Field.Label>
+						<Field.Label for="gift-card-amount"
+							>{m.components_gift_card_dialog_initial_amount()}</Field.Label
+						>
 						<Input
 							id="gift-card-amount"
 							type="number"
@@ -234,45 +257,53 @@
 							placeholder="0.00"
 							required
 						/>
-						<Field.Description>Whole rupiah.</Field.Description>
+						<Field.Description>{m.components_form_whole_rupiah()}</Field.Description>
 					</Field.Field>
 				{/if}
 
 				<div class="grid gap-4 sm:grid-cols-2">
 					<Field.Field>
-						<Field.Label for="gift-card-recipient-name">Recipient name</Field.Label>
+						<Field.Label for="gift-card-recipient-name"
+							>{m.components_gift_card_dialog_recipient_name()}</Field.Label
+						>
 						<Input
 							id="gift-card-recipient-name"
 							bind:value={recipientName}
-							placeholder="Optional"
+							placeholder={m.common_optional()}
 						/>
 					</Field.Field>
 
 					<Field.Field>
-						<Field.Label for="gift-card-recipient-email">Recipient email</Field.Label>
+						<Field.Label for="gift-card-recipient-email"
+							>{m.components_gift_card_dialog_recipient_email()}</Field.Label
+						>
 						<Input
 							id="gift-card-recipient-email"
 							type="email"
 							bind:value={recipientEmail}
-							placeholder="Optional"
+							placeholder={m.common_optional()}
 						/>
 					</Field.Field>
 				</div>
 
 				<Field.Field>
-					<Field.Label for="gift-card-message">Message</Field.Label>
+					<Field.Label for="gift-card-message"
+						>{m.components_gift_card_dialog_message()}</Field.Label
+					>
 					<Textarea
 						id="gift-card-message"
 						bind:value={message}
-						placeholder="Optional message to the recipient"
+						placeholder={m.components_gift_card_dialog_message_placeholder()}
 						rows={3}
 					/>
 				</Field.Field>
 
 				<Field.Field>
-					<Field.Label for="gift-card-expires-at">Expires at</Field.Label>
+					<Field.Label for="gift-card-expires-at"
+						>{m.components_gift_card_dialog_expires_at()}</Field.Label
+					>
 					<Input id="gift-card-expires-at" type="datetime-local" bind:value={expiresAt} />
-					<Field.Description>Leave empty for no expiry.</Field.Description>
+					<Field.Description>{m.components_form_no_expiry()}</Field.Description>
 				</Field.Field>
 			</Field.Group>
 
@@ -282,10 +313,14 @@
 
 			<Dialog.Footer>
 				<Button type="button" variant="outline" onclick={() => (open = false)} disabled={saving}>
-					Cancel
+					{m.common_cancel()}
 				</Button>
 				<Button type="submit" disabled={saving}>
-					{saving ? 'Saving…' : isEdit ? 'Save changes' : 'Issue gift card'}
+					{saving
+						? m.common_saving()
+						: isEdit
+							? m.common_save_changes()
+							: m.components_gift_card_dialog_issue_title()}
 				</Button>
 			</Dialog.Footer>
 		</form>

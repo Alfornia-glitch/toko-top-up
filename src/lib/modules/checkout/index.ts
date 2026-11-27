@@ -1,4 +1,7 @@
 export type {
+	AccountDetail,
+	AccountFieldType,
+	AccountFormField,
 	CheckoutInput,
 	CheckoutSettings,
 	OrderLine,

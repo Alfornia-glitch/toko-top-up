@@ -6,3 +6,4 @@ pnpm-lock.yaml
 
 # Miscellaneous
 /static/
+/src/lib/paraglide/

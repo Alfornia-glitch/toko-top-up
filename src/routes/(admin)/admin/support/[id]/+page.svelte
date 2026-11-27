@@ -1,5 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { formatDateTime } from '#lib/frontend/modules/commerce/format.ts';
+	import { m } from '#lib/paraglide/messages.js';
+	import { errorMessage, statusLabel } from '#lib/frontend/i18n/index.ts';
 	import { page } from '$app/state';
 	import { ArrowLeft, LoaderCircle, Send, UserCheck } from '@lucide/svelte';
 	import StatusBadge from '#lib/frontend/components/admin/StatusBadge.svelte';
@@ -67,7 +70,7 @@
 
 	async function load(id: string | undefined) {
 		if (!id) {
-			error = 'Ticket not found.';
+			error = m.admin_ops_ticket_not_found_short();
 			loading = false;
 			return;
 		}
@@ -79,13 +82,13 @@
 			const response = await fetch(`/api/admin/support/${id}`);
 			const payload = await response.json().catch(() => ({}));
 
-			if (!response.ok) throw new Error(payload.error ?? 'Could not load ticket');
+			if (!response.ok) throw new Error(errorMessage(payload, 'admin_ops_ticket_load_failed'));
 
 			ticket = payload.data as TicketDetail;
 			status = ticket.status;
 			priority = ticket.priority;
 		} catch (err) {
-			error = err instanceof Error ? err.message : 'Could not load ticket';
+			error = errorMessage(err, 'admin_ops_ticket_load_failed');
 		} finally {
 			loading = false;
 		}
@@ -106,11 +109,11 @@
 			});
 			const payload = await response.json().catch(() => ({}));
 
-			if (!response.ok) throw new Error(payload.error ?? 'Could not update ticket');
+			if (!response.ok) throw new Error(errorMessage(payload, 'admin_ops_ticket_update_failed'));
 
 			await load(ticket.id);
 		} catch (err) {
-			actionError = err instanceof Error ? err.message : 'Could not update ticket';
+			actionError = errorMessage(err, 'admin_ops_ticket_update_failed');
 		} finally {
 			savingControls = false;
 		}
@@ -130,11 +133,11 @@
 			});
 			const payload = await response.json().catch(() => ({}));
 
-			if (!response.ok) throw new Error(payload.error ?? 'Could not assign ticket');
+			if (!response.ok) throw new Error(errorMessage(payload, 'admin_ops_ticket_assign_failed'));
 
 			await load(ticket.id);
 		} catch (err) {
-			actionError = err instanceof Error ? err.message : 'Could not assign ticket';
+			actionError = errorMessage(err, 'admin_ops_ticket_assign_failed');
 		} finally {
 			assigning = false;
 		}
@@ -154,11 +157,11 @@
 			});
 			const payload = await response.json().catch(() => ({}));
 
-			if (!response.ok) throw new Error(payload.error ?? 'Could not unassign ticket');
+			if (!response.ok) throw new Error(errorMessage(payload, 'admin_ops_ticket_unassign_failed'));
 
 			await load(ticket.id);
 		} catch (err) {
-			actionError = err instanceof Error ? err.message : 'Could not unassign ticket';
+			actionError = errorMessage(err, 'admin_ops_ticket_unassign_failed');
 		} finally {
 			assigning = false;
 		}
@@ -179,28 +182,19 @@
 			});
 			const payload = await response.json().catch(() => ({}));
 
-			if (!response.ok) throw new Error(payload.error ?? 'Could not send reply');
+			if (!response.ok) throw new Error(errorMessage(payload, 'admin_ops_ticket_reply_failed'));
 
 			reply = '';
 			await load(ticket.id);
 		} catch (err) {
-			actionError = err instanceof Error ? err.message : 'Could not send reply';
+			actionError = errorMessage(err, 'admin_ops_ticket_reply_failed');
 		} finally {
 			sending = false;
 		}
 	}
 
 	function formatDate(value: string) {
-		const date = new Date(value);
-		if (Number.isNaN(date.getTime())) return '—';
-
-		return new Intl.DateTimeFormat('en-US', {
-			month: 'short',
-			day: 'numeric',
-			year: 'numeric',
-			hour: '2-digit',
-			minute: '2-digit'
-		}).format(date);
+		return formatDateTime(value) || '—';
 	}
 </script>
 
@@ -215,9 +209,9 @@
 			<div class="flex justify-center gap-2">
 				<Button variant="outline" href="/admin/support">
 					<ArrowLeft class="size-4" />
-					Back to support
+					{m.admin_ops_ticket_back()}
 				</Button>
-				<Button onclick={() => void load(page.params.id)}>Try again</Button>
+				<Button onclick={() => void load(page.params.id)}>{m.common_retry()}</Button>
 			</div>
 		</Card.Content>
 	</Card.Root>
@@ -227,15 +221,19 @@
 			<div class="space-y-2">
 				<Button variant="ghost" size="sm" href="/admin/support">
 					<ArrowLeft class="size-4" />
-					Back to support
+					{m.admin_ops_ticket_back()}
 				</Button>
 				<div class="flex flex-wrap items-center gap-2">
 					<h1 class="text-2xl font-semibold tracking-tight">{ticket.subject}</h1>
-					<StatusBadge status={ticket.status} />
-					<StatusBadge status={ticket.priority} />
+					<StatusBadge kind="ticket" status={ticket.status} />
+					<StatusBadge kind="priority" status={ticket.priority} />
 				</div>
 				<p class="text-sm text-muted-foreground">
-					{ticket.ticketNumber} · {ticket.category} · Updated {formatDate(ticket.updatedAt)}
+					{m.admin_ops_ticket_meta({
+						number: ticket.ticketNumber,
+						category: ticket.category,
+						date: formatDate(ticket.updatedAt)
+					})}
 				</p>
 			</div>
 		</div>
@@ -252,12 +250,14 @@
 		<div class="grid gap-4 lg:grid-cols-3">
 			<Card.Root class="lg:col-span-2">
 				<Card.Header>
-					<Card.Title>Conversation</Card.Title>
-					<Card.Description>{ticket.messages.length} messages</Card.Description>
+					<Card.Title>{m.admin_ops_ticket_conversation()}</Card.Title>
+					<Card.Description>
+						{m.admin_ops_ticket_messages_count({ count: ticket.messages.length })}
+					</Card.Description>
 				</Card.Header>
 				<Card.Content class="space-y-4">
 					{#if ticket.messages.length === 0}
-						<p class="text-sm text-muted-foreground">No messages on this ticket yet.</p>
+						<p class="text-sm text-muted-foreground">{m.admin_ops_ticket_no_messages()}</p>
 					{:else}
 						<ul class="space-y-4">
 							{#each ticket.messages as message (message.id)}
@@ -270,7 +270,9 @@
 									>
 										<div class="mb-1 flex flex-wrap items-center gap-2 text-xs opacity-80">
 											<span class="font-medium">
-												{message.senderName ?? message.senderEmail ?? 'Support'}
+												{message.senderName ??
+													message.senderEmail ??
+													m.admin_ops_ticket_sender_fallback()}
 											</span>
 											<span>{formatDate(message.createdAt)}</span>
 										</div>
@@ -285,11 +287,11 @@
 
 					<form class="space-y-3" onsubmit={sendReply}>
 						<Field.Field>
-							<Field.Label for="support-reply">Reply</Field.Label>
+							<Field.Label for="support-reply">{m.admin_ops_ticket_reply()}</Field.Label>
 							<Textarea
 								id="support-reply"
 								bind:value={reply}
-								placeholder="Write a reply to the customer"
+								placeholder={m.admin_ops_ticket_reply_placeholder()}
 								rows={4}
 								required
 							/>
@@ -297,7 +299,7 @@
 						<div class="flex justify-end">
 							<Button type="submit" disabled={sending || !reply.trim()}>
 								<Send class="size-4" />
-								{sending ? 'Sending…' : 'Send reply'}
+								{sending ? m.admin_ops_ticket_sending() : m.admin_ops_ticket_send_reply()}
 							</Button>
 						</div>
 					</form>
@@ -307,34 +309,38 @@
 			<div class="space-y-4">
 				<Card.Root>
 					<Card.Header>
-						<Card.Title>Ticket controls</Card.Title>
-						<Card.Description>Update status, priority and assignment.</Card.Description>
+						<Card.Title>{m.admin_ops_ticket_controls()}</Card.Title>
+						<Card.Description>{m.admin_ops_ticket_controls_desc()}</Card.Description>
 					</Card.Header>
 					<Card.Content class="space-y-4">
 						<form class="space-y-4" onsubmit={saveControls}>
 							<Field.Field>
-								<Field.Label for="support-status">Status</Field.Label>
+								<Field.Label for="support-status">{m.common_status()}</Field.Label>
 								<Select.Root type="single" bind:value={status}>
 									<Select.Trigger id="support-status" class="w-full">
-										<Select.Value placeholder="Select status" />
+										<Select.Value placeholder={m.admin_ops_ticket_select_status()} />
 									</Select.Trigger>
 									<Select.Content>
 										{#each statuses as option (option)}
-											<Select.Item value={option} label={option}>{option}</Select.Item>
+											<Select.Item value={option} label={statusLabel('ticket', option)}>
+												{statusLabel('ticket', option)}
+											</Select.Item>
 										{/each}
 									</Select.Content>
 								</Select.Root>
 							</Field.Field>
 
 							<Field.Field>
-								<Field.Label for="support-priority">Priority</Field.Label>
+								<Field.Label for="support-priority">{m.admin_ops_support_priority()}</Field.Label>
 								<Select.Root type="single" bind:value={priority}>
 									<Select.Trigger id="support-priority" class="w-full">
-										<Select.Value placeholder="Select priority" />
+										<Select.Value placeholder={m.admin_ops_ticket_select_priority()} />
 									</Select.Trigger>
 									<Select.Content>
 										{#each priorities as option (option)}
-											<Select.Item value={option} label={option}>{option}</Select.Item>
+											<Select.Item value={option} label={statusLabel('priority', option)}>
+												{statusLabel('priority', option)}
+											</Select.Item>
 										{/each}
 									</Select.Content>
 								</Select.Root>
@@ -342,7 +348,7 @@
 
 							<div class="flex justify-end">
 								<Button type="submit" disabled={savingControls}>
-									{savingControls ? 'Saving…' : 'Save changes'}
+									{savingControls ? m.common_saving() : m.common_save_changes()}
 								</Button>
 							</div>
 						</form>
@@ -350,14 +356,14 @@
 						<Separator />
 
 						<div class="space-y-2">
-							<p class="text-xs text-muted-foreground">Assignment</p>
+							<p class="text-xs text-muted-foreground">{m.admin_ops_ticket_assignment()}</p>
 							<p class="text-sm font-medium">
 								{#if isAssignedToMe}
-									Assigned to you
+									{m.admin_ops_ticket_assigned_you()}
 								{:else if ticket.assignedAdminId}
-									Assigned to another admin
+									{m.admin_ops_ticket_assigned_other()}
 								{:else}
-									Unassigned
+									{m.admin_ops_ticket_unassigned()}
 								{/if}
 							</p>
 							<div class="flex flex-wrap gap-2">
@@ -369,7 +375,7 @@
 									disabled={assigning || isAssignedToMe || !currentUserId}
 								>
 									<UserCheck class="size-4" />
-									Assign to me
+									{m.admin_ops_ticket_assign_me()}
 								</Button>
 								{#if ticket.assignedAdminId}
 									<Button
@@ -379,7 +385,7 @@
 										onclick={unassign}
 										disabled={assigning}
 									>
-										Unassign
+										{m.admin_ops_ticket_unassign()}
 									</Button>
 								{/if}
 							</div>
@@ -389,17 +395,17 @@
 
 				<Card.Root>
 					<Card.Header>
-						<Card.Title>Customer and order</Card.Title>
+						<Card.Title>{m.admin_ops_ticket_customer_order()}</Card.Title>
 					</Card.Header>
 					<Card.Content class="space-y-3 text-sm">
 						<div class="space-y-1">
-							<p class="text-xs text-muted-foreground">Customer</p>
+							<p class="text-xs text-muted-foreground">{m.common_customer()}</p>
 							{#if ticket.userId}
 								<a href={`/admin/customers/${ticket.userId}`} class="font-medium hover:underline">
 									{ticket.customerName ?? ticket.customerEmail ?? ticket.userId}
 								</a>
 							{:else}
-								<p class="font-medium">Unknown customer</p>
+								<p class="font-medium">{m.admin_ops_ticket_unknown_customer()}</p>
 							{/if}
 							{#if ticket.customerEmail}
 								<p class="text-muted-foreground">{ticket.customerEmail}</p>
@@ -409,13 +415,13 @@
 						<Separator />
 
 						<div class="space-y-1">
-							<p class="text-xs text-muted-foreground">Order</p>
+							<p class="text-xs text-muted-foreground">{m.common_order()}</p>
 							{#if ticket.orderId}
 								<a href={`/admin/orders/${ticket.orderId}`} class="font-medium hover:underline">
-									View order
+									{m.admin_ops_ticket_view_order()}
 								</a>
 							{:else}
-								<p class="text-muted-foreground">No order linked.</p>
+								<p class="text-muted-foreground">{m.admin_ops_ticket_no_order()}</p>
 							{/if}
 						</div>
 					</Card.Content>
@@ -426,8 +432,8 @@
 {:else}
 	<Card.Root>
 		<Card.Content class="space-y-4 py-10 text-center">
-			<p class="text-sm text-muted-foreground">This ticket could not be found.</p>
-			<Button href="/admin/support">Back to support</Button>
+			<p class="text-sm text-muted-foreground">{m.admin_ops_ticket_not_found()}</p>
+			<Button href="/admin/support">{m.admin_ops_ticket_back()}</Button>
 		</Card.Content>
 	</Card.Root>
 {/if}

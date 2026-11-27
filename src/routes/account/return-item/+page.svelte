@@ -1,11 +1,12 @@
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
+	import { errorMessage } from '#lib/frontend/i18n/index.ts';
 	import {
 		listOrders,
 		getOrder,
 		createReturn,
 		isUnauthorized,
-		type ReturnItemForm,
-		messageFrom
+		type ReturnItemForm
 	} from '#lib/frontend/modules/account/index.ts';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
@@ -33,20 +34,20 @@
 		ReturnDetail
 	} from '#lib/frontend/modules/commerce/models.ts';
 
-	const reasonOptions = [
-		'Wrong size',
-		'Defective/damaged item',
-		'Wrong item received',
-		'Don’t like the product',
-		'Other'
-	];
+	const reasonOptions = $derived([
+		m.account_shared_reason_wrong_size(),
+		m.account_shared_reason_defective(),
+		m.account_shared_reason_wrong_item(),
+		m.account_shared_reason_dislike(),
+		m.account_shared_reason_other()
+	]);
 
-	const resolutionOptions = [
-		{ value: 'none', label: 'No preference' },
-		{ value: 'original_payment', label: 'Original payment method' },
-		{ value: 'gift_card', label: 'Gift card' },
-		{ value: 'card', label: 'Credit or Debit card' }
-	];
+	const resolutionOptions = $derived([
+		{ value: 'none', label: m.account_shared_resolution_none() },
+		{ value: 'original_payment', label: m.account_shared_resolution_original_payment() },
+		{ value: 'gift_card', label: m.account_shared_resolution_gift_card() },
+		{ value: 'card', label: m.account_shared_resolution_card() }
+	]);
 
 	let orders = $state<OrderSummary[]>([]);
 	let selectedOrder = $state<OrderDetail | null>(null);
@@ -78,10 +79,6 @@
 		return false;
 	}
 
-	function errorMessage(cause: unknown, fallback: string): string {
-		return messageFrom(cause, fallback);
-	}
-
 	async function selectOrder(value: string) {
 		selectedOrderNumber = value;
 		selectedOrder = null;
@@ -100,7 +97,7 @@
 			}
 		} catch (cause) {
 			if (!redirectIfUnauthorized(cause)) {
-				formError = errorMessage(cause, 'Could not load the items for this order');
+				formError = errorMessage(cause, 'account_shared_load_order_items_failed');
 			}
 		} finally {
 			orderLoading = false;
@@ -117,7 +114,7 @@
 			if (orders.length > 0) await selectOrder(orders[0].orderNumber);
 		} catch (cause) {
 			if (!redirectIfUnauthorized(cause)) {
-				error = errorMessage(cause, 'Could not load your orders');
+				error = errorMessage(cause, 'account_shared_load_orders_failed');
 			}
 		} finally {
 			loading = false;
@@ -129,12 +126,12 @@
 		formError = '';
 
 		if (!form.orderItemId) {
-			formError = 'Select the item you want to return.';
+			formError = m.account_return_item_select_item();
 			return;
 		}
 
 		if (!form.reason.trim()) {
-			formError = 'Tell us why you want to return this item.';
+			formError = m.account_return_item_reason_required();
 			return;
 		}
 
@@ -150,7 +147,7 @@
 			});
 		} catch (cause) {
 			if (!redirectIfUnauthorized(cause)) {
-				formError = errorMessage(cause, 'Could not submit your return request');
+				formError = errorMessage(cause, 'account_return_item_submit_failed');
 			}
 		} finally {
 			submitting = false;
@@ -171,12 +168,12 @@
 </script>
 
 <div
-	class="relative flex size-full flex-col content-stretch items-center bg-white"
+	class="relative flex size-full flex-col content-stretch items-center bg-card"
 	data-name="Shopix - Return"
 >
 	<SiteHeader />
 	<div
-		class="relative flex w-full max-w-[1440px] shrink-0 flex-col content-stretch items-center justify-center bg-white py-[56px] max-[480px]:py-9"
+		class="relative flex w-full max-w-[1440px] shrink-0 flex-col content-stretch items-center justify-center bg-card py-[56px] max-[480px]:py-9"
 		data-name="Product details"
 	>
 		<div
@@ -191,17 +188,17 @@
 			>
 				{#if loading}
 					<div
-						class="relative flex w-full items-center justify-center gap-3 rounded-[14px] bg-white px-[24px] py-[64px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)]"
+						class="relative flex w-full items-center justify-center gap-3 rounded-[14px] bg-card px-[24px] py-[64px] shadow-[0px_0px_0px_1px_color-mix(in_oklab,var(--foreground)_10%,transparent)]"
 						data-name="Card"
 					>
-						<Spinner class="size-5" aria-label="Loading orders" />
-						<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
-							Loading orders
+						<Spinner class="size-5" aria-label={m.account_shared_loading_orders()} />
+						<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-muted-foreground">
+							{m.account_shared_loading_orders()}
 						</p>
 					</div>
 				{:else if error}
 					<div
-						class="relative flex w-full rounded-[14px] border border-[#fecaca] bg-[#fef2f2] px-[24px] py-[16px] text-[#b91c1c]"
+						class="relative flex w-full rounded-[14px] border border-destructive/30 bg-destructive/10 px-[24px] py-[16px] text-destructive"
 						data-name="Card"
 						role="alert"
 					>
@@ -209,27 +206,27 @@
 					</div>
 				{:else if orders.length === 0}
 					<div
-						class="relative flex w-full flex-col items-start gap-[12px] rounded-[14px] bg-white px-[24px] py-[32px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)]"
+						class="relative flex w-full flex-col items-start gap-[12px] rounded-[14px] bg-card px-[24px] py-[32px] shadow-[0px_0px_0px_1px_color-mix(in_oklab,var(--foreground)_10%,transparent)]"
 						data-name="Card"
 					>
 						<p
-							class="font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold text-[#0a0a0a]"
+							class="font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold text-foreground"
 						>
-							No orders yet
+							{m.account_shared_no_orders_yet()}
 						</p>
-						<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
-							You need an order before you can request a return.
+						<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-muted-foreground">
+							{m.account_return_item_need_order()}
 						</p>
 						<a
 							href="/products"
-							class="rounded-[8px] bg-[#171717] px-[16px] py-[10px] font-['Geist:Medium'] text-[14px] leading-[20px] font-medium text-[#fafafa]"
+							class="rounded-[8px] bg-primary px-[16px] py-[10px] font-['Geist:Medium'] text-[14px] leading-[20px] font-medium text-primary-foreground"
 						>
-							Browse products
+							{m.common_browse_products()}
 						</a>
 					</div>
 				{:else if created}
 					<div
-						class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-white py-[24px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)]"
+						class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-card py-[24px] shadow-[0px_0px_0px_1px_color-mix(in_oklab,var(--foreground)_10%,transparent)]"
 						data-name="Card"
 					>
 						<div
@@ -237,39 +234,41 @@
 							data-name="card-body"
 						>
 							<p
-								class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] text-[#0a0a0a]"
+								class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] text-foreground"
 							>
-								Return requested
+								{m.account_return_item_requested()}
 							</p>
 							<div class="flex w-full flex-wrap items-center gap-[8px]">
 								<Badge variant="outline">
 									{statusLabel(RETURN_STATUS_LABELS, created.status)}
 								</Badge>
-								<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
-									Order #{created.orderNumber}
+								<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-muted-foreground">
+									{m.account_shared_order_number({ orderNumber: created.orderNumber })}
 								</p>
 							</div>
 							<div class="flex w-full flex-col gap-[4px]">
 								<p
-									class="font-['Geist:Medium'] text-[18px] leading-[28px] font-medium text-[#0a0a0a]"
+									class="font-['Geist:Medium'] text-[18px] leading-[28px] font-medium text-foreground"
 								>
 									{created.productName}
 								</p>
-								<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]">
-									SKU: {created.sku}
+								<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground">
+									{m.account_shared_sku({ sku: created.sku })}
 								</p>
-								<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]">
+								<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground">
 									{created.reason}
 								</p>
 							</div>
-							<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]">
-								We will contact you once the return is approved.
+							<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground">
+								{m.account_return_item_approval_notice()}
 							</p>
 							<div class="flex flex-wrap items-center gap-[12px]">
 								<Button href="/account/returns-refunds" data-name="Solid Button">
-									View returns &amp; refunds
+									{m.account_shared_view_returns_refunds()}
 								</Button>
-								<Button variant="outline" onclick={startAnother}>Request another</Button>
+								<Button variant="outline" onclick={startAnother}
+									>{m.account_shared_request_another()}</Button
+								>
 							</div>
 						</div>
 					</div>
@@ -289,20 +288,20 @@
 									data-name="Tab item"
 								>
 									<p
-										class="relative shrink-0 font-['Geist:Medium'] text-[14px] leading-[20px] font-medium [word-break:break-word] whitespace-nowrap text-[#0a0a0a] opacity-60"
+										class="relative shrink-0 font-['Geist:Medium'] text-[14px] leading-[20px] font-medium [word-break:break-word] whitespace-nowrap text-foreground opacity-60"
 									>
-										Exchange
+										{m.account_shared_tab_exchange()}
 									</p>
 								</a>
 								<a
 									href="/account/return-item"
-									class="relative flex h-[34px] min-w-px flex-[1_0_0] content-stretch items-center justify-center gap-[4px] border-b-2 border-solid border-[#0a0a0a] bg-white px-[10px] pt-[6px] pb-[8px]"
+									class="relative flex h-[34px] min-w-px flex-[1_0_0] content-stretch items-center justify-center gap-[4px] border-b-2 border-solid border-foreground bg-card px-[10px] pt-[6px] pb-[8px]"
 									data-name="Tab item"
 								>
 									<p
-										class="relative shrink-0 font-['Geist:Medium'] text-[14px] leading-[20px] font-medium [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
+										class="relative shrink-0 font-['Geist:Medium'] text-[14px] leading-[20px] font-medium [word-break:break-word] whitespace-nowrap text-foreground"
 									>
-										Return
+										{m.account_shared_tab_return()}
 									</p>
 								</a>
 							</div>
@@ -310,10 +309,10 @@
 
 						{#if orders.length > 1}
 							<div class="flex w-full flex-col gap-[6px] sm:max-w-[320px]">
-								<Label for="return-order">Order</Label>
+								<Label for="return-order">{m.common_order()}</Label>
 								<Select.Root type="single" value={selectedOrderNumber} onValueChange={selectOrder}>
 									<Select.Trigger id="return-order" class="w-full">
-										<Select.Value placeholder="Select an order" />
+										<Select.Value placeholder={m.account_shared_select_order()} />
 									</Select.Trigger>
 									<Select.Content>
 										{#each orders as entry (entry.id)}
@@ -327,7 +326,7 @@
 						{/if}
 
 						<div
-							class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-white shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)]"
+							class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-card shadow-[0px_0px_0px_1px_color-mix(in_oklab,var(--foreground)_10%,transparent)]"
 							data-name="Card"
 						>
 							<div
@@ -341,11 +340,13 @@
 									>
 										<div class="flex flex-col gap-[2px]">
 											<p
-												class="relative font-['Geist:Medium'] text-[14px] leading-[20px] font-medium [word-break:break-word] text-[#171717]"
+												class="relative font-['Geist:Medium'] text-[14px] leading-[20px] font-medium [word-break:break-word] text-primary"
 											>
-												Order #{selectedOrder.orderNumber}
+												{m.account_shared_order_number({ orderNumber: selectedOrder.orderNumber })}
 											</p>
-											<p class="font-['Geist:Regular'] text-[12px] leading-[16px] text-[#737373]">
+											<p
+												class="font-['Geist:Regular'] text-[12px] leading-[16px] text-muted-foreground"
+											>
 												{formatDate(selectedOrder.placedAt)}
 											</p>
 										</div>
@@ -356,14 +357,18 @@
 
 									{#if orderLoading}
 										<div class="flex items-center gap-[12px]">
-											<Spinner class="size-5" aria-label="Loading order items" />
-											<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]">
-												Loading items
+											<Spinner class="size-5" aria-label={m.account_shared_loading_order_items()} />
+											<p
+												class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground"
+											>
+												{m.account_shared_loading_items()}
 											</p>
 										</div>
 									{:else if selectedOrder.items.length === 0}
-										<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]">
-											This order has no items to return.
+										<p
+											class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground"
+										>
+											{m.account_return_item_no_items()}
 										</p>
 									{:else}
 										<RadioGroup.Root
@@ -372,12 +377,12 @@
 										>
 											{#each selectedOrder.items as item (item.id)}
 												<label
-													class="relative flex w-full cursor-pointer content-stretch items-center gap-[16px] rounded-[8px] border border-solid border-[#e5e5e5] p-[12px]"
+													class="relative flex w-full cursor-pointer content-stretch items-center gap-[16px] rounded-[8px] border border-solid border-border p-[12px]"
 													data-name="Flex Horizontal"
 												>
 													<RadioGroup.Item value={item.id} aria-label={item.productName} />
 													<div
-														class="relative flex size-[72px] shrink-0 items-center justify-center overflow-hidden rounded-[8px] bg-[#f5f5f5]"
+														class="relative flex size-[72px] shrink-0 items-center justify-center overflow-hidden rounded-[8px] bg-muted"
 														data-name="Product Image"
 													>
 														{#if item.imageUrl}
@@ -390,34 +395,34 @@
 															/>
 														{:else}
 															<span
-																class="text-center font-['Geist:Regular'] text-[12px] leading-[16px] text-[#737373]"
+																class="text-center font-['Geist:Regular'] text-[12px] leading-[16px] text-muted-foreground"
 															>
-																No image
+																{m.account_shared_no_image()}
 															</span>
 														{/if}
 													</div>
 													<div class="min-w-0 flex-1">
 														<p
-															class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-[#0a0a0a]"
+															class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-foreground"
 														>
 															{item.productName}
 														</p>
 														<p
-															class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]"
+															class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground"
 														>
-															SKU: {item.sku}
+															{m.account_shared_sku({ sku: item.sku })}
 														</p>
 														<p
-															class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]"
+															class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground"
 														>
-															Qty: {item.quantity} · {formatMoney(
-																item.unitPrice,
-																selectedOrder.currency
-															)}
+															{m.account_shared_qty_price({
+																quantity: item.quantity,
+																price: formatMoney(item.unitPrice, selectedOrder.currency)
+															})}
 														</p>
 													</div>
 													<p
-														class="shrink-0 font-['Geist:SemiBold'] text-[14px] leading-[20px] font-semibold text-[#0a0a0a]"
+														class="shrink-0 font-['Geist:SemiBold'] text-[14px] leading-[20px] font-semibold text-foreground"
 													>
 														{formatMoney(item.total, selectedOrder.currency)}
 													</p>
@@ -426,49 +431,55 @@
 										</RadioGroup.Root>
 
 										<div
-											class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[8px] rounded-[8px] bg-[#f5f5f5] p-[16px] max-md:max-w-full"
+											class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[8px] rounded-[8px] bg-muted p-[16px] max-md:max-w-full"
 											data-name="Pricing Details"
 										>
 											<div class="flex w-full items-center justify-between gap-[12px]">
-												<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
-													Subtotal
+												<p
+													class="font-['Geist:Regular'] text-[16px] leading-[24px] text-muted-foreground"
+												>
+													{m.common_subtotal()}
 												</p>
 												<p
-													class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-[#0a0a0a]"
+													class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-foreground"
 												>
 													{formatMoney(selectedOrder.subtotal, selectedOrder.currency)}
 												</p>
 											</div>
 											<div class="flex w-full items-center justify-between gap-[12px]">
-												<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
-													Discount
+												<p
+													class="font-['Geist:Regular'] text-[16px] leading-[24px] text-muted-foreground"
+												>
+													{m.common_discount()}
 												</p>
 												<p
-													class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-[#0a0a0a]"
+													class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-foreground"
 												>
 													−{formatMoney(selectedOrder.discount, selectedOrder.currency)}
 												</p>
 											</div>
 											<div class="flex w-full items-center justify-between gap-[12px]">
-												<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
-													Shipment cost
+												<p
+													class="font-['Geist:Regular'] text-[16px] leading-[24px] text-muted-foreground"
+												>
+													{m.account_shared_shipping_cost()}
 												</p>
 												<p
-													class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-[#0a0a0a]"
+													class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-foreground"
 												>
 													{formatMoney(selectedOrder.shipping, selectedOrder.currency)}
 												</p>
 											</div>
 											<div
-												class="flex w-full items-center justify-between gap-[12px] border-t border-[#e5e5e5] pt-[8px]"
+												class="flex w-full items-center justify-between gap-[12px] border-t border-border pt-[8px]"
 											>
 												<p
-													class="font-['Geist:SemiBold'] text-[18px] leading-[28px] font-semibold text-[#0a0a0a]"
+													class="font-['Geist:SemiBold'] text-[18px] leading-[28px] font-semibold text-foreground"
 												>
-													Grand Total
+													{m.account_shared_grand_total()}
 												</p>
 												<p
-													class="font-['Geist:SemiBold'] text-[18px] leading-[28px] font-semibold text-[#0a0a0a]"
+													class="font-['Geist:SemiBold'] text-[18px] leading-[28px] font-semibold text-foreground"
 												>
 													{formatMoney(selectedOrder.grandTotal, selectedOrder.currency)}
 												</p>
@@ -480,7 +491,7 @@
 						</div>
 
 						<div
-							class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-white py-[16px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)]"
+							class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-card py-[16px] shadow-[0px_0px_0px_1px_color-mix(in_oklab,var(--foreground)_10%,transparent)]"
 							data-name="Card"
 						>
 							<div
@@ -488,9 +499,9 @@
 								data-name="card-body"
 							>
 								<p
-									class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] text-[#0a0a0a]"
+									class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] text-foreground"
 								>
-									Why do you want to Return this item?
+									{m.account_return_item_why()}
 								</p>
 								<RadioGroup.Root
 									bind:value={form.reason}
@@ -503,7 +514,7 @@
 										>
 											<RadioGroup.Item value={option} />
 											<span
-												class="relative flex shrink-0 flex-col content-stretch items-start justify-center gap-[2px] self-stretch font-['Geist:Regular'] text-[14px] leading-[20px] font-normal [word-break:break-word] text-[#0a0a0a]"
+												class="relative flex shrink-0 flex-col content-stretch items-start justify-center gap-[2px] self-stretch font-['Geist:Regular'] text-[14px] leading-[20px] font-normal [word-break:break-word] text-foreground"
 												data-name="radio-container"
 											>
 												{option}
@@ -519,17 +530,17 @@
 							data-name="Message Container"
 						>
 							<Label for="return-note" class="text-[16px] leading-[24px] font-medium">
-								Note (optional)
+								{m.account_shared_note_optional()}
 							</Label>
 							<Textarea
 								id="return-note"
 								bind:value={form.note}
-								placeholder="Anything else we should know about this return?"
+								placeholder={m.account_return_item_note_placeholder()}
 							/>
 						</div>
 
 						<div
-							class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-white py-[16px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)]"
+							class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-card py-[16px] shadow-[0px_0px_0px_1px_color-mix(in_oklab,var(--foreground)_10%,transparent)]"
 							data-name="Card"
 						>
 							<div
@@ -537,9 +548,9 @@
 								data-name="card-body"
 							>
 								<p
-									class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] text-[#0a0a0a]"
+									class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] text-foreground"
 								>
-									How do you want to be refunded?
+									{m.account_return_item_resolution()}
 								</p>
 								<RadioGroup.Root
 									bind:value={form.resolution}
@@ -552,7 +563,7 @@
 										>
 											<RadioGroup.Item value={option.value} />
 											<span
-												class="relative flex shrink-0 flex-col content-stretch items-start justify-center gap-[2px] self-stretch font-['Geist:Regular'] text-[14px] leading-[20px] font-normal [word-break:break-word] text-[#0a0a0a]"
+												class="relative flex shrink-0 flex-col content-stretch items-start justify-center gap-[2px] self-stretch font-['Geist:Regular'] text-[14px] leading-[20px] font-normal [word-break:break-word] text-foreground"
 												data-name="radio-container"
 											>
 												{option.label}
@@ -564,22 +575,22 @@
 						</div>
 
 						<p
-							class="relative w-full shrink-0 font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-[#16a34a]"
+							class="relative w-full shrink-0 font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-success"
 						>
-							Your item will be picked up within 2-3 days.
+							{m.account_shared_pickup_notice()}
 						</p>
 
 						{#if formError}
-							<p class="text-sm text-[#b91c1c]" role="alert">{formError}</p>
+							<p class="text-sm text-destructive" role="alert">{formError}</p>
 						{/if}
 
 						<Button
 							type="submit"
-							class="w-full rounded-[10px] bg-[#171717] px-[16px] py-[8px] text-[#fafafa] hover:bg-[#262626]"
+							class="w-full rounded-[10px] bg-primary px-[16px] py-[8px] text-primary-foreground hover:bg-primary/90"
 							disabled={submitting || !selectedOrder}
 							data-name="Solid Button"
 						>
-							{submitting ? 'Submitting' : 'Confirm Return'}
+							{submitting ? m.account_shared_submitting() : m.account_return_item_confirm()}
 						</Button>
 					</form>
 				{/if}

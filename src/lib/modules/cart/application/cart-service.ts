@@ -219,18 +219,28 @@ export function createCartService(
 		addItem: (cartId, input) =>
 			run(async () => {
 				const variant = (await snapshots([input.variantId])).get(input.variantId);
-				if (!variant) throw new NotFoundError('Variant not found');
-				if (variant.status !== 'active') throw new UnprocessableError('Variant is not available');
+				if (!variant)
+					throw new NotFoundError('Variant not found', { messageKey: 'variant_not_found' });
+				if (variant.status !== 'active')
+					throw new UnprocessableError('Variant is not available', {
+						messageKey: 'variant_unavailable'
+					});
 
 				const existing = await repository.findItemByVariant(cartId, input.variantId);
 				const now = clock.now();
 
 				if (existing) {
 					const quantity = existing.quantity + input.quantity;
-					if (quantity > variant.stock) throw new UnprocessableError('Insufficient stock');
+					if (quantity > variant.stock)
+						throw new UnprocessableError('Insufficient stock', {
+							messageKey: 'insufficient_stock'
+						});
 					await repository.updateItem(existing.id, { quantity, updatedAt: now });
 				} else {
-					if (input.quantity > variant.stock) throw new UnprocessableError('Insufficient stock');
+					if (input.quantity > variant.stock)
+						throw new UnprocessableError('Insufficient stock', {
+							messageKey: 'insufficient_stock'
+						});
 					const item: CartItemRecord = {
 						id: newId(),
 						cartId,
@@ -250,14 +260,19 @@ export function createCartService(
 		updateItem: (cartId, itemId, quantity) =>
 			run(async () => {
 				const item = await repository.findItem(cartId, itemId);
-				if (!item) throw new NotFoundError('Cart item not found');
+				if (!item)
+					throw new NotFoundError('Cart item not found', { messageKey: 'cart_item_not_found' });
 
 				if (quantity <= 0) {
 					await repository.deleteItem(cartId, itemId);
 				} else {
 					const variant = (await snapshots([item.variantId])).get(item.variantId);
-					if (!variant) throw new NotFoundError('Variant not found');
-					if (quantity > variant.stock) throw new UnprocessableError('Insufficient stock');
+					if (!variant)
+						throw new NotFoundError('Variant not found', { messageKey: 'variant_not_found' });
+					if (quantity > variant.stock)
+						throw new UnprocessableError('Insufficient stock', {
+							messageKey: 'insufficient_stock'
+						});
 					await repository.updateItem(itemId, { quantity, updatedAt: clock.now() });
 				}
 

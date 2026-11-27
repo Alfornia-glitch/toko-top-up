@@ -17,6 +17,7 @@ export const ADMIN_FOLDERS = [
 	'reviews',
 	'returns',
 	'support',
+	'store',
 	'media'
 ] as const;
 
@@ -33,7 +34,9 @@ export function normaliseFolder(value: FormDataEntryValue | null): string {
 	if (typeof value !== 'string' || value === '') return DEFAULT_FOLDER;
 
 	if (!FOLDER_PATTERN.test(value)) {
-		throw new MediaError(400, 'Invalid folder: use lowercase letters, digits or dashes');
+		throw new MediaError(400, 'Invalid folder: use lowercase letters, digits or dashes', {
+			messageKey: 'upload_invalid_folder'
+		});
 	}
 
 	return value;
@@ -49,7 +52,7 @@ export function canUploadToFolder(role: string | null | undefined, folder: strin
 
 export async function deleteMedia(path: string): Promise<void> {
 	if (!path || path.includes('..') || path.startsWith('/')) {
-		throw new MediaError(400, 'Invalid media path');
+		throw new MediaError(400, 'Invalid media path', { messageKey: 'upload_invalid_path' });
 	}
 
 	await getStorageBackend().delete(path);
@@ -57,15 +60,21 @@ export async function deleteMedia(path: string): Promise<void> {
 
 export async function uploadMedia(file: File, folder = DEFAULT_FOLDER): Promise<UploadedMedia> {
 	if (!isAllowedType(file.type)) {
-		throw new MediaError(400, `Unsupported file type: ${file.type || 'unknown'}`);
+		throw new MediaError(400, `Unsupported file type: ${file.type || 'unknown'}`, {
+			messageKey: 'upload_unsupported_type',
+			params: { type: file.type || 'unknown' }
+		});
 	}
 
 	if (file.size === 0) {
-		throw new MediaError(400, 'File is empty');
+		throw new MediaError(400, 'File is empty', { messageKey: 'upload_file_empty' });
 	}
 
 	if (file.size > MAX_BYTES) {
-		throw new MediaError(413, `File exceeds the ${MAX_BYTES / (1024 * 1024)} MiB limit`);
+		throw new MediaError(413, `File exceeds the ${MAX_BYTES / (1024 * 1024)} MiB limit`, {
+			messageKey: 'upload_file_too_large',
+			params: { max: MAX_BYTES / (1024 * 1024) }
+		});
 	}
 
 	const path = `${folder}/${crypto.randomUUID()}.${EXTENSION_BY_TYPE[file.type]}`;

@@ -1,3 +1,5 @@
+import type { Theme } from '#shared/theme.ts';
+
 export interface Banner {
 	id: string;
 	key: 'hero' | 'promo' | 'cta' | 'category';
@@ -145,6 +147,26 @@ export interface ShippingOption {
 	maxDays: number;
 }
 
+export type AccountFieldType = 'text' | 'number' | 'email' | 'tel' | 'select' | 'textarea';
+
+/** One input on the top-up checkout's account details form. */
+export interface AccountFormField {
+	id: string;
+	label: string;
+	type: AccountFieldType;
+	required: boolean;
+	placeholder: string;
+	helpText: string;
+	options: string[];
+}
+
+/** A submitted account details value, as snapshotted on a top-up order. */
+export interface AccountDetail {
+	id: string;
+	label: string;
+	value: string;
+}
+
 export interface SiteSettings {
 	contact: { address1: string; address2: string; phone: string; email: string };
 	social: { instagram: string; facebook: string; twitter: string };
@@ -152,6 +174,10 @@ export interface SiteSettings {
 	shipping: ShippingOption[];
 	currency: string;
 	storefrontLayout: 'regular' | 'topup';
+	topupAccountForm: AccountFormField[];
+	storeName: string;
+	logoUrl: string | null;
+	theme: Theme;
 }
 
 export interface HomeData {

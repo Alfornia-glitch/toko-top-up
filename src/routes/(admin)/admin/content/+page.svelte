@@ -7,15 +7,18 @@
 	import ContentDialog from '#lib/frontend/components/admin/content/ContentDialog.svelte';
 	import { Button } from '#lib/frontend/components/ui/button/index.ts';
 	import * as Tabs from '#lib/frontend/components/ui/tabs/index.ts';
+	import { m } from '#lib/paraglide/messages.js';
+	import { errorMessage } from '#lib/frontend/i18n/index.ts';
+	import { formatDateTime } from '#lib/frontend/modules/commerce/format.ts';
 
 	type Kind = 'banners' | 'announcements' | 'testimonials';
 	type ContentRow = Record<string, unknown>;
 
-	const kinds: { value: Kind; label: string }[] = [
-		{ value: 'banners', label: 'Banners' },
-		{ value: 'announcements', label: 'Announcements' },
-		{ value: 'testimonials', label: 'Testimonials' }
-	];
+	const kinds = $derived<{ value: Kind; label: string }[]>([
+		{ value: 'banners', label: m.admin_catalog_content_tab_banners() },
+		{ value: 'announcements', label: m.admin_catalog_content_tab_announcements() },
+		{ value: 'testimonials', label: m.admin_catalog_content_tab_testimonials() }
+	]);
 
 	let activeTab = $state<Kind>('banners');
 	let data = $state<Record<Kind, ContentRow[]>>({
@@ -50,43 +53,43 @@
 	const columns = $derived.by(() => {
 		if (activeTab === 'banners') {
 			return [
-				{ key: 'imageUrl', label: 'Image' },
-				{ key: 'title', label: 'Title' },
-				{ key: 'key', label: 'Placement' },
-				{ key: 'position', label: 'Position', class: 'text-right' },
-				{ key: 'active', label: 'Active' },
-				{ key: 'startsAt', label: 'Starts' },
-				{ key: 'endsAt', label: 'Ends' },
+				{ key: 'imageUrl', label: m.admin_catalog_content_col_image() },
+				{ key: 'title', label: m.admin_catalog_content_col_title() },
+				{ key: 'key', label: m.admin_catalog_content_col_placement() },
+				{ key: 'position', label: m.admin_catalog_content_col_position(), class: 'text-right' },
+				{ key: 'active', label: m.common_active() },
+				{ key: 'startsAt', label: m.admin_catalog_content_col_starts() },
+				{ key: 'endsAt', label: m.admin_catalog_content_col_ends() },
 				{ key: 'actions', label: '', class: 'text-right' }
 			];
 		}
 
 		if (activeTab === 'announcements') {
 			return [
-				{ key: 'text', label: 'Text' },
-				{ key: 'position', label: 'Position', class: 'text-right' },
-				{ key: 'active', label: 'Active' },
-				{ key: 'startsAt', label: 'Starts' },
-				{ key: 'endsAt', label: 'Ends' },
+				{ key: 'text', label: m.admin_catalog_content_col_text() },
+				{ key: 'position', label: m.admin_catalog_content_col_position(), class: 'text-right' },
+				{ key: 'active', label: m.common_active() },
+				{ key: 'startsAt', label: m.admin_catalog_content_col_starts() },
+				{ key: 'endsAt', label: m.admin_catalog_content_col_ends() },
 				{ key: 'actions', label: '', class: 'text-right' }
 			];
 		}
 
 		return [
-			{ key: 'imageUrl', label: 'Image' },
-			{ key: 'caption', label: 'Caption' },
-			{ key: 'position', label: 'Position', class: 'text-right' },
-			{ key: 'active', label: 'Active' },
+			{ key: 'imageUrl', label: m.admin_catalog_content_col_image() },
+			{ key: 'caption', label: m.admin_catalog_content_col_caption() },
+			{ key: 'position', label: m.admin_catalog_content_col_position(), class: 'text-right' },
+			{ key: 'active', label: m.common_active() },
 			{ key: 'actions', label: '', class: 'text-right' }
 		];
 	});
 
 	const emptyMessage = $derived(
 		activeTab === 'banners'
-			? 'No banners yet.'
+			? m.admin_catalog_content_empty_banners()
 			: activeTab === 'announcements'
-				? 'No announcements yet.'
-				: 'No testimonials yet.'
+				? m.admin_catalog_content_empty_announcements()
+				: m.admin_catalog_content_empty_testimonials()
 	);
 
 	onMount(() => {
@@ -103,11 +106,11 @@
 			const response = await fetch(`/api/admin/content/${kind}`);
 			const payload = await response.json().catch(() => ({}));
 
-			if (!response.ok) throw new Error(payload.error ?? 'Could not load content');
+			if (!response.ok) throw new Error(errorMessage(payload, 'admin_catalog_content_load_failed'));
 
 			data[kind] = payload.data ?? [];
 		} catch (err) {
-			errors[kind] = err instanceof Error ? err.message : 'Could not load content';
+			errors[kind] = errorMessage(err, 'admin_catalog_content_load_failed');
 		} finally {
 			loading[kind] = false;
 		}
@@ -146,13 +149,29 @@
 			});
 			const payload = await response.json().catch(() => ({}));
 
-			if (!response.ok) throw new Error(payload.error ?? 'Could not delete content');
+			if (!response.ok)
+				throw new Error(errorMessage(payload, 'admin_catalog_content_delete_failed'));
 
 			await loadKind(deleteKind);
 		} catch (err) {
-			actionError = err instanceof Error ? err.message : 'Could not delete content';
+			actionError = errorMessage(err, 'admin_catalog_content_delete_failed');
 		} finally {
 			deleteTarget = null;
+		}
+	}
+
+	function placementLabel(value: string) {
+		switch (value) {
+			case 'hero':
+				return m.admin_catalog_content_placement_hero();
+			case 'promo':
+				return m.admin_catalog_content_placement_promo();
+			case 'cta':
+				return m.admin_catalog_content_placement_cta();
+			case 'category':
+				return m.admin_catalog_content_placement_category();
+			default:
+				return value;
 		}
 	}
 
@@ -161,35 +180,27 @@
 	}
 
 	function formatDate(value: unknown) {
-		if (!value) return '—';
-		const date = new Date(String(value));
-		if (Number.isNaN(date.getTime())) return '—';
+		if (!value) return m.common_dash();
 
-		return new Intl.DateTimeFormat('en-US', {
-			month: 'short',
-			day: 'numeric',
-			year: 'numeric',
-			hour: '2-digit',
-			minute: '2-digit'
-		}).format(date);
+		return formatDateTime(String(value)) || m.common_dash();
 	}
 </script>
 
 <div class="space-y-6">
 	<div class="flex flex-wrap items-start justify-between gap-3">
 		<div>
-			<h1 class="text-2xl font-semibold tracking-tight">Content</h1>
+			<h1 class="text-2xl font-semibold tracking-tight">{m.admin_catalog_content_title()}</h1>
 			<p class="text-sm text-muted-foreground">
-				Manage storefront banners, announcements and testimonials.
+				{m.admin_catalog_content_subtitle()}
 			</p>
 		</div>
 		<Button onclick={openCreate}>
 			<Plus class="size-4" />
-			New {activeTab === 'banners'
-				? 'banner'
+			{activeTab === 'banners'
+				? m.admin_catalog_content_new_banner()
 				: activeTab === 'announcements'
-					? 'announcement'
-					: 'testimonial'}
+					? m.admin_catalog_content_new_announcement()
+					: m.admin_catalog_content_new_testimonial()}
 		</Button>
 	</div>
 
@@ -234,7 +245,9 @@
 							{#if row.imageUrl}
 								<img
 									src={String(row.imageUrl)}
-									alt={activeTab === 'banners' ? 'Banner thumbnail' : 'Testimonial thumbnail'}
+									alt={activeTab === 'banners'
+										? m.admin_catalog_content_banner_thumbnail_alt()
+										: m.admin_catalog_content_testimonial_thumbnail_alt()}
 									class="size-10 rounded-md border bg-muted object-cover"
 									loading="lazy"
 								/>
@@ -248,7 +261,7 @@
 						{:else if column.key === 'title'}
 							<span class="font-medium">{str(row.title)}</span>
 						{:else if column.key === 'key'}
-							<span class="capitalize">{str(row.key)}</span>
+							<span>{placementLabel(str(row.key))}</span>
 						{:else if column.key === 'text'}
 							<span class="block max-w-md truncate">{str(row.text)}</span>
 						{:else if column.key === 'caption'}
@@ -268,7 +281,7 @@
 								<Button
 									variant="ghost"
 									size="icon-sm"
-									aria-label="Edit content"
+									aria-label={m.admin_catalog_content_edit_aria()}
 									onclick={() => openEdit(row)}
 								>
 									<Pencil class="size-4" />
@@ -277,7 +290,7 @@
 									variant="ghost"
 									size="icon-sm"
 									class="text-destructive hover:bg-destructive/10"
-									aria-label="Delete content"
+									aria-label={m.admin_catalog_content_delete_aria()}
 									onclick={() => openDelete(row)}
 								>
 									<Trash2 class="size-4" />
@@ -299,9 +312,10 @@
 
 <ConfirmDialog
 	bind:open={deleteOpen}
-	title="Delete content"
-	description="Delete this item? This action cannot be undone."
-	confirmLabel="Delete"
+	title={m.admin_catalog_content_delete_title()}
+	description={m.admin_catalog_content_delete_description()}
+	confirmLabel={m.common_delete()}
+	cancelLabel={m.common_cancel()}
 	destructive
 	onConfirm={deleteItem}
 />

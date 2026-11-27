@@ -1,6 +1,6 @@
 import type { RequestHandler } from './$types';
 import { unwrap } from '#shared';
-import { STATIC_META } from '#lib/frontend/modules/seo/index.ts';
+import { DEFAULT_SITE_NAME, staticMetaFor } from '#lib/frontend/modules/seo/index.ts';
 import { storefrontCacheHeaders } from '#lib/server/http/cdn-cache.ts';
 import { siteOrigin } from '#lib/server/http/seo.ts';
 
@@ -25,7 +25,7 @@ export const GET: RequestHandler = async (event) => {
 	const categories = unwrap(await storefront.listCategories());
 
 	const paths = [
-		...Object.entries(STATIC_META)
+		...Object.entries(staticMetaFor(DEFAULT_SITE_NAME))
 			.filter(([, meta]) => !meta.noindex)
 			.map(([path]) => path),
 		...categories.map((category) => `/categories/${encodeURIComponent(category.slug)}`),

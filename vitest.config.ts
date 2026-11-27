@@ -1,8 +1,9 @@
 import { svelte } from '@sveltejs/vite-plugin-svelte';
+import { paraglideVitePlugin } from '@inlang/paraglide-js';
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
-	plugins: [svelte()],
+	plugins: [paraglideVitePlugin({ project: './project.inlang' }), svelte()],
 	resolve: {
 		conditions: ['browser']
 	},

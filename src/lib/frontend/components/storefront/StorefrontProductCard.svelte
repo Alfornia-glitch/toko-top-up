@@ -1,5 +1,5 @@
 <script lang="ts" module>
-	import { formatMoney } from '#lib/frontend/modules/commerce/format.ts';
+	import { formatMoney, formatNumber } from '#lib/frontend/modules/commerce/format.ts';
 	export interface StorefrontProduct {
 		id: string;
 		sku: string;
@@ -23,6 +23,7 @@
 </script>
 
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
 	import { Star } from '@lucide/svelte';
 	import WishlistButton from '#lib/frontend/components/shared/WishlistButton.svelte';
 	import ImagePlaceholder from '#lib/frontend/components/ui/ImagePlaceholder.svelte';
@@ -51,12 +52,12 @@
 	<a
 		href={`/products/${product.slug}`}
 		data-name="Product Card"
-		class={`flex h-full w-full overflow-hidden rounded-[14px] border border-[#e5e5e5] bg-white transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(10,10,10,0.12)] ${
+		class={`flex h-full w-full overflow-hidden rounded-[14px] border border-border bg-card transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_30px_color-mix(in_oklab,var(--foreground)_12%,transparent)] ${
 			layout === 'list' ? 'flex-col sm:flex-row' : 'flex-col'
 		}`}
 	>
 		<div
-			class={`relative shrink-0 overflow-hidden bg-[#f5f5f5] ${
+			class={`relative shrink-0 overflow-hidden bg-muted ${
 				layout === 'list' ? 'h-[200px] w-full sm:h-[220px] sm:w-[201px]' : 'h-[280px] w-full'
 			}`}
 		>
@@ -73,40 +74,44 @@
 			{/if}
 			<div class="absolute top-3 left-3 flex flex-wrap gap-2">
 				{#if product.isNewArrival}
-					<Badge class="rounded-full bg-[#16a34a] px-2.5 text-white">New</Badge>
+					<Badge class="rounded-full bg-success px-2.5 text-success-foreground"
+						>{m.components_product_form_new_arrival()}</Badge
+					>
 				{/if}
 				{#if compareAt}
-					<Badge class="rounded-full bg-[#dc2626] px-2.5 text-white">-{discount}%</Badge>
+					<Badge class="rounded-full bg-destructive px-2.5 text-white">-{discount}%</Badge>
 				{/if}
 			</div>
 		</div>
 		<div class="flex min-w-0 flex-1 flex-col gap-3 px-4 py-4">
 			<div class="flex flex-col gap-1">
 				{#if product.brandName}
-					<p class="text-xs font-medium tracking-wide text-[#737373] uppercase">
+					<p class="text-xs font-medium tracking-wide text-muted-foreground uppercase">
 						{product.brandName}
 					</p>
 				{/if}
-				<p class="line-clamp-2 text-sm font-semibold text-[#0a0a0a]">{product.name}</p>
+				<p class="line-clamp-2 text-sm font-semibold text-foreground">{product.name}</p>
 			</div>
 			<div class="flex items-center gap-1.5">
 				<div class="flex items-center gap-0.5">
 					{#each [0, 1, 2, 3, 4] as index (index)}
 						<Star
 							class={`size-3.5 ${
-								index < Math.round(rating) ? 'fill-[#d97706] text-[#d97706]' : 'text-[#d4d4d4]'
+								index < Math.round(rating) ? 'fill-rating text-rating' : 'text-muted-foreground/40'
 							}`}
 						/>
 					{/each}
 				</div>
-				<span class="text-xs text-[#737373]">{rating.toFixed(1)} ({product.ratingCount})</span>
+				<span class="text-xs text-muted-foreground"
+					>{formatNumber(rating, { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ({product.ratingCount})</span
+				>
 			</div>
 			<div class="mt-auto flex items-baseline gap-2">
-				<span class="text-base font-semibold text-[#0a0a0a]">
+				<span class="text-base font-semibold text-foreground">
 					{formatMoney(product.price, product.currency)}
 				</span>
 				{#if compareAt}
-					<span class="text-sm text-[#737373] line-through">
+					<span class="text-sm text-muted-foreground line-through">
 						{formatMoney(compareAt, product.currency)}
 					</span>
 				{/if}

@@ -1,5 +1,7 @@
 <script lang="ts">
-	import { formatMoney } from '#lib/frontend/modules/commerce/format.ts';
+	import { formatDate, formatMoney } from '#lib/frontend/modules/commerce/format.ts';
+	import { m } from '#lib/paraglide/messages.js';
+	import { errorMessage } from '#lib/frontend/i18n/index.ts';
 	import { onMount } from 'svelte';
 	import { RefreshCw, Search } from '@lucide/svelte';
 	import DataTable from '#lib/frontend/components/admin/DataTable.svelte';
@@ -19,14 +21,14 @@
 		spent: number;
 	};
 
-	const columns = [
-		{ key: 'name', label: 'Customer', sortable: true },
-		{ key: 'email', label: 'Email', sortable: true },
-		{ key: 'orderCount', label: 'Orders', class: 'text-right' },
-		{ key: 'spent', label: 'Total spent', class: 'text-right' },
-		{ key: 'createdAt', label: 'Joined', sortable: true },
+	const columns = $derived([
+		{ key: 'name', label: m.common_customer(), sortable: true },
+		{ key: 'email', label: m.common_email(), sortable: true },
+		{ key: 'orderCount', label: m.common_orders(), class: 'text-right' },
+		{ key: 'spent', label: m.admin_ops_customers_col_spent(), class: 'text-right' },
+		{ key: 'createdAt', label: m.admin_ops_customers_col_joined(), sortable: true },
 		{ key: 'actions', label: '', class: 'text-right' }
-	];
+	]);
 
 	const pageSize = 25;
 
@@ -60,12 +62,12 @@
 			const response = await fetch(`/api/admin/customers?${params.toString()}`);
 			const payload = await response.json().catch(() => ({}));
 
-			if (!response.ok) throw new Error(payload.error ?? 'Could not load customers');
+			if (!response.ok) throw new Error(errorMessage(payload, 'admin_ops_customers_load_failed'));
 
 			customers = payload.data ?? [];
 			total = Number(payload.total ?? 0);
 		} catch (err) {
-			error = err instanceof Error ? err.message : 'Could not load customers';
+			error = errorMessage(err, 'admin_ops_customers_load_failed');
 		} finally {
 			loading = false;
 		}
@@ -103,28 +105,17 @@
 
 		return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
 	}
-
-	function formatDate(value: string) {
-		const date = new Date(value);
-		if (Number.isNaN(date.getTime())) return '—';
-
-		return new Intl.DateTimeFormat('en-US', {
-			month: 'short',
-			day: 'numeric',
-			year: 'numeric'
-		}).format(date);
-	}
 </script>
 
 <div class="space-y-6">
 	<div class="flex flex-wrap items-start justify-between gap-3">
 		<div>
-			<h1 class="text-2xl font-semibold tracking-tight">Customers</h1>
-			<p class="text-sm text-muted-foreground">Browse registered customers and their activity.</p>
+			<h1 class="text-2xl font-semibold tracking-tight">{m.common_customers()}</h1>
+			<p class="text-sm text-muted-foreground">{m.admin_ops_customers_subtitle()}</p>
 		</div>
 		<Button variant="outline" onclick={() => void loadCustomers()} disabled={loading}>
 			<RefreshCw class="size-4" />
-			Refresh
+			{m.common_refresh()}
 		</Button>
 	</div>
 
@@ -141,7 +132,7 @@
 		<Card.Content class="py-4">
 			<form class="flex flex-wrap items-end gap-3" onsubmit={handleSearch}>
 				<div class="min-w-56 flex-1 space-y-1.5">
-					<Label for="customer-search">Search</Label>
+					<Label for="customer-search">{m.common_search()}</Label>
 					<div class="relative">
 						<Search
 							class="absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground"
@@ -149,14 +140,14 @@
 						<Input
 							id="customer-search"
 							bind:value={search}
-							placeholder="Search by name or email"
+							placeholder={m.admin_ops_customers_search_placeholder()}
 							class="pl-8"
 						/>
 					</div>
 				</div>
 				<Button type="submit" variant="outline">
 					<Search class="size-4" />
-					Search
+					{m.common_search()}
 				</Button>
 			</form>
 		</Card.Content>
@@ -166,7 +157,7 @@
 		{columns}
 		rows={customers as unknown as Record<string, unknown>[]}
 		{loading}
-		emptyMessage="No customers match the current search."
+		emptyMessage={m.admin_ops_customers_empty()}
 		{page}
 		{pageSize}
 		{total}
@@ -180,7 +171,10 @@
 				<div class="flex min-w-48 items-center gap-3">
 					<Avatar.Root size="sm">
 						{#if row.image}
-							<Avatar.Image src={String(row.image)} alt={String(row.name ?? 'Customer')} />
+							<Avatar.Image
+								src={String(row.image)}
+								alt={String(row.name ?? m.admin_ops_customers_avatar_alt())}
+							/>
 						{/if}
 						<Avatar.Fallback>
 							{initials(String(row.name ?? ''), String(row.email ?? ''))}
@@ -200,11 +194,11 @@
 			{:else if column.key === 'spent'}
 				<span class="font-medium">{formatMoney(Number(row.spent ?? 0))}</span>
 			{:else if column.key === 'createdAt'}
-				<span class="text-muted-foreground">{formatDate(String(row.createdAt ?? ''))}</span>
+				<span class="text-muted-foreground">{formatDate(String(row.createdAt ?? '')) || '—'}</span>
 			{:else if column.key === 'actions'}
 				<div class="flex items-center justify-end">
 					<Button variant="outline" size="sm" href={`/admin/customers/${String(row.id)}`}>
-						View
+						{m.common_view()}
 					</Button>
 				</div>
 			{:else}

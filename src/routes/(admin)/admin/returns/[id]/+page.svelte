@@ -1,5 +1,7 @@
 <script lang="ts">
-	import { formatMoney } from '#lib/frontend/modules/commerce/format.ts';
+	import { formatDateTime, formatMoney } from '#lib/frontend/modules/commerce/format.ts';
+	import { m } from '#lib/paraglide/messages.js';
+	import { enumLabel, errorMessage, statusLabel } from '#lib/frontend/i18n/index.ts';
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
 	import { ArrowLeft, LoaderCircle, Package, Save } from '@lucide/svelte';
@@ -56,26 +58,31 @@
 	};
 
 	type ReturnAction = {
-		label: string;
 		next: string;
 		variant?: 'default' | 'destructive' | 'outline';
 	};
 
 	const ACTIONS: Record<string, ReturnAction[]> = {
-		requested: [
-			{ label: 'Approve', next: 'approved' },
-			{ label: 'Reject', next: 'rejected', variant: 'destructive' }
-		],
-		approved: [
-			{ label: 'Mark received', next: 'received' },
-			{ label: 'Reject', next: 'rejected', variant: 'destructive' }
-		],
-		received: [
-			{ label: 'Refund', next: 'refunded' },
-			{ label: 'Complete', next: 'completed' }
-		],
-		refunded: [{ label: 'Complete', next: 'completed' }]
+		requested: [{ next: 'approved' }, { next: 'rejected', variant: 'destructive' }],
+		approved: [{ next: 'received' }, { next: 'rejected', variant: 'destructive' }],
+		received: [{ next: 'refunded' }, { next: 'completed' }],
+		refunded: [{ next: 'completed' }]
 	};
+
+	function actionLabel(next: string): string {
+		switch (next) {
+			case 'approved':
+				return m.admin_ops_return_action_approve();
+			case 'rejected':
+				return m.admin_ops_return_action_reject();
+			case 'received':
+				return m.admin_ops_return_action_received();
+			case 'refunded':
+				return m.admin_ops_return_action_refunded();
+			default:
+				return m.admin_ops_return_action_completed();
+		}
+	}
 
 	let request = $state<ReturnDetail | null>(null);
 	let loading = $state(true);
@@ -96,7 +103,7 @@
 
 	async function load(id: string | undefined) {
 		if (!id) {
-			error = 'Return not found.';
+			error = m.admin_ops_return_not_found_short();
 			loading = false;
 			return;
 		}
@@ -108,12 +115,12 @@
 			const response = await fetch(`/api/admin/returns/${id}`);
 			const payload = await response.json().catch(() => ({}));
 
-			if (!response.ok) throw new Error(payload.error ?? 'Could not load return');
+			if (!response.ok) throw new Error(errorMessage(payload, 'admin_ops_return_load_failed'));
 
 			request = payload.data as ReturnDetail;
 			syncForm(request);
 		} catch (err) {
-			error = err instanceof Error ? err.message : 'Could not load return';
+			error = errorMessage(err, 'admin_ops_return_load_failed');
 		} finally {
 			loading = false;
 		}
@@ -154,7 +161,7 @@
 		actionError = '';
 
 		if (refundAmount.trim() && parseRefund(refundAmount) === null) {
-			actionError = 'Enter a valid refund amount.';
+			actionError = m.admin_ops_return_invalid_refund();
 			return;
 		}
 
@@ -168,11 +175,11 @@
 			});
 			const payload = await response.json().catch(() => ({}));
 
-			if (!response.ok) throw new Error(payload.error ?? 'Could not update return');
+			if (!response.ok) throw new Error(errorMessage(payload, 'admin_ops_return_update_failed'));
 
 			await load(request.id);
 		} catch (err) {
-			actionError = err instanceof Error ? err.message : 'Could not update return';
+			actionError = errorMessage(err, 'admin_ops_return_update_failed');
 		} finally {
 			savingDetails = false;
 		}
@@ -189,7 +196,7 @@
 			refundValue = parseRefund(refundAmount);
 
 			if (refundValue === null) {
-				actionError = 'Enter a refund amount before marking this return as refunded.';
+				actionError = m.admin_ops_return_refund_required();
 				return;
 			}
 		}
@@ -216,11 +223,11 @@
 			});
 			const payload = await response.json().catch(() => ({}));
 
-			if (!response.ok) throw new Error(payload.error ?? 'Could not update return');
+			if (!response.ok) throw new Error(errorMessage(payload, 'admin_ops_return_update_failed'));
 
 			await load(request.id);
 		} catch (err) {
-			actionError = err instanceof Error ? err.message : 'Could not update return';
+			actionError = errorMessage(err, 'admin_ops_return_update_failed');
 		} finally {
 			savingAction = '';
 		}
@@ -250,21 +257,11 @@
 	}
 
 	function formatDate(value: string | null) {
-		if (!value) return '—';
-		const date = new Date(value);
-		if (Number.isNaN(date.getTime())) return '—';
-
-		return new Intl.DateTimeFormat('en-US', {
-			month: 'short',
-			day: 'numeric',
-			year: 'numeric',
-			hour: '2-digit',
-			minute: '2-digit'
-		}).format(date);
+		return formatDateTime(value) || '—';
 	}
 
 	function formatType(value: string) {
-		return value === 'exchange' ? 'Exchange' : 'Return';
+		return enumLabel('return_type', value === 'exchange' ? 'exchange' : 'return');
 	}
 </script>
 
@@ -279,9 +276,9 @@
 			<div class="flex justify-center gap-2">
 				<Button variant="outline" href="/admin/returns">
 					<ArrowLeft class="size-4" />
-					Back to returns
+					{m.admin_ops_return_back()}
 				</Button>
-				<Button onclick={() => void load(page.params.id)}>Try again</Button>
+				<Button onclick={() => void load(page.params.id)}>{m.common_retry()}</Button>
 			</div>
 		</Card.Content>
 	</Card.Root>
@@ -290,21 +287,25 @@
 		<div class="space-y-2">
 			<Button variant="ghost" size="sm" href="/admin/returns">
 				<ArrowLeft class="size-4" />
-				Back to returns
+				{m.admin_ops_return_back()}
 			</Button>
 			<div class="flex flex-wrap items-center gap-2">
 				<h1 class="text-2xl font-semibold tracking-tight">
-					{formatType(request.type)} #{request.id.slice(0, 8)}
+					{m.admin_ops_return_heading({
+						type: formatType(request.type),
+						id: request.id.slice(0, 8)
+					})}
 				</h1>
-				<StatusBadge status={request.status} />
-				<StatusBadge status={request.type} />
+				<StatusBadge kind="return" status={request.status} />
+				<StatusBadge kind="return_type" status={request.type} />
 			</div>
 			<p class="text-sm text-muted-foreground">
-				Order
+				{m.common_order()}
 				<a href={`/admin/orders/${request.orderId}`} class="font-medium hover:underline">
 					{request.orderNumber}
 				</a>
-				· Requested {formatDate(request.createdAt)}
+				· {m.admin_ops_return_requested()}
+				{formatDate(request.createdAt)}
 			</p>
 		</div>
 
@@ -320,41 +321,43 @@
 		<div class="grid gap-4 lg:grid-cols-3">
 			<Card.Root>
 				<Card.Header>
-					<Card.Title>Request</Card.Title>
-					<Card.Description>Current lifecycle and resolution.</Card.Description>
+					<Card.Title>{m.admin_ops_return_request()}</Card.Title>
+					<Card.Description>{m.admin_ops_return_request_desc()}</Card.Description>
 				</Card.Header>
 				<Card.Content class="space-y-2 text-sm">
 					<div class="flex items-center justify-between gap-2">
-						<span class="text-muted-foreground">Status</span>
-						<StatusBadge status={request.status} />
+						<span class="text-muted-foreground">{m.common_status()}</span>
+						<StatusBadge kind="return" status={request.status} />
 					</div>
 					<div class="flex items-center justify-between gap-2">
-						<span class="text-muted-foreground">Type</span>
+						<span class="text-muted-foreground">{m.admin_ops_returns_type()}</span>
 						<span class="font-medium">{formatType(request.type)}</span>
 					</div>
 					<div class="flex items-center justify-between gap-2">
-						<span class="text-muted-foreground">Resolution</span>
-						<span class="font-medium capitalize">{request.resolution ?? '—'}</span>
+						<span class="text-muted-foreground">{m.admin_ops_return_resolution()}</span>
+						<span class="font-medium">
+							{request.resolution ? enumLabel('return_resolution', request.resolution) : '—'}
+						</span>
 					</div>
 					<div class="flex items-center justify-between gap-2">
-						<span class="text-muted-foreground">Refund</span>
+						<span class="text-muted-foreground">{m.admin_ops_returns_col_refund()}</span>
 						<span class="font-medium">
 							{request.refundAmount === null ? '—' : formatMoney(request.refundAmount)}
 						</span>
 					</div>
 					<Separator />
 					<div class="flex items-center justify-between gap-2">
-						<span class="text-muted-foreground">Resolved at</span>
+						<span class="text-muted-foreground">{m.admin_ops_return_resolved_at()}</span>
 						<span>{formatDate(request.resolvedAt)}</span>
 					</div>
 					{#if request.resolvedBy}
 						<div class="flex items-center justify-between gap-2">
-							<span class="text-muted-foreground">Resolved by</span>
+							<span class="text-muted-foreground">{m.admin_ops_return_resolved_by()}</span>
 							<span class="truncate text-xs">{request.resolvedBy}</span>
 						</div>
 					{/if}
 					<div class="flex items-center justify-between gap-2">
-						<span class="text-muted-foreground">Updated</span>
+						<span class="text-muted-foreground">{m.admin_ops_return_updated()}</span>
 						<span>{formatDate(request.updatedAt)}</span>
 					</div>
 				</Card.Content>
@@ -362,36 +365,40 @@
 
 			<Card.Root>
 				<Card.Header>
-					<Card.Title>Customer</Card.Title>
-					<Card.Description>Who requested this return.</Card.Description>
+					<Card.Title>{m.common_customer()}</Card.Title>
+					<Card.Description>{m.admin_ops_return_customer_desc()}</Card.Description>
 				</Card.Header>
 				<Card.Content class="space-y-1 text-sm">
-					<p class="font-medium">{request.customerName ?? 'Unnamed customer'}</p>
-					<p class="text-muted-foreground">{request.customerEmail ?? 'No email'}</p>
+					<p class="font-medium">{request.customerName ?? m.admin_ops_return_unnamed()}</p>
+					<p class="text-muted-foreground">
+						{request.customerEmail ?? m.admin_ops_return_no_email()}
+					</p>
 					{#if request.userId}
-						<p class="text-xs text-muted-foreground">ID: {request.userId}</p>
+						<p class="text-xs text-muted-foreground">
+							{m.admin_ops_return_user_id({ id: request.userId })}
+						</p>
 					{/if}
 				</Card.Content>
 			</Card.Root>
 
 			<Card.Root>
 				<Card.Header>
-					<Card.Title>Order</Card.Title>
-					<Card.Description>Original purchase details.</Card.Description>
+					<Card.Title>{m.common_order()}</Card.Title>
+					<Card.Description>{m.admin_ops_return_order_desc()}</Card.Description>
 				</Card.Header>
 				<Card.Content class="space-y-2 text-sm">
 					<div class="flex items-center justify-between gap-2">
-						<span class="text-muted-foreground">Order</span>
+						<span class="text-muted-foreground">{m.common_order()}</span>
 						<a href={`/admin/orders/${request.orderId}`} class="font-medium hover:underline">
 							{request.orderNumber}
 						</a>
 					</div>
 					<div class="flex items-center justify-between gap-2">
-						<span class="text-muted-foreground">Item ID</span>
+						<span class="text-muted-foreground">{m.admin_ops_return_item_id()}</span>
 						<span class="truncate text-xs">{request.orderItemId}</span>
 					</div>
 					<div class="flex items-center justify-between gap-2">
-						<span class="text-muted-foreground">Requested</span>
+						<span class="text-muted-foreground">{m.admin_ops_return_requested()}</span>
 						<span>{formatDate(request.createdAt)}</span>
 					</div>
 				</Card.Content>
@@ -401,8 +408,8 @@
 		<div class="grid gap-4 lg:grid-cols-2">
 			<Card.Root>
 				<Card.Header>
-					<Card.Title>Item</Card.Title>
-					<Card.Description>Product tied to this request.</Card.Description>
+					<Card.Title>{m.admin_ops_return_item()}</Card.Title>
+					<Card.Description>{m.admin_ops_return_item_desc()}</Card.Description>
 				</Card.Header>
 				<Card.Content class="space-y-3">
 					<div class="flex items-center gap-3">
@@ -418,15 +425,15 @@
 					</div>
 					<div class="grid gap-2 text-sm sm:grid-cols-3">
 						<div>
-							<p class="text-muted-foreground">Quantity</p>
+							<p class="text-muted-foreground">{m.common_quantity()}</p>
 							<p class="font-medium">{request.quantity}</p>
 						</div>
 						<div>
-							<p class="text-muted-foreground">Unit price</p>
+							<p class="text-muted-foreground">{m.admin_ops_return_unit_price()}</p>
 							<p class="font-medium">{formatMoney(request.unitPrice)}</p>
 						</div>
 						<div>
-							<p class="text-muted-foreground">Refund</p>
+							<p class="text-muted-foreground">{m.admin_ops_returns_col_refund()}</p>
 							<p class="font-medium">
 								{request.refundAmount === null ? '—' : formatMoney(request.refundAmount)}
 							</p>
@@ -437,23 +444,23 @@
 
 			<Card.Root>
 				<Card.Header>
-					<Card.Title>Reason</Card.Title>
-					<Card.Description>Customer-provided context.</Card.Description>
+					<Card.Title>{m.admin_ops_return_reason()}</Card.Title>
+					<Card.Description>{m.admin_ops_return_reason_desc()}</Card.Description>
 				</Card.Header>
 				<Card.Content class="space-y-3 text-sm">
 					<div>
-						<p class="text-muted-foreground">Reason</p>
+						<p class="text-muted-foreground">{m.admin_ops_return_reason()}</p>
 						<p class="whitespace-pre-line">{request.reason}</p>
 					</div>
 					{#if request.note}
 						<div>
-							<p class="text-muted-foreground">Note</p>
+							<p class="text-muted-foreground">{m.admin_ops_return_note()}</p>
 							<p class="whitespace-pre-line">{request.note}</p>
 						</div>
 					{/if}
 					{#if request.exchangeVariantId}
 						<div>
-							<p class="text-muted-foreground">Exchange variant</p>
+							<p class="text-muted-foreground">{m.admin_ops_return_exchange_variant()}</p>
 							<code class="text-xs">{request.exchangeVariantId}</code>
 						</div>
 					{/if}
@@ -464,8 +471,8 @@
 		{#if request.images.length > 0}
 			<Card.Root>
 				<Card.Header>
-					<Card.Title>Evidence</Card.Title>
-					<Card.Description>Images attached by the customer.</Card.Description>
+					<Card.Title>{m.admin_ops_return_evidence()}</Card.Title>
+					<Card.Description>{m.admin_ops_return_evidence_desc()}</Card.Description>
 				</Card.Header>
 				<Card.Content>
 					<div class="flex flex-wrap gap-3">
@@ -478,7 +485,7 @@
 							>
 								<img
 									src={image.url}
-									alt="Return evidence"
+									alt={m.admin_ops_return_evidence_alt()}
 									class="size-24 object-cover"
 									loading="lazy"
 								/>
@@ -492,7 +499,7 @@
 		{#if pickupAddress}
 			<Card.Root>
 				<Card.Header>
-					<Card.Title>Pickup address</Card.Title>
+					<Card.Title>{m.admin_ops_return_pickup_address()}</Card.Title>
 				</Card.Header>
 				<Card.Content>
 					<address class="space-y-0.5 text-sm text-muted-foreground not-italic">
@@ -511,31 +518,33 @@
 
 		<Card.Root>
 			<Card.Header>
-				<Card.Title>Resolution</Card.Title>
-				<Card.Description>Set the resolution, refund amount and internal note.</Card.Description>
+				<Card.Title>{m.admin_ops_return_resolution()}</Card.Title>
+				<Card.Description>{m.admin_ops_return_resolution_desc()}</Card.Description>
 			</Card.Header>
 			<Card.Content>
 				<form class="grid gap-4" onsubmit={saveDetails}>
 					<div class="grid gap-4 sm:grid-cols-2">
 						<Field.Field>
-							<Field.Label for="return-resolution">Resolution</Field.Label>
+							<Field.Label for="return-resolution">{m.admin_ops_return_resolution()}</Field.Label>
 							<Select.Root type="single" bind:value={resolution}>
 								<Select.Trigger id="return-resolution" class="w-full">
-									<Select.Value placeholder="No resolution" />
+									<Select.Value placeholder={m.admin_ops_return_no_resolution()} />
 								</Select.Trigger>
 								<Select.Content>
-									<Select.Item value="none" label="No resolution">No resolution</Select.Item>
-									<Select.Item value="original_payment" label="Original payment">
-										Original payment
+									<Select.Item value="none" label={m.admin_ops_return_no_resolution()}>
+										{m.admin_ops_return_no_resolution()}
 									</Select.Item>
-									<Select.Item value="gift_card" label="Gift card">Gift card</Select.Item>
-									<Select.Item value="card" label="Card">Card</Select.Item>
+									{#each ['original_payment', 'gift_card', 'card'] as option (option)}
+										<Select.Item value={option} label={enumLabel('return_resolution', option)}>
+											{enumLabel('return_resolution', option)}
+										</Select.Item>
+									{/each}
 								</Select.Content>
 							</Select.Root>
 						</Field.Field>
 
 						<Field.Field>
-							<Field.Label for="return-refund">Refund amount</Field.Label>
+							<Field.Label for="return-refund">{m.admin_ops_return_refund_amount()}</Field.Label>
 							<Input
 								id="return-refund"
 								type="number"
@@ -544,35 +553,44 @@
 								bind:value={refundAmount}
 								placeholder="0.00"
 							/>
-							<Field.Description
-								>Amount in {request.type === 'exchange' ? 'store' : 'order'} currency.</Field.Description
-							>
+							<Field.Description>
+								{request.type === 'exchange'
+									? m.admin_ops_return_amount_store_currency()
+									: m.admin_ops_return_amount_order_currency()}
+							</Field.Description>
 						</Field.Field>
 					</div>
 
 					{#if request.type === 'exchange'}
 						<Field.Field>
-							<Field.Label for="return-exchange-variant">Exchange variant ID</Field.Label>
+							<Field.Label for="return-exchange-variant"
+								>{m.admin_ops_return_exchange_variant_id()}</Field.Label
+							>
 							<Input
 								id="return-exchange-variant"
 								bind:value={exchangeVariantId}
-								placeholder="Variant ID"
+								placeholder={m.admin_ops_return_variant_id_placeholder()}
 							/>
 						</Field.Field>
 					{/if}
 
 					<Field.Field>
-						<Field.Label for="return-note">Internal note</Field.Label>
-						<Textarea id="return-note" bind:value={note} placeholder="Optional note" rows={3} />
+						<Field.Label for="return-note">{m.admin_ops_return_internal_note()}</Field.Label>
+						<Textarea
+							id="return-note"
+							bind:value={note}
+							placeholder={m.admin_ops_return_note_placeholder()}
+							rows={3}
+						/>
 					</Field.Field>
 
 					<div class="flex flex-wrap items-center justify-between gap-2">
 						<p class="text-xs text-muted-foreground">
-							Saving details does not change the return status.
+							{m.admin_ops_return_save_hint()}
 						</p>
 						<Button type="submit" variant="outline" disabled={savingDetails}>
 							<Save class="size-4" />
-							{savingDetails ? 'Saving…' : 'Save details'}
+							{savingDetails ? m.common_saving() : m.admin_ops_return_save_details()}
 						</Button>
 					</div>
 				</form>
@@ -581,18 +599,18 @@
 
 		<Card.Root>
 			<Card.Header>
-				<Card.Title>Actions</Card.Title>
+				<Card.Title>{m.admin_ops_return_actions()}</Card.Title>
 				<Card.Description>
 					{#if actions.length > 0}
-						Available transitions from the current status.
+						{m.admin_ops_return_actions_available()}
 					{:else}
-						This return has reached a final state.
+						{m.admin_ops_return_actions_final()}
 					{/if}
 				</Card.Description>
 			</Card.Header>
 			<Card.Content class="flex flex-wrap gap-2">
 				{#if actions.length === 0}
-					<p class="text-sm text-muted-foreground">No further actions are available.</p>
+					<p class="text-sm text-muted-foreground">{m.admin_ops_return_no_actions()}</p>
 				{:else}
 					{#each actions as action (action.next)}
 						<Button
@@ -600,7 +618,9 @@
 							disabled={savingAction !== ''}
 							onclick={() => void applyStatus(action.next)}
 						>
-							{savingAction === action.next ? 'Working…' : action.label}
+							{savingAction === action.next
+								? m.admin_ops_return_working()
+								: actionLabel(action.next)}
 						</Button>
 					{/each}
 				{/if}
@@ -610,8 +630,8 @@
 {:else}
 	<Card.Root>
 		<Card.Content class="space-y-4 py-10 text-center">
-			<p class="text-sm text-muted-foreground">This return could not be found.</p>
-			<Button href="/admin/returns">Back to returns</Button>
+			<p class="text-sm text-muted-foreground">{m.admin_ops_return_not_found()}</p>
+			<Button href="/admin/returns">{m.admin_ops_return_back()}</Button>
 		</Card.Content>
 	</Card.Root>
 {/if}

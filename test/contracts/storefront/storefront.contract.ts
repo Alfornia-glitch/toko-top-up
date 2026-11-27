@@ -309,6 +309,33 @@ export function runStorefrontContract(context: StorefrontContractContext): void 
 			unwrap(await content.putSettings({ storefrontLayout: 'bogus' }, superAdmin));
 			expect(unwrap(await storefront.getSiteSettings()).storefrontLayout).toBe('regular');
 		});
+
+		test('store name and logo fall back to defaults when stored values are invalid', async () => {
+			const defaults = unwrap(await storefront.getSiteSettings());
+			expect(defaults.storeName).toBe('Shopix');
+			expect(defaults.logoUrl).toBeNull();
+
+			unwrap(
+				await content.putSettings(
+					{ storeName: '  Toko Saya  ', logoUrl: 'https://cdn.example.com/store/logo.png' },
+					superAdmin
+				)
+			);
+			const saved = unwrap(await storefront.getSiteSettings());
+			expect(saved.storeName).toBe('Toko Saya');
+			expect(saved.logoUrl).toBe('https://cdn.example.com/store/logo.png');
+
+			unwrap(
+				await content.putSettings({ storeName: '   ', logoUrl: 'javascript:alert(1)' }, superAdmin)
+			);
+			// Invalid stored values resolve to the defaults; the write endpoint rejects them up front.
+			const afterInvalid = unwrap(await storefront.getSiteSettings());
+			expect(afterInvalid.storeName).toBe('Shopix');
+			expect(afterInvalid.logoUrl).toBeNull();
+
+			unwrap(await content.putSettings({ logoUrl: '' }, superAdmin));
+			expect(unwrap(await storefront.getSiteSettings()).logoUrl).toBeNull();
+		});
 	});
 
 	describe('wishlist', () => {

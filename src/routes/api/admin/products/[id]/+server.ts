@@ -1,11 +1,11 @@
 import type { RequestHandler } from './$types';
-import { assertActor } from '#shared';
+import { assertActor, errorBody } from '#shared';
 import { productStatusSchema, productWriteSchema } from '#modules/catalog/index.ts';
 
 export const GET: RequestHandler = async ({ locals, params }) => {
 	const result = await locals.services.catalog.products.get(params.id, assertActor(locals.actor));
 	if (!result.ok) {
-		return Response.json({ error: result.error.message }, { status: result.error.status });
+		return Response.json(errorBody(result.error), { status: result.error.status });
 	}
 
 	return Response.json({ data: result.value });
@@ -17,7 +17,10 @@ export const PATCH: RequestHandler = async ({ locals, params, request }) => {
 	try {
 		body = await request.json();
 	} catch {
-		return Response.json({ error: 'Expected a JSON body' }, { status: 400 });
+		return Response.json(
+			{ error: 'Expected a JSON body', code: 'invalid_json_body' },
+			{ status: 400 }
+		);
 	}
 
 	if (
@@ -29,7 +32,7 @@ export const PATCH: RequestHandler = async ({ locals, params, request }) => {
 	) {
 		const parsedStatus = productStatusSchema.safeParse((body as { status?: unknown }).status);
 		if (!parsedStatus.success) {
-			return Response.json({ error: 'Invalid status' }, { status: 422 });
+			return Response.json({ error: 'Invalid status', code: 'VALIDATION_ERROR' }, { status: 422 });
 		}
 
 		const result = await locals.services.catalog.products.setStatus(
@@ -38,7 +41,7 @@ export const PATCH: RequestHandler = async ({ locals, params, request }) => {
 			assertActor(locals.actor)
 		);
 		if (!result.ok) {
-			return Response.json({ error: result.error.message }, { status: result.error.status });
+			return Response.json(errorBody(result.error), { status: result.error.status });
 		}
 
 		return Response.json({ data: result.value });
@@ -47,7 +50,7 @@ export const PATCH: RequestHandler = async ({ locals, params, request }) => {
 	const parsed = productWriteSchema.safeParse(body);
 	if (!parsed.success) {
 		return Response.json(
-			{ error: 'Invalid product data', details: parsed.error.flatten() },
+			{ error: 'Invalid product data', code: 'VALIDATION_ERROR', details: parsed.error.flatten() },
 			{ status: 422 }
 		);
 	}
@@ -58,7 +61,7 @@ export const PATCH: RequestHandler = async ({ locals, params, request }) => {
 		assertActor(locals.actor)
 	);
 	if (!result.ok) {
-		return Response.json({ error: result.error.message }, { status: result.error.status });
+		return Response.json(errorBody(result.error), { status: result.error.status });
 	}
 
 	return Response.json({ data: result.value });

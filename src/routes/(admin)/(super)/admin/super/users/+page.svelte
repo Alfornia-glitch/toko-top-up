@@ -7,6 +7,10 @@
 	import { Input } from '#lib/frontend/components/ui/input/index.ts';
 	import { Label } from '#lib/frontend/components/ui/label/index.ts';
 	import * as Select from '#lib/frontend/components/ui/select/index.ts';
+	import { m } from '#lib/paraglide/messages.js';
+	import { errorMessage } from '#lib/frontend/i18n/index.ts';
+	import { roleLabel } from '#lib/frontend/i18n/labels.ts';
+	import { formatDate } from '#lib/frontend/modules/commerce/format.ts';
 
 	type UserRow = {
 		id: string;
@@ -19,14 +23,14 @@
 		createdAt: string;
 	};
 
-	const columns = [
-		{ key: 'name', label: 'Name' },
-		{ key: 'email', label: 'Email' },
-		{ key: 'role', label: 'Role' },
-		{ key: 'banned', label: 'Banned' },
-		{ key: 'emailVerified', label: 'Verified' },
-		{ key: 'createdAt', label: 'Joined' }
-	];
+	const columns = $derived([
+		{ key: 'name', label: m.common_name() },
+		{ key: 'email', label: m.common_email() },
+		{ key: 'role', label: m.admin_super_col_role() },
+		{ key: 'banned', label: m.admin_super_users_col_banned() },
+		{ key: 'emailVerified', label: m.admin_super_users_col_verified() },
+		{ key: 'createdAt', label: m.admin_super_col_joined() }
+	]);
 
 	const pageSize = 25;
 
@@ -62,12 +66,12 @@
 			const response = await fetch(`/api/admin/super/users?${params.toString()}`);
 			const payload = await response.json().catch(() => ({}));
 
-			if (!response.ok) throw new Error(payload.error ?? 'Could not load users');
+			if (!response.ok) throw payload;
 
 			users = payload.data ?? [];
 			total = Number(payload.total ?? 0);
 		} catch (err) {
-			error = err instanceof Error ? err.message : 'Could not load users';
+			error = errorMessage(err, 'admin_super_users_load_failed');
 		} finally {
 			loading = false;
 		}
@@ -98,23 +102,12 @@
 		if (role === 'admin') return 'secondary';
 		return 'outline';
 	}
-
-	function formatDate(value: string) {
-		const date = new Date(value);
-		if (Number.isNaN(date.getTime())) return '—';
-
-		return new Intl.DateTimeFormat('en-US', {
-			month: 'short',
-			day: 'numeric',
-			year: 'numeric'
-		}).format(date);
-	}
 </script>
 
 <div class="space-y-6">
 	<div>
-		<h1 class="text-2xl font-semibold tracking-tight">Users</h1>
-		<p class="text-sm text-muted-foreground">Browse accounts, roles and ban status.</p>
+		<h1 class="text-2xl font-semibold tracking-tight">{m.admin_super_users_title()}</h1>
+		<p class="text-sm text-muted-foreground">{m.admin_super_users_subtitle()}</p>
 	</div>
 
 	{#if error}
@@ -129,26 +122,34 @@
 	<Card.Root>
 		<Card.Content class="grid gap-3 sm:grid-cols-2">
 			<div class="space-y-1.5">
-				<Label for="user-search">Search</Label>
+				<Label for="user-search">{m.common_search()}</Label>
 				<Input
 					id="user-search"
 					bind:value={q}
 					oninput={handleSearch}
-					placeholder="Search name or email"
+					placeholder={m.admin_super_users_search_placeholder()}
 				/>
 			</div>
 
 			<div class="space-y-1.5">
-				<Label for="user-role-filter">Role</Label>
+				<Label for="user-role-filter">{m.admin_super_col_role()}</Label>
 				<Select.Root type="single" value={roleFilter} onValueChange={handleRoleChange}>
 					<Select.Trigger id="user-role-filter" class="w-full">
-						<Select.Value placeholder="All roles" />
+						<Select.Value placeholder={m.admin_super_users_all_roles()} />
 					</Select.Trigger>
 					<Select.Content>
-						<Select.Item value="all" label="All roles">All roles</Select.Item>
-						<Select.Item value="customer" label="Customer">Customer</Select.Item>
-						<Select.Item value="admin" label="Admin">Admin</Select.Item>
-						<Select.Item value="superadmin" label="Superadmin">Superadmin</Select.Item>
+						<Select.Item value="all" label={m.admin_super_users_all_roles()}>
+							{m.admin_super_users_all_roles()}
+						</Select.Item>
+						<Select.Item value="customer" label={roleLabel('customer')}>
+							{roleLabel('customer')}
+						</Select.Item>
+						<Select.Item value="admin" label={roleLabel('admin')}>
+							{roleLabel('admin')}
+						</Select.Item>
+						<Select.Item value="superadmin" label={roleLabel('superadmin')}>
+							{roleLabel('superadmin')}
+						</Select.Item>
 					</Select.Content>
 				</Select.Root>
 			</div>
@@ -159,7 +160,7 @@
 		{columns}
 		rows={users as unknown as Record<string, unknown>[]}
 		{loading}
-		emptyMessage="No users match the current filters."
+		emptyMessage={m.admin_super_users_empty()}
 		{page}
 		{pageSize}
 		{total}
@@ -168,24 +169,26 @@
 		{#snippet cell(row, column)}
 			{#if column.key === 'name'}
 				<a href={`/admin/super/users/${String(row.id)}`} class="font-medium hover:underline">
-					{String(row.name ?? 'Unnamed user')}
+					{String(row.name ?? m.admin_super_unnamed_user())}
 				</a>
 			{:else if column.key === 'email'}
 				<span class="text-muted-foreground">{String(row.email ?? '')}</span>
 			{:else if column.key === 'role'}
-				<Badge variant={roleVariant(String(row.role ?? ''))} class="capitalize">
-					{String(row.role ?? '')}
+				<Badge variant={roleVariant(String(row.role ?? ''))}>
+					{roleLabel(String(row.role ?? ''))}
 				</Badge>
 			{:else if column.key === 'banned'}
 				<StatusBadge status={row.banned ? 'banned' : 'active'} />
 			{:else if column.key === 'emailVerified'}
 				<Badge variant={row.emailVerified ? 'secondary' : 'outline'}>
-					{row.emailVerified ? 'Verified' : 'Unverified'}
+					{row.emailVerified ? m.admin_super_user_verified() : m.admin_super_user_unverified()}
 				</Badge>
 			{:else if column.key === 'createdAt'}
-				<span class="text-muted-foreground">{formatDate(String(row.createdAt ?? ''))}</span>
+				<span class="text-muted-foreground"
+					>{formatDate(String(row.createdAt ?? '')) || m.common_dash()}</span
+				>
 			{:else}
-				{String(row[column.key] ?? '—')}
+				{String(row[column.key] ?? m.common_dash())}
 			{/if}
 		{/snippet}
 	</DataTable>

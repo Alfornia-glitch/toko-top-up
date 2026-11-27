@@ -1,4 +1,6 @@
 import { z } from 'zod';
+import { STORE_NAME_MAX_LENGTH } from '#modules/storefront/index.ts';
+import { THEME_MODES } from '#shared/theme.ts';
 
 export const paginationSchema = z.object({
 	page: z.coerce.number().int().min(1).default(1),
@@ -173,6 +175,18 @@ export const superBanSchema = z.object({
 	expiresAt: z.string().datetime().nullable().optional()
 });
 export const settingsWriteSchema = z.record(z.string(), z.unknown());
+/** Store name and logo. The logo is a media id from `/api/upload` (folder `store`), never a raw URL. */
+export const storeIdentityWriteSchema = z.object({
+	storeName: z.string().trim().min(1).max(STORE_NAME_MAX_LENGTH),
+	logoMediaId: z.string().trim().min(1).max(100).nullable().optional()
+});
+/** Unknown tokens and invalid colours are dropped by `sanitizeTheme`; only the shape is checked here. */
+export const themeWriteSchema = z.object({
+	mode: z.enum(THEME_MODES),
+	radius: z.string().trim().max(10),
+	light: z.record(z.string(), z.string().max(80)),
+	dark: z.record(z.string(), z.string().max(80))
+});
 export const dangerActionSchema = z.object({
 	action: z.enum(['purge_archived_products', 'purge_old_audit_logs']),
 	confirm: z.literal('DELETE')

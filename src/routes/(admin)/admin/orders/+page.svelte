@@ -1,5 +1,7 @@
 <script lang="ts">
-	import { formatMoney } from '#lib/frontend/modules/commerce/format.ts';
+	import { formatDateTime, formatMoney } from '#lib/frontend/modules/commerce/format.ts';
+	import { m } from '#lib/paraglide/messages.js';
+	import { errorMessage, statusLabel } from '#lib/frontend/i18n/index.ts';
 	import { onDestroy, onMount } from 'svelte';
 	import { ShoppingCart } from '@lucide/svelte';
 	import DataTable from '#lib/frontend/components/admin/DataTable.svelte';
@@ -24,15 +26,15 @@
 		customerEmail: string | null;
 	};
 
-	const columns = [
-		{ key: 'orderNumber', label: 'Order', sortable: true },
-		{ key: 'customer', label: 'Customer' },
-		{ key: 'status', label: 'Status' },
-		{ key: 'paymentStatus', label: 'Payment' },
-		{ key: 'fulfillmentStatus', label: 'Fulfillment' },
-		{ key: 'total', label: 'Total', sortable: true, class: 'text-right' },
-		{ key: 'placedAt', label: 'Placed', sortable: true }
-	];
+	const columns = $derived([
+		{ key: 'orderNumber', label: m.common_order(), sortable: true },
+		{ key: 'customer', label: m.common_customer() },
+		{ key: 'status', label: m.common_status() },
+		{ key: 'paymentStatus', label: m.common_payment() },
+		{ key: 'fulfillmentStatus', label: m.admin_ops_orders_col_fulfillment() },
+		{ key: 'total', label: m.common_total(), sortable: true, class: 'text-right' },
+		{ key: 'placedAt', label: m.admin_ops_orders_col_placed(), sortable: true }
+	]);
 
 	const orderStatuses = [
 		'pending',
@@ -90,12 +92,12 @@
 			const response = await fetch(`/api/admin/orders?${params.toString()}`);
 			const payload = await response.json().catch(() => ({}));
 
-			if (!response.ok) throw new Error(payload.error ?? 'Could not load orders');
+			if (!response.ok) throw new Error(errorMessage(payload, 'admin_ops_orders_load_failed'));
 
 			orders = payload.data ?? [];
 			total = Number(payload.total ?? 0);
 		} catch (err) {
-			error = err instanceof Error ? err.message : 'Could not load orders';
+			error = errorMessage(err, 'admin_ops_orders_load_failed');
 		} finally {
 			loading = false;
 		}
@@ -144,32 +146,17 @@
 		page = nextPage;
 		void loadOrders();
 	}
-
-	function formatDate(value: string) {
-		const date = new Date(value);
-		if (Number.isNaN(date.getTime())) return '—';
-
-		return new Intl.DateTimeFormat('en-US', {
-			month: 'short',
-			day: 'numeric',
-			year: 'numeric',
-			hour: '2-digit',
-			minute: '2-digit'
-		}).format(date);
-	}
 </script>
 
 <div class="space-y-6">
 	<div class="flex flex-wrap items-start justify-between gap-3">
 		<div>
-			<h1 class="text-2xl font-semibold tracking-tight">Orders</h1>
-			<p class="text-sm text-muted-foreground">
-				Review orders, payment state and fulfillment progress.
-			</p>
+			<h1 class="text-2xl font-semibold tracking-tight">{m.common_orders()}</h1>
+			<p class="text-sm text-muted-foreground">{m.admin_ops_orders_subtitle()}</p>
 		</div>
 		<div class="flex items-center gap-2 text-sm text-muted-foreground">
 			<ShoppingCart class="size-4" />
-			<span>{total} total</span>
+			<span>{m.admin_ops_orders_total({ count: total })}</span>
 		</div>
 	</div>
 
@@ -185,59 +172,71 @@
 	<Card.Root>
 		<Card.Content class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
 			<div class="space-y-1.5">
-				<Label for="order-search">Search</Label>
+				<Label for="order-search">{m.common_search()}</Label>
 				<Input
 					id="order-search"
 					bind:value={q}
 					oninput={handleSearch}
-					placeholder="Order number, name or email"
+					placeholder={m.admin_ops_orders_search_placeholder()}
 				/>
 			</div>
 
 			<div class="space-y-1.5">
-				<Label for="order-status-filter">Status</Label>
+				<Label for="order-status-filter">{m.common_status()}</Label>
 				<Select.Root type="single" value={statusFilter} onValueChange={handleStatusChange}>
 					<Select.Trigger id="order-status-filter" class="w-full">
-						<Select.Value placeholder="All statuses" />
+						<Select.Value placeholder={m.common_all_statuses()} />
 					</Select.Trigger>
 					<Select.Content>
-						<Select.Item value="all" label="All statuses">All statuses</Select.Item>
+						<Select.Item value="all" label={m.common_all_statuses()}
+							>{m.common_all_statuses()}</Select.Item
+						>
 						{#each orderStatuses as option (option)}
-							<Select.Item value={option} label={option}>{option}</Select.Item>
+							<Select.Item value={option} label={statusLabel('order', option)}>
+								{statusLabel('order', option)}
+							</Select.Item>
 						{/each}
 					</Select.Content>
 				</Select.Root>
 			</div>
 
 			<div class="space-y-1.5">
-				<Label for="order-payment-filter">Payment</Label>
+				<Label for="order-payment-filter">{m.common_payment()}</Label>
 				<Select.Root type="single" value={paymentFilter} onValueChange={handlePaymentChange}>
 					<Select.Trigger id="order-payment-filter" class="w-full">
-						<Select.Value placeholder="All payments" />
+						<Select.Value placeholder={m.admin_ops_orders_all_payments()} />
 					</Select.Trigger>
 					<Select.Content>
-						<Select.Item value="all" label="All payments">All payments</Select.Item>
+						<Select.Item value="all" label={m.admin_ops_orders_all_payments()}>
+							{m.admin_ops_orders_all_payments()}
+						</Select.Item>
 						{#each paymentStatuses as option (option)}
-							<Select.Item value={option} label={option}>{option}</Select.Item>
+							<Select.Item value={option} label={statusLabel('payment', option)}>
+								{statusLabel('payment', option)}
+							</Select.Item>
 						{/each}
 					</Select.Content>
 				</Select.Root>
 			</div>
 
 			<div class="space-y-1.5">
-				<Label for="order-fulfillment-filter">Fulfillment</Label>
+				<Label for="order-fulfillment-filter">{m.admin_ops_orders_col_fulfillment()}</Label>
 				<Select.Root
 					type="single"
 					value={fulfillmentFilter}
 					onValueChange={handleFulfillmentChange}
 				>
 					<Select.Trigger id="order-fulfillment-filter" class="w-full">
-						<Select.Value placeholder="All fulfillment" />
+						<Select.Value placeholder={m.admin_ops_orders_all_fulfillment()} />
 					</Select.Trigger>
 					<Select.Content>
-						<Select.Item value="all" label="All fulfillment">All fulfillment</Select.Item>
+						<Select.Item value="all" label={m.admin_ops_orders_all_fulfillment()}>
+							{m.admin_ops_orders_all_fulfillment()}
+						</Select.Item>
 						{#each fulfillmentStatuses as option (option)}
-							<Select.Item value={option} label={option}>{option}</Select.Item>
+							<Select.Item value={option} label={statusLabel('fulfillment', option)}>
+								{statusLabel('fulfillment', option)}
+							</Select.Item>
 						{/each}
 					</Select.Content>
 				</Select.Root>
@@ -249,7 +248,7 @@
 		{columns}
 		rows={orders as unknown as Record<string, unknown>[]}
 		{loading}
-		emptyMessage="No orders match the current filters."
+		emptyMessage={m.admin_ops_orders_empty()}
 		{page}
 		{pageSize}
 		{total}
@@ -265,23 +264,25 @@
 				</a>
 			{:else if column.key === 'customer'}
 				<div class="min-w-0">
-					<p class="truncate">{String(row.customerName ?? 'Guest')}</p>
+					<p class="truncate">{String(row.customerName ?? m.admin_ops_guest())}</p>
 					{#if row.customerEmail}
 						<p class="truncate text-xs text-muted-foreground">{String(row.customerEmail)}</p>
 					{/if}
 				</div>
 			{:else if column.key === 'status'}
-				<StatusBadge status={String(row.status ?? '')} />
+				<StatusBadge kind="order" status={String(row.status ?? '')} />
 			{:else if column.key === 'paymentStatus'}
-				<StatusBadge status={String(row.paymentStatus ?? '')} />
+				<StatusBadge kind="payment" status={String(row.paymentStatus ?? '')} />
 			{:else if column.key === 'fulfillmentStatus'}
-				<StatusBadge status={String(row.fulfillmentStatus ?? '')} />
+				<StatusBadge kind="fulfillment" status={String(row.fulfillmentStatus ?? '')} />
 			{:else if column.key === 'total'}
 				<span class="font-medium">
 					{formatMoney(Number(row.grandTotal ?? 0), String(row.currency ?? 'IDR'))}
 				</span>
 			{:else if column.key === 'placedAt'}
-				<span class="text-muted-foreground">{formatDate(String(row.placedAt ?? ''))}</span>
+				<span class="text-muted-foreground"
+					>{formatDateTime(String(row.placedAt ?? '')) || '—'}</span
+				>
 			{:else}
 				{String(row[column.key] ?? '—')}
 			{/if}

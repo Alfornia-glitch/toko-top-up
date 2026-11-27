@@ -1,0 +1,23 @@
+{
+	"$schema": "https://inlang.com/schema/inlang-message-format",
+	"ui_breadcrumb_label": "Navigasi breadcrumb",
+	"ui_breadcrumb_more": "Lainnya",
+	"ui_calendar_previous_month": "Bulan sebelumnya",
+	"ui_calendar_next_month": "Bulan berikutnya",
+	"ui_carousel_previous_slide": "Slide sebelumnya",
+	"ui_carousel_next_slide": "Slide berikutnya",
+	"ui_command_dialog_title": "Palet perintah",
+	"ui_command_dialog_description": "Cari perintah untuk dijalankan...",
+	"ui_sidebar_toggle": "Alihkan sidebar",
+	"ui_sidebar_title": "Sidebar",
+	"ui_sidebar_description": "Menampilkan sidebar untuk perangkat seluler.",
+	"ui_pagination_label": "Navigasi halaman",
+	"ui_pagination_more_pages": "Halaman lainnya",
+	"ui_pagination_go_next": "Ke halaman berikutnya",
+	"ui_pagination_go_previous": "Ke halaman sebelumnya",
+	"ui_image_placeholder": "Placeholder gambar",
+	"ui_input_number_label": "Label",
+	"ui_input_number_bottom_text": "Teks bawah",
+	"ui_radio_label": "Label",
+	"ui_radio_sub_label": "Keterangan tambahan"
+}

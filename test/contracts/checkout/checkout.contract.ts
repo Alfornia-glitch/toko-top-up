@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, test } from 'vitest';
 import { err, unwrap, ConflictError, type Actor } from '#shared';
 import type { CartService } from '#modules/cart/server.ts';
 import type { CatalogServices } from '#modules/catalog/server.ts';
-import type { CheckoutService } from '#modules/checkout/server.ts';
+import type { AccountFormField, CheckoutService } from '#modules/checkout/server.ts';
 import type { CustomersServices } from '#modules/customers/server.ts';
 import type { MarketingService } from '#modules/marketing/server.ts';
 import type { OrdersService } from '#modules/orders/server.ts';
@@ -17,6 +17,7 @@ export interface CheckoutContractContext {
 	createCheckout(overrides?: {
 		orders?: Partial<OrdersService>;
 		marketing?: Partial<MarketingService>;
+		accountForm?: AccountFormField[] | null;
 	}): CheckoutService;
 	cart: CartService;
 	catalog: CatalogServices;
@@ -148,6 +149,65 @@ export function runCheckoutContract(context: CheckoutContractContext): void {
 			const order = unwrap(await orders.getOrder(placed.orderId, admin));
 			expect(order).toMatchObject({ discount: 200, couponId, grandTotal: 2300 });
 			expect(unwrap(await marketing.getCouponById(couponId))?.usedCount).toBe(1);
+		});
+	});
+
+	describe('top-up account details', () => {
+		const accountForm: AccountFormField[] = [
+			{ id: 'user_id', label: 'User ID', type: 'number', required: true, options: [] },
+			{ id: 'server', label: 'Server', type: 'select', required: false, options: ['Asia', 'EU'] }
+		];
+
+		test('stores the account details instead of an address and charges no shipping', async () => {
+			const p = await product('CHK-T', 5, 1500);
+			const cartId = await cartWith(ada, p.variantId, 2);
+
+			const placed = unwrap(
+				await createCheckout({ accountForm }).placeOrder(
+					cartId,
+					{ accountDetails: { user_id: ' 12345 ', server: 'Asia', extra: 'ignored' } },
+					ada
+				)
+			);
+
+			const order = unwrap(await orders.getOrder(placed.orderId, admin));
+			expect(order).toMatchObject({ subtotal: 3000, shipping: 0, grandTotal: 3000 });
+			expect(order.shippingAddressJson).toEqual({
+				type: 'account',
+				accountDetails: [
+					{ id: 'user_id', label: 'User ID', value: '12345' },
+					{ id: 'server', label: 'Server', value: 'Asia' }
+				]
+			});
+			expect(await stockOf(p.variantId)).toBe(3);
+		});
+
+		test('rejects missing required and invalid values without side effects', async () => {
+			const p = await product('CHK-U', 5);
+			const cartId = await cartWith(ada, p.variantId, 1);
+			const checkout = createCheckout({ accountForm });
+
+			const cases: Array<[Record<string, string>, string]> = [
+				[{ server: 'Asia' }, 'User ID is required'],
+				[{ user_id: 'abc' }, 'Invalid value for User ID'],
+				[{ user_id: '1', server: 'Mars' }, 'Invalid value for Server']
+			];
+			for (const [accountDetails, message] of cases) {
+				const result = await checkout.placeOrder(cartId, { accountDetails }, ada);
+				expect(result.ok).toBe(false);
+				if (!result.ok) expect(result.error).toMatchObject({ status: 422, message });
+			}
+			expect(await stockOf(p.variantId)).toBe(5);
+			expect(unwrap(await orders.listOrders({ page: 1, pageSize: 10 }, admin)).total).toBe(0);
+		});
+
+		test('the address flow still requires an address', async () => {
+			const p = await product('CHK-V', 5);
+			const cartId = await cartWith(ada, p.variantId, 1);
+
+			const result = await createCheckout().placeOrder(cartId, { shippingId: 'standard' }, ada);
+			expect(result.ok).toBe(false);
+			if (!result.ok) expect(result.error.status).toBe(422);
 		});
 	});
 

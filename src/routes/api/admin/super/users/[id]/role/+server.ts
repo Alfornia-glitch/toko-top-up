@@ -12,14 +12,19 @@ export const PATCH: RequestHandler = async (event) => {
 	try {
 		body = await event.request.json();
 	} catch {
-		return Response.json({ error: 'Expected a JSON body' }, { status: 400 });
+		return Response.json(
+			{ error: 'Expected a JSON body', code: 'invalid_json_body' },
+			{ status: 400 }
+		);
 	}
 	const parsed = superRoleSchema.safeParse(body);
-	if (!parsed.success) return Response.json({ error: 'Invalid role' }, { status: 422 });
+	if (!parsed.success)
+		return Response.json({ error: 'Invalid role', code: 'VALIDATION_ERROR' }, { status: 422 });
 	try {
 		assertNotSelf(event.locals.user!.id, event.params.id);
 		const user = await setRole(event.params.id, parsed.data.role);
-		if (!user) return Response.json({ error: 'User not found' }, { status: 404 });
+		if (!user)
+			return Response.json({ error: 'User not found', code: 'user_not_found' }, { status: 404 });
 		await auditRequest(event, event.locals.user!.id, {
 			action: 'user.set_role',
 			entityType: 'user',

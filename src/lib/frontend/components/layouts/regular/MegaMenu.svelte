@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { m } from '#lib/paraglide/messages.js';
 	import DealCountdown from '#lib/frontend/components/storefront/DealCountdown.svelte';
 	import { home } from '#lib/frontend/modules/commerce/home.svelte.ts';
 
@@ -12,25 +13,25 @@
 	const promo = $derived(
 		menu === 'deals'
 			? {
-					title: 'Today’s deals',
-					text: 'Limited-time offers on selected products.',
+					title: m.components_regular_nav_deals(),
+					text: m.components_regular_mega_deals_text(),
 					href: '/products?deal=true',
-					cta: 'See all deals',
-					tone: 'bg-sky-50'
+					cta: m.components_regular_mega_deals_cta(),
+					tone: 'bg-muted'
 				}
 			: menu === 'new'
 				? {
-						title: 'New arrivals',
-						text: 'The latest products, fresh in the store.',
+						title: m.components_regular_nav_new(),
+						text: m.components_regular_mega_new_text(),
 						href: '/products?newArrival=true',
-						cta: 'See what’s new',
-						tone: 'bg-emerald-50'
+						cta: m.components_regular_mega_new_cta(),
+						tone: 'bg-success/10'
 					}
 				: {
-						title: 'Shop by category',
-						text: 'Browse everything we have to offer.',
+						title: m.components_shop_by_category(),
+						text: m.components_regular_mega_shop_text(),
 						href: '/products',
-						cta: 'View all products',
+						cta: m.components_regular_mega_shop_cta(),
 						tone: 'bg-muted'
 					}
 	);
@@ -85,7 +86,7 @@
 			</div>
 		{:else}
 			<p class="text-sm text-muted-foreground">
-				{home.loading ? 'Loading categories…' : 'No categories yet.'}
+				{home.loading ? m.components_regular_mega_loading() : m.components_regular_mega_empty()}
 			</p>
 		{/if}
 

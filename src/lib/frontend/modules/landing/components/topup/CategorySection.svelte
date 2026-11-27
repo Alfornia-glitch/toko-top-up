@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
 	import * as Card from '#lib/frontend/components/ui/card/index.ts';
 	import ImagePlaceholder from '#lib/frontend/components/ui/ImagePlaceholder.svelte';
 	import { home } from '#lib/frontend/modules/commerce/home.svelte.ts';
@@ -8,14 +9,14 @@
 
 <section class="w-full px-8" data-name="Category" aria-labelledby="game-populer">
 	<div class="mt-10 mb-4 flex items-center justify-between">
-		<h3 id="game-populer" class="text-xl font-semibold">Kategori Game</h3>
+		<h3 id="game-populer" class="text-xl font-semibold">{m.components_landing_category_title()}</h3>
 		<a href="/categories" class="text-sm font-medium text-muted-foreground hover:text-foreground">
-			Lihat semua
+			{m.common_view_all()}
 		</a>
 	</div>
 
 	{#if categories.length === 0}
-		<p class="text-sm text-muted-foreground">Belum ada game.</p>
+		<p class="text-sm text-muted-foreground">{m.components_landing_category_empty()}</p>
 	{:else}
 		<div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
 			{#each categories as category (category.id)}
@@ -41,7 +42,9 @@
 						</div>
 						<div class="p-3">
 							<p class="truncate text-sm font-semibold">{category.name}</p>
-							<p class="mt-0.5 text-xs text-muted-foreground">{category.productCount} produk</p>
+							<p class="mt-0.5 text-xs text-muted-foreground">
+								{m.components_category_grid_products({ count: category.productCount })}
+							</p>
 						</div>
 					</Card.Root>
 				</a>

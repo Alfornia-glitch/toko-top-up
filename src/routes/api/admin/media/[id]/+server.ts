@@ -1,6 +1,6 @@
 import type { RequestHandler } from './$types';
 import { MediaError, deleteMedia } from '#lib/server/platform/storage/index.ts';
-import { unwrap } from '#shared';
+import { errorBody, unwrap } from '#shared';
 
 export const DELETE: RequestHandler = async ({ params, locals }) => {
 	try {
@@ -14,11 +14,14 @@ export const DELETE: RequestHandler = async ({ params, locals }) => {
 		return Response.json({ data: { id: asset.id } });
 	} catch (error) {
 		if (error instanceof MediaError) {
-			return Response.json({ error: error.message }, { status: error.status });
+			return Response.json(errorBody(error), { status: error.status });
 		}
 
 		console.error('[api/admin/media] delete failed', error);
 
-		return Response.json({ error: 'Could not delete media asset' }, { status: 500 });
+		return Response.json(
+			{ error: 'Could not delete media asset', code: 'media_delete_failed' },
+			{ status: 500 }
+		);
 	}
 };

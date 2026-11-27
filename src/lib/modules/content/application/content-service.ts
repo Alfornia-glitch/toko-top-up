@@ -95,7 +95,8 @@ export function createContentService(
 			run(async () => {
 				assertPermission(actor, 'admin:access');
 				const existing = await repository.findItem(kind, id);
-				if (!existing) throw new NotFoundError('Content not found');
+				if (!existing)
+					throw new NotFoundError('Content not found', { messageKey: 'content_not_found' });
 				const values = normaliseItemInput(kind, input);
 				await repository.updateItem(kind, id, { ...values, updatedAt: clock.now() });
 				return { ...existing, ...values };
@@ -104,7 +105,8 @@ export function createContentService(
 		deleteItem: (kind, id, actor) =>
 			run(async () => {
 				assertPermission(actor, 'admin:access');
-				if (!(await repository.findItem(kind, id))) throw new NotFoundError('Content not found');
+				if (!(await repository.findItem(kind, id)))
+					throw new NotFoundError('Content not found', { messageKey: 'content_not_found' });
 				await repository.deleteItem(kind, id);
 				return id;
 			}),
@@ -143,7 +145,8 @@ export function createContentService(
 			run(async () => {
 				assertPermission(actor, 'admin:access');
 				const asset = await repository.findMedia(id);
-				if (!asset) throw new NotFoundError('Media asset not found');
+				if (!asset)
+					throw new NotFoundError('Media asset not found', { messageKey: 'media_not_found' });
 				return asset;
 			}),
 
@@ -151,7 +154,8 @@ export function createContentService(
 			run(async () => {
 				assertPermission(actor, 'admin:access');
 				const asset = await repository.findMedia(id);
-				if (!asset) throw new NotFoundError('Media asset not found');
+				if (!asset)
+					throw new NotFoundError('Media asset not found', { messageKey: 'media_not_found' });
 				await repository.deleteMedia(id);
 				return asset;
 			}),
@@ -182,7 +186,8 @@ export function createContentService(
 		deleteSetting: (key, actor) =>
 			run(async () => {
 				assertPermission(actor, 'super:access');
-				if (!(await repository.deleteSetting(key))) throw new NotFoundError('Setting not found');
+				if (!(await repository.deleteSetting(key)))
+					throw new NotFoundError('Setting not found', { messageKey: 'setting_not_found' });
 				return key;
 			})
 	};

@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
+	import { errorMessage, priorityLabel } from '#lib/frontend/i18n/index.ts';
 	import {
 		listOrders,
 		listTickets,
@@ -6,8 +8,7 @@
 		createTicket,
 		addTicketMessage,
 		isUnauthorized,
-		type TicketForm,
-		messageFrom
+		type TicketForm
 	} from '#lib/frontend/modules/account/index.ts';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
@@ -67,14 +68,6 @@
 		return false;
 	}
 
-	function errorMessage(cause: unknown, fallback: string): string {
-		return messageFrom(cause, fallback);
-	}
-
-	function priorityLabel(priority: string): string {
-		return priority.charAt(0).toUpperCase() + priority.slice(1);
-	}
-
 	function setPriority(value: string) {
 		form.priority = value;
 	}
@@ -88,7 +81,7 @@
 		} catch (cause) {
 			if (!redirectIfUnauthorized(cause)) {
 				selected = null;
-				detailError = errorMessage(cause, 'Could not load this support ticket');
+				detailError = errorMessage(cause, 'account_tickets_load_one_failed');
 			}
 		} finally {
 			detailLoading = false;
@@ -115,7 +108,7 @@
 			if (tickets.length > 0) await loadTicket(tickets[0].id);
 		} catch (cause) {
 			if (!redirectIfUnauthorized(cause)) {
-				error = errorMessage(cause, 'Could not load your support tickets');
+				error = errorMessage(cause, 'account_tickets_load_failed');
 			}
 		} finally {
 			loading = false;
@@ -127,7 +120,7 @@
 		formError = '';
 
 		if (!form.subject.trim() || !form.category.trim() || !form.message.trim()) {
-			formError = 'Subject, category and message are required.';
+			formError = m.account_tickets_required();
 			return;
 		}
 
@@ -148,7 +141,7 @@
 			form = { subject: '', category: '', priority: 'normal', message: '', orderId: 'none' };
 		} catch (cause) {
 			if (!redirectIfUnauthorized(cause)) {
-				formError = errorMessage(cause, 'Could not create your support ticket');
+				formError = errorMessage(cause, 'account_tickets_create_failed');
 			}
 		} finally {
 			submitting = false;
@@ -162,7 +155,7 @@
 		if (!selected) return;
 
 		if (!reply.trim()) {
-			replyError = 'Write a message before sending.';
+			replyError = m.account_tickets_reply_required();
 			return;
 		}
 
@@ -177,7 +170,7 @@
 			await refreshTickets();
 		} catch (cause) {
 			if (!redirectIfUnauthorized(cause)) {
-				replyError = errorMessage(cause, 'Could not send your message');
+				replyError = errorMessage(cause, 'account_tickets_reply_failed');
 			}
 		} finally {
 			replying = false;
@@ -190,17 +183,16 @@
 </script>
 
 <div
-	class="relative flex size-full flex-col content-stretch items-center bg-white"
+	class="relative flex size-full flex-col content-stretch items-center bg-card"
 	data-name="Shopix - Support Tickets"
 >
 	<SiteHeader />
 	<div
-		class="relative flex w-full max-w-[1440px] shrink-0 flex-col content-stretch items-center justify-center bg-white py-[56px] max-[480px]:py-9"
+		class="relative flex w-full max-w-[1440px] shrink-0 flex-col flex-wrap content-stretch items-center justify-center bg-card py-[56px]"
 		data-name="Support tickets"
 	>
 		<div
-			class="relative flex w-full max-w-[1280px] min-w-[328px] shrink-0 content-stretch items-start gap-[24px] overflow-clip px-[32px] max-[480px]:px-3.5"
-			data-name="Flex Horizontal"
+			class="relative flex w-full max-w-[1280px] min-w-[328px] content-stretch items-start gap-[24px] px-[32px]"
 		>
 			<AccountSidebar />
 
@@ -209,13 +201,13 @@
 				data-name="Flex Vertical"
 			>
 				<p
-					class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] text-[#0a0a0a]"
+					class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] text-foreground"
 				>
-					Support Tickets
+					{m.account_tickets_title()}
 				</p>
 
 				<div
-					class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-white py-[24px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)]"
+					class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-card py-[24px] shadow-[0px_0px_0px_1px_color-mix(in_oklab,var(--foreground)_10%,transparent)]"
 					data-name="Card"
 				>
 					<div
@@ -223,36 +215,36 @@
 						data-name="card-body"
 					>
 						<p
-							class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] text-[#0a0a0a]"
+							class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] text-foreground"
 						>
-							New support ticket
+							{m.account_tickets_new()}
 						</p>
 
 						<form class="flex w-full flex-col gap-[16px]" onsubmit={submitTicket}>
 							<div class="grid w-full gap-[12px] sm:grid-cols-2">
 								<div class="flex flex-col gap-[6px]">
-									<Label for="ticket-subject">Subject</Label>
+									<Label for="ticket-subject">{m.account_tickets_subject()}</Label>
 									<Input
 										id="ticket-subject"
 										bind:value={form.subject}
-										placeholder="What do you need help with?"
+										placeholder={m.account_tickets_subject_placeholder()}
 									/>
 								</div>
 
 								<div class="flex flex-col gap-[6px]">
-									<Label for="ticket-category">Category</Label>
+									<Label for="ticket-category">{m.common_category()}</Label>
 									<Input
 										id="ticket-category"
 										bind:value={form.category}
-										placeholder="Order, delivery, account"
+										placeholder={m.account_tickets_category_placeholder()}
 									/>
 								</div>
 
 								<div class="flex flex-col gap-[6px]">
-									<Label for="ticket-priority">Priority</Label>
+									<Label for="ticket-priority">{m.account_tickets_priority()}</Label>
 									<Select.Root type="single" value={form.priority} onValueChange={setPriority}>
 										<Select.Trigger id="ticket-priority" class="w-full">
-											<Select.Value placeholder="Select a priority" />
+											<Select.Value placeholder={m.account_tickets_select_priority()} />
 										</Select.Trigger>
 										<Select.Content>
 											{#each priorityOptions as option (option)}
@@ -265,18 +257,18 @@
 								</div>
 
 								<div class="flex flex-col gap-[6px]">
-									<Label for="ticket-order">Related order</Label>
+									<Label for="ticket-order">{m.account_tickets_related_order()}</Label>
 									<Select.Root
 										type="single"
 										value={form.orderId}
 										onValueChange={(value) => (form.orderId = value)}
 									>
 										<Select.Trigger id="ticket-order" class="w-full">
-											<Select.Value placeholder="No related order" />
+											<Select.Value placeholder={m.account_tickets_no_related_order()} />
 										</Select.Trigger>
 										<Select.Content>
-											<Select.Item value="none" label="No related order">
-												No related order
+											<Select.Item value="none" label={m.account_tickets_no_related_order()}>
+												{m.account_tickets_no_related_order()}
 											</Select.Item>
 											{#each orders as entry (entry.id)}
 												<Select.Item value={entry.id} label={entry.orderNumber}>
@@ -289,21 +281,21 @@
 							</div>
 
 							<div class="flex flex-col gap-[6px]">
-								<Label for="ticket-message">Message</Label>
+								<Label for="ticket-message">{m.account_tickets_message()}</Label>
 								<Textarea
 									id="ticket-message"
 									bind:value={form.message}
-									placeholder="Describe the issue in detail"
+									placeholder={m.account_tickets_message_placeholder()}
 								/>
 							</div>
 
 							{#if formError}
-								<p class="text-sm text-[#b91c1c]" role="alert">{formError}</p>
+								<p class="text-sm text-destructive" role="alert">{formError}</p>
 							{/if}
 
 							<div>
 								<Button type="submit" disabled={submitting}>
-									{submitting ? 'Submitting' : 'Create ticket'}
+									{submitting ? m.account_shared_submitting() : m.account_tickets_create()}
 								</Button>
 							</div>
 						</form>
@@ -312,17 +304,17 @@
 
 				{#if loading}
 					<div
-						class="relative flex w-full items-center justify-center gap-3 rounded-[14px] bg-white px-[24px] py-[64px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)]"
+						class="relative flex w-full items-center justify-center gap-3 rounded-[14px] bg-card px-[24px] py-[64px] shadow-[0px_0px_0px_1px_color-mix(in_oklab,var(--foreground)_10%,transparent)]"
 						data-name="Card"
 					>
-						<Spinner class="size-5" aria-label="Loading support tickets" />
-						<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
-							Loading support tickets
+						<Spinner class="size-5" aria-label={m.account_tickets_loading()} />
+						<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-muted-foreground">
+							{m.account_tickets_loading()}
 						</p>
 					</div>
 				{:else if error}
 					<div
-						class="relative flex w-full rounded-[14px] border border-[#fecaca] bg-[#fef2f2] px-[24px] py-[16px] text-[#b91c1c]"
+						class="relative flex w-full rounded-[14px] border border-destructive/30 bg-destructive/10 px-[24px] py-[16px] text-destructive"
 						data-name="Card"
 						role="alert"
 					>
@@ -330,21 +322,21 @@
 					</div>
 				{:else if tickets.length === 0}
 					<div
-						class="relative flex w-full flex-col items-start gap-[12px] rounded-[14px] bg-white px-[24px] py-[32px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)]"
+						class="relative flex w-full flex-col items-start gap-[12px] rounded-[14px] bg-card px-[24px] py-[32px] shadow-[0px_0px_0px_1px_color-mix(in_oklab,var(--foreground)_10%,transparent)]"
 						data-name="Card"
 					>
 						<p
-							class="font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold text-[#0a0a0a]"
+							class="font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold text-foreground"
 						>
-							No support tickets yet
+							{m.account_tickets_empty_title()}
 						</p>
-						<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
-							Tickets you create will appear here with their replies.
+						<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-muted-foreground">
+							{m.account_tickets_empty_description()}
 						</p>
 					</div>
 				{:else}
 					<div
-						class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[12px] overflow-clip rounded-[14px] bg-white py-[16px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)]"
+						class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[12px] overflow-clip rounded-[14px] bg-card py-[16px] shadow-[0px_0px_0px_1px_color-mix(in_oklab,var(--foreground)_10%,transparent)]"
 						data-name="Card"
 					>
 						<div
@@ -354,23 +346,27 @@
 							{#each tickets as entry (entry.id)}
 								<button
 									type="button"
-									class={`flex w-full flex-wrap items-start justify-between gap-[12px] rounded-[8px] border border-[#e5e5e5] p-[16px] text-left transition-colors ${
-										selected?.id === entry.id ? 'bg-[#f5f5f5]' : 'bg-white hover:bg-[#fafafa]'
+									class={`flex w-full flex-wrap items-start justify-between gap-[12px] rounded-[8px] border border-border p-[16px] text-left transition-colors ${
+										selected?.id === entry.id ? 'bg-muted' : 'bg-card hover:bg-primary-foreground'
 									}`}
 									aria-pressed={selected?.id === entry.id}
 									onclick={() => loadTicket(entry.id)}
 								>
 									<div class="min-w-0 flex-1">
 										<p
-											class="font-['Geist:Medium'] text-[18px] leading-[28px] font-medium text-[#0a0a0a]"
+											class="font-['Geist:Medium'] text-[18px] leading-[28px] font-medium text-foreground"
 										>
 											{entry.subject}
 										</p>
-										<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]">
+										<p
+											class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground"
+										>
 											{entry.ticketNumber} · {entry.category} · {priorityLabel(entry.priority)}
 										</p>
-										<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]">
-											Updated {formatDateTime(entry.updatedAt) || '—'}
+										<p
+											class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground"
+										>
+											{m.account_tickets_updated({ date: formatDateTime(entry.updatedAt) || '—' })}
 										</p>
 									</div>
 									<div class="flex flex-col items-end gap-[4px] text-right">
@@ -384,7 +380,7 @@
 					</div>
 
 					<div
-						class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-white py-[24px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)]"
+						class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-card py-[24px] shadow-[0px_0px_0px_1px_color-mix(in_oklab,var(--foreground)_10%,transparent)]"
 						data-name="Card"
 					>
 						<div
@@ -393,22 +389,26 @@
 						>
 							{#if detailLoading}
 								<div class="flex items-center gap-[12px]">
-									<Spinner class="size-5" aria-label="Loading support ticket" />
-									<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
-										Loading support ticket
+									<Spinner class="size-5" aria-label={m.account_tickets_loading_one()} />
+									<p
+										class="font-['Geist:Regular'] text-[16px] leading-[24px] text-muted-foreground"
+									>
+										{m.account_tickets_loading_one()}
 									</p>
 								</div>
 							{:else if detailError}
-								<p class="text-sm text-[#b91c1c]" role="alert">{detailError}</p>
+								<p class="text-sm text-destructive" role="alert">{detailError}</p>
 							{:else if selected}
 								<div class="flex w-full flex-wrap items-start justify-between gap-[12px]">
 									<div class="min-w-0 flex-1">
 										<p
-											class="font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold text-[#0a0a0a]"
+											class="font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold text-foreground"
 										>
 											{selected.subject}
 										</p>
-										<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]">
+										<p
+											class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground"
+										>
 											{selected.ticketNumber} · {selected.category} · {priorityLabel(
 												selected.priority
 											)}
@@ -421,19 +421,21 @@
 
 								<div class="flex w-full flex-col gap-[12px]">
 									{#each selected.messages as message (message.id)}
-										<div class="flex w-full flex-col gap-[4px] rounded-[8px] bg-[#f5f5f5] p-[16px]">
+										<div class="flex w-full flex-col gap-[4px] rounded-[8px] bg-muted p-[16px]">
 											<div class="flex flex-wrap items-center justify-between gap-[8px]">
 												<p
-													class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-[#0a0a0a]"
+													class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-foreground"
 												>
-													{message.senderName ?? message.senderEmail ?? 'Support'}
+													{message.senderName ?? message.senderEmail ?? m.account_tickets_support()}
 												</p>
-												<p class="font-['Geist:Regular'] text-[12px] leading-[16px] text-[#737373]">
+												<p
+													class="font-['Geist:Regular'] text-[12px] leading-[16px] text-muted-foreground"
+												>
 													{formatDateTime(message.createdAt) || '—'}
 												</p>
 											</div>
 											<p
-												class="font-['Geist:Regular'] text-[16px] leading-[24px] whitespace-pre-wrap text-[#0a0a0a]"
+												class="font-['Geist:Regular'] text-[16px] leading-[24px] whitespace-pre-wrap text-foreground"
 											>
 												{message.body}
 											</p>
@@ -442,20 +444,24 @@
 								</div>
 
 								<form class="flex w-full flex-col gap-[8px]" onsubmit={submitReply}>
-									<Label for="ticket-reply">Reply</Label>
-									<Textarea id="ticket-reply" bind:value={reply} placeholder="Write a reply" />
+									<Label for="ticket-reply">{m.account_tickets_reply()}</Label>
+									<Textarea
+										id="ticket-reply"
+										bind:value={reply}
+										placeholder={m.account_tickets_reply_placeholder()}
+									/>
 									{#if replyError}
-										<p class="text-sm text-[#b91c1c]" role="alert">{replyError}</p>
+										<p class="text-sm text-destructive" role="alert">{replyError}</p>
 									{/if}
 									<div>
 										<Button type="submit" disabled={replying}>
-											{replying ? 'Sending' : 'Send reply'}
+											{replying ? m.account_tickets_sending() : m.account_tickets_send_reply()}
 										</Button>
 									</div>
 								</form>
 							{:else}
-								<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
-									Select a ticket to read the conversation.
+								<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-muted-foreground">
+									{m.account_tickets_select_to_read()}
 								</p>
 							{/if}
 						</div>

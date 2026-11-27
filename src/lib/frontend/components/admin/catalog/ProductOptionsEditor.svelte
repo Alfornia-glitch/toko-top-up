@@ -17,6 +17,7 @@
 </script>
 
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
 	import { ArrowDown, ArrowUp, Plus, Trash2 } from '@lucide/svelte';
 	import { Button } from '#lib/frontend/components/ui/button/index.ts';
 	import { Input } from '#lib/frontend/components/ui/input/index.ts';
@@ -85,20 +86,20 @@
 <div class="space-y-4">
 	<div class="flex flex-wrap items-start justify-between gap-2">
 		<div>
-			<h3 class="font-medium">Options</h3>
+			<h3 class="font-medium">{m.components_options_title()}</h3>
 			<p class="text-sm text-muted-foreground">
-				Define option groups such as Size or Color and the values customers can pick.
+				{m.components_options_description()}
 			</p>
 		</div>
 		<Button type="button" variant="outline" onclick={addOption}>
 			<Plus class="size-4" />
-			Add option
+			{m.components_options_add()}
 		</Button>
 	</div>
 
 	{#if options.length === 0}
 		<div class="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">
-			No options yet. Add an option group to start building variants.
+			{m.components_options_empty()}
 		</div>
 	{:else}
 		<div class="space-y-4">
@@ -108,8 +109,8 @@
 						<Input
 							class="flex-1"
 							bind:value={option.name}
-							placeholder="Option name (e.g. Size)"
-							aria-label="Option name"
+							placeholder={m.components_options_name_placeholder()}
+							aria-label={m.components_options_name_label()}
 						/>
 
 						<div class="flex gap-1">
@@ -118,7 +119,7 @@
 								variant="ghost"
 								size="icon-sm"
 								disabled={optionIndex === 0}
-								aria-label="Move option up"
+								aria-label={m.components_options_move_up()}
 								onclick={() => moveOption(optionIndex, -1)}
 							>
 								<ArrowUp class="size-4" />
@@ -128,7 +129,7 @@
 								variant="ghost"
 								size="icon-sm"
 								disabled={optionIndex === options.length - 1}
-								aria-label="Move option down"
+								aria-label={m.components_options_move_down()}
 								onclick={() => moveOption(optionIndex, 1)}
 							>
 								<ArrowDown class="size-4" />
@@ -138,7 +139,7 @@
 								variant="ghost"
 								size="icon-sm"
 								class="text-destructive hover:bg-destructive/10"
-								aria-label="Remove option"
+								aria-label={m.components_options_remove()}
 								onclick={() => removeOption(optionIndex)}
 							>
 								<Trash2 class="size-4" />
@@ -148,7 +149,7 @@
 
 					{#if option.values.length === 0}
 						<p class="text-sm text-muted-foreground">
-							No values yet. Add one value for each choice.
+							{m.components_options_no_values()}
 						</p>
 					{:else}
 						<div class="space-y-2">
@@ -164,14 +165,14 @@
 									<Input
 										class="min-w-40 flex-1"
 										bind:value={value.value}
-										placeholder="Value (e.g. Medium)"
-										aria-label="Option value"
+										placeholder={m.components_options_value_placeholder()}
+										aria-label={m.components_options_value_label()}
 									/>
 									<Input
 										class="w-36"
 										bind:value={value.colorHex}
 										placeholder="#000000"
-										aria-label="Color hex"
+										aria-label={m.components_options_color_label()}
 									/>
 									<div class="flex gap-1">
 										<Button
@@ -179,7 +180,7 @@
 											variant="ghost"
 											size="icon-sm"
 											disabled={valueIndex === 0}
-											aria-label="Move value up"
+											aria-label={m.components_options_value_move_up()}
 											onclick={() => moveValue(option, valueIndex, -1)}
 										>
 											<ArrowUp class="size-4" />
@@ -189,7 +190,7 @@
 											variant="ghost"
 											size="icon-sm"
 											disabled={valueIndex === option.values.length - 1}
-											aria-label="Move value down"
+											aria-label={m.components_options_value_move_down()}
 											onclick={() => moveValue(option, valueIndex, 1)}
 										>
 											<ArrowDown class="size-4" />
@@ -199,7 +200,7 @@
 											variant="ghost"
 											size="icon-sm"
 											class="text-destructive hover:bg-destructive/10"
-											aria-label="Remove value"
+											aria-label={m.components_options_value_remove()}
 											onclick={() => removeValue(option, valueIndex)}
 										>
 											<Trash2 class="size-4" />
@@ -212,7 +213,7 @@
 
 					<Button type="button" variant="outline" size="sm" onclick={() => addValue(option)}>
 						<Plus class="size-4" />
-						Add value
+						{m.components_options_add_value()}
 					</Button>
 				</div>
 			{/each}

@@ -4,7 +4,7 @@ import { createPostgresDb } from '#db/core.ts';
 import { createCartServices } from '#modules/cart/server.ts';
 import { cartItems, carts } from '#modules/cart/infra/pg/schema.ts';
 import { createCatalogServices } from '#modules/catalog/server.ts';
-import { createCheckoutServices } from '#modules/checkout/server.ts';
+import { createCheckoutServices, type AccountFormField } from '#modules/checkout/server.ts';
 import { createCustomersServices } from '#modules/customers/server.ts';
 import { addresses } from '#modules/customers/infra/pg/schema.ts';
 import { createMarketingServices, type MarketingService } from '#modules/marketing/server.ts';
@@ -51,7 +51,11 @@ if (testDatabaseUrl) {
 
 		runCheckoutContract({
 			createCheckout: (
-				overrides: { orders?: Partial<OrdersService>; marketing?: Partial<MarketingService> } = {}
+				overrides: {
+					orders?: Partial<OrdersService>;
+					marketing?: Partial<MarketingService>;
+					accountForm?: AccountFormField[] | null;
+				} = {}
 			) =>
 				createCheckoutServices({
 					cart,
@@ -59,7 +63,7 @@ if (testDatabaseUrl) {
 					customers,
 					marketing: { marketing: { ...marketing.marketing, ...overrides.marketing } },
 					orders: { orders: { ...orders.orders, ...overrides.orders } },
-					settings: createFakeCheckoutSettings()
+					settings: createFakeCheckoutSettings(overrides.accountForm ?? null)
 				}).checkout,
 			cart: cart.cart,
 			catalog,

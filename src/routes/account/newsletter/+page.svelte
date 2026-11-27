@@ -1,10 +1,11 @@
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
+	import { errorMessage, statusLabel } from '#lib/frontend/i18n/index.ts';
 	import {
 		getSubscription,
 		setSubscriptionStatus,
 		subscribeNewsletter,
-		isUnauthorized,
-		messageFrom
+		isUnauthorized
 	} from '#lib/frontend/modules/account/index.ts';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
@@ -41,7 +42,7 @@
 			return '';
 		}
 
-		return messageFrom(cause, 'Something went wrong');
+		return errorMessage(cause, 'common_something_went_wrong');
 	}
 
 	async function loadSubscription(): Promise<void> {
@@ -79,7 +80,7 @@
 
 		const value = email.trim();
 		if (!value) {
-			formError = 'Enter your email address.';
+			formError = m.account_newsletter_email_required();
 			return;
 		}
 
@@ -102,12 +103,12 @@
 </script>
 
 <div
-	class="relative flex size-full flex-col content-stretch items-center bg-white"
+	class="relative flex size-full flex-col content-stretch items-center bg-card"
 	data-name="Shopix - Email Newsletter"
 >
 	<SiteHeader />
 	<div
-		class="relative flex w-full max-w-[1440px] shrink-0 flex-col content-stretch items-center justify-center bg-white py-[56px] max-[480px]:py-9"
+		class="relative flex w-full max-w-[1440px] shrink-0 flex-col content-stretch items-center justify-center bg-card py-[56px] max-[480px]:py-9"
 		data-name="Email Newsletter"
 	>
 		<div
@@ -120,7 +121,7 @@
 				data-name="Flex Vertical"
 			>
 				<div
-					class="relative flex w-full shrink-0 content-stretch items-center gap-[10px] overflow-clip rounded-[6px] bg-[#f5f5f5] p-[24px]"
+					class="relative flex w-full shrink-0 content-stretch items-center gap-[10px] overflow-clip rounded-[6px] bg-muted p-[24px]"
 					data-name="Flex Horizontal"
 				>
 					<div
@@ -132,26 +133,25 @@
 							data-name="block-heading"
 						>
 							<p
-								class="relative w-[min-content] min-w-full shrink-0 font-['Geist:SemiBold'] text-[24px] leading-[32px] font-semibold text-[#0a0a0a]"
+								class="relative w-[min-content] min-w-full shrink-0 font-['Geist:SemiBold'] text-[24px] leading-[32px] font-semibold text-foreground"
 							>
-								Join & Be First to Know About Exclusive Drops and Secret Deals
+								{m.account_newsletter_hero_title()}
 							</p>
 							<p
-								class="relative w-[min-content] min-w-full shrink-0 font-['Geist:Regular'] text-[16px] leading-[24px] font-normal text-[#737373]"
+								class="relative w-[min-content] min-w-full shrink-0 font-['Geist:Regular'] text-[16px] leading-[24px] font-normal text-muted-foreground"
 							>
-								Sign up today to get early access to new collections, secret sales, and curated
-								picks you won’t find anywhere else.
+								{m.account_newsletter_hero_description()}
 							</p>
 						</div>
 						<a
 							href="#newsletter-subscription"
-							class="relative flex shrink-0 content-stretch items-center justify-center gap-[6px] overflow-clip rounded-[10px] bg-[#171717] px-[16px] py-[8px]"
+							class="relative flex shrink-0 content-stretch items-center justify-center gap-[6px] overflow-clip rounded-[10px] bg-primary px-[16px] py-[8px]"
 							data-name="Button"
 						>
 							<div
-								class="relative flex shrink-0 flex-col justify-center font-['Geist:Medium'] text-[14px] leading-[0] font-medium [word-break:break-word] whitespace-nowrap text-[#fafafa]"
+								class="relative flex shrink-0 flex-col justify-center font-['Geist:Medium'] text-[14px] leading-[0] font-medium [word-break:break-word] whitespace-nowrap text-primary-foreground"
 							>
-								<p class="leading-[20px]">Get Updates</p>
+								<p class="leading-[20px]">{m.account_newsletter_get_updates()}</p>
 							</div>
 							<div class="relative size-[16px] shrink-0" data-name="Right-icon">
 								<img
@@ -183,7 +183,7 @@
 
 				<div
 					id="newsletter-subscription"
-					class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-white py-[24px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)]"
+					class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-card py-[24px] shadow-[0px_0px_0px_1px_color-mix(in_oklab,var(--foreground)_10%,transparent)]"
 					data-name="Card"
 				>
 					<div
@@ -191,18 +191,18 @@
 						data-name="card-body"
 					>
 						<p
-							class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[24px] leading-[32px] font-semibold [word-break:break-word] text-[#0a0a0a]"
+							class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[24px] leading-[32px] font-semibold [word-break:break-word] text-foreground"
 						>
-							Email Newsletter
+							{m.account_newsletter_title()}
 						</p>
 
 						{#if loadError}
-							<p class="w-full text-[14px] leading-[20px] text-[#dc2626]">{loadError}</p>
+							<p class="w-full text-[14px] leading-[20px] text-destructive">{loadError}</p>
 						{/if}
 
 						{#if loading}
 							<div class="flex w-full items-center justify-center py-[16px]">
-								<Spinner class="size-6" aria-label="Loading newsletter subscription" />
+								<Spinner class="size-6" aria-label={m.account_newsletter_loading()} />
 							</div>
 						{:else if subscription}
 							<div
@@ -214,23 +214,23 @@
 									data-name="Flex Horizontal"
 								>
 									<p
-										class="relative font-['Geist:Medium'] text-[16px] leading-[24px] font-medium [word-break:break-word] text-[#0a0a0a]"
+										class="relative font-['Geist:Medium'] text-[16px] leading-[24px] font-medium [word-break:break-word] text-foreground"
 									>
 										{subscription.email}
 									</p>
 									<div
-										class="relative flex shrink-0 content-stretch items-center justify-center gap-[2px] rounded-[9999px] border border-solid border-[#e5e5e5] px-[6px] py-[2px]"
+										class="relative flex shrink-0 content-stretch items-center justify-center gap-[2px] rounded-[9999px] border border-solid border-border px-[6px] py-[2px]"
 										data-name="Outline Badge"
 									>
 										<p
-											class="relative flex shrink-0 flex-col justify-center text-center font-['Geist:Medium'] text-[12px] leading-[16px] font-medium whitespace-nowrap text-[#0a0a0a] capitalize"
+											class="relative flex shrink-0 flex-col justify-center text-center font-['Geist:Medium'] text-[12px] leading-[16px] font-medium whitespace-nowrap text-foreground capitalize"
 										>
-											{subscription.status}
+											{statusLabel('newsletter', subscription.status)}
 										</p>
 									</div>
 								</div>
-								<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
-									Member since {formatDate(subscription.createdAt)}
+								<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-muted-foreground">
+									{m.account_newsletter_member_since({ date: formatDate(subscription.createdAt) })}
 								</p>
 							</div>
 							<Button
@@ -241,18 +241,20 @@
 							>
 								{#if saving}
 									<Spinner />
-									Saving…
+									{m.common_saving()}
 								{:else}
-									{subscription.status === 'subscribed' ? 'Unsubscribe' : 'Subscribe'}
+									{subscription.status === 'subscribed'
+										? m.account_newsletter_unsubscribe()
+										: m.account_newsletter_subscribe()}
 								{/if}
 							</Button>
 						{:else}
-							<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
-								You are not subscribed to the newsletter yet.
+							<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-muted-foreground">
+								{m.account_newsletter_not_subscribed()}
 							</p>
 							<form class="flex w-full flex-col items-start gap-[12px]" onsubmit={subscribe}>
 								<div class="grid w-full max-w-[400px] gap-[6px]">
-									<Label for="newsletter-email">Email address</Label>
+									<Label for="newsletter-email">{m.account_newsletter_email_label()}</Label>
 									<Input
 										id="newsletter-email"
 										type="email"
@@ -263,14 +265,14 @@
 									/>
 								</div>
 								{#if formError}
-									<p class="text-[14px] leading-[20px] text-[#dc2626]">{formError}</p>
+									<p class="text-[14px] leading-[20px] text-destructive">{formError}</p>
 								{/if}
 								<Button type="submit" disabled={saving}>
 									{#if saving}
 										<Spinner />
-										Subscribing…
+										{m.account_newsletter_subscribing()}
 									{:else}
-										Subscribe
+										{m.account_newsletter_subscribe()}
 									{/if}
 								</Button>
 							</form>

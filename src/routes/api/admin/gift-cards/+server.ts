@@ -9,7 +9,11 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 	const denied = requireAdmin(locals.user);
 	if (denied) return denied;
 	const parsed = paginationSchema.safeParse(Object.fromEntries(url.searchParams));
-	if (!parsed.success) return Response.json({ error: 'Invalid query parameters' }, { status: 400 });
+	if (!parsed.success)
+		return Response.json(
+			{ error: 'Invalid query parameters', code: 'invalid_query' },
+			{ status: 400 }
+		);
 	return Response.json(
 		unwrap(await locals.services.marketing.marketing.listGiftCards(parsed.data, locals.actor))
 	);
@@ -22,12 +26,19 @@ export const POST: RequestHandler = async (event) => {
 	try {
 		body = await event.request.json();
 	} catch {
-		return Response.json({ error: 'Expected a JSON body' }, { status: 400 });
+		return Response.json(
+			{ error: 'Expected a JSON body', code: 'invalid_json_body' },
+			{ status: 400 }
+		);
 	}
 	const parsed = giftCardWriteSchema.safeParse(body);
 	if (!parsed.success)
 		return Response.json(
-			{ error: 'Invalid gift card data', details: parsed.error.flatten() },
+			{
+				error: 'Invalid gift card data',
+				code: 'VALIDATION_ERROR',
+				details: parsed.error.flatten()
+			},
 			{ status: 422 }
 		);
 	try {

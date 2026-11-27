@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
 	import {
 		Check,
 		LifeBuoy,
@@ -19,82 +20,73 @@
 	const benefits = [
 		{
 			icon: Lock,
-			title: 'Secure payments',
-			description:
-				'Card details and payment tokens are encrypted end to end, with automated fraud monitoring on every checkout.'
+			title: m.storefront_pp_benefit_secure_title(),
+			description: m.storefront_pp_benefit_secure_desc()
 		},
 		{
 			icon: Truck,
-			title: 'Delivery guarantee',
-			description:
-				'If an eligible order never arrives, we refund the full amount or send a replacement at no extra cost.'
+			title: m.storefront_pp_benefit_delivery_title(),
+			description: m.storefront_pp_benefit_delivery_desc()
 		},
 		{
 			icon: PackageCheck,
-			title: 'Item not as described',
-			description:
-				'Covered when the item you receive differs materially from the listing description, photos, or specifications.'
+			title: m.storefront_pp_benefit_described_title(),
+			description: m.storefront_pp_benefit_described_desc()
 		},
 		{
 			icon: ShieldCheck,
-			title: 'Damage in transit',
-			description:
-				'Report damage within 48 hours of delivery with photos of the packaging and the item so we can make it right.'
+			title: m.storefront_pp_benefit_damage_title(),
+			description: m.storefront_pp_benefit_damage_desc()
 		},
 		{
 			icon: RotateCcw,
-			title: '30-day returns',
-			description:
-				'Unused items in their original condition can be returned within 30 days of delivery for a refund or credit.'
+			title: m.storefront_pp_benefit_returns_title(),
+			description: m.storefront_pp_benefit_returns_desc()
 		},
 		{
 			icon: LifeBuoy,
-			title: 'Dedicated support',
-			description:
-				'Real people review every claim and work with you until the case reaches a fair resolution.'
+			title: m.storefront_pp_benefit_support_title(),
+			description: m.storefront_pp_benefit_support_desc()
 		}
 	];
 
 	const covered = [
-		'An order arrives damaged, is lost, or never shows up',
-		'The item materially differs from the listing',
-		'The seller fails to ship within the promised window',
-		'Unauthorized or fraudulent card charges',
-		'Eligible unused items returned within 30 days'
+		m.storefront_pp_covered_1(),
+		m.storefront_pp_covered_2(),
+		m.storefront_pp_covered_3(),
+		m.storefront_pp_covered_4(),
+		m.storefront_pp_covered_5()
 	];
 
 	const notCovered = [
-		'Normal wear and tear from everyday use',
-		'Misuse, accidents, or improper installation',
-		'Unauthorized repairs or modifications',
-		'Items reported outside the claim window',
-		'Digital goods, gift cards, and downloadable content'
+		m.storefront_pp_not_covered_1(),
+		m.storefront_pp_not_covered_2(),
+		m.storefront_pp_not_covered_3(),
+		m.storefront_pp_not_covered_4(),
+		m.storefront_pp_not_covered_5()
 	];
 
 	const steps = [
 		{
-			title: 'Open a support ticket',
-			description: 'Start a claim from your account and select the order you need help with.'
+			title: m.storefront_pp_step_1_title(),
+			description: m.storefront_pp_step_1_desc()
 		},
 		{
-			title: 'Include your order number and photos',
-			description:
-				'Attach the order number plus clear photos of the item, packaging, and any damage.'
+			title: m.storefront_pp_step_2_title(),
+			description: m.storefront_pp_step_2_desc()
 		},
 		{
-			title: 'Support reviews within 2 business days',
-			description:
-				'A support specialist checks the evidence and keeps you updated on the next steps.'
+			title: m.storefront_pp_step_3_title(),
+			description: m.storefront_pp_step_3_desc()
 		},
 		{
-			title: 'Choose your resolution',
-			description:
-				'Once approved, pick a refund, a replacement, or store credit — whichever works best for you.'
+			title: m.storefront_pp_step_4_title(),
+			description: m.storefront_pp_step_4_desc()
 		}
 	];
 </script>
 
-<div class="flex min-h-screen w-full flex-col bg-white">
+<div class="flex min-h-screen w-full flex-col bg-background">
 	<SiteHeader />
 	<main class="flex-1">
 		<div
@@ -103,41 +95,40 @@
 			<Breadcrumb.Root>
 				<Breadcrumb.List>
 					<Breadcrumb.Item>
-						<Breadcrumb.Link href="/">Home</Breadcrumb.Link>
+						<Breadcrumb.Link href="/">{m.common_home()}</Breadcrumb.Link>
 					</Breadcrumb.Item>
 					<Breadcrumb.Separator />
 					<Breadcrumb.Item>
-						<Breadcrumb.Link href="/help">Help</Breadcrumb.Link>
+						<Breadcrumb.Link href="/help">{m.storefront_pp_breadcrumb_help()}</Breadcrumb.Link>
 					</Breadcrumb.Item>
 					<Breadcrumb.Separator />
 					<Breadcrumb.Item>
-						<Breadcrumb.Page>Purchase protection</Breadcrumb.Page>
+						<Breadcrumb.Page>{m.storefront_pp_title()}</Breadcrumb.Page>
 					</Breadcrumb.Item>
 				</Breadcrumb.List>
 			</Breadcrumb.Root>
 
-			<section
-				class="flex flex-col items-start gap-5 rounded-[14px] border bg-[#f5f5f5] p-6 sm:p-10"
-			>
-				<Badge variant="secondary">Buyer protection</Badge>
+			<section class="flex flex-col items-start gap-5 rounded-[14px] border bg-muted p-6 sm:p-10">
+				<Badge variant="secondary">{m.storefront_pp_badge()}</Badge>
 				<h1
-					class="font-['Geist:Bold'] text-3xl leading-tight text-[#0a0a0a] max-[480px]:text-2xl max-[480px]:leading-8 sm:text-4xl"
+					class="font-['Geist:Bold'] text-3xl leading-tight text-foreground max-[480px]:text-2xl max-[480px]:leading-8 sm:text-4xl"
 				>
-					Purchase protection
+					{m.storefront_pp_title()}
 				</h1>
 				<p class="max-w-2xl text-base text-muted-foreground sm:text-lg">
-					Shop with confidence. Every eligible order is covered from checkout to delivery and
-					beyond.
+					{m.storefront_pp_intro()}
 				</p>
 				<div class="flex flex-wrap items-center gap-3">
-					<Button href="/products">Start shopping</Button>
-					<Button variant="outline" href="/account/support-tickets">File a claim</Button>
+					<Button href="/products">{m.storefront_pp_start_shopping()}</Button>
+					<Button variant="outline" href="/account/support-tickets"
+						>{m.storefront_pp_file_claim()}</Button
+					>
 				</div>
 			</section>
 
 			<section class="flex flex-col gap-6">
-				<h2 class="font-['Geist:Bold'] text-2xl leading-tight text-[#0a0a0a] sm:text-3xl">
-					What your protection includes
+				<h2 class="font-['Geist:Bold'] text-2xl leading-tight text-foreground sm:text-3xl">
+					{m.storefront_pp_includes_title()}
 				</h2>
 				<div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
 					{#each benefits as benefit (benefit.title)}
@@ -145,7 +136,7 @@
 						<Card.Root class="h-full">
 							<Card.Header>
 								<div
-									class="flex size-11 items-center justify-center rounded-full bg-[#f5f5f5] text-[#0a0a0a]"
+									class="flex size-11 items-center justify-center rounded-full bg-muted text-foreground"
 								>
 									<Icon class="size-5" aria-hidden="true" />
 								</div>
@@ -160,22 +151,22 @@
 			</section>
 
 			<section class="flex flex-col gap-6">
-				<h2 class="font-['Geist:Bold'] text-2xl leading-tight text-[#0a0a0a] sm:text-3xl">
-					Coverage details
+				<h2 class="font-['Geist:Bold'] text-2xl leading-tight text-foreground sm:text-3xl">
+					{m.storefront_pp_coverage_title()}
 				</h2>
 				<div class="grid gap-6 md:grid-cols-2">
 					<Card.Root class="h-full">
 						<Card.Header>
-							<h3 class="flex items-center gap-2 text-lg font-semibold text-[#0a0a0a]">
-								<Check class="size-5 text-[#16a34a]" aria-hidden="true" />
-								What's covered
+							<h3 class="flex items-center gap-2 text-lg font-semibold text-foreground">
+								<Check class="size-5 text-success" aria-hidden="true" />
+								{m.storefront_pp_covered_title()}
 							</h3>
 						</Card.Header>
 						<Card.Content>
 							<ul class="flex flex-col gap-3">
 								{#each covered as item (item)}
 									<li class="flex items-start gap-3 text-sm text-muted-foreground">
-										<Check class="mt-0.5 size-4 shrink-0 text-[#16a34a]" aria-hidden="true" />
+										<Check class="mt-0.5 size-4 shrink-0 text-success" aria-hidden="true" />
 										<span>{item}</span>
 									</li>
 								{/each}
@@ -185,16 +176,16 @@
 
 					<Card.Root class="h-full">
 						<Card.Header>
-							<h3 class="flex items-center gap-2 text-lg font-semibold text-[#0a0a0a]">
-								<X class="size-5 text-[#dc2626]" aria-hidden="true" />
-								What's not covered
+							<h3 class="flex items-center gap-2 text-lg font-semibold text-foreground">
+								<X class="size-5 text-destructive" aria-hidden="true" />
+								{m.storefront_pp_not_covered_title()}
 							</h3>
 						</Card.Header>
 						<Card.Content>
 							<ul class="flex flex-col gap-3">
 								{#each notCovered as item (item)}
 									<li class="flex items-start gap-3 text-sm text-muted-foreground">
-										<X class="mt-0.5 size-4 shrink-0 text-[#dc2626]" aria-hidden="true" />
+										<X class="mt-0.5 size-4 shrink-0 text-destructive" aria-hidden="true" />
 										<span>{item}</span>
 									</li>
 								{/each}
@@ -205,8 +196,8 @@
 			</section>
 
 			<section class="flex flex-col gap-6">
-				<h2 class="font-['Geist:Bold'] text-2xl leading-tight text-[#0a0a0a] sm:text-3xl">
-					How to file a claim
+				<h2 class="font-['Geist:Bold'] text-2xl leading-tight text-foreground sm:text-3xl">
+					{m.storefront_pp_how_title()}
 				</h2>
 				<ol class="grid list-none gap-4 md:grid-cols-2">
 					{#each steps as step, index (step.title)}
@@ -214,13 +205,13 @@
 							<Card.Root class="h-full">
 								<Card.Content class="flex items-start gap-4 py-2">
 									<span
-										class="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#0a0a0a] text-sm font-semibold text-white"
+										class="flex size-9 shrink-0 items-center justify-center rounded-full bg-foreground text-sm font-semibold text-background"
 										aria-hidden="true"
 									>
 										{index + 1}
 									</span>
 									<div class="flex flex-col gap-1">
-										<h3 class="text-base font-semibold text-[#0a0a0a]">{step.title}</h3>
+										<h3 class="text-base font-semibold text-foreground">{step.title}</h3>
 										<p class="text-sm text-muted-foreground">{step.description}</p>
 									</div>
 								</Card.Content>
@@ -230,18 +221,18 @@
 				</ol>
 			</section>
 
-			<Card.Root class="items-center gap-4 bg-[#f5f5f5] py-10 text-center ring-0">
+			<Card.Root class="items-center gap-4 bg-muted py-10 text-center ring-0">
 				<Card.Content class="flex flex-col items-center gap-4">
-					<h2 class="font-['Geist:Bold'] text-2xl leading-tight text-[#0a0a0a] sm:text-3xl">
-						Need to file a claim?
+					<h2 class="font-['Geist:Bold'] text-2xl leading-tight text-foreground sm:text-3xl">
+						{m.storefront_pp_cta_title()}
 					</h2>
 					<p class="max-w-xl text-sm text-muted-foreground sm:text-base">
-						Our support team can help you start a claim, track its progress, and find the right
-						resolution for your order.
+						{m.storefront_pp_cta_desc()}
 					</p>
 					<div class="flex flex-wrap items-center justify-center gap-3">
-						<Button href="/account/support-tickets">Contact support</Button>
-						<Button variant="outline" href="/account/orders">View your orders</Button>
+						<Button href="/account/support-tickets">{m.storefront_pp_contact_support()}</Button>
+						<Button variant="outline" href="/account/orders">{m.storefront_pp_view_orders()}</Button
+						>
 					</div>
 				</Card.Content>
 			</Card.Root>

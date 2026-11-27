@@ -9,10 +9,11 @@ export {
 	UnauthorizedError,
 	UnprocessableError,
 	ValidationError,
+	errorBody,
 	isAppError,
 	toAppError
 } from './errors.ts';
-export type { AppErrorOptions, ErrorCode } from './errors.ts';
+export type { AppErrorOptions, ErrorBody, ErrorCode, ErrorParams } from './errors.ts';
 
 export { assertActor, assertPermission, hasPermission } from './authz.ts';
 export type { Actor, Permission, Role } from './actor.ts';

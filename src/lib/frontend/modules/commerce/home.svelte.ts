@@ -1,3 +1,4 @@
+import { errorMessage } from '#lib/frontend/i18n/index.ts';
 import { api, unwrap } from '../shared/http.ts';
 import type { Banner, HomeData } from './models.ts';
 
@@ -43,7 +44,7 @@ class HomeStore {
 			const payload = await api.get<{ data: HomeData }>('/api/storefront/home');
 			this.data = unwrap(payload);
 		} catch (error) {
-			this.error = error instanceof Error ? error.message : 'Could not load storefront';
+			this.error = errorMessage(error, 'components_home_load_failed');
 		} finally {
 			this.loading = false;
 		}

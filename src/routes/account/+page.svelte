@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
+	import { errorMessage } from '#lib/frontend/i18n/index.ts';
 	import { onMount } from 'svelte';
 	import {
 		CreditCard,
@@ -22,8 +24,7 @@
 		listOrders,
 		listPaymentMethods,
 		listWishlist,
-		isUnauthorized,
-		messageFrom
+		isUnauthorized
 	} from '#lib/frontend/modules/account/index.ts';
 	import { Badge } from '#lib/frontend/components/ui/badge/index.ts';
 	import { Button } from '#lib/frontend/components/ui/button/index.ts';
@@ -90,7 +91,7 @@
 			return '';
 		}
 
-		return messageFrom(cause, fallback);
+		return errorMessage(cause, fallback);
 	}
 
 	async function loadDashboard(): Promise<void> {
@@ -113,14 +114,14 @@
 			ordersTotal = ordersResult.value.total ?? orders.length;
 		} else {
 			orders = [];
-			ordersError = failureMessage(ordersResult.reason, 'Could not load your orders.');
+			ordersError = failureMessage(ordersResult.reason, 'account_home_orders_load_failed');
 		}
 
 		if (addressesResult.status === 'fulfilled') {
 			addresses = addressesResult.value;
 		} else {
 			addresses = [];
-			addressesError = failureMessage(addressesResult.reason, 'Could not load your addresses.');
+			addressesError = failureMessage(addressesResult.reason, 'account_home_addresses_load_failed');
 		}
 
 		if (paymentMethodsResult.status === 'fulfilled') {
@@ -129,7 +130,7 @@
 			paymentMethods = [];
 			paymentMethodsError = failureMessage(
 				paymentMethodsResult.reason,
-				'Could not load your payment methods.'
+				'account_home_payment_methods_load_failed'
 			);
 		}
 
@@ -137,7 +138,7 @@
 			wishlist = wishlistResult.value;
 		} else {
 			wishlist = [];
-			wishlistError = failureMessage(wishlistResult.reason, 'Could not load your wishlist.');
+			wishlistError = failureMessage(wishlistResult.reason, 'account_home_wishlist_load_failed');
 		}
 
 		loading = false;
@@ -162,17 +163,16 @@
 	});
 </script>
 
-<AccountPageShell
-	title="My account"
-	description="Manage your profile, orders, addresses and preferences."
->
+<AccountPageShell title={m.account_home_title()} description={m.account_home_description()}>
 	{#if hasError}
 		<div
 			class="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive"
 			role="alert"
 		>
-			<span>Some account details could not be loaded.</span>
-			<Button variant="outline" size="sm" onclick={() => void loadDashboard()}>Retry</Button>
+			<span>{m.account_home_partial_error()}</span>
+			<Button variant="outline" size="sm" onclick={() => void loadDashboard()}
+				>{m.common_retry()}</Button
+			>
 		</div>
 	{/if}
 
@@ -189,19 +189,19 @@
 				<div class="min-w-0 space-y-1">
 					<div class="flex flex-wrap items-center gap-2">
 						<p class="truncate text-lg font-semibold text-foreground">
-							{user?.name || 'Your account'}
+							{user?.name || m.account_home_fallback_name()}
 						</p>
-						<Badge variant="secondary">Customer</Badge>
+						<Badge variant="secondary">{m.account_home_role_customer()}</Badge>
 					</div>
 					<p class="truncate text-sm text-muted-foreground">
-						{user?.email || 'No email on file'}
+						{user?.email || m.account_home_no_email()}
 					</p>
 				</div>
 			</div>
 			<Separator />
 			<div class="flex flex-wrap items-center gap-2">
-				<Button href="/account/orders">View orders</Button>
-				<Button variant="outline" href="/account/addresses">My addresses</Button>
+				<Button href="/account/orders">{m.account_home_view_orders()}</Button>
+				<Button variant="outline" href="/account/addresses">{m.account_home_my_addresses()}</Button>
 			</div>
 		</Card.Content>
 	</Card.Root>
@@ -220,8 +220,8 @@
 		</div>
 		<Card.Root>
 			<Card.Header>
-				<Card.Title>Recent orders</Card.Title>
-				<Card.Description>Loading your latest orders.</Card.Description>
+				<Card.Title>{m.account_home_recent_orders()}</Card.Title>
+				<Card.Description>{m.account_home_recent_orders_loading()}</Card.Description>
 			</Card.Header>
 			<Card.Content class="flex flex-col gap-3">
 				{#each Array(3) as _, index (index)}
@@ -235,7 +235,7 @@
 				<Card.Content class="flex h-full flex-col gap-3">
 					<div class="flex items-start justify-between gap-3">
 						<div class="space-y-1">
-							<p class="text-sm text-muted-foreground">Orders</p>
+							<p class="text-sm text-muted-foreground">{m.common_orders()}</p>
 							<p class="text-2xl font-semibold text-foreground tabular-nums">{ordersTotal}</p>
 						</div>
 						<div
@@ -258,11 +258,11 @@
 								<span>{formatDate(latestOrder.placedAt)}</span>
 							</div>
 						{:else}
-							<p class="text-sm text-muted-foreground">No orders yet.</p>
+							<p class="text-sm text-muted-foreground">{m.account_home_no_orders()}</p>
 						{/if}
 					</div>
 					<Button variant="outline" size="sm" class="mt-auto w-fit" href="/account/orders">
-						View orders
+						{m.account_home_view_orders()}
 					</Button>
 				</Card.Content>
 			</Card.Root>
@@ -271,7 +271,7 @@
 				<Card.Content class="flex h-full flex-col gap-3">
 					<div class="flex items-start justify-between gap-3">
 						<div class="space-y-1">
-							<p class="text-sm text-muted-foreground">Wishlist</p>
+							<p class="text-sm text-muted-foreground">{m.common_wishlist()}</p>
 							<p class="text-2xl font-semibold text-foreground tabular-nums">
 								{wishlist?.length ?? 0}
 							</p>
@@ -293,11 +293,11 @@
 						{:else if wishlist && wishlist.length > 0}
 							<p class="truncate text-sm text-muted-foreground">{wishlist[0].name}</p>
 						{:else}
-							<p class="text-sm text-muted-foreground">No saved products yet.</p>
+							<p class="text-sm text-muted-foreground">{m.account_home_no_wishlist()}</p>
 						{/if}
 					</div>
 					<Button variant="outline" size="sm" class="mt-auto w-fit" href="/account/wishlist">
-						View wishlist
+						{m.account_home_view_wishlist()}
 					</Button>
 				</Card.Content>
 			</Card.Root>
@@ -306,7 +306,7 @@
 				<Card.Content class="flex h-full flex-col gap-3">
 					<div class="flex items-start justify-between gap-3">
 						<div class="space-y-1">
-							<p class="text-sm text-muted-foreground">Addresses</p>
+							<p class="text-sm text-muted-foreground">{m.common_addresses()}</p>
 							<p class="text-2xl font-semibold text-foreground tabular-nums">
 								{addresses?.length ?? 0}
 							</p>
@@ -331,11 +331,11 @@
 							</p>
 							<p class="truncate text-xs text-muted-foreground">{defaultAddress.city}</p>
 						{:else}
-							<p class="text-sm text-muted-foreground">No saved addresses yet.</p>
+							<p class="text-sm text-muted-foreground">{m.account_home_no_addresses()}</p>
 						{/if}
 					</div>
 					<Button variant="outline" size="sm" class="mt-auto w-fit" href="/account/addresses">
-						Manage addresses
+						{m.account_home_manage_addresses()}
 					</Button>
 				</Card.Content>
 			</Card.Root>
@@ -344,7 +344,7 @@
 				<Card.Content class="flex h-full flex-col gap-3">
 					<div class="flex items-start justify-between gap-3">
 						<div class="space-y-1">
-							<p class="text-sm text-muted-foreground">Payment methods</p>
+							<p class="text-sm text-muted-foreground">{m.account_home_payment_methods()}</p>
 							<p class="text-2xl font-semibold text-foreground tabular-nums">
 								{paymentMethods?.length ?? 0}
 							</p>
@@ -368,14 +368,16 @@
 								{defaultPaymentMethod.brand} •••• {defaultPaymentMethod.last4}
 							</p>
 							<p class="text-xs text-muted-foreground">
-								{defaultPaymentMethod.isDefault ? 'Default method' : 'Saved method'}
+								{defaultPaymentMethod.isDefault
+									? m.account_home_method_default()
+									: m.account_home_method_saved()}
 							</p>
 						{:else}
-							<p class="text-sm text-muted-foreground">No payment methods yet.</p>
+							<p class="text-sm text-muted-foreground">{m.account_home_no_payment_methods()}</p>
 						{/if}
 					</div>
 					<Button variant="outline" size="sm" class="mt-auto w-fit" href="/account/payment">
-						Manage payment
+						{m.account_home_manage_payment()}
 					</Button>
 				</Card.Content>
 			</Card.Root>
@@ -384,10 +386,10 @@
 		<Card.Root>
 			<Card.Header class="flex flex-row flex-wrap items-start justify-between gap-3">
 				<div class="space-y-1">
-					<Card.Title>Recent orders</Card.Title>
-					<Card.Description>Your latest orders and their current status.</Card.Description>
+					<Card.Title>{m.account_home_recent_orders()}</Card.Title>
+					<Card.Description>{m.account_home_recent_orders_description()}</Card.Description>
 				</div>
-				<Button variant="outline" size="sm" href="/account/orders">View all</Button>
+				<Button variant="outline" size="sm" href="/account/orders">{m.common_view_all()}</Button>
 			</Card.Header>
 			<Card.Content>
 				{#if ordersError}
@@ -423,14 +425,14 @@
 					</ul>
 				{:else}
 					<EmptyState
-						title="No orders yet"
-						description="When you place an order it will appear here with its status."
+						title={m.account_home_empty_orders_title()}
+						description={m.account_home_empty_orders_description()}
 					>
 						{#snippet icon()}
 							<Package class="size-5" aria-hidden="true" />
 						{/snippet}
 						{#snippet action()}
-							<Button href="/products">Browse products</Button>
+							<Button href="/products">{m.common_browse_products()}</Button>
 						{/snippet}
 					</EmptyState>
 				{/if}
@@ -440,33 +442,33 @@
 
 	<Card.Root>
 		<Card.Header>
-			<Card.Title>Quick links</Card.Title>
-			<Card.Description>Jump to the account tools you use most.</Card.Description>
+			<Card.Title>{m.account_home_quick_links()}</Card.Title>
+			<Card.Description>{m.account_home_quick_links_description()}</Card.Description>
 		</Card.Header>
 		<Card.Content class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
 			<Button variant="outline" class="justify-start" href="/account/payment">
 				<CreditCard class="size-4" aria-hidden="true" />
-				Payment
+				{m.common_payment()}
 			</Button>
 			<Button variant="outline" class="justify-start" href="/account/gift-cards">
 				<Gift class="size-4" aria-hidden="true" />
-				Gift cards
+				{m.account_home_gift_cards()}
 			</Button>
 			<Button variant="outline" class="justify-start" href="/account/returns-refunds">
 				<RotateCcw class="size-4" aria-hidden="true" />
-				Returns &amp; refunds
+				{m.account_home_returns_refunds()}
 			</Button>
 			<Button variant="outline" class="justify-start" href="/account/support-tickets">
 				<LifeBuoy class="size-4" aria-hidden="true" />
-				Support tickets
+				{m.account_home_support_tickets()}
 			</Button>
 			<Button variant="outline" class="justify-start" href="/account/newsletter">
 				<Mail class="size-4" aria-hidden="true" />
-				Email newsletter
+				{m.account_home_newsletter()}
 			</Button>
 			<Button variant="outline" class="justify-start" href="/account/order-tracking">
 				<Truck class="size-4" aria-hidden="true" />
-				Track order
+				{m.account_home_track_order()}
 			</Button>
 		</Card.Content>
 	</Card.Root>

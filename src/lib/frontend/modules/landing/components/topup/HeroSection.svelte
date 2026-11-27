@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
 	import { onMount } from 'svelte';
 	import * as Carousel from '#lib/frontend/components/ui/carousel/index.ts';
 	import type { CarouselAPI } from '#lib/frontend/components/ui/carousel/context.ts';
@@ -44,7 +45,7 @@
 <section
 	class="mx-auto mt-8 w-full px-8"
 	data-name="Hero"
-	aria-label="Promo"
+	aria-label={m.components_landing_hero_promo()}
 	onmouseenter={() => (paused = true)}
 	onmouseleave={() => (paused = false)}
 	onfocusin={() => (paused = true)}
@@ -54,7 +55,10 @@
 		{#if home.loading}
 			<Skeleton class="aspect-[16/9] w-full rounded-2xl md:aspect-[21/9]" />
 		{:else}
-			<ImagePlaceholder class="aspect-[16/9] w-full rounded-2xl md:aspect-[21/9]" label="Promo" />
+			<ImagePlaceholder
+				class="aspect-[16/9] w-full rounded-2xl md:aspect-[21/9]"
+				label={m.components_landing_hero_promo()}
+			/>
 		{/if}
 	{:else}
 		<Carousel.Root
@@ -80,7 +84,7 @@
 							<div
 								class="absolute inset-0 flex flex-col justify-center gap-3 bg-gradient-to-r from-background/90 via-background/50 to-transparent p-6 md:p-12"
 							>
-								<Badge class="w-fit">#TOPUP AMAN GAMING NYAMAN</Badge>
+								<Badge class="w-fit">{m.components_landing_hero_badge()}</Badge>
 								<h2 class="max-w-xl text-2xl leading-tight font-bold italic md:text-5xl">
 									{banner.title}
 								</h2>
@@ -103,7 +107,7 @@
 					{#each banners as banner, index (banner.id)}
 						<button
 							type="button"
-							aria-label={`Slide ${index + 1}`}
+							aria-label={m.components_landing_hero_slide({ number: index + 1 })}
 							aria-current={index === selected}
 							onclick={() => api?.scrollTo(index)}
 							class="size-2 rounded-full {index === selected ? 'bg-primary' : 'bg-foreground/30'}"

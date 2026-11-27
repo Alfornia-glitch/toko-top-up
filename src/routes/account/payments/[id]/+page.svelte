@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
+	import { errorMessage } from '#lib/frontend/i18n/index.ts';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
@@ -26,12 +28,18 @@
 		hasProof: boolean;
 	}
 
-	const REASONS: Record<string, string> = {
-		wrong_amount: 'The amount paid did not match the exact total.',
-		unreadable: 'The proof image could not be read.',
-		no_matching_mutation: 'We could not find a matching payment in our account.',
-		other: 'The proof could not be accepted.'
-	};
+	function rejectionReason(reason: string | null): string {
+		switch (reason) {
+			case 'wrong_amount':
+				return m.account_payment_detail_reason_wrong_amount();
+			case 'unreadable':
+				return m.account_payment_detail_reason_unreadable();
+			case 'no_matching_mutation':
+				return m.account_payment_detail_reason_no_match();
+			default:
+				return m.account_payment_detail_reason_other();
+		}
+	}
 
 	const MAX_BYTES = 5 * 1024 * 1024;
 	const TYPES = ['image/jpeg', 'image/png', 'image/webp'];
@@ -74,10 +82,8 @@
 			if (!silent) {
 				error =
 					cause instanceof ApiError && cause.status === 404
-						? 'We could not find this payment.'
-						: cause instanceof Error
-							? cause.message
-							: 'Could not load this payment.';
+						? m.account_payment_detail_not_found()
+						: errorMessage(cause, 'account_payment_detail_load_failed');
 			}
 		} finally {
 			loading = false;
@@ -95,12 +101,12 @@
 		if (!picked) return;
 
 		if (!TYPES.includes(picked.type)) {
-			uploadError = 'Choose a JPG, PNG or WebP image.';
+			uploadError = m.account_payment_detail_type_invalid();
 			input.value = '';
 			return;
 		}
 		if (picked.size > MAX_BYTES) {
-			uploadError = 'The image must be 5 MB or smaller.';
+			uploadError = m.account_payment_detail_size_invalid();
 			input.value = '';
 			return;
 		}
@@ -122,14 +128,15 @@
 				body: form
 			});
 			const body = await response.json().catch(() => null);
-			if (!response.ok) throw new Error(body?.error ?? 'Upload failed');
+			if (!response.ok) throw new Error(errorMessage(body, 'account_payment_detail_upload_failed'));
 
 			payment = body.data as Payment;
 			if (preview) URL.revokeObjectURL(preview);
 			preview = '';
 			file = null;
 		} catch (cause) {
-			uploadError = cause instanceof Error ? cause.message : 'Upload failed';
+			uploadError =
+				cause instanceof Error ? cause.message : m.account_payment_detail_upload_failed();
 		} finally {
 			uploading = false;
 		}
@@ -154,8 +161,8 @@
 </script>
 
 <AccountPageShell
-	title="Pay with QRIS"
-	description="Scan, pay the exact amount, then upload your proof."
+	title={m.account_payment_detail_title()}
+	description={m.account_payment_detail_description()}
 	narrow
 >
 	{#if loading}
@@ -173,15 +180,15 @@
 					<CircleAlert class="size-4" aria-hidden="true" />
 					{error}
 				</p>
-				<Button variant="outline" onclick={() => load()}>Try again</Button>
+				<Button variant="outline" onclick={() => load()}>{m.common_retry()}</Button>
 			</Card.Content>
 		</Card.Root>
 	{:else if payment}
 		<Card.Root>
 			<Card.Header>
-				<Card.Title>Amount to pay</Card.Title>
+				<Card.Title>{m.account_payment_detail_amount()}</Card.Title>
 				<Card.Description>
-					Pay exactly this amount, including the last digits ({payment.uniqueCode}).
+					{m.account_payment_detail_amount_hint({ uniqueCode: payment.uniqueCode })}
 				</Card.Description>
 			</Card.Header>
 			<Card.Content class="flex flex-col gap-5">
@@ -190,49 +197,51 @@
 				</p>
 
 				{#if payment.status === 'paid'}
-					<p class="flex items-center gap-2 text-sm font-medium text-emerald-700" role="status">
+					<p class="flex items-center gap-2 text-sm font-medium text-success" role="status">
 						<CircleCheck class="size-4" aria-hidden="true" />
-						Payment confirmed. Thank you!
+						{m.account_payment_detail_confirmed()}
 					</p>
-					<Button href="/account/orders">View my orders</Button>
+					<Button href="/account/orders">{m.account_payment_detail_view_orders()}</Button>
 				{:else if payment.status === 'expired' || (canUpload === false && payment.status === 'pending_payment')}
 					<p class="flex items-center gap-2 text-sm text-destructive" role="alert">
 						<Clock class="size-4" aria-hidden="true" />
-						This payment window has expired and the order was cancelled. Please place a new order.
+						{m.account_payment_detail_expired()}
 					</p>
-					<Button href="/">Back to shop</Button>
+					<Button href="/">{m.account_payment_detail_back_to_shop()}</Button>
 				{:else if payment.status === 'awaiting_verification'}
 					<p class="flex items-center gap-2 text-sm text-foreground" role="status">
 						<Spinner />
-						Your proof is under review. This page updates automatically.
+						{m.account_payment_detail_reviewing()}
 					</p>
 				{:else}
 					{#if payment.status === 'rejected'}
 						<p class="flex items-start gap-2 text-sm text-destructive" role="alert">
 							<CircleAlert class="mt-0.5 size-4 shrink-0" aria-hidden="true" />
 							<span>
-								Your proof was rejected: {REASONS[payment.rejectReason ?? 'other'] ?? REASONS.other}
+								{m.account_payment_detail_rejected({
+									reason: rejectionReason(payment.rejectReason)
+								})}
 								{#if payment.rejectNote}
 									<em class="block">“{payment.rejectNote}”</em>
 								{/if}
-								Please upload a new proof while time remains.
+								{m.account_payment_detail_reupload()}
 							</span>
 						</p>
 					{/if}
 
 					<div
-						class="flex items-start gap-2 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900"
+						class="flex items-start gap-2 rounded-lg border border-warning/30 bg-warning/10 p-3 text-sm text-warning"
 					>
 						<TriangleAlert class="mt-0.5 size-4 shrink-0" aria-hidden="true" />
 						<p>
-							The amount must match exactly. A different amount cannot be matched to your order and
-							will be rejected.
+							{m.account_payment_detail_exact_warning()}
 						</p>
 					</div>
 
 					<p class="flex items-center gap-2 text-sm text-muted-foreground">
 						<Clock class="size-4" aria-hidden="true" />
-						Time left: <span class="font-mono font-semibold text-foreground">{countdown}</span>
+						{m.account_payment_detail_time_left()}
+						<span class="font-mono font-semibold text-foreground">{countdown}</span>
 					</p>
 
 					{#if payment.qrisImageUrl}
@@ -240,12 +249,12 @@
 							loading="lazy"
 							decoding="async"
 							src={payment.qrisImageUrl}
-							alt="Merchant QRIS code"
-							class="size-64 rounded-lg border bg-white object-contain p-2"
+							alt={m.account_payment_detail_qris_alt()}
+							class="size-64 rounded-lg border bg-card object-contain p-2"
 						/>
 					{:else}
 						<p class="text-sm text-destructive" role="alert">
-							The QRIS code is not available right now. Please contact support.
+							{m.account_payment_detail_qris_missing()}
 						</p>
 					{/if}
 				{/if}
@@ -255,9 +264,9 @@
 		{#if canUpload}
 			<Card.Root>
 				<Card.Header>
-					<Card.Title>Upload payment proof</Card.Title>
+					<Card.Title>{m.account_payment_detail_upload_title()}</Card.Title>
 					<Card.Description>
-						A screenshot of your successful payment (JPG, PNG or WebP, up to 5 MB).
+						{m.account_payment_detail_upload_description()}
 					</Card.Description>
 				</Card.Header>
 				<Card.Content class="flex flex-col gap-4">
@@ -267,7 +276,7 @@
 						onchange={choose}
 						disabled={uploading}
 						class="block w-full text-sm file:mr-3 file:rounded-md file:border file:bg-muted file:px-3 file:py-1.5 file:text-sm"
-						aria-label="Payment proof image"
+						aria-label={m.account_payment_detail_proof_label()}
 					/>
 
 					{#if preview}
@@ -275,7 +284,7 @@
 							loading="lazy"
 							decoding="async"
 							src={preview}
-							alt="Preview of your proof"
+							alt={m.account_payment_detail_preview_alt()}
 							class="max-h-80 rounded-lg border object-contain"
 						/>
 					{/if}
@@ -290,7 +299,7 @@
 						{:else}
 							<ImageUp class="size-4" aria-hidden="true" />
 						{/if}
-						{uploading ? 'Uploading...' : 'Submit proof'}
+						{uploading ? m.account_payment_detail_uploading() : m.account_payment_detail_submit()}
 					</Button>
 				</Card.Content>
 			</Card.Root>

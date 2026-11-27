@@ -1,8 +1,13 @@
 <script lang="ts">
 	import { Badge, type BadgeVariant } from '#lib/frontend/components/ui/badge/index.ts';
+	import { anyStatusLabel, statusLabel, type LabelKind } from '#lib/frontend/i18n/labels.ts';
 	import { cn } from '#lib/frontend/utils.ts';
 
-	let { status, class: className }: { status: string; class?: string } = $props();
+	let {
+		status,
+		kind,
+		class: className
+	}: { status: string; kind?: LabelKind; class?: string } = $props();
 
 	const destructive = new Set([
 		'cancelled',
@@ -25,10 +30,18 @@
 		'resolved'
 	]);
 
+	const pending = new Set(['pending', 'processing', 'open', 'requested', 'awaiting_payment']);
+
 	const variant = $derived<BadgeVariant>(
-		destructive.has(status) ? 'destructive' : positive.has(status) ? 'default' : 'secondary'
+		destructive.has(status)
+			? 'destructive'
+			: positive.has(status)
+				? 'success'
+				: pending.has(status)
+					? 'warning'
+					: 'secondary'
 	);
-	const label = $derived(status.replaceAll('_', ' '));
+	const label = $derived(kind ? statusLabel(kind, status) : anyStatusLabel(status));
 </script>
 
-<Badge {variant} class={cn('capitalize', className)}>{label}</Badge>
+<Badge {variant} class={cn(className)}>{label}</Badge>

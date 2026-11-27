@@ -172,5 +172,7 @@ export async function userRoleCounts() {
 
 export function assertNotSelf(actorId: string, targetId: string) {
 	if (actorId === targetId)
-		throw new UnprocessableError('You cannot modify your own superadmin access here');
+		throw new UnprocessableError('You cannot modify your own superadmin access here', {
+			messageKey: 'own_superadmin_forbidden'
+		});
 }

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
 	import { onMount, untrack } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { page as appPage } from '$app/state';
@@ -10,6 +11,7 @@
 	import type { ProductQuery } from '#lib/frontend/modules/commerce/products.ts';
 	import type { ProductListResult } from '#lib/frontend/modules/commerce/models.ts';
 	import { formatMoney } from '#lib/frontend/modules/commerce/format.ts';
+	import { errorMessage } from '#lib/frontend/i18n/index.ts';
 	import { home } from '#lib/frontend/modules/commerce/home.svelte.ts';
 
 	let { query = {} }: { query?: ProductQuery } = $props();
@@ -58,8 +60,8 @@
 			? filters.minPrice != null && filters.maxPrice != null
 				? `${formatMoney(filters.minPrice)} – ${formatMoney(filters.maxPrice)}`
 				: filters.minPrice != null
-					? `From ${formatMoney(filters.minPrice)}`
-					: `Up to ${formatMoney(filters.maxPrice ?? 0)}`
+					? m.storefront_listing_price_from({ price: formatMoney(filters.minPrice) })
+					: m.storefront_listing_price_up_to({ price: formatMoney(filters.maxPrice ?? 0) })
 			: ''
 	);
 	const totalPages = $derived(
@@ -141,7 +143,7 @@
 		} catch (cause) {
 			if (request !== requestId) return;
 			result = null;
-			error = cause instanceof Error ? cause.message : 'Could not load products';
+			error = errorMessage(cause, 'storefront_listing_load_failed');
 		} finally {
 			if (request === requestId) loading = false;
 		}
@@ -162,7 +164,7 @@
 </script>
 
 <div
-	class="relative flex size-full flex-col content-stretch items-center bg-white"
+	class="relative flex size-full flex-col content-stretch items-center bg-card"
 	data-name="Shopix - Product Listing List View With Banner"
 >
 	<SiteHeader />
@@ -176,7 +178,7 @@
 				data-name="Flex Horizontal"
 			>
 				<div
-					class="relative flex h-[370px] min-w-px flex-[1_0_0] content-stretch items-start justify-between overflow-clip rounded-[8px] bg-[#171717] pt-[40px] pl-[40px]"
+					class="relative flex h-[370px] min-w-px flex-[1_0_0] content-stretch items-start justify-between overflow-clip rounded-[8px] bg-primary pt-[40px] pl-[40px]"
 					data-name="Flex Horizontal"
 				>
 					<div
@@ -202,22 +204,20 @@
 						{#if banner.ctaLabel && banner.ctaUrl}
 							<a
 								href={banner.ctaUrl}
-								class="relative flex shrink-0 content-stretch items-center justify-center gap-[6px] overflow-clip rounded-[10px] border border-solid border-[#f5f5f5] bg-[#f5f5f5] px-[16px] py-[8px]"
+								class="relative flex shrink-0 content-stretch items-center justify-center gap-[6px] overflow-clip rounded-[10px] border border-solid border-muted bg-muted px-[16px] py-[8px]"
 								data-name="Solid button"
 							>
 								<div
-									class="relative flex shrink-0 flex-col justify-center font-['Geist:Medium'] text-[14px] leading-[0] font-medium [word-break:break-word] whitespace-nowrap text-[#171717]"
+									class="relative flex shrink-0 flex-col justify-center font-['Geist:Medium'] text-[14px] leading-[0] font-medium [word-break:break-word] whitespace-nowrap text-primary"
 								>
 									<p class="leading-[20px]">{banner.ctaLabel}</p>
 								</div>
 								<div class="relative size-[16px] shrink-0" data-name="Right-icon">
-									<img
-										loading="lazy"
-										decoding="async"
-										alt=""
-										class="absolute inset-0 block size-full max-w-none"
-										src={imgRightIcon}
-									/>
+									<span
+										aria-hidden="true"
+										class="absolute inset-0 block size-full max-w-none bg-foreground mask-no-repeat"
+										style="mask-image: url('{imgRightIcon}')"
+									></span>
 								</div>
 							</a>
 						{/if}
@@ -236,7 +236,7 @@
 		</div>
 	{/if}
 	<div
-		class="relative flex w-full max-w-[1440px] shrink-0 content-stretch items-center justify-center bg-white py-[56px] max-[480px]:py-9"
+		class="relative flex w-full max-w-[1440px] shrink-0 content-stretch items-center justify-center bg-card py-[56px] max-[480px]:py-9"
 		data-name="Category filter"
 	>
 		<div
@@ -269,20 +269,18 @@
 									<p
 										class={`relative shrink-0 font-['Geist:Medium'] text-[16px] leading-[24px] font-medium [word-break:break-word] whitespace-nowrap ${
 											filters.categoryId === category.id
-												? 'text-[#171717]'
-												: 'text-[#0a0a0a] opacity-60'
+												? 'text-primary'
+												: 'text-foreground opacity-60'
 										}`}
 									>
 										{category.name}
 									</p>
 									<div class="relative size-[16px] shrink-0" data-name="Left-icon">
-										<img
-											loading="lazy"
-											decoding="async"
-											alt=""
-											class="absolute inset-0 block size-full max-w-none"
-											src={imgMenuIcon}
-										/>
+										<span
+											aria-hidden="true"
+											class="absolute inset-0 block size-full max-w-none bg-foreground mask-no-repeat"
+											style="mask-image: url('{imgMenuIcon}')"
+										></span>
 									</div>
 								</button>
 							{/each}
@@ -296,7 +294,7 @@
 								data-name="Flex Horizontal"
 							>
 								<div
-									class="relative isolate flex shrink-0 flex-wrap content-center items-center overflow-clip rounded-[10px] bg-[#f5f5f5] p-[3px]"
+									class="relative isolate flex shrink-0 flex-wrap content-center items-center overflow-clip rounded-[10px] bg-muted p-[3px]"
 									data-name="Advance Tabs"
 								>
 									<div
@@ -309,38 +307,34 @@
 											data-name="Tab 01"
 										>
 											<div class="relative size-[16px] shrink-0" data-name="left-icon">
-												<img
-													loading="lazy"
-													decoding="async"
-													alt=""
-													class="absolute inset-0 block size-full max-w-none"
-													src={imgGridIcon}
-												/>
+												<span
+													aria-hidden="true"
+													class="absolute inset-0 block size-full max-w-none bg-foreground mask-no-repeat"
+													style="mask-image: url('{imgGridIcon}')"
+												></span>
 											</div>
 											<p
-												class="relative shrink-0 font-['Geist:Medium'] text-[14px] leading-[20px] font-medium [word-break:break-word] whitespace-nowrap text-[#0a0a0a] opacity-60"
+												class="relative shrink-0 font-['Geist:Medium'] text-[14px] leading-[20px] font-medium [word-break:break-word] whitespace-nowrap text-foreground opacity-60"
 											>
-												Grid
+												{m.storefront_listing_view_grid()}
 											</p>
 										</a>
 										<a
 											href={viewHref(true)}
-											class="relative flex shrink-0 content-stretch items-center justify-center gap-[4px] overflow-clip rounded-[10px] border border-solid border-[#e5e5e5] bg-white px-[8px] py-[4px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.1),0px_1px_2px_-1px_rgba(0,0,0,0.1)]"
+											class="relative flex shrink-0 content-stretch items-center justify-center gap-[4px] overflow-clip rounded-[10px] border border-solid border-border bg-card px-[8px] py-[4px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.1),0px_1px_2px_-1px_rgba(0,0,0,0.1)]"
 											data-name="Tab 02"
 										>
 											<div class="relative size-[16px] shrink-0" data-name="left-icon">
-												<img
-													loading="lazy"
-													decoding="async"
-													alt=""
-													class="absolute inset-0 block size-full max-w-none"
-													src={imgListIcon}
-												/>
+												<span
+													aria-hidden="true"
+													class="absolute inset-0 block size-full max-w-none bg-foreground mask-no-repeat"
+													style="mask-image: url('{imgListIcon}')"
+												></span>
 											</div>
 											<p
-												class="relative shrink-0 font-['Geist:Medium'] text-[14px] leading-[20px] font-medium [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
+												class="relative shrink-0 font-['Geist:Medium'] text-[14px] leading-[20px] font-medium [word-break:break-word] whitespace-nowrap text-foreground"
 											>
-												List
+												{m.storefront_listing_view_list()}
 											</p>
 										</a>
 									</div>
@@ -352,28 +346,26 @@
 									data-name="Default Select"
 								>
 									<div
-										class="relative flex min-h-px w-full flex-[1_0_0] content-stretch items-center gap-[6px] rounded-[10px] border border-solid border-[#e5e5e5] bg-white px-[10px] py-[6px]"
+										class="relative flex min-h-px w-full flex-[1_0_0] content-stretch items-center gap-[6px] rounded-[10px] border border-solid border-border bg-card px-[10px] py-[6px]"
 										data-name="SelectValue"
 									>
 										<select
-											class="w-full cursor-pointer appearance-none bg-transparent font-['Geist:Regular'] text-[12px] leading-[16px] font-normal text-[#737373] outline-none"
+											class="w-full cursor-pointer appearance-none bg-transparent font-['Geist:Regular'] text-[12px] leading-[16px] font-normal text-muted-foreground outline-none"
 											value={filters.sort ?? 'recommended'}
 											onchange={(event) => changeSort(event.currentTarget.value as SortValue)}
 										>
-											<option value="recommended">Sort : Recommended</option>
-											<option value="popular">Sort : Popular</option>
-											<option value="price_asc">Sort : Price: Low to High</option>
-											<option value="price_desc">Sort : Price: High to Low</option>
-											<option value="newest">Sort : Newest</option>
+											<option value="recommended">{m.storefront_listing_sort_recommended()}</option>
+											<option value="popular">{m.storefront_listing_sort_popular()}</option>
+											<option value="price_asc">{m.storefront_listing_sort_price_asc()}</option>
+											<option value="price_desc">{m.storefront_listing_sort_price_desc()}</option>
+											<option value="newest">{m.storefront_listing_sort_newest()}</option>
 										</select>
 										<div class="relative size-[16px] shrink-0" data-name="chevron-down">
-											<img
-												loading="lazy"
-												decoding="async"
-												alt=""
-												class="absolute inset-0 block size-full max-w-none"
-												src={imgSelectIcon}
-											/>
+											<span
+												aria-hidden="true"
+												class="absolute inset-0 block size-full max-w-none bg-foreground mask-no-repeat"
+												style="mask-image: url('{imgSelectIcon}')"
+											></span>
 										</div>
 									</div>
 								</div>
@@ -388,23 +380,21 @@
 							<button
 								type="button"
 								class="relative flex h-[26px] shrink-0 cursor-pointer content-stretch items-center justify-center gap-[4px] rounded-[9999px] px-[12px] py-[4px]"
-								style="background-image: linear-gradient(90deg, rgba(23, 23, 23, 0.1) 0%, rgba(23, 23, 23, 0.1) 100%), linear-gradient(90deg, rgb(255, 255, 255) 0%, rgb(255, 255, 255) 100%)"
+								style="background-image: linear-gradient(90deg, color-mix(in oklab, var(--foreground) 10%, transparent) 0%, color-mix(in oklab, var(--foreground) 10%, transparent) 100%), linear-gradient(90deg, var(--background) 0%, var(--background) 100%)"
 								data-name="Soft Badge"
 								onclick={() => selectCategory(filters.categoryId ?? '')}
 							>
 								<p
-									class="font-['Geist:Medium'] text-[12px] leading-[16px] font-medium text-[#171717]"
+									class="font-['Geist:Medium'] text-[12px] leading-[16px] font-medium text-primary"
 								>
 									{selectedCategory}
 								</p>
 								<div class="relative size-[12px] shrink-0" data-name="x">
-									<img
-										loading="lazy"
-										decoding="async"
-										alt=""
-										class="absolute inset-0 block size-full max-w-none"
-										src={imgX}
-									/>
+									<span
+										aria-hidden="true"
+										class="absolute inset-0 block size-full max-w-none bg-foreground mask-no-repeat"
+										style="mask-image: url('{imgX}')"
+									></span>
 								</div>
 							</button>
 						{/if}
@@ -412,7 +402,7 @@
 							<button
 								type="button"
 								class="relative flex h-[26px] shrink-0 cursor-pointer content-stretch items-center justify-center gap-[4px] rounded-[9999px] px-[12px] py-[4px]"
-								style="background-image: linear-gradient(90deg, rgba(23, 23, 23, 0.1) 0%, rgba(23, 23, 23, 0.1) 100%), linear-gradient(90deg, rgb(255, 255, 255) 0%, rgb(255, 255, 255) 100%)"
+								style="background-image: linear-gradient(90deg, color-mix(in oklab, var(--foreground) 10%, transparent) 0%, color-mix(in oklab, var(--foreground) 10%, transparent) 100%), linear-gradient(90deg, var(--background) 0%, var(--background) 100%)"
 								data-name="Soft Badge"
 								onclick={() => {
 									filters.brandId = undefined;
@@ -421,18 +411,16 @@
 								}}
 							>
 								<p
-									class="font-['Geist:Medium'] text-[12px] leading-[16px] font-medium text-[#171717]"
+									class="font-['Geist:Medium'] text-[12px] leading-[16px] font-medium text-primary"
 								>
 									{brandName}
 								</p>
 								<div class="relative size-[12px] shrink-0" data-name="x">
-									<img
-										loading="lazy"
-										decoding="async"
-										alt=""
-										class="absolute inset-0 block size-full max-w-none"
-										src={imgX}
-									/>
+									<span
+										aria-hidden="true"
+										class="absolute inset-0 block size-full max-w-none bg-foreground mask-no-repeat"
+										style="mask-image: url('{imgX}')"
+									></span>
 								</div>
 							</button>
 						{/if}
@@ -440,23 +428,21 @@
 							<button
 								type="button"
 								class="relative flex h-[26px] shrink-0 cursor-pointer content-stretch items-center justify-center gap-[4px] rounded-[9999px] px-[12px] py-[4px]"
-								style="background-image: linear-gradient(90deg, rgba(23, 23, 23, 0.1) 0%, rgba(23, 23, 23, 0.1) 100%), linear-gradient(90deg, rgb(255, 255, 255) 0%, rgb(255, 255, 255) 100%)"
+								style="background-image: linear-gradient(90deg, color-mix(in oklab, var(--foreground) 10%, transparent) 0%, color-mix(in oklab, var(--foreground) 10%, transparent) 100%), linear-gradient(90deg, var(--background) 0%, var(--background) 100%)"
 								data-name="Soft Badge"
 								onclick={clearPrice}
 							>
 								<p
-									class="font-['Geist:Medium'] text-[12px] leading-[16px] font-medium text-[#171717]"
+									class="font-['Geist:Medium'] text-[12px] leading-[16px] font-medium text-primary"
 								>
 									{priceLabel}
 								</p>
 								<div class="relative size-[12px] shrink-0" data-name="x">
-									<img
-										loading="lazy"
-										decoding="async"
-										alt=""
-										class="absolute inset-0 block size-full max-w-none"
-										src={imgX}
-									/>
+									<span
+										aria-hidden="true"
+										class="absolute inset-0 block size-full max-w-none bg-foreground mask-no-repeat"
+										style="mask-image: url('{imgX}')"
+									></span>
 								</div>
 							</button>
 						{/if}
@@ -464,7 +450,7 @@
 							<button
 								type="button"
 								class="relative flex h-[26px] shrink-0 cursor-pointer content-stretch items-center justify-center gap-[4px] rounded-[9999px] px-[12px] py-[4px]"
-								style="background-image: linear-gradient(90deg, rgba(23, 23, 23, 0.1) 0%, rgba(23, 23, 23, 0.1) 100%), linear-gradient(90deg, rgb(255, 255, 255) 0%, rgb(255, 255, 255) 100%)"
+								style="background-image: linear-gradient(90deg, color-mix(in oklab, var(--foreground) 10%, transparent) 0%, color-mix(in oklab, var(--foreground) 10%, transparent) 100%), linear-gradient(90deg, var(--background) 0%, var(--background) 100%)"
 								data-name="Soft Badge"
 								onclick={() => {
 									filters.color = undefined;
@@ -473,26 +459,26 @@
 								}}
 							>
 								<p
-									class="font-['Geist:Medium'] text-[12px] leading-[16px] font-medium text-[#171717]"
+									class="font-['Geist:Medium'] text-[12px] leading-[16px] font-medium text-primary"
 								>
 									{filters.color}
 								</p>
 								<div class="relative size-[12px] shrink-0" data-name="x">
-									<img
-										loading="lazy"
-										decoding="async"
-										alt=""
-										class="absolute inset-0 block size-full max-w-none"
-										src={imgX}
-									/>
+									<span
+										aria-hidden="true"
+										class="absolute inset-0 block size-full max-w-none bg-foreground mask-no-repeat"
+										style="mask-image: url('{imgX}')"
+									></span>
 								</div>
 							</button>
 						{/if}
 					</div>
 				</div>
 				<div class="flex w-full items-center justify-between" data-name="Flex Horizontal">
-					<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]">
-						{loading ? 'Loading products…' : `${result?.total ?? 0} products`}
+					<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground">
+						{loading
+							? m.storefront_listing_loading()
+							: m.storefront_listing_total({ count: result?.total ?? 0 })}
 					</p>
 				</div>
 				{#if loading}
@@ -506,19 +492,19 @@
 								data-name="lisitng Product Card"
 							>
 								<div
-									class="h-[220px] w-full shrink-0 animate-pulse rounded-[14px] bg-[#f5f5f5]"
+									class="h-[220px] w-full shrink-0 animate-pulse rounded-[14px] bg-muted"
 									data-name="Card"
 								></div>
 							</div>
 						{/each}
 					</div>
 				{:else if error}
-					<p class="w-full font-['Geist:Regular'] text-[16px] leading-[24px] text-[#dc2626]">
+					<p class="w-full font-['Geist:Regular'] text-[16px] leading-[24px] text-destructive">
 						{error}
 					</p>
 				{:else if result && result.data.length === 0}
-					<p class="w-full font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
-						No products found for the selected filters.
+					<p class="w-full font-['Geist:Regular'] text-[16px] leading-[24px] text-muted-foreground">
+						{m.storefront_listing_empty()}
 					</p>
 				{:else if result}
 					<div
@@ -543,18 +529,16 @@
 							data-name="Ghost Button"
 						>
 							<div class="relative size-[16px] shrink-0" data-name="Left icon">
-								<img
-									loading="lazy"
-									decoding="async"
-									alt=""
-									class="absolute inset-0 block size-full max-w-none"
-									src={imgLeftIcon}
-								/>
+								<span
+									aria-hidden="true"
+									class="absolute inset-0 block size-full max-w-none bg-foreground mask-no-repeat"
+									style="mask-image: url('{imgLeftIcon}')"
+								></span>
 							</div>
 							<p
-								class="font-['Geist:Medium'] text-[14px] leading-[20px] font-medium text-[#0a0a0a]"
+								class="font-['Geist:Medium'] text-[14px] leading-[20px] font-medium text-foreground"
 							>
-								Previous
+								{m.common_previous()}
 							</p>
 						</button>
 						{#each pageNumbers as number (number)}
@@ -562,12 +546,12 @@
 								type="button"
 								onclick={() => selectPage(number)}
 								class={`relative flex size-[32px] shrink-0 cursor-pointer content-stretch items-center justify-center rounded-[10px] ${
-									number === page ? 'border border-solid border-[#e5e5e5] bg-white' : ''
+									number === page ? 'border border-solid border-border bg-card' : ''
 								}`}
 								data-name={number === page ? 'Outline Button' : 'Ghost Button'}
 							>
 								<p
-									class="font-['Geist:Medium'] text-[14px] leading-[20px] font-medium text-[#0a0a0a]"
+									class="font-['Geist:Medium'] text-[14px] leading-[20px] font-medium text-foreground"
 								>
 									{number}
 								</p>
@@ -581,18 +565,16 @@
 							data-name="Ghost Button"
 						>
 							<p
-								class="font-['Geist:Medium'] text-[14px] leading-[20px] font-medium text-[#0a0a0a]"
+								class="font-['Geist:Medium'] text-[14px] leading-[20px] font-medium text-foreground"
 							>
-								Next
+								{m.common_next()}
 							</p>
 							<div class="relative size-[16px] shrink-0" data-name="Left icon">
-								<img
-									loading="lazy"
-									decoding="async"
-									alt=""
-									class="absolute inset-0 block size-full max-w-none"
-									src={imgLeftIcon1}
-								/>
+								<span
+									aria-hidden="true"
+									class="absolute inset-0 block size-full max-w-none bg-foreground mask-no-repeat"
+									style="mask-image: url('{imgLeftIcon1}')"
+								></span>
 							</div>
 						</button>
 					</Pagination>

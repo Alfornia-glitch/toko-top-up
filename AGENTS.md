@@ -34,7 +34,7 @@ Running the built server directly on Node needs the env vars in the process: `no
 - `src/routes/layout.css` — Tailwind import, Geist/Inter/Roboto `@font-face`, responsive overrides keyed on `data-name` (35 rules) and two `data-node-id`s. Do not delete `data-name` attributes from markup while these rules exist.
 - `src/routes/<path>/+page.svelte` — one route per prototype screen (24 files; `/products` switches 4 catalog variants on `?view` / `?sidebar` / `?banner` query params, mirroring `getRoute` in the React `App.tsx`)
 - `src/lib/frontend/pages/` — `ProductGridBanner|ProductGridSidebar|ProductListBanner|ProductListSidebar.svelte` used by `/products`
-- `src/lib/frontend/components/` — `SiteHeader.svelte` (home header variant, used on every page; props: `announcementCount`), `SiteFooter.svelte` (prop `features` — true only on home, `/products/phone`, `/products/shirt`), `MegaMenu.svelte`, `AccountSidebar.svelte` (only `/components` showcase)
+- `src/lib/frontend/components/` — `SiteHeader.svelte` (home header variant, used on every page; props: `announcementCount`), `SiteFooter.svelte` (prop `features` — true only on home), `MegaMenu.svelte`, `AccountSidebar.svelte`
 - `src/lib/frontend/components/ui/` — `Plus`, `Minus`, `Radio`, `Rating`, `Avatar`, `InputNumber`, `Pagination`
 - `src/lib/frontend/shellAssets.ts` — header/footer asset paths
 - `src/lib/frontend/modules/landing/` — landing-page sections (`HeroSection`, `BrandsSection`, …)
@@ -53,10 +53,14 @@ Running the built server directly on Node needs the env vars in the process: `no
   write components from scratch
 - Idiomatic interactivity: real `<a href>` / `<button onclick>` (+ `goto` from `$app/navigation` for JS navigation). No global click delegation (the React app's `handlePageClick` label table in `App.tsx:1881-1942` is the acceptance checklist for what is wired, and which accidental skips are intentional: headings, radio option labels, stepper step labels in ReturnsRefunds, "Save changes" on checkout).
 - Every page renders `<SiteHeader />` right after its root div and `<SiteFooter />` (possibly `features`) right before the root close.
-- `data-node-id` is stripped everywhere except two elements on `/products/phone` (`I1:21686;31919:11168/11169`) which `layout.css` still needs for the mobile PDP layout.
+- `data-node-id` is stripped everywhere.
 - Prettier formats everything; keep double quotes where the source has apostrophes.
 - Make each module both in server & client have the structure of `index.ts` (exports) + `<name>.ts` (implementation).
   models(types or interfaces), middleware, and services.
+
+## Internationalisation
+
+Paraglide JS, Indonesian (`id`) is the base locale and English (`en`) is selected with the language toggle (cookie, no URL prefixes). UI strings must not be hard-coded: use `m.<area>_<key>()` from `#lib/paraglide/messages.js`, with messages in `messages/<area>/{id,en}.json` (one file pair per area; edit only your own). Use the locale-aware formatters in `src/lib/frontend/modules/commerce/format.ts`, the enum label helpers in `src/lib/frontend/i18n/labels.ts`, and `errorMessage()` for API errors. The generated `src/lib/paraglide/` is git-ignored (`pnpm run i18n:compile`). Full guide: [docs/i18n.md](./docs/i18n.md).
 
 ## Modular monolith (in progress)
 

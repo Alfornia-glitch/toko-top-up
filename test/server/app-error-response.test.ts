@@ -18,7 +18,7 @@ describe('answerAppError', () => {
 
 		expect(response.status).toBe(404);
 		expect(response.headers.get('x-request-id')).toBe('req-1');
-		expect(await response.json()).toEqual({ error: 'Product not found' });
+		expect(await response.json()).toEqual({ error: 'Product not found', code: 'NOT_FOUND' });
 	});
 
 	test('keeps the status and message of other AppErrors', async () => {
@@ -28,7 +28,26 @@ describe('answerAppError', () => {
 		);
 
 		expect(response.status).toBe(409);
-		expect(await response.json()).toEqual({ error: 'Your cart is empty' });
+		expect(await response.json()).toEqual({ error: 'Your cart is empty', code: 'CONFLICT' });
+	});
+
+	test('sends the specific message key and params when the error carries them', async () => {
+		const response = answerAppError(
+			serverError(),
+			event(
+				'/api/checkout',
+				new ConflictError('Your cart is empty', {
+					messageKey: 'cart_empty',
+					params: { count: 0 }
+				})
+			)
+		);
+
+		expect(await response.json()).toEqual({
+			error: 'Your cart is empty',
+			code: 'cart_empty',
+			params: { count: 0 }
+		});
 	});
 
 	test('leaves everything else alone', () => {

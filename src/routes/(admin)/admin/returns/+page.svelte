@@ -1,5 +1,7 @@
 <script lang="ts">
-	import { formatMoney } from '#lib/frontend/modules/commerce/format.ts';
+	import { formatDateTime, formatMoney } from '#lib/frontend/modules/commerce/format.ts';
+	import { m } from '#lib/paraglide/messages.js';
+	import { errorMessage, statusLabel } from '#lib/frontend/i18n/index.ts';
 	import { onDestroy, onMount } from 'svelte';
 	import { RotateCcw } from '@lucide/svelte';
 	import DataTable from '#lib/frontend/components/admin/DataTable.svelte';
@@ -27,16 +29,16 @@
 		updatedAt: string;
 	};
 
-	const columns = [
-		{ key: 'id', label: 'Return' },
-		{ key: 'orderNumber', label: 'Order' },
-		{ key: 'productName', label: 'Product' },
-		{ key: 'customer', label: 'Customer' },
-		{ key: 'type', label: 'Type' },
-		{ key: 'status', label: 'Status' },
-		{ key: 'refundAmount', label: 'Refund', class: 'text-right' },
-		{ key: 'createdAt', label: 'Created' }
-	];
+	const columns = $derived([
+		{ key: 'id', label: m.admin_ops_returns_col_return() },
+		{ key: 'orderNumber', label: m.common_order() },
+		{ key: 'productName', label: m.common_product() },
+		{ key: 'customer', label: m.common_customer() },
+		{ key: 'type', label: m.admin_ops_returns_type() },
+		{ key: 'status', label: m.common_status() },
+		{ key: 'refundAmount', label: m.admin_ops_returns_col_refund(), class: 'text-right' },
+		{ key: 'createdAt', label: m.admin_ops_returns_col_created() }
+	]);
 
 	const returnStatuses = ['requested', 'approved', 'rejected', 'received', 'refunded', 'completed'];
 
@@ -79,12 +81,12 @@
 			const response = await fetch(`/api/admin/returns?${params.toString()}`);
 			const payload = await response.json().catch(() => ({}));
 
-			if (!response.ok) throw new Error(payload.error ?? 'Could not load returns');
+			if (!response.ok) throw new Error(errorMessage(payload, 'admin_ops_returns_load_failed'));
 
 			requests = payload.data ?? [];
 			total = Number(payload.total ?? 0);
 		} catch (err) {
-			error = err instanceof Error ? err.message : 'Could not load returns';
+			error = errorMessage(err, 'admin_ops_returns_load_failed');
 		} finally {
 			loading = false;
 		}
@@ -117,16 +119,7 @@
 	}
 
 	function formatDate(value: string) {
-		const date = new Date(value);
-		if (Number.isNaN(date.getTime())) return '—';
-
-		return new Intl.DateTimeFormat('en-US', {
-			month: 'short',
-			day: 'numeric',
-			year: 'numeric',
-			hour: '2-digit',
-			minute: '2-digit'
-		}).format(date);
+		return formatDateTime(value) || '—';
 	}
 
 	function shortId(value: string) {
@@ -137,14 +130,12 @@
 <div class="space-y-6">
 	<div class="flex flex-wrap items-start justify-between gap-3">
 		<div>
-			<h1 class="text-2xl font-semibold tracking-tight">Returns</h1>
-			<p class="text-sm text-muted-foreground">
-				Track return and exchange requests through resolution.
-			</p>
+			<h1 class="text-2xl font-semibold tracking-tight">{m.admin_ops_returns_title()}</h1>
+			<p class="text-sm text-muted-foreground">{m.admin_ops_returns_subtitle()}</p>
 		</div>
 		<div class="flex items-center gap-2 text-sm text-muted-foreground">
 			<RotateCcw class="size-4" />
-			<span>{total} total</span>
+			<span>{m.admin_ops_orders_total({ count: total })}</span>
 		</div>
 	</div>
 
@@ -160,40 +151,49 @@
 	<Card.Root>
 		<Card.Content class="grid gap-3 sm:grid-cols-3">
 			<div class="space-y-1.5">
-				<Label for="return-search">Search</Label>
+				<Label for="return-search">{m.common_search()}</Label>
 				<Input
 					id="return-search"
 					bind:value={q}
 					oninput={handleSearch}
-					placeholder="Order number, email or product"
+					placeholder={m.admin_ops_returns_search_placeholder()}
 				/>
 			</div>
 
 			<div class="space-y-1.5">
-				<Label for="return-status-filter">Status</Label>
+				<Label for="return-status-filter">{m.common_status()}</Label>
 				<Select.Root type="single" value={statusFilter} onValueChange={handleStatusChange}>
 					<Select.Trigger id="return-status-filter" class="w-full">
-						<Select.Value placeholder="All statuses" />
+						<Select.Value placeholder={m.common_all_statuses()} />
 					</Select.Trigger>
 					<Select.Content>
-						<Select.Item value="all" label="All statuses">All statuses</Select.Item>
+						<Select.Item value="all" label={m.common_all_statuses()}>
+							{m.common_all_statuses()}
+						</Select.Item>
 						{#each returnStatuses as option (option)}
-							<Select.Item value={option} label={option}>{option}</Select.Item>
+							<Select.Item value={option} label={statusLabel('return', option)}>
+								{statusLabel('return', option)}
+							</Select.Item>
 						{/each}
 					</Select.Content>
 				</Select.Root>
 			</div>
 
 			<div class="space-y-1.5">
-				<Label for="return-type-filter">Type</Label>
+				<Label for="return-type-filter">{m.admin_ops_returns_type()}</Label>
 				<Select.Root type="single" value={typeFilter} onValueChange={handleTypeChange}>
 					<Select.Trigger id="return-type-filter" class="w-full">
-						<Select.Value placeholder="All types" />
+						<Select.Value placeholder={m.admin_ops_returns_all_types()} />
 					</Select.Trigger>
 					<Select.Content>
-						<Select.Item value="all" label="All types">All types</Select.Item>
-						<Select.Item value="return" label="Return">Return</Select.Item>
-						<Select.Item value="exchange" label="Exchange">Exchange</Select.Item>
+						<Select.Item value="all" label={m.admin_ops_returns_all_types()}>
+							{m.admin_ops_returns_all_types()}
+						</Select.Item>
+						{#each ['return', 'exchange'] as option (option)}
+							<Select.Item value={option} label={statusLabel('return_type', option)}>
+								{statusLabel('return_type', option)}
+							</Select.Item>
+						{/each}
 					</Select.Content>
 				</Select.Root>
 			</div>
@@ -204,7 +204,7 @@
 		{columns}
 		rows={requests as unknown as Record<string, unknown>[]}
 		{loading}
-		emptyMessage="No return requests match the current filters."
+		emptyMessage={m.admin_ops_returns_empty()}
 		{page}
 		{pageSize}
 		{total}
@@ -231,11 +231,12 @@
 					{/if}
 				</div>
 			{:else if column.key === 'customer'}
-				<span class="text-muted-foreground">{String(row.customerEmail ?? 'Guest')}</span>
+				<span class="text-muted-foreground">{String(row.customerEmail ?? m.admin_ops_guest())}</span
+				>
 			{:else if column.key === 'type'}
-				<StatusBadge status={String(row.type ?? '')} />
+				<StatusBadge kind="return_type" status={String(row.type ?? '')} />
 			{:else if column.key === 'status'}
-				<StatusBadge status={String(row.status ?? '')} />
+				<StatusBadge kind="return" status={String(row.status ?? '')} />
 			{:else if column.key === 'refundAmount'}
 				{#if row.refundAmount === null || row.refundAmount === undefined}
 					<span class="text-muted-foreground">—</span>

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
 	import * as Sheet from '#lib/frontend/components/ui/sheet/index.ts';
 	import { cn, type WithElementRef } from '#lib/frontend/utils.ts';
 	import { SIDEBAR_WIDTH_MOBILE } from './constants.ts';
@@ -48,8 +49,8 @@
 			{side}
 		>
 			<Sheet.Header class="sr-only">
-				<Sheet.Title>Sidebar</Sheet.Title>
-				<Sheet.Description>Displays the mobile sidebar.</Sheet.Description>
+				<Sheet.Title>{m.ui_sidebar_title()}</Sheet.Title>
+				<Sheet.Description>{m.ui_sidebar_description()}</Sheet.Description>
 			</Sheet.Header>
 			<div class="flex h-full w-full flex-col">
 				{@render children?.()}

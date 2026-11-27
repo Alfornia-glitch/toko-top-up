@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
 	import { Headset } from '@lucide/svelte';
 	import { Button } from '#lib/frontend/components/ui/button/index.ts';
 	import { site } from '#lib/frontend/modules/commerce/site.svelte.ts';
@@ -9,9 +10,9 @@
 
 <Button
 	{href}
-	class="fixed right-4 bottom-0 z-50 h-10 rounded-t-xl rounded-b-none text-xs"
+	class="fixed bottom-0 left-4 z-50 h-10 rounded-t-xl rounded-b-none text-xs"
 	data-name="Customer Service"
 >
 	<Headset />
-	CUSTOMER SERVICE
+	{m.components_customer_service()}
 </Button>

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import AuthShell from '#lib/frontend/components/auth/AuthShell.svelte';
@@ -10,6 +11,7 @@
 	import { Button } from '#lib/frontend/components/ui/button/index.ts';
 	import { Spinner } from '#lib/frontend/components/ui/spinner/index.ts';
 	import { authClient, authErrorMessage, safeRedirect } from '#frontend/modules/auth/index.ts';
+	import { site } from '#lib/frontend/modules/commerce/site.svelte.ts';
 
 	const session = authClient.useSession();
 	const redirectTo = safeRedirect(page.url.searchParams.get('redirectTo'));
@@ -33,17 +35,17 @@
 		error = '';
 
 		if (password.length < 8) {
-			error = 'Your password must be at least 8 characters long.';
+			error = m.auth_password_too_short();
 			return;
 		}
 
 		if (password !== confirmPassword) {
-			error = 'Passwords do not match.';
+			error = m.auth_password_mismatch();
 			return;
 		}
 
 		if (!terms) {
-			error = 'Please accept the privacy policy and terms to continue.';
+			error = m.auth_signup_terms_required();
 			return;
 		}
 
@@ -70,27 +72,30 @@
 	}
 </script>
 
-<AuthShell title="Sign up to Shopix" description="Please enter your details to create an account">
+<AuthShell
+	title={m.auth_signup_title({ store: site.storeName })}
+	description={m.auth_signup_description()}
+>
 	<div class="grid gap-6">
 		<form class="grid gap-4" onsubmit={handleSubmit}>
 			<Field.Group>
 				<Field.Field>
-					<Field.Label for="name">Full name</Field.Label>
+					<Field.Label for="name">{m.common_full_name()}</Field.Label>
 					<Input
 						id="name"
 						type="text"
-						placeholder="John Doe"
+						placeholder={m.auth_signup_name_placeholder()}
 						autocomplete="name"
 						bind:value={name}
 						required
 					/>
 				</Field.Field>
 				<Field.Field>
-					<Field.Label for="email">Email</Field.Label>
+					<Field.Label for="email">{m.common_email()}</Field.Label>
 					<Input
 						id="email"
 						type="email"
-						placeholder="john@example.com"
+						placeholder={m.auth_email_placeholder()}
 						autocomplete="email"
 						bind:value={email}
 						required
@@ -98,17 +103,17 @@
 				</Field.Field>
 				<PasswordField
 					id="password"
-					label="Password"
+					label={m.common_password()}
 					bind:value={password}
-					placeholder="Create a password"
+					placeholder={m.auth_signup_password_placeholder()}
 					autocomplete="new-password"
-					hint="Use at least 8 characters."
+					hint={m.auth_password_hint()}
 				/>
 				<PasswordField
 					id="confirm-password"
-					label="Confirm password"
+					label={m.auth_confirm_password()}
 					bind:value={confirmPassword}
-					placeholder="Repeat your password"
+					placeholder={m.auth_signup_confirm_placeholder()}
 					autocomplete="new-password"
 				/>
 			</Field.Group>
@@ -121,16 +126,16 @@
 					for="terms"
 					class="items-start text-sm leading-snug font-normal text-muted-foreground"
 				>
-					I agree to the
-					<span class="font-medium text-foreground">privacy policy &amp; terms</span>
+					{m.auth_signup_terms_prefix()}
+					<span class="font-medium text-foreground">{m.auth_signup_terms_link()}</span>
 				</Field.Label>
 			</div>
 			<Button type="submit" class="w-full" disabled={loading}>
 				{#if loading}
 					<Spinner />
-					Creating account…
+					{m.auth_signup_submitting()}
 				{:else}
-					Create account
+					{m.auth_signup_submit()}
 				{/if}
 			</Button>
 		</form>
@@ -139,9 +144,9 @@
 
 	{#snippet footer()}
 		<p class="text-sm text-muted-foreground">
-			Already have an account?
+			{m.auth_signup_have_account()}
 			<a href="/login" class="font-medium text-foreground underline-offset-4 hover:underline">
-				Log in
+				{m.auth_signup_login()}
 			</a>
 		</p>
 	{/snippet}

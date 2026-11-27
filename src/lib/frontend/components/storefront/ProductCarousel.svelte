@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
 	import StorefrontProductCard, {
 		type StorefrontProduct
 	} from '#lib/frontend/components/storefront/StorefrontProductCard.svelte';
@@ -7,7 +8,7 @@
 		title,
 		products,
 		viewAllHref,
-		emptyLabel = 'No products available.'
+		emptyLabel = m.components_product_carousel_empty()
 	}: {
 		title: string;
 		products: StorefrontProduct[];
@@ -17,7 +18,7 @@
 </script>
 
 <div
-	class="relative flex w-full shrink-0 flex-col content-stretch items-center justify-center bg-white py-[96px] max-[480px]:py-9"
+	class="relative flex w-full shrink-0 flex-col content-stretch items-center justify-center bg-card py-[96px] max-[480px]:py-9"
 	data-name="Product list"
 >
 	<div
@@ -29,21 +30,23 @@
 			data-name="Flex Horizontal"
 		>
 			<p
-				class="relative min-w-px flex-[1_0_0] font-['Geist:Bold'] text-[30px] leading-[36px] font-bold [word-break:break-word] text-[#0a0a0a] max-[480px]:text-2xl max-[480px]:leading-8"
+				class="relative min-w-px flex-[1_0_0] font-['Geist:Bold'] text-[30px] leading-[36px] font-bold [word-break:break-word] text-foreground max-[480px]:text-2xl max-[480px]:leading-8"
 			>
 				{title}
 			</p>
 			{#if viewAllHref}
 				<a
 					href={viewAllHref}
-					class="relative shrink-0 font-['Geist:Medium'] text-[18px] leading-[28px] font-medium text-[#0a0a0a] transition hover:text-[#525252]"
+					class="relative shrink-0 font-['Geist:Medium'] text-[18px] leading-[28px] font-medium text-foreground transition hover:text-muted-foreground"
 				>
-					View All
+					{m.common_view_all()}
 				</a>
 			{/if}
 		</div>
 		{#if products.length === 0}
-			<p class="relative w-full shrink-0 text-center text-[16px] leading-[24px] text-[#737373]">
+			<p
+				class="relative w-full shrink-0 text-center text-[16px] leading-[24px] text-muted-foreground"
+			>
 				{emptyLabel}
 			</p>
 		{:else}

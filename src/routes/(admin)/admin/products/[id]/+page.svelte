@@ -2,6 +2,8 @@
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
 	import { LoaderCircle } from '@lucide/svelte';
+	import { m } from '#lib/paraglide/messages.js';
+	import { errorMessage } from '#lib/frontend/i18n/index.ts';
 	import ProductForm from '#lib/frontend/components/admin/catalog/ProductForm.svelte';
 	import type {
 		AdminProductDetail,
@@ -23,7 +25,7 @@
 
 	async function load(id: string | undefined) {
 		if (!id) {
-			error = 'Product not found.';
+			error = m.admin_catalog_products_not_found();
 			loading = false;
 			return;
 		}
@@ -44,15 +46,17 @@
 			]);
 
 			if (!productResponse.ok) {
-				throw new Error(productPayload.error ?? 'Could not load product');
+				throw new Error(errorMessage(productPayload, 'admin_catalog_products_load_product_failed'));
 			}
 
 			if (!categoryResponse.ok) {
-				throw new Error(categoryPayload.error ?? 'Could not load categories');
+				throw new Error(
+					errorMessage(categoryPayload, 'admin_catalog_products_load_categories_failed')
+				);
 			}
 
 			if (!brandResponse.ok) {
-				throw new Error(brandPayload.error ?? 'Could not load brands');
+				throw new Error(errorMessage(brandPayload, 'admin_catalog_products_load_brands_failed'));
 			}
 
 			product = productPayload.data as AdminProductDetail;
@@ -68,7 +72,7 @@
 				name: row.name
 			}));
 		} catch (err) {
-			error = err instanceof Error ? err.message : 'Could not load product';
+			error = errorMessage(err, 'admin_catalog_products_load_product_failed');
 		} finally {
 			loading = false;
 		}
@@ -84,8 +88,8 @@
 		<Card.Content class="space-y-4 py-10 text-center">
 			<p class="text-sm text-destructive">{error}</p>
 			<div class="flex justify-center gap-2">
-				<Button variant="outline" href="/admin/products">Back to products</Button>
-				<Button onclick={() => void load(page.params.id)}>Try again</Button>
+				<Button variant="outline" href="/admin/products">{m.admin_catalog_products_back()}</Button>
+				<Button onclick={() => void load(page.params.id)}>{m.common_retry()}</Button>
 			</div>
 		</Card.Content>
 	</Card.Root>
@@ -94,8 +98,8 @@
 {:else}
 	<Card.Root>
 		<Card.Content class="space-y-4 py-10 text-center">
-			<p class="text-sm text-muted-foreground">This product could not be found.</p>
-			<Button href="/admin/products">Back to products</Button>
+			<p class="text-sm text-muted-foreground">{m.admin_catalog_products_could_not_be_found()}</p>
+			<Button href="/admin/products">{m.admin_catalog_products_back()}</Button>
 		</Card.Content>
 	</Card.Root>
 {/if}

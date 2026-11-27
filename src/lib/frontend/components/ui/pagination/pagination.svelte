@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
 	import { Pagination as PaginationPrimitive } from 'bits-ui';
 	import { cn } from '#lib/frontend/utils.ts';
 
@@ -17,7 +18,7 @@
 	bind:ref
 	bind:page
 	role="navigation"
-	aria-label="pagination"
+	aria-label={m.ui_pagination_label()}
 	data-slot="pagination"
 	{count}
 	{perPage}

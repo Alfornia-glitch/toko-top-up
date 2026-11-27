@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
 	import * as Dialog from '#lib/frontend/components/ui/dialog/index.ts';
 	import { cn, type WithoutChildrenOrChild } from '#lib/frontend/utils.ts';
 	import Command from './command.svelte';
@@ -9,8 +10,8 @@
 		open = $bindable(false),
 		ref = $bindable(null),
 		value = $bindable(''),
-		title = 'Command Palette',
-		description = 'Search for a command to run...',
+		title,
+		description,
 		showCloseButton = false,
 		portalProps,
 		children,
@@ -29,8 +30,8 @@
 
 <Dialog.Root bind:open {...restProps}>
 	<Dialog.Header class="sr-only">
-		<Dialog.Title>{title}</Dialog.Title>
-		<Dialog.Description>{description}</Dialog.Description>
+		<Dialog.Title>{title ?? m.ui_command_dialog_title()}</Dialog.Title>
+		<Dialog.Description>{description ?? m.ui_command_dialog_description()}</Dialog.Description>
 	</Dialog.Header>
 	<Dialog.Content
 		class={cn('top-1/3 translate-y-0 overflow-hidden rounded-xl! p-0', className)}

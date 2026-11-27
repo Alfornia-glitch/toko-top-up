@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
 	import ChevronLeftIcon from '@lucide/svelte/icons/chevron-left';
 	import { Button, type Props } from '#lib/frontend/components/ui/button/index.ts';
 	import { cn } from '#lib/frontend/utils.ts';
@@ -35,5 +36,5 @@
 	bind:ref
 >
 	<ChevronLeftIcon class="cn-rtl-flip" />
-	<span class="sr-only">Previous slide</span>
+	<span class="sr-only">{m.ui_carousel_previous_slide()}</span>
 </Button>

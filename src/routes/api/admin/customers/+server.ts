@@ -9,7 +9,10 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 
 	const parsed = customerListSchema.safeParse(Object.fromEntries(url.searchParams));
 	if (!parsed.success) {
-		return Response.json({ error: 'Invalid query parameters' }, { status: 400 });
+		return Response.json(
+			{ error: 'Invalid query parameters', code: 'invalid_query' },
+			{ status: 400 }
+		);
 	}
 
 	return Response.json(

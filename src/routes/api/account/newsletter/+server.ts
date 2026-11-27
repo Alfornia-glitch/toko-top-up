@@ -29,13 +29,20 @@ export const PATCH: RequestHandler = async ({ locals, request }) => {
 	try {
 		body = await request.json();
 	} catch {
-		return Response.json({ error: 'Expected a JSON body' }, { status: 400 });
+		return Response.json(
+			{ error: 'Expected a JSON body', code: 'invalid_json_body' },
+			{ status: 400 }
+		);
 	}
 
 	const parsed = newsletterStatusSchema.safeParse(body);
 	if (!parsed.success) {
 		return Response.json(
-			{ error: 'Invalid newsletter status', details: parsed.error.flatten() },
+			{
+				error: 'Invalid newsletter status',
+				code: 'VALIDATION_ERROR',
+				details: parsed.error.flatten()
+			},
 			{ status: 422 }
 		);
 	}

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
 	import { onMount } from 'svelte';
 	import ImagePlaceholder from '#lib/frontend/components/ui/ImagePlaceholder.svelte';
 
@@ -33,16 +34,16 @@
 </script>
 
 {#if categories.length > 0}
-	<section class="w-full bg-white py-10" data-name="Storefront Categories">
+	<section class="w-full bg-card py-10" data-name="Storefront Categories">
 		<div class="mx-auto w-full max-w-[1280px] px-4 lg:px-8">
-			<h2 class="mb-6 text-2xl font-bold text-[#0a0a0a]">Shop by Category</h2>
+			<h2 class="mb-6 text-2xl font-bold text-foreground">{m.components_shop_by_category()}</h2>
 			<div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
 				{#each categories as category (category.id)}
 					<a
 						href={`/products?categoryId=${category.id}`}
-						class="group flex flex-col items-center gap-3 rounded-[14px] border border-[#e5e5e5] bg-white p-4 text-center transition hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(10,10,10,0.12)]"
+						class="group flex flex-col items-center gap-3 rounded-[14px] border border-border bg-card p-4 text-center transition hover:-translate-y-0.5 hover:shadow-[0_12px_30px_color-mix(in_oklab,var(--foreground)_12%,transparent)]"
 					>
-						<div class="relative size-24 overflow-hidden rounded-full bg-[#f5f5f5]">
+						<div class="relative size-24 overflow-hidden rounded-full bg-muted">
 							{#if category.imageUrl}
 								<img
 									src={category.imageUrl}
@@ -55,8 +56,10 @@
 							{/if}
 						</div>
 						<div class="flex flex-col gap-1">
-							<span class="text-sm font-semibold text-[#0a0a0a]">{category.name}</span>
-							<span class="text-xs text-[#737373]">{category.productCount} products</span>
+							<span class="text-sm font-semibold text-foreground">{category.name}</span>
+							<span class="text-xs text-muted-foreground"
+								>{m.components_category_grid_products({ count: category.productCount })}</span
+							>
 						</div>
 					</a>
 				{/each}

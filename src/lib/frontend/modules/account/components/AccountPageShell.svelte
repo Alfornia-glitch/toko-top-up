@@ -22,7 +22,7 @@
 
 <div class="flex min-h-screen w-full flex-col bg-background text-foreground">
 	<SiteHeader />
-	<main class="flex w-full flex-1 justify-center bg-white px-4 py-10 sm:px-8 sm:py-14">
+	<main class="flex w-full flex-1 justify-center bg-card px-4 py-10 sm:px-8 sm:py-14">
 		<div
 			class={[
 				'flex w-full flex-col gap-6 lg:flex-row lg:items-start lg:gap-8',

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
 	import ImagePlaceholder from '#lib/frontend/components/ui/ImagePlaceholder.svelte';
 	import StorefrontProductCard from '#lib/frontend/components/storefront/StorefrontProductCard.svelte';
 	import { home } from '#lib/frontend/modules/commerce/home.svelte.ts';
@@ -30,7 +31,7 @@
 	const featuredSubtitle = $derived(promoBanner?.subtitle ?? firstDeal?.shortDescription ?? null);
 	const featuredImage = $derived(promoBanner?.imageUrl || firstDeal?.imageUrl || '');
 	const featuredHref = $derived(promoBanner?.ctaUrl ?? '/products?deal=true');
-	const featuredCta = $derived(promoBanner?.ctaLabel ?? 'Shop Now');
+	const featuredCta = $derived(promoBanner?.ctaLabel ?? m.components_landing_deals_cta());
 
 	$effect(() => {
 		if (dealEndsAt === null) return;
@@ -44,7 +45,7 @@
 </script>
 
 <div
-	class="relative flex w-full shrink-0 flex-col content-stretch items-center justify-center bg-white py-[96px] max-[480px]:py-9"
+	class="relative flex w-full shrink-0 flex-col content-stretch items-center justify-center bg-card py-[96px] max-[480px]:py-9"
 	data-name="Feature"
 >
 	<div
@@ -56,16 +57,16 @@
 			data-name="Flex Horizontal"
 		>
 			<p
-				class="relative min-w-px flex-[1_0_0] font-['Geist:Bold'] text-[30px] leading-[36px] font-bold [word-break:break-word] text-[#0a0a0a] max-[480px]:text-2xl max-[480px]:leading-8"
+				class="relative min-w-px flex-[1_0_0] font-['Geist:Bold'] text-[30px] leading-[36px] font-bold [word-break:break-word] text-foreground max-[480px]:text-2xl max-[480px]:leading-8"
 			>
-				Deals of the Day 🔥
+				{m.components_landing_deals_title()}
 			</p>
 			<div class="relative flex shrink-0 items-center gap-[16px]">
 				<a
 					href="/products?deal=true"
-					class="shrink-0 font-['Geist:Medium'] text-[18px] leading-[28px] font-medium text-[#0a0a0a] transition hover:text-[#525252]"
+					class="shrink-0 font-['Geist:Medium'] text-[18px] leading-[28px] font-medium text-foreground transition hover:text-muted-foreground"
 				>
-					View All
+					{m.common_view_all()}
 				</a>
 				<div
 					class="relative flex w-[67px] shrink-0 content-stretch items-center justify-between"
@@ -102,7 +103,7 @@
 		>
 			{#if featuredTitle}
 				<div
-					class="relative flex min-w-px flex-[1_0_0] flex-col content-stretch items-start self-stretch overflow-clip rounded-[14px] py-[24px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)]"
+					class="relative flex min-w-px flex-[1_0_0] flex-col content-stretch items-start self-stretch overflow-clip rounded-[14px] py-[24px] shadow-[0px_0px_0px_1px_color-mix(in_oklab,var(--foreground)_10%,transparent)]"
 					data-name="Card"
 				>
 					{#if featuredImage}
@@ -153,7 +154,7 @@
 									<p
 										class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[16px] leading-[24px] font-semibold [word-break:break-word] text-white"
 									>
-										Offers end today:
+										{m.components_landing_deals_ends_today()}
 									</p>
 									<div
 										class="relative flex w-full shrink-0 content-stretch items-center gap-[8px]"
@@ -164,11 +165,11 @@
 											data-name="Timer Blocks"
 										>
 											<div
-												class="relative flex h-[55px] w-full shrink-0 flex-col content-stretch items-center justify-center rounded-[6px] bg-white p-[6px]"
+												class="relative flex h-[55px] w-full shrink-0 flex-col content-stretch items-center justify-center rounded-[6px] bg-card p-[6px]"
 												data-name="Timer/Number/Cell"
 											>
 												<p
-													class="relative shrink-0 text-center font-['Geist:SemiBold'] text-[18px] leading-[28px] font-semibold [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
+													class="relative shrink-0 text-center font-['Geist:SemiBold'] text-[18px] leading-[28px] font-semibold [word-break:break-word] whitespace-nowrap text-foreground"
 												>
 													{days}
 												</p>
@@ -176,7 +177,7 @@
 											<p
 												class="relative w-full shrink-0 text-center font-['Geist:Medium'] text-[14px] leading-[20px] font-medium [word-break:break-word] text-white"
 											>
-												Day
+												{m.components_countdown_days()}
 											</p>
 										</div>
 										<div
@@ -184,11 +185,11 @@
 											data-name="Timer Blocks"
 										>
 											<div
-												class="relative flex h-[55px] w-full shrink-0 flex-col content-stretch items-center justify-center rounded-[6px] bg-white p-[6px]"
+												class="relative flex h-[55px] w-full shrink-0 flex-col content-stretch items-center justify-center rounded-[6px] bg-card p-[6px]"
 												data-name="Timer/Number/Cell"
 											>
 												<p
-													class="relative shrink-0 text-center font-['Geist:SemiBold'] text-[18px] leading-[28px] font-semibold [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
+													class="relative shrink-0 text-center font-['Geist:SemiBold'] text-[18px] leading-[28px] font-semibold [word-break:break-word] whitespace-nowrap text-foreground"
 												>
 													{hours}
 												</p>
@@ -196,7 +197,7 @@
 											<p
 												class="relative w-full shrink-0 text-center font-['Geist:Medium'] text-[14px] leading-[20px] font-medium [word-break:break-word] text-white"
 											>
-												Hours
+												{m.components_countdown_hours()}
 											</p>
 										</div>
 										<div
@@ -204,11 +205,11 @@
 											data-name="Timer Blocks"
 										>
 											<div
-												class="relative flex h-[55px] w-full shrink-0 flex-col content-stretch items-center justify-center rounded-[6px] bg-white p-[6px]"
+												class="relative flex h-[55px] w-full shrink-0 flex-col content-stretch items-center justify-center rounded-[6px] bg-card p-[6px]"
 												data-name="Timer/Number/Cell"
 											>
 												<p
-													class="relative shrink-0 text-center font-['Geist:SemiBold'] text-[18px] leading-[28px] font-semibold [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
+													class="relative shrink-0 text-center font-['Geist:SemiBold'] text-[18px] leading-[28px] font-semibold [word-break:break-word] whitespace-nowrap text-foreground"
 												>
 													{minutes}
 												</p>
@@ -216,7 +217,7 @@
 											<p
 												class="relative w-full shrink-0 text-center font-['Geist:Medium'] text-[14px] leading-[20px] font-medium [word-break:break-word] text-white"
 											>
-												Min
+												{m.components_countdown_minutes()}
 											</p>
 										</div>
 										<div
@@ -224,11 +225,11 @@
 											data-name="Timer Blocks"
 										>
 											<div
-												class="relative flex h-[55px] w-full shrink-0 flex-col content-stretch items-center justify-center rounded-[6px] bg-white p-[6px]"
+												class="relative flex h-[55px] w-full shrink-0 flex-col content-stretch items-center justify-center rounded-[6px] bg-card p-[6px]"
 												data-name="Timer/Number/Cell"
 											>
 												<p
-													class="relative shrink-0 text-center font-['Geist:SemiBold'] text-[18px] leading-[28px] font-semibold [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
+													class="relative shrink-0 text-center font-['Geist:SemiBold'] text-[18px] leading-[28px] font-semibold [word-break:break-word] whitespace-nowrap text-foreground"
 												>
 													{seconds}
 												</p>
@@ -236,7 +237,7 @@
 											<p
 												class="relative w-full shrink-0 text-center font-['Geist:Medium'] text-[14px] leading-[20px] font-medium [word-break:break-word] text-white"
 											>
-												Sec
+												{m.components_countdown_seconds()}
 											</p>
 										</div>
 									</div>
@@ -244,11 +245,11 @@
 							{/if}
 							<a
 								href={featuredHref}
-								class="relative flex w-full shrink-0 content-stretch items-center justify-center gap-[6px] overflow-clip rounded-[10px] bg-[#dc2626] px-[10px] py-[6px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.1),0px_1px_2px_-1px_rgba(0,0,0,0.1)]"
+								class="relative flex w-full shrink-0 content-stretch items-center justify-center gap-[6px] overflow-clip rounded-[10px] bg-destructive px-[10px] py-[6px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.1),0px_1px_2px_-1px_rgba(0,0,0,0.1)]"
 								data-name="Solid Button"
 							>
 								<div
-									class="relative flex shrink-0 flex-col justify-center font-['Geist:Medium'] text-[14px] leading-[0] font-medium [word-break:break-word] whitespace-nowrap text-[#fafafa]"
+									class="relative flex shrink-0 flex-col justify-center font-['Geist:Medium'] text-[14px] leading-[0] font-medium [word-break:break-word] whitespace-nowrap text-primary-foreground"
 								>
 									<p class="leading-[20px]">{featuredCta}</p>
 								</div>

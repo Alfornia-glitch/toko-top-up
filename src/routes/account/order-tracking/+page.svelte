@@ -1,4 +1,7 @@
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
+	import { errorMessage } from '#lib/frontend/i18n/index.ts';
+	import { timelineMessage } from '#lib/frontend/i18n/events.ts';
 	import {
 		listOrders,
 		getOrder,
@@ -41,7 +44,7 @@
 		const entries: TimelineEntry[] = [
 			...order.events.map((event) => ({
 				id: `event-${event.id}`,
-				label: event.message?.trim() || statusLabel(ORDER_STATUS_LABELS, event.type),
+				label: timelineMessage(event) || statusLabel(ORDER_STATUS_LABELS, event.type),
 				date: event.createdAt
 			})),
 			...order.shipments.map((shipment) => {
@@ -74,7 +77,7 @@
 			return;
 		}
 
-		error = cause instanceof Error ? cause.message : 'Could not load order details';
+		error = errorMessage(cause, 'account_order_tracking_load_failed');
 	}
 
 	async function load(requested: string | null) {
@@ -128,12 +131,12 @@
 </script>
 
 <div
-	class="relative flex size-full flex-col content-stretch items-center bg-white"
+	class="relative flex size-full flex-col content-stretch items-center bg-card"
 	data-name="Shopix - Track Order"
 >
 	<SiteHeader />
 	<div
-		class="relative flex w-full max-w-[1440px] shrink-0 flex-col content-stretch items-center justify-center bg-white py-[56px] max-[480px]:py-9"
+		class="relative flex w-full max-w-[1440px] shrink-0 flex-col content-stretch items-center justify-center bg-card py-[56px] max-[480px]:py-9"
 		data-name="Timeline"
 	>
 		<div
@@ -148,17 +151,17 @@
 			>
 				{#if loading}
 					<div
-						class="relative flex w-full items-center justify-center gap-3 rounded-[14px] bg-white px-[24px] py-[64px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)]"
+						class="relative flex w-full items-center justify-center gap-3 rounded-[14px] bg-card px-[24px] py-[64px] shadow-[0px_0px_0px_1px_color-mix(in_oklab,var(--foreground)_10%,transparent)]"
 						data-name="Card"
 					>
-						<Spinner class="size-5" aria-label="Loading order" />
-						<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
-							Loading order
+						<Spinner class="size-5" aria-label={m.account_shared_loading_order()} />
+						<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-muted-foreground">
+							{m.account_shared_loading_order()}
 						</p>
 					</div>
 				{:else if error}
 					<div
-						class="relative flex w-full rounded-[14px] border border-[#fecaca] bg-[#fef2f2] px-[24px] py-[16px] text-[#b91c1c]"
+						class="relative flex w-full rounded-[14px] border border-destructive/30 bg-destructive/10 px-[24px] py-[16px] text-destructive"
 						data-name="Card"
 						role="alert"
 					>
@@ -166,27 +169,27 @@
 					</div>
 				{:else if orders.length === 0}
 					<div
-						class="relative flex w-full flex-col items-start gap-[12px] rounded-[14px] bg-white px-[24px] py-[32px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)]"
+						class="relative flex w-full flex-col items-start gap-[12px] rounded-[14px] bg-card px-[24px] py-[32px] shadow-[0px_0px_0px_1px_color-mix(in_oklab,var(--foreground)_10%,transparent)]"
 						data-name="Card"
 					>
 						<p
-							class="font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold text-[#0a0a0a]"
+							class="font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold text-foreground"
 						>
-							No orders yet
+							{m.account_shared_no_orders_yet()}
 						</p>
-						<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
-							Orders you place will show up here with their tracking details.
+						<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-muted-foreground">
+							{m.account_order_tracking_empty_description()}
 						</p>
 						<a
 							href="/products"
-							class="rounded-[8px] bg-[#171717] px-[16px] py-[10px] font-['Geist:Medium'] text-[14px] leading-[20px] font-medium text-[#fafafa]"
+							class="rounded-[8px] bg-primary px-[16px] py-[10px] font-['Geist:Medium'] text-[14px] leading-[20px] font-medium text-primary-foreground"
 						>
-							Browse products
+							{m.common_browse_products()}
 						</a>
 					</div>
 				{:else if order}
 					<div
-						class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-white py-[24px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)]"
+						class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[16px] rounded-[14px] bg-card py-[24px] shadow-[0px_0px_0px_1px_color-mix(in_oklab,var(--foreground)_10%,transparent)]"
 						data-name="Card"
 					>
 						<div
@@ -195,10 +198,10 @@
 						>
 							{#if orders.length > 1}
 								<div class="flex w-full flex-col gap-[6px] sm:max-w-[280px]">
-									<Label for="order-picker">Order</Label>
+									<Label for="order-picker">{m.common_order()}</Label>
 									<Select.Root type="single" value={order.orderNumber} onValueChange={selectOrder}>
 										<Select.Trigger id="order-picker" class="w-full">
-											<Select.Value placeholder="Select an order" />
+											<Select.Value placeholder={m.account_shared_select_order()} />
 										</Select.Trigger>
 										<Select.Content>
 											{#each orders as entry (entry.id)}
@@ -212,7 +215,7 @@
 							{/if}
 
 							<div
-								class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[12px] rounded-[8px] bg-[#f5f5f5] p-[24px]"
+								class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[12px] rounded-[8px] bg-muted p-[24px]"
 								data-name="user detail"
 							>
 								<div
@@ -224,12 +227,12 @@
 										data-name="Flex Vertical"
 									>
 										<p
-											class="relative w-[min-content] min-w-full shrink-0 font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] text-[#0a0a0a]"
+											class="relative w-[min-content] min-w-full shrink-0 font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] text-foreground"
 										>
-											Tracking Details
+											{m.account_order_tracking_title()}
 										</p>
 										<p
-											class="relative shrink-0 font-['Geist:Regular'] text-[18px] leading-[28px] font-normal whitespace-nowrap text-[#737373]"
+											class="relative shrink-0 font-['Geist:Regular'] text-[18px] leading-[28px] font-normal whitespace-nowrap text-muted-foreground"
 										>
 											#{order.orderNumber}
 										</p>
@@ -242,48 +245,56 @@
 											{statusLabel(PAYMENT_STATUS_LABELS, order.paymentStatus)}
 										</Badge>
 										<Badge variant="secondary">
-											{statusLabel(ORDER_STATUS_LABELS, order.fulfillmentStatus)}
+											{statusLabel('fulfillment', order.fulfillmentStatus)}
 										</Badge>
 									</div>
 								</div>
 
 								<div class="grid w-full gap-[12px] sm:grid-cols-2">
 									<div>
-										<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]">
-											Carrier
+										<p
+											class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground"
+										>
+											{m.account_order_tracking_carrier()}
 										</p>
 										<p
-											class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-[#0a0a0a]"
+											class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-foreground"
 										>
 											{order.carrier ?? '—'}
 										</p>
 									</div>
 									<div>
-										<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]">
-											Tracking number
+										<p
+											class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground"
+										>
+											{m.account_order_tracking_number()}
 										</p>
 										<p
-											class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-[#0a0a0a]"
+											class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-foreground"
 										>
 											{order.trackingNumber ?? '—'}
 										</p>
 									</div>
 									<div>
-										<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]">
-											Estimated delivery
+										<p
+											class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground"
+										>
+											{m.account_order_tracking_estimated_delivery()}
 										</p>
 										<p
-											class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-[#0a0a0a]"
+											class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-foreground"
 										>
 											{formatDate(order.estimatedDeliveryAt) || '—'}
 										</p>
 									</div>
 									<div>
-										<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]">
-											Placed
+										<p
+											class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground"
+										>
+											{m.account_order_tracking_placed()}
 										</p>
 										<p
-											class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-[#0a0a0a]"
+											class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-foreground"
 										>
 											{formatDateTime(order.placedAt) || '—'}
 										</p>
@@ -296,19 +307,21 @@
 								data-name="Flex Vertical"
 							>
 								<p
-									class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] text-[#0a0a0a]"
+									class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] text-foreground"
 								>
-									Items
+									{m.account_order_tracking_items()}
 								</p>
 								{#if order.items.length === 0}
-									<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
-										This order has no items.
+									<p
+										class="font-['Geist:Regular'] text-[16px] leading-[24px] text-muted-foreground"
+									>
+										{m.account_order_tracking_no_items()}
 									</p>
 								{:else}
 									<div class="flex w-full flex-col">
 										{#each order.items as item (item.id)}
 											<div
-												class="flex w-full items-center gap-[16px] border-b border-[#e5e5e5] py-[12px] last:border-b-0"
+												class="flex w-full items-center gap-[16px] border-b border-border py-[12px] last:border-b-0"
 												data-name="Flex Horizontal"
 											>
 												{#if item.imageUrl}
@@ -321,30 +334,33 @@
 													/>
 												{:else}
 													<div
-														class="flex size-[72px] shrink-0 items-center justify-center rounded-[8px] bg-[#f5f5f5] text-center font-['Geist:Regular'] text-[12px] leading-[16px] text-[#737373]"
+														class="flex size-[72px] shrink-0 items-center justify-center rounded-[8px] bg-muted text-center font-['Geist:Regular'] text-[12px] leading-[16px] text-muted-foreground"
 													>
-														No image
+														{m.account_shared_no_image()}
 													</div>
 												{/if}
 												<div class="min-w-0 flex-1">
 													<p
-														class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-[#0a0a0a]"
+														class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-foreground"
 													>
 														{item.productName}
 													</p>
 													<p
-														class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]"
+														class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground"
 													>
-														SKU: {item.sku}
+														{m.account_shared_sku({ sku: item.sku })}
 													</p>
 													<p
-														class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]"
+														class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground"
 													>
-														Qty: {item.quantity} · {formatMoney(item.unitPrice, order.currency)}
+														{m.account_shared_qty_price({
+															quantity: item.quantity,
+															price: formatMoney(item.unitPrice, order.currency)
+														})}
 													</p>
 												</div>
 												<p
-													class="shrink-0 font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-[#0a0a0a]"
+													class="shrink-0 font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-foreground"
 												>
 													{formatMoney(item.total, order.currency)}
 												</p>
@@ -355,49 +371,55 @@
 							</div>
 
 							<div
-								class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[8px] rounded-[8px] bg-[#f5f5f5] p-[16px] max-md:max-w-full"
+								class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[8px] rounded-[8px] bg-muted p-[16px] max-md:max-w-full"
 								data-name="Pricing Details"
 							>
 								<div class="flex w-full items-center justify-between gap-[12px]">
-									<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
-										Subtotal
+									<p
+										class="font-['Geist:Regular'] text-[16px] leading-[24px] text-muted-foreground"
+									>
+										{m.common_subtotal()}
 									</p>
 									<p
-										class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-[#0a0a0a]"
+										class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-foreground"
 									>
 										{formatMoney(order.subtotal, order.currency)}
 									</p>
 								</div>
 								<div class="flex w-full items-center justify-between gap-[12px]">
-									<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
-										Discount
+									<p
+										class="font-['Geist:Regular'] text-[16px] leading-[24px] text-muted-foreground"
+									>
+										{m.common_discount()}
 									</p>
 									<p
-										class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-[#0a0a0a]"
+										class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-foreground"
 									>
 										-{formatMoney(order.discount, order.currency)}
 									</p>
 								</div>
 								<div class="flex w-full items-center justify-between gap-[12px]">
-									<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
-										Shipping
+									<p
+										class="font-['Geist:Regular'] text-[16px] leading-[24px] text-muted-foreground"
+									>
+										{m.common_shipping()}
 									</p>
 									<p
-										class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-[#0a0a0a]"
+										class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-foreground"
 									>
 										{formatMoney(order.shipping, order.currency)}
 									</p>
 								</div>
 								<div
-									class="flex w-full items-center justify-between gap-[12px] border-t border-[#e5e5e5] pt-[8px]"
+									class="flex w-full items-center justify-between gap-[12px] border-t border-border pt-[8px]"
 								>
 									<p
-										class="font-['Geist:SemiBold'] text-[18px] leading-[28px] font-semibold text-[#0a0a0a]"
+										class="font-['Geist:SemiBold'] text-[18px] leading-[28px] font-semibold text-foreground"
 									>
-										Total
+										{m.common_total()}
 									</p>
 									<p
-										class="font-['Geist:SemiBold'] text-[18px] leading-[28px] font-semibold text-[#0a0a0a]"
+										class="font-['Geist:SemiBold'] text-[18px] leading-[28px] font-semibold text-foreground"
 									>
 										{formatMoney(order.grandTotal, order.currency)}
 									</p>
@@ -409,13 +431,15 @@
 								data-name="Flex Vertical"
 							>
 								<p
-									class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] text-[#0a0a0a]"
+									class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] text-foreground"
 								>
-									Order Activity
+									{m.account_order_tracking_activity()}
 								</p>
 								{#if timeline.length === 0}
-									<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
-										No activity has been recorded for this order yet.
+									<p
+										class="font-['Geist:Regular'] text-[16px] leading-[24px] text-muted-foreground"
+									>
+										{m.account_order_tracking_no_activity()}
 									</p>
 								{:else}
 									<div
@@ -428,20 +452,20 @@
 												data-name="TimelineItem"
 											>
 												<div
-													class="mt-[7px] size-[10px] shrink-0 rounded-full bg-[#171717]"
+													class="mt-[7px] size-[10px] shrink-0 rounded-full bg-primary"
 													data-name="TimelineDot"
 												></div>
 												<div
-													class="relative flex min-w-px flex-[1_0_0] flex-col content-stretch items-start gap-[4px] border-l border-[#e5e5e5] pb-[20px] pl-[16px]"
+													class="relative flex min-w-px flex-[1_0_0] flex-col content-stretch items-start gap-[4px] pb-[20px] pl-[16px]"
 													data-name="Data"
 												>
 													<p
-														class="font-['Geist:Medium'] text-[18px] leading-[28px] font-medium [word-break:break-word] text-[#0a0a0a]"
+														class="font-['Geist:Medium'] text-[18px] leading-[28px] font-medium [word-break:break-word] text-foreground"
 													>
 														{entry.label}
 													</p>
 													<p
-														class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]"
+														class="font-['Geist:Regular'] text-[16px] leading-[24px] text-muted-foreground"
 													>
 														{formatDateTime(entry.date) || '—'}
 													</p>

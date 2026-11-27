@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
+	import { enumLabel, errorMessage } from '#lib/frontend/i18n/index.ts';
 	import {
 		listOrders,
 		getOrder,
@@ -6,8 +8,7 @@
 		getReturn,
 		createReturn,
 		isUnauthorized,
-		type ReturnRequestForm,
-		messageFrom
+		type ReturnRequestForm
 	} from '#lib/frontend/modules/account/index.ts';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
@@ -36,17 +37,17 @@
 		ReturnSummary
 	} from '#lib/frontend/modules/commerce/models.ts';
 
-	const typeOptions = [
-		{ value: 'return', label: 'Return' },
-		{ value: 'exchange', label: 'Exchange' }
-	];
+	const typeOptions = $derived([
+		{ value: 'return', label: enumLabel('return_type', 'return') },
+		{ value: 'exchange', label: enumLabel('return_type', 'exchange') }
+	]);
 
-	const resolutionOptions = [
-		{ value: 'none', label: 'No preference' },
-		{ value: 'original_payment', label: 'Original payment' },
-		{ value: 'gift_card', label: 'Gift card' },
-		{ value: 'card', label: 'Card' }
-	];
+	const resolutionOptions = $derived([
+		{ value: 'none', label: m.account_shared_resolution_none() },
+		{ value: 'original_payment', label: enumLabel('return_resolution', 'original_payment') },
+		{ value: 'gift_card', label: enumLabel('return_resolution', 'gift_card') },
+		{ value: 'card', label: enumLabel('return_resolution', 'card') }
+	]);
 
 	let returns = $state<ReturnSummary[]>([]);
 	let selected = $state<ReturnDetail | null>(null);
@@ -82,16 +83,12 @@
 		return false;
 	}
 
-	function errorMessage(cause: unknown, fallback: string): string {
-		return messageFrom(cause, fallback);
-	}
-
 	function typeLabel(type: string): string {
-		return type === 'exchange' ? 'Exchange' : 'Return';
+		return enumLabel('return_type', type === 'exchange' ? 'exchange' : 'return');
 	}
 
 	function resolutionLabel(value: string | null): string {
-		return value ? value.replaceAll('_', ' ') : '—';
+		return value ? enumLabel('return_resolution', value) : '—';
 	}
 
 	function setType(value: string) {
@@ -107,7 +104,7 @@
 		} catch (cause) {
 			if (!redirectIfUnauthorized(cause)) {
 				selected = null;
-				detailError = errorMessage(cause, 'Could not load this return');
+				detailError = errorMessage(cause, 'account_returns_load_one_failed');
 			}
 		} finally {
 			detailLoading = false;
@@ -134,7 +131,7 @@
 			if (returns.length > 0) await loadReturn(returns[0].id);
 		} catch (cause) {
 			if (!redirectIfUnauthorized(cause)) {
-				error = errorMessage(cause, 'Could not load your returns');
+				error = errorMessage(cause, 'account_returns_load_failed');
 			}
 		} finally {
 			loading = false;
@@ -159,7 +156,7 @@
 			}
 		} catch (cause) {
 			if (!redirectIfUnauthorized(cause)) {
-				formError = errorMessage(cause, 'Could not load the items for this order');
+				formError = errorMessage(cause, 'account_shared_load_order_items_failed');
 			}
 		} finally {
 			orderLoading = false;
@@ -171,12 +168,12 @@
 		formError = '';
 
 		if (!form.orderItemId) {
-			formError = 'Select an order and the item you want to request.';
+			formError = m.account_returns_select_required();
 			return;
 		}
 
 		if (!form.reason.trim()) {
-			formError = 'Describe the reason for this request.';
+			formError = m.account_returns_reason_required();
 			return;
 		}
 
@@ -198,7 +195,7 @@
 			form = { orderItemId: '', type: 'return', reason: '', note: '', resolution: 'none' };
 		} catch (cause) {
 			if (!redirectIfUnauthorized(cause)) {
-				formError = errorMessage(cause, 'Could not submit your return request');
+				formError = errorMessage(cause, 'account_return_item_submit_failed');
 			}
 		} finally {
 			submitting = false;
@@ -211,12 +208,12 @@
 </script>
 
 <div
-	class="relative flex size-full flex-col content-stretch items-center bg-white"
+	class="relative flex size-full flex-col content-stretch items-center bg-card"
 	data-name="Shopix - Return & Refunds"
 >
 	<SiteHeader />
 	<div
-		class="relative flex w-full max-w-[1440px] shrink-0 flex-col content-stretch items-center justify-center bg-white py-[56px] max-[480px]:py-9"
+		class="relative flex w-full max-w-[1440px] shrink-0 flex-col content-stretch items-center justify-center bg-card py-[56px] max-[480px]:py-9"
 		data-name="Return and refund"
 	>
 		<div
@@ -230,13 +227,13 @@
 				data-name="Flex Vertical"
 			>
 				<p
-					class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] text-[#0a0a0a]"
+					class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] text-foreground"
 				>
-					Returns &amp; Refunds
+					{m.account_returns_title()}
 				</p>
 
 				<div
-					class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-white py-[24px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)]"
+					class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-card py-[24px] shadow-[0px_0px_0px_1px_color-mix(in_oklab,var(--foreground)_10%,transparent)]"
 					data-name="Card"
 				>
 					<div
@@ -244,22 +241,22 @@
 						data-name="card-body"
 					>
 						<p
-							class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] text-[#0a0a0a]"
+							class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] text-foreground"
 						>
-							Request return
+							{m.account_returns_request()}
 						</p>
 
 						<form class="flex w-full flex-col gap-[16px]" onsubmit={submitReturn}>
 							<div class="grid w-full gap-[12px] sm:grid-cols-2">
 								<div class="flex flex-col gap-[6px]">
-									<Label for="return-order">Order</Label>
+									<Label for="return-order">{m.common_order()}</Label>
 									<Select.Root
 										type="single"
 										value={selectedOrderNumber}
 										onValueChange={selectOrder}
 									>
 										<Select.Trigger id="return-order" class="w-full">
-											<Select.Value placeholder="Select an order" />
+											<Select.Value placeholder={m.account_shared_select_order()} />
 										</Select.Trigger>
 										<Select.Content>
 											{#each orders as entry (entry.id)}
@@ -270,14 +267,16 @@
 										</Select.Content>
 									</Select.Root>
 									{#if orders.length === 0}
-										<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]">
-											You have no orders available for a return request.
+										<p
+											class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground"
+										>
+											{m.account_returns_no_orders()}
 										</p>
 									{/if}
 								</div>
 
 								<div class="flex flex-col gap-[6px]">
-									<Label for="return-item">Item</Label>
+									<Label for="return-item">{m.account_returns_item()}</Label>
 									<Select.Root
 										type="single"
 										value={form.orderItemId}
@@ -289,7 +288,9 @@
 											disabled={!selectedOrder || orderLoading}
 										>
 											<Select.Value
-												placeholder={orderLoading ? 'Loading items' : 'Select an item'}
+												placeholder={orderLoading
+													? m.account_shared_loading_items()
+													: m.account_returns_select_item()}
 											/>
 										</Select.Trigger>
 										<Select.Content>
@@ -303,10 +304,10 @@
 								</div>
 
 								<div class="flex flex-col gap-[6px]">
-									<Label for="return-type">Type</Label>
+									<Label for="return-type">{m.account_returns_type()}</Label>
 									<Select.Root type="single" value={form.type} onValueChange={setType}>
 										<Select.Trigger id="return-type" class="w-full">
-											<Select.Value placeholder="Select a type" />
+											<Select.Value placeholder={m.account_returns_select_type()} />
 										</Select.Trigger>
 										<Select.Content>
 											{#each typeOptions as option (option.value)}
@@ -319,14 +320,14 @@
 								</div>
 
 								<div class="flex flex-col gap-[6px]">
-									<Label for="return-resolution">Resolution</Label>
+									<Label for="return-resolution">{m.account_returns_resolution()}</Label>
 									<Select.Root
 										type="single"
 										value={form.resolution}
 										onValueChange={(value) => (form.resolution = value)}
 									>
 										<Select.Trigger id="return-resolution" class="w-full">
-											<Select.Value placeholder="No preference" />
+											<Select.Value placeholder={m.account_shared_resolution_none()} />
 										</Select.Trigger>
 										<Select.Content>
 											{#each resolutionOptions as option (option.value)}
@@ -340,30 +341,30 @@
 							</div>
 
 							<div class="flex flex-col gap-[6px]">
-								<Label for="return-reason">Reason</Label>
+								<Label for="return-reason">{m.account_returns_reason()}</Label>
 								<Input
 									id="return-reason"
 									bind:value={form.reason}
-									placeholder="Why do you want to return or exchange this item?"
+									placeholder={m.account_returns_reason_placeholder()}
 								/>
 							</div>
 
 							<div class="flex flex-col gap-[6px]">
-								<Label for="return-note">Note</Label>
+								<Label for="return-note">{m.account_returns_note()}</Label>
 								<Textarea
 									id="return-note"
 									bind:value={form.note}
-									placeholder="Anything else we should know?"
+									placeholder={m.account_returns_note_placeholder()}
 								/>
 							</div>
 
 							{#if formError}
-								<p class="text-sm text-[#b91c1c]" role="alert">{formError}</p>
+								<p class="text-sm text-destructive" role="alert">{formError}</p>
 							{/if}
 
 							<div>
 								<Button type="submit" disabled={submitting}>
-									{submitting ? 'Submitting' : 'Request return'}
+									{submitting ? m.account_shared_submitting() : m.account_returns_request()}
 								</Button>
 							</div>
 						</form>
@@ -372,17 +373,17 @@
 
 				{#if loading}
 					<div
-						class="relative flex w-full items-center justify-center gap-3 rounded-[14px] bg-white px-[24px] py-[64px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)]"
+						class="relative flex w-full items-center justify-center gap-3 rounded-[14px] bg-card px-[24px] py-[64px] shadow-[0px_0px_0px_1px_color-mix(in_oklab,var(--foreground)_10%,transparent)]"
 						data-name="Card"
 					>
-						<Spinner class="size-5" aria-label="Loading returns" />
-						<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
-							Loading returns
+						<Spinner class="size-5" aria-label={m.account_returns_loading()} />
+						<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-muted-foreground">
+							{m.account_returns_loading()}
 						</p>
 					</div>
 				{:else if error}
 					<div
-						class="relative flex w-full rounded-[14px] border border-[#fecaca] bg-[#fef2f2] px-[24px] py-[16px] text-[#b91c1c]"
+						class="relative flex w-full rounded-[14px] border border-destructive/30 bg-destructive/10 px-[24px] py-[16px] text-destructive"
 						data-name="Card"
 						role="alert"
 					>
@@ -390,27 +391,27 @@
 					</div>
 				{:else if returns.length === 0}
 					<div
-						class="relative flex w-full flex-col items-start gap-[12px] rounded-[14px] bg-white px-[24px] py-[32px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)]"
+						class="relative flex w-full flex-col items-start gap-[12px] rounded-[14px] bg-card px-[24px] py-[32px] shadow-[0px_0px_0px_1px_color-mix(in_oklab,var(--foreground)_10%,transparent)]"
 						data-name="Card"
 					>
 						<p
-							class="font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold text-[#0a0a0a]"
+							class="font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold text-foreground"
 						>
-							No returns yet
+							{m.account_returns_empty_title()}
 						</p>
-						<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
-							Return or exchange requests you create will appear here.
+						<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-muted-foreground">
+							{m.account_returns_empty_description()}
 						</p>
 						<a
 							href="/products"
-							class="rounded-[8px] bg-[#171717] px-[16px] py-[10px] font-['Geist:Medium'] text-[14px] leading-[20px] font-medium text-[#fafafa]"
+							class="rounded-[8px] bg-primary px-[16px] py-[10px] font-['Geist:Medium'] text-[14px] leading-[20px] font-medium text-primary-foreground"
 						>
-							Browse products
+							{m.common_browse_products()}
 						</a>
 					</div>
 				{:else}
 					<div
-						class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-white py-[24px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)]"
+						class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-card py-[24px] shadow-[0px_0px_0px_1px_color-mix(in_oklab,var(--foreground)_10%,transparent)]"
 						data-name="Card"
 					>
 						<div
@@ -418,30 +419,34 @@
 							data-name="card-body"
 						>
 							<p
-								class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] text-[#0a0a0a]"
+								class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] text-foreground"
 							>
-								Your returns
+								{m.account_returns_list_title()}
 							</p>
 							<div class="flex w-full flex-col gap-[8px]">
 								{#each returns as entry (entry.id)}
 									<button
 										type="button"
-										class={`flex w-full flex-wrap items-start justify-between gap-[12px] rounded-[8px] border border-[#e5e5e5] p-[16px] text-left transition-colors ${
-											selected?.id === entry.id ? 'bg-[#f5f5f5]' : 'bg-white hover:bg-[#fafafa]'
+										class={`flex w-full flex-wrap items-start justify-between gap-[12px] rounded-[8px] border border-border p-[16px] text-left transition-colors ${
+											selected?.id === entry.id ? 'bg-muted' : 'bg-card hover:bg-primary-foreground'
 										}`}
 										aria-pressed={selected?.id === entry.id}
 										onclick={() => loadReturn(entry.id)}
 									>
 										<div class="min-w-0 flex-1">
 											<p
-												class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-[#0a0a0a]"
+												class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-foreground"
 											>
 												{entry.productName}
 											</p>
-											<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]">
-												SKU: {entry.sku}
+											<p
+												class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground"
+											>
+												{m.account_shared_sku({ sku: entry.sku })}
 											</p>
-											<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]">
+											<p
+												class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground"
+											>
 												{typeLabel(entry.type)} · {entry.reason}
 											</p>
 										</div>
@@ -450,11 +455,13 @@
 												{statusLabel(RETURN_STATUS_LABELS, entry.status)}
 											</Badge>
 											<p
-												class="font-['Geist:Medium'] text-[14px] leading-[20px] font-medium text-[#0a0a0a]"
+												class="font-['Geist:Medium'] text-[14px] leading-[20px] font-medium text-foreground"
 											>
 												{entry.refundAmount === null ? '—' : formatMoney(entry.refundAmount)}
 											</p>
-											<p class="font-['Geist:Regular'] text-[12px] leading-[16px] text-[#737373]">
+											<p
+												class="font-['Geist:Regular'] text-[12px] leading-[16px] text-muted-foreground"
+											>
 												{formatDate(entry.createdAt)}
 											</p>
 										</div>
@@ -465,7 +472,7 @@
 					</div>
 
 					<div
-						class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-white py-[24px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)]"
+						class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-card py-[24px] shadow-[0px_0px_0px_1px_color-mix(in_oklab,var(--foreground)_10%,transparent)]"
 						data-name="Card"
 					>
 						<div
@@ -473,34 +480,40 @@
 							data-name="card-body"
 						>
 							<p
-								class="relative w-[min-content] min-w-full shrink-0 font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] text-[#0a0a0a]"
+								class="relative w-[min-content] min-w-full shrink-0 font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] text-foreground"
 							>
-								Return Progressed
+								{m.account_returns_progress_title()}
 							</p>
 
 							{#if detailLoading}
 								<div class="flex items-center gap-[12px]">
-									<Spinner class="size-5" aria-label="Loading return" />
-									<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
-										Loading return
+									<Spinner class="size-5" aria-label={m.account_returns_loading_one()} />
+									<p
+										class="font-['Geist:Regular'] text-[16px] leading-[24px] text-muted-foreground"
+									>
+										{m.account_returns_loading_one()}
 									</p>
 								</div>
 							{:else if detailError}
-								<p class="text-sm text-[#b91c1c]" role="alert">{detailError}</p>
+								<p class="text-sm text-destructive" role="alert">{detailError}</p>
 							{:else if selected}
 								<div class="flex w-full flex-col gap-[16px]">
 									<div class="flex w-full flex-wrap items-start justify-between gap-[12px]">
 										<div class="min-w-0 flex-1">
 											<p
-												class="font-['Geist:Medium'] text-[18px] leading-[28px] font-medium text-[#0a0a0a]"
+												class="font-['Geist:Medium'] text-[18px] leading-[28px] font-medium text-foreground"
 											>
 												{selected.productName}
 											</p>
-											<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]">
-												SKU: {selected.sku}
+											<p
+												class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground"
+											>
+												{m.account_shared_sku({ sku: selected.sku })}
 											</p>
-											<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]">
-												Order #{selected.orderNumber}
+											<p
+												class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground"
+											>
+												{m.account_shared_order_number({ orderNumber: selected.orderNumber })}
 											</p>
 										</div>
 										<div class="flex flex-col items-end gap-[4px] text-right">
@@ -508,7 +521,7 @@
 												{statusLabel(RETURN_STATUS_LABELS, selected.status)}
 											</Badge>
 											<p
-												class="font-['Geist:SemiBold'] text-[16px] leading-[24px] font-semibold text-[#0a0a0a]"
+												class="font-['Geist:SemiBold'] text-[16px] leading-[24px] font-semibold text-foreground"
 											>
 												{selected.refundAmount === null ? '—' : formatMoney(selected.refundAmount)}
 											</p>
@@ -517,39 +530,49 @@
 
 									<div class="grid w-full gap-[12px] sm:grid-cols-2">
 										<div>
-											<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]">
-												Type
+											<p
+												class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground"
+											>
+												{m.account_returns_type()}
 											</p>
 											<p
-												class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-[#0a0a0a]"
+												class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-foreground"
 											>
 												{typeLabel(selected.type)}
 											</p>
 										</div>
 										<div>
-											<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]">
-												Resolution
+											<p
+												class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground"
+											>
+												{m.account_returns_resolution()}
 											</p>
 											<p
-												class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-[#0a0a0a]"
+												class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-foreground"
 											>
 												{resolutionLabel(selected.resolution)}
 											</p>
 										</div>
 										<div class="sm:col-span-2">
-											<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]">
-												Reason
+											<p
+												class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground"
+											>
+												{m.account_returns_reason()}
 											</p>
-											<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#0a0a0a]">
+											<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-foreground">
 												{selected.reason}
 											</p>
 										</div>
 										{#if selected.note}
 											<div class="sm:col-span-2">
-												<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]">
-													Note
+												<p
+													class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground"
+												>
+													{m.account_returns_note()}
 												</p>
-												<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#0a0a0a]">
+												<p
+													class="font-['Geist:Regular'] text-[16px] leading-[24px] text-foreground"
+												>
 													{selected.note}
 												</p>
 											</div>
@@ -570,25 +593,29 @@
 										</div>
 									{/if}
 
-									<div class="flex w-full flex-col gap-[8px] border-l border-[#e5e5e5] pl-[16px]">
+									<div class="flex w-full flex-col gap-[8px] border-l border-border pl-[16px]">
 										<div>
 											<p
-												class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-[#0a0a0a]"
+												class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-foreground"
 											>
-												Requested
+												{m.account_returns_requested()}
 											</p>
-											<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]">
+											<p
+												class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground"
+											>
 												{formatDateTime(selected.createdAt) || '—'}
 											</p>
 										</div>
 										{#if selected.updatedAt !== selected.createdAt}
 											<div>
 												<p
-													class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-[#0a0a0a]"
+													class="font-['Geist:Medium'] text-[16px] leading-[24px] font-medium text-foreground"
 												>
 													{statusLabel(RETURN_STATUS_LABELS, selected.status)}
 												</p>
-												<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]">
+												<p
+													class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground"
+												>
 													{formatDateTime(selected.updatedAt) || '—'}
 												</p>
 											</div>
@@ -596,8 +623,8 @@
 									</div>
 								</div>
 							{:else}
-								<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
-									Select a return to see its progress.
+								<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-muted-foreground">
+									{m.account_returns_select_to_view()}
 								</p>
 							{/if}
 						</div>
@@ -606,7 +633,7 @@
 
 				<a
 					href="/account/support-tickets"
-					class="relative flex w-full shrink-0 flex-col content-stretch items-start rounded-[8px] bg-[#f5f5f5] p-[16px]"
+					class="relative flex w-full shrink-0 flex-col content-stretch items-start rounded-[8px] bg-muted p-[16px]"
 					data-name="Flex Horizontal"
 				>
 					<div
@@ -614,14 +641,14 @@
 						data-name="Flex Horizontal"
 					>
 						<p
-							class="relative shrink-0 font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
+							class="relative shrink-0 font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] whitespace-nowrap text-foreground"
 						>
-							Need any help?
+							{m.account_returns_help()}
 						</p>
 						<span
-							class="relative flex h-[24px] shrink-0 content-stretch items-center justify-center gap-[4px] rounded-[9999px] bg-[#171717] px-[12px] py-[4px] font-['Geist:Medium'] text-[12px] leading-[16px] font-medium whitespace-nowrap text-[#fafafa]"
+							class="relative flex h-[24px] shrink-0 content-stretch items-center justify-center gap-[4px] rounded-[9999px] bg-primary px-[12px] py-[4px] font-['Geist:Medium'] text-[12px] leading-[16px] font-medium whitespace-nowrap text-primary-foreground"
 						>
-							Contact Support
+							{m.account_returns_contact_support()}
 						</span>
 					</div>
 				</a>

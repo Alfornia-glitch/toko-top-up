@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
+	import { errorMessage } from '#lib/frontend/i18n/index.ts';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import {
@@ -24,6 +26,7 @@
 	import { Skeleton } from '#lib/frontend/components/ui/skeleton/index.ts';
 	import { Spinner } from '#lib/frontend/components/ui/spinner/index.ts';
 	import { api, ApiError, unwrap } from '#lib/frontend/modules/shared/http.ts';
+	import CheckoutSteps from '#lib/frontend/modules/commerce/components/CheckoutSteps.svelte';
 	import { cart } from '#lib/frontend/modules/commerce/cart.svelte.ts';
 	import { site } from '#lib/frontend/modules/commerce/site.svelte.ts';
 	import { checkout } from '#lib/frontend/modules/commerce/checkout.svelte.ts';
@@ -120,7 +123,7 @@
 				return;
 			}
 
-			error = cause instanceof Error ? cause.message : 'Could not load your addresses';
+			error = errorMessage(cause, 'checkout_address_load_failed');
 		} finally {
 			loadingAddresses = false;
 		}
@@ -136,7 +139,7 @@
 			!form.city.trim() ||
 			!form.country.trim()
 		) {
-			formError = 'Please complete the required fields.';
+			formError = m.checkout_address_required();
 			return;
 		}
 
@@ -168,7 +171,7 @@
 				return;
 			}
 
-			formError = cause instanceof Error ? cause.message : 'Could not save the address';
+			formError = errorMessage(cause, 'account_addresses_save_failed');
 		} finally {
 			submitting = false;
 		}
@@ -178,12 +181,12 @@
 		error = '';
 
 		if (!checkout.addressId) {
-			error = 'Select a delivery address to continue.';
+			error = m.checkout_address_select_required();
 			return;
 		}
 
 		if (!checkout.shippingId) {
-			error = 'Choose a delivery speed to continue.';
+			error = m.checkout_address_speed_required();
 			return;
 		}
 
@@ -194,6 +197,10 @@
 	async function init() {
 		checkout.load();
 		await Promise.all([cart.refresh(), site.ensure()]);
+		if (site.storefrontLayout === 'topup') {
+			await goto('/checkout/account', { replaceState: true });
+			return;
+		}
 		await loadAddresses();
 		applyShippingDefault();
 		ready = true;
@@ -209,47 +216,18 @@
 	data-name="Shopix - Address"
 >
 	<SiteHeader />
-	<div class="flex w-full flex-col items-center bg-white py-10 sm:py-14">
+	<div class="flex w-full flex-col items-center bg-card py-10 sm:py-14">
 		<main class="mx-auto w-full max-w-[1280px] px-4 sm:px-8">
 			<div class="flex flex-col gap-1">
 				<h1 class="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
-					Delivery address
+					{m.checkout_address_title()}
 				</h1>
 				<p class="text-sm text-muted-foreground">
-					Select a delivery address and shipping speed to continue.
+					{m.checkout_address_subtitle()}
 				</p>
 			</div>
 
-			<nav aria-label="Checkout progress" class="mt-6 rounded-xl border bg-muted/40 p-4 sm:p-5">
-				<div class="flex items-center gap-2 sm:gap-4">
-					<a href="/cart" class="flex items-center gap-2 sm:gap-3">
-						<span
-							class="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm"
-						>
-							<ShoppingCart class="size-4" />
-						</span>
-						<span class="text-sm font-medium text-foreground sm:text-base">Cart</span>
-					</a>
-					<div class="h-px flex-1 bg-border" aria-hidden="true"></div>
-					<a href="/checkout/address" aria-current="step" class="flex items-center gap-2 sm:gap-3">
-						<span
-							class="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm"
-						>
-							<MapPin class="size-4" />
-						</span>
-						<span class="text-sm font-medium text-foreground sm:text-base">Address</span>
-					</a>
-					<div class="h-px flex-1 bg-border" aria-hidden="true"></div>
-					<a href="/checkout/payment" class="flex items-center gap-2 sm:gap-3">
-						<span
-							class="flex size-9 shrink-0 items-center justify-center rounded-full border bg-background text-muted-foreground"
-						>
-							<CreditCard class="size-4" />
-						</span>
-						<span class="text-sm font-medium text-muted-foreground sm:text-base">Payment</span>
-					</a>
-				</div>
-			</nav>
+			<CheckoutSteps current="details" />
 
 			{#if !ready}
 				<div
@@ -271,12 +249,12 @@
 							<ShoppingCart class="size-7 text-muted-foreground" />
 						</div>
 						<div class="flex flex-col gap-1">
-							<Card.Title class="text-lg">Your cart is empty</Card.Title>
+							<Card.Title class="text-lg">{m.cart_empty_title()}</Card.Title>
 							<Card.Description>
-								Add items to your cart before continuing to checkout.
+								{m.checkout_address_empty_description()}
 							</Card.Description>
 						</div>
-						<Button href="/cart">Back to cart</Button>
+						<Button href="/cart">{m.checkout_back_to_cart()}</Button>
 					</Card.Content>
 				</Card.Root>
 			{:else}
@@ -284,8 +262,8 @@
 					<div class="flex min-w-0 flex-col gap-6">
 						<Card.Root>
 							<Card.Header>
-								<Card.Title>Delivery address</Card.Title>
-								<Card.Description>Choose where your order should be delivered.</Card.Description>
+								<Card.Title>{m.checkout_address_title()}</Card.Title>
+								<Card.Description>{m.checkout_address_description()}</Card.Description>
 							</Card.Header>
 							<Card.Content class="flex flex-col gap-4">
 								{#if loadingAddresses}
@@ -299,7 +277,7 @@
 									>
 										<MapPin class="size-6 text-muted-foreground" />
 										<p class="text-sm text-muted-foreground">
-											You have no saved addresses yet. Add one below.
+											{m.checkout_address_none()}
 										</p>
 									</div>
 								{:else}
@@ -326,7 +304,7 @@
 															{address.recipientName}
 														</span>
 														{#if address.isDefaultShipping}
-															<Badge variant="secondary">Default</Badge>
+															<Badge variant="secondary">{m.account_payment_default()}</Badge>
 														{/if}
 														{#if address.label}
 															<Badge variant="outline">{address.label}</Badge>
@@ -368,13 +346,13 @@
 
 						<Card.Root>
 							<Card.Header>
-								<Card.Title>Delivery speed</Card.Title>
-								<Card.Description>How fast do you want your order?</Card.Description>
+								<Card.Title>{m.checkout_address_speed_title()}</Card.Title>
+								<Card.Description>{m.checkout_address_speed_description()}</Card.Description>
 							</Card.Header>
 							<Card.Content>
 								{#if site.shipping.length === 0}
 									<p class="text-sm text-muted-foreground">
-										Delivery options are unavailable right now.
+										{m.checkout_address_speed_unavailable()}
 									</p>
 								{:else}
 									<RadioGroup.Root
@@ -406,7 +384,7 @@
 													<p class="text-sm text-muted-foreground">{option.description}</p>
 													<p class="flex items-center gap-1.5 text-xs text-muted-foreground">
 														<Truck class="size-3.5" />
-														{option.minDays}–{option.maxDays} days
+														{m.checkout_days_range({ min: option.minDays, max: option.maxDays })}
 													</p>
 												</div>
 											</label>
@@ -420,24 +398,26 @@
 							<Card.Header>
 								<Card.Title class="flex items-center gap-2">
 									<PlusCircle class="size-5 text-muted-foreground" />
-									Add a new address
+									{m.checkout_address_new_title()}
 								</Card.Title>
-								<Card.Description>We will save it to your account for next time.</Card.Description>
+								<Card.Description>{m.checkout_address_new_description()}</Card.Description>
 							</Card.Header>
 							<Card.Content>
 								<form class="flex flex-col gap-4" onsubmit={submitAddress}>
 									<div class="grid gap-4 sm:grid-cols-2">
 										<Field.Field>
-											<Field.Label for="address-label">Label</Field.Label>
+											<Field.Label for="address-label">{m.checkout_address_label()}</Field.Label>
 											<Input
 												id="address-label"
 												bind:value={form.label}
 												autocomplete="organization"
-												placeholder="Home, Office…"
+												placeholder={m.checkout_address_label_placeholder()}
 											/>
 										</Field.Field>
 										<Field.Field>
-											<Field.Label for="address-recipient">Recipient name</Field.Label>
+											<Field.Label for="address-recipient"
+												>{m.checkout_address_recipient()}</Field.Label
+											>
 											<Input
 												id="address-recipient"
 												bind:value={form.recipientName}
@@ -446,11 +426,12 @@
 											/>
 										</Field.Field>
 										<Field.Field>
-											<Field.Label for="address-phone">Phone</Field.Label>
+											<Field.Label for="address-phone">{m.checkout_address_phone()}</Field.Label>
 											<Input id="address-phone" bind:value={form.phone} autocomplete="tel" />
 										</Field.Field>
 										<Field.Field>
-											<Field.Label for="address-country">Country</Field.Label>
+											<Field.Label for="address-country">{m.checkout_address_country()}</Field.Label
+											>
 											<Input
 												id="address-country"
 												bind:value={form.country}
@@ -459,7 +440,7 @@
 											/>
 										</Field.Field>
 										<Field.Field class="sm:col-span-2">
-											<Field.Label for="address-line1">Address line 1</Field.Label>
+											<Field.Label for="address-line1">{m.checkout_address_line1()}</Field.Label>
 											<Input
 												id="address-line1"
 												bind:value={form.line1}
@@ -468,7 +449,7 @@
 											/>
 										</Field.Field>
 										<Field.Field class="sm:col-span-2">
-											<Field.Label for="address-line2">Address line 2</Field.Label>
+											<Field.Label for="address-line2">{m.checkout_address_line2()}</Field.Label>
 											<Input
 												id="address-line2"
 												bind:value={form.line2}
@@ -476,7 +457,7 @@
 											/>
 										</Field.Field>
 										<Field.Field>
-											<Field.Label for="address-city">City</Field.Label>
+											<Field.Label for="address-city">{m.checkout_address_city()}</Field.Label>
 											<Input
 												id="address-city"
 												bind:value={form.city}
@@ -485,7 +466,7 @@
 											/>
 										</Field.Field>
 										<Field.Field>
-											<Field.Label for="address-region">Region</Field.Label>
+											<Field.Label for="address-region">{m.checkout_address_region()}</Field.Label>
 											<Input
 												id="address-region"
 												bind:value={form.region}
@@ -493,7 +474,7 @@
 											/>
 										</Field.Field>
 										<Field.Field>
-											<Field.Label for="address-postal">Postal code</Field.Label>
+											<Field.Label for="address-postal">{m.checkout_address_postal()}</Field.Label>
 											<Input
 												id="address-postal"
 												bind:value={form.postalCode}
@@ -509,13 +490,13 @@
 												bind:checked={form.isDefaultShipping}
 											/>
 											<Field.Label for="address-default-shipping" class="font-normal">
-												Set as default shipping address
+												{m.checkout_address_default_shipping()}
 											</Field.Label>
 										</div>
 										<div class="flex items-center gap-2">
 											<Checkbox id="address-default-billing" bind:checked={form.isDefaultBilling} />
 											<Field.Label for="address-default-billing" class="font-normal">
-												Set as default billing address
+												{m.checkout_address_default_billing()}
 											</Field.Label>
 										</div>
 									</div>
@@ -528,7 +509,7 @@
 										{#if submitting}
 											<Spinner />
 										{/if}
-										{submitting ? 'Saving…' : 'Save address'}
+										{submitting ? m.common_saving() : m.checkout_address_save()}
 									</Button>
 								</form>
 							</Card.Content>
@@ -537,10 +518,9 @@
 
 					<Card.Root class="lg:sticky lg:top-24">
 						<Card.Header>
-							<Card.Title>Order summary</Card.Title>
+							<Card.Title>{m.cart_order_summary()}</Card.Title>
 							<Card.Description>
-								You have {cart.count}
-								{cart.count === 1 ? 'item' : 'items'} in your cart
+								{m.cart_items_in_cart({ count: cart.count })}
 							</Card.Description>
 						</Card.Header>
 						<Card.Content class="flex flex-col gap-4">
@@ -564,7 +544,7 @@
 												{item.productName}
 											</p>
 											<p class="truncate text-xs text-muted-foreground">{item.variantName}</p>
-											<p class="text-xs font-medium text-emerald-600">
+											<p class="text-xs font-medium text-success">
 												{formatMoney(item.unitPrice, cart.currency)} × {item.quantity}
 											</p>
 										</div>
@@ -576,19 +556,19 @@
 
 							<dl class="flex flex-col gap-2.5 text-sm">
 								<div class="flex items-start justify-between gap-4">
-									<dt class="text-muted-foreground">Subtotal</dt>
+									<dt class="text-muted-foreground">{m.common_subtotal()}</dt>
 									<dd class="font-medium text-foreground">
 										{formatMoney(cart.subtotal, cart.currency)}
 									</dd>
 								</div>
 								<div class="flex items-start justify-between gap-4">
-									<dt class="text-muted-foreground">Shipping Cost (+)</dt>
+									<dt class="text-muted-foreground">{m.cart_subtotal_shipping()}</dt>
 									<dd class="font-medium text-foreground">
 										{formatMoney(shipping, cart.currency)}
 									</dd>
 								</div>
 								<div class="flex items-start justify-between gap-4">
-									<dt class="text-muted-foreground">Discount (-)</dt>
+									<dt class="text-muted-foreground">{m.cart_discount()}</dt>
 									<dd class="font-medium text-foreground">
 										{formatMoney(cart.discount, cart.currency)}
 									</dd>
@@ -600,13 +580,13 @@
 							<div
 								class="flex items-start justify-between gap-4 text-base font-semibold text-foreground"
 							>
-								<span>Total Payable</span>
+								<span>{m.cart_total_payable()}</span>
 								<span>{formatMoney(total, cart.currency)}</span>
 							</div>
 						</Card.Content>
 						<Card.Footer class="flex-col items-stretch gap-2">
 							<Button size="lg" class="h-10 w-full" onclick={continueToPayment}>
-								Continue Payment
+								{m.checkout_address_continue()}
 								<ArrowRight class="size-4" />
 							</Button>
 						</Card.Footer>

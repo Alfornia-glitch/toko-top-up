@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
 	import { goto } from '$app/navigation';
 	import AuthShell from '#lib/frontend/components/auth/AuthShell.svelte';
 	import * as Field from '#lib/frontend/components/ui/field/index.ts';
@@ -14,7 +15,7 @@
 		error = '';
 
 		if (code.length !== 6) {
-			error = 'Enter the 6-digit security code.';
+			error = m.auth_2fa_code_required();
 			return;
 		}
 
@@ -22,13 +23,10 @@
 	}
 </script>
 
-<AuthShell
-	title="Two factor authentication"
-	description="We sent a verification code to your inbox. Enter the code from the inbox in the field below."
->
+<AuthShell title={m.auth_2fa_title()} description={m.auth_2fa_description()}>
 	<form class="grid gap-6" onsubmit={handleSubmit}>
 		<Field.Field class="items-center">
-			<Field.Label for="code">Type your 6 digit security code</Field.Label>
+			<Field.Label for="code">{m.auth_2fa_code_label()}</Field.Label>
 			<InputOTP.Root inputId="code" maxlength={6} bind:value={code} class="justify-center" required>
 				{#snippet children({ cells })}
 					<InputOTP.Group>
@@ -48,16 +46,16 @@
 		{#if error}
 			<Field.Error>{error}</Field.Error>
 		{/if}
-		<Button type="submit" class="w-full">Verify my account</Button>
+		<Button type="submit" class="w-full">{m.auth_2fa_submit()}</Button>
 	</form>
 	<div class="mt-4 text-center text-sm text-muted-foreground">
-		Didn’t get the mail?
+		{m.auth_no_mail()}
 		<button
 			type="button"
 			class="font-medium text-foreground underline-offset-4 hover:underline"
 			onclick={() => (resent = !resent)}
 		>
-			{resent ? 'Code sent' : 'Resend'}
+			{resent ? m.auth_2fa_code_sent() : m.auth_resend()}
 		</button>
 	</div>
 </AuthShell>

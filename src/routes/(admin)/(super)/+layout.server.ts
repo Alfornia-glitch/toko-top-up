@@ -1,6 +1,7 @@
 import { error, redirect } from '@sveltejs/kit';
 import type { LayoutServerLoad } from './$types';
 import { hasPermission } from '#shared';
+import { m } from '#lib/paraglide/messages.js';
 
 export const load: LayoutServerLoad = ({ locals, url }) => {
 	if (!locals.user) {
@@ -9,7 +10,7 @@ export const load: LayoutServerLoad = ({ locals, url }) => {
 	}
 
 	if (!locals.actor || !hasPermission(locals.actor, 'super:access')) {
-		error(403, 'Forbidden');
+		error(403, m.errors_forbidden());
 	}
 
 	return {

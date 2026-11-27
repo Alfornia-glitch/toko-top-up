@@ -8,7 +8,7 @@
 </script>
 
 <div
-	class="relative flex w-full shrink-0 flex-col content-stretch items-center justify-center bg-white"
+	class="relative flex w-full shrink-0 flex-col content-stretch items-center justify-center bg-card"
 	data-name="CTA"
 >
 	{#if banner}
@@ -66,11 +66,11 @@
 					{#if banner.ctaLabel}
 						<a
 							href={banner.ctaUrl ?? '/products'}
-							class="relative flex shrink-0 content-stretch items-center justify-center gap-[6px] rounded-[10px] border border-solid border-[#e5e5e5] bg-white px-[16px] py-[8px]"
+							class="relative flex shrink-0 content-stretch items-center justify-center gap-[6px] rounded-[10px] border border-solid border-border bg-card px-[16px] py-[8px]"
 							data-name="Solid button"
 						>
 							<div
-								class="relative flex shrink-0 flex-col justify-center font-['Geist:Medium'] text-[14px] leading-[0] font-medium [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
+								class="relative flex shrink-0 flex-col justify-center font-['Geist:Medium'] text-[14px] leading-[0] font-medium [word-break:break-word] whitespace-nowrap text-foreground"
 							>
 								<p class="leading-[20px]">{banner.ctaLabel}</p>
 							</div>

@@ -1,13 +1,23 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { Pencil, Plus, Trash2 } from '@lucide/svelte';
+	import { ImagePlus, Pencil, Plus, Trash2 } from '@lucide/svelte';
 	import DataTable from '#lib/frontend/components/admin/DataTable.svelte';
+	import AccountFormEditor from '#lib/frontend/components/admin/super/AccountFormEditor.svelte';
+	import MediaPicker from '#lib/frontend/components/admin/MediaPicker.svelte';
 	import * as Dialog from '#lib/frontend/components/ui/dialog/index.ts';
 	import * as AlertDialog from '#lib/frontend/components/ui/alert-dialog/index.ts';
 	import * as Field from '#lib/frontend/components/ui/field/index.ts';
 	import { Button } from '#lib/frontend/components/ui/button/index.ts';
 	import { Input } from '#lib/frontend/components/ui/input/index.ts';
 	import { Textarea } from '#lib/frontend/components/ui/textarea/index.ts';
+	import { m } from '#lib/paraglide/messages.js';
+	import { errorMessage } from '#lib/frontend/i18n/index.ts';
+	import { formatDateTime } from '#lib/frontend/modules/commerce/format.ts';
+	import {
+		STORE_LOGO_FOLDER,
+		STORE_NAME_MAX_LENGTH,
+		site
+	} from '#lib/frontend/modules/commerce/site.svelte.ts';
 
 	type SettingRow = {
 		key: string;
@@ -16,12 +26,16 @@
 		updatedAt: string;
 	};
 
-	const columns = [
-		{ key: 'key', label: 'Key' },
-		{ key: 'valueJson', label: 'Value', class: 'max-w-md whitespace-normal' },
-		{ key: 'updatedAt', label: 'Updated' },
+	const columns = $derived([
+		{ key: 'key', label: m.admin_super_settings_col_key() },
+		{
+			key: 'valueJson',
+			label: m.admin_super_settings_col_value(),
+			class: 'max-w-md whitespace-normal'
+		},
+		{ key: 'updatedAt', label: m.admin_super_col_updated() },
 		{ key: 'actions', label: '', class: 'text-right' }
-	];
+	]);
 
 	let settings = $state<SettingRow[]>([]);
 	let loading = $state(true);
@@ -45,22 +59,70 @@
 		return JSON.stringify(value, null, 2) ?? 'null';
 	}
 
-	function formatDate(value: string) {
-		const date = new Date(value);
-		if (Number.isNaN(date.getTime())) return '—';
-
-		return new Intl.DateTimeFormat('en-US', {
-			month: 'short',
-			day: 'numeric',
-			year: 'numeric',
-			hour: '2-digit',
-			minute: '2-digit'
-		}).format(date);
-	}
-
 	onMount(() => {
 		void loadSettings();
+		void loadStoreIdentity();
 	});
+
+	let storeNameInput = $state('');
+	let storeLogoUrl = $state<string | null>(null);
+	/** Media id picked from the library; `undefined` keeps the stored logo and `null` removes it. */
+	let pendingLogoId = $state<string | null | undefined>(undefined);
+	let storePickerOpen = $state(false);
+	let storeSaving = $state(false);
+	let storeSaved = $state(false);
+	let storeError = $state('');
+
+	async function loadStoreIdentity() {
+		await site.load();
+		storeNameInput = site.storeName;
+		storeLogoUrl = site.logoUrl;
+		pendingLogoId = undefined;
+	}
+
+	function pickLogo(asset: { id: string; url: string }) {
+		pendingLogoId = asset.id;
+		storeLogoUrl = asset.url;
+		storeSaved = false;
+	}
+
+	function removeLogo() {
+		pendingLogoId = null;
+		storeLogoUrl = null;
+		storeSaved = false;
+	}
+
+	async function saveStoreIdentity(event: SubmitEvent) {
+		event.preventDefault();
+		storeError = '';
+		storeSaved = false;
+
+		const storeName = storeNameInput.trim();
+		if (!storeName || storeName.length > STORE_NAME_MAX_LENGTH) {
+			storeError = m.admin_super_store_name_invalid();
+			return;
+		}
+
+		storeSaving = true;
+
+		try {
+			const response = await fetch('/api/admin/super/store-identity', {
+				method: 'PUT',
+				headers: { 'content-type': 'application/json' },
+				body: JSON.stringify({ storeName, logoMediaId: pendingLogoId })
+			});
+			const payload = await response.json().catch(() => ({}));
+
+			if (!response.ok) throw payload;
+
+			storeSaved = true;
+			await loadStoreIdentity();
+		} catch (err) {
+			storeError = errorMessage(err, 'admin_super_store_save_failed');
+		} finally {
+			storeSaving = false;
+		}
+	}
 
 	async function loadSettings() {
 		loading = true;
@@ -70,11 +132,11 @@
 			const response = await fetch('/api/admin/super/settings');
 			const payload = await response.json().catch(() => ({}));
 
-			if (!response.ok) throw new Error(payload.error ?? 'Could not load settings');
+			if (!response.ok) throw payload;
 
 			settings = payload.data ?? [];
 		} catch (err) {
-			error = err instanceof Error ? err.message : 'Could not load settings';
+			error = errorMessage(err, 'admin_super_settings_load_failed');
 		} finally {
 			loading = false;
 		}
@@ -115,7 +177,7 @@
 
 		const key = formKey.trim();
 		if (!key) {
-			formError = 'Key is required.';
+			formError = m.admin_super_settings_key_required();
 			return;
 		}
 
@@ -123,7 +185,7 @@
 		try {
 			parsed = JSON.parse(formValue);
 		} catch {
-			formError = 'Value must be valid JSON.';
+			formError = m.admin_super_settings_invalid_json();
 			return;
 		}
 
@@ -137,12 +199,12 @@
 			});
 			const payload = await response.json().catch(() => ({}));
 
-			if (!response.ok) throw new Error(payload.error ?? 'Could not save setting');
+			if (!response.ok) throw payload;
 
 			dialogOpen = false;
 			await loadSettings();
 		} catch (err) {
-			formError = err instanceof Error ? err.message : 'Could not save setting';
+			formError = errorMessage(err, 'admin_super_settings_save_failed');
 		} finally {
 			saving = false;
 		}
@@ -160,30 +222,30 @@
 			});
 			const payload = await response.json().catch(() => ({}));
 
-			if (!response.ok) throw new Error(payload.error ?? 'Could not delete setting');
+			if (!response.ok) throw payload;
 
 			deleteOpen = false;
 			deletingKey = null;
 			await loadSettings();
 		} catch (err) {
-			error = err instanceof Error ? err.message : 'Could not delete setting';
+			error = errorMessage(err, 'admin_super_settings_delete_failed');
 		} finally {
 			deleting = false;
 		}
 	}
 
-	const layoutOptions = [
+	const layoutOptions = $derived([
 		{
 			value: 'regular',
-			label: 'Regular ecommerce',
-			description: 'Mega menu, deals, brands and new arrivals on the home page.'
+			label: m.admin_super_settings_layout_regular_label(),
+			description: m.admin_super_settings_layout_regular_desc()
 		},
 		{
 			value: 'topup',
-			label: 'Top-up store',
-			description: 'Compact game top-up header, game categories and testimonials.'
+			label: m.admin_super_settings_layout_topup_label(),
+			description: m.admin_super_settings_layout_topup_desc()
 		}
-	] as const;
+	] as const);
 
 	const currentLayout = $derived(
 		settings.find((setting) => setting.key === 'storefrontLayout')?.valueJson === 'topup'
@@ -207,11 +269,11 @@
 			});
 			const payload = await response.json().catch(() => ({}));
 
-			if (!response.ok) throw new Error(payload.error ?? 'Could not save storefront layout');
+			if (!response.ok) throw payload;
 
 			await loadSettings();
 		} catch (err) {
-			error = err instanceof Error ? err.message : 'Could not save storefront layout';
+			error = errorMessage(err, 'admin_super_settings_layout_save_failed');
 		} finally {
 			layoutSaving = false;
 		}
@@ -221,14 +283,14 @@
 <div class="space-y-6">
 	<div class="flex flex-wrap items-start justify-between gap-3">
 		<div>
-			<h1 class="text-2xl font-semibold tracking-tight">Settings</h1>
+			<h1 class="text-2xl font-semibold tracking-tight">{m.common_settings()}</h1>
 			<p class="text-sm text-muted-foreground">
-				Platform configuration stored as JSON key/value pairs.
+				{m.admin_super_settings_subtitle()}
 			</p>
 		</div>
 		<Button onclick={openCreate}>
 			<Plus class="size-4" />
-			New setting
+			{m.admin_super_settings_new()}
 		</Button>
 	</div>
 
@@ -240,11 +302,88 @@
 		</div>
 	{/if}
 
+	<section class="space-y-4" aria-labelledby="store-identity-heading">
+		<div>
+			<h2 id="store-identity-heading" class="text-base font-medium">
+				{m.admin_super_store_title()}
+			</h2>
+			<p class="text-sm text-muted-foreground">
+				{m.admin_super_store_desc()}
+			</p>
+		</div>
+
+		<form class="grid gap-4 sm:max-w-xl" onsubmit={saveStoreIdentity}>
+			<Field.Group>
+				<Field.Field>
+					<Field.Label for="store-name">{m.admin_super_store_name_label()}</Field.Label>
+					<Input
+						id="store-name"
+						bind:value={storeNameInput}
+						maxlength={STORE_NAME_MAX_LENGTH}
+						required
+					/>
+					<Field.Description>{m.admin_super_store_name_hint()}</Field.Description>
+				</Field.Field>
+
+				<Field.Field>
+					<Field.Label for="store-logo-choose">{m.admin_super_store_logo_label()}</Field.Label>
+					<div class="flex items-center gap-4">
+						<div
+							class="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-lg border bg-muted/40"
+						>
+							{#if storeLogoUrl}
+								<img
+									src={storeLogoUrl}
+									alt={m.admin_super_store_logo_preview()}
+									class="size-full object-contain"
+								/>
+							{:else}
+								<ImagePlus class="size-6 text-muted-foreground" />
+							{/if}
+						</div>
+						<div class="flex flex-wrap gap-2">
+							<Button
+								id="store-logo-choose"
+								type="button"
+								variant="outline"
+								onclick={() => (storePickerOpen = true)}
+							>
+								{m.admin_super_store_logo_choose()}
+							</Button>
+							{#if storeLogoUrl}
+								<Button type="button" variant="ghost" onclick={removeLogo}>
+									{m.admin_super_store_logo_remove()}
+								</Button>
+							{/if}
+						</div>
+					</div>
+					<Field.Description>{m.admin_super_store_logo_hint()}</Field.Description>
+				</Field.Field>
+			</Field.Group>
+
+			{#if storeError}
+				<Field.Error>{storeError}</Field.Error>
+			{/if}
+
+			{#if storeSaved}
+				<p class="text-sm text-primary" role="status">{m.admin_super_store_saved()}</p>
+			{/if}
+
+			<div>
+				<Button type="submit" disabled={storeSaving}>
+					{storeSaving ? m.common_saving() : m.admin_super_store_save()}
+				</Button>
+			</div>
+		</form>
+	</section>
+
 	<section class="space-y-3" aria-labelledby="storefront-layout-heading">
 		<div>
-			<h2 id="storefront-layout-heading" class="text-base font-medium">Storefront layout</h2>
+			<h2 id="storefront-layout-heading" class="text-base font-medium">
+				{m.admin_super_settings_layout_title()}
+			</h2>
 			<p class="text-sm text-muted-foreground">
-				Choose which look the public storefront uses. Changes apply after the next page load.
+				{m.admin_super_settings_layout_desc()}
 			</p>
 		</div>
 		<div class="grid gap-3 sm:grid-cols-2">
@@ -262,7 +401,7 @@
 					<span class="flex items-center justify-between gap-2">
 						<span class="text-sm font-medium">{option.label}</span>
 						{#if selected}
-							<span class="text-xs font-medium text-primary">Active</span>
+							<span class="text-xs font-medium text-primary">{m.common_active()}</span>
 						{/if}
 					</span>
 					<span class="mt-1 block text-sm text-muted-foreground">{option.description}</span>
@@ -271,11 +410,15 @@
 		</div>
 	</section>
 
+	{#if !loading}
+		<AccountFormEditor active={currentLayout === 'topup'} />
+	{/if}
+
 	<DataTable
 		{columns}
 		rows={settings as unknown as Record<string, unknown>[]}
 		{loading}
-		emptyMessage="No settings yet."
+		emptyMessage={m.admin_super_settings_empty()}
 		page={1}
 		pageSize={Math.max(1, settings.length)}
 		total={settings.length}
@@ -289,13 +432,15 @@
 						row.valueJson
 					)}</pre>
 			{:else if column.key === 'updatedAt'}
-				<span class="text-muted-foreground">{formatDate(String(row.updatedAt ?? ''))}</span>
+				<span class="text-muted-foreground"
+					>{formatDateTime(String(row.updatedAt ?? '')) || m.common_dash()}</span
+				>
 			{:else if column.key === 'actions'}
 				<div class="flex items-center justify-end gap-1">
 					<Button
 						variant="ghost"
 						size="icon-sm"
-						aria-label="Edit setting"
+						aria-label={m.admin_super_settings_edit_aria()}
 						onclick={() => openEdit(row)}
 					>
 						<Pencil class="size-4" />
@@ -304,44 +449,50 @@
 						variant="ghost"
 						size="icon-sm"
 						class="text-destructive hover:bg-destructive/10"
-						aria-label="Delete setting"
+						aria-label={m.admin_super_settings_delete_aria()}
 						onclick={() => openDelete(row)}
 					>
 						<Trash2 class="size-4" />
 					</Button>
 				</div>
 			{:else}
-				{String(row[column.key] ?? '—')}
+				{String(row[column.key] ?? m.common_dash())}
 			{/if}
 		{/snippet}
 	</DataTable>
 </div>
 
+<MediaPicker bind:open={storePickerOpen} folder={STORE_LOGO_FOLDER} onSelect={pickLogo} />
+
 {#if dialogOpen}
 	<Dialog.Root bind:open={dialogOpen}>
 		<Dialog.Content class="sm:max-w-lg">
 			<Dialog.Header>
-				<Dialog.Title>{editingKey ? 'Edit setting' : 'New setting'}</Dialog.Title>
+				<Dialog.Title
+					>{editingKey
+						? m.admin_super_settings_edit_title()
+						: m.admin_super_settings_new()}</Dialog.Title
+				>
 				<Dialog.Description>
-					{editingKey ? 'Update the JSON value for this key.' : 'Create a new configuration entry.'}
+					{editingKey ? m.admin_super_settings_edit_desc() : m.admin_super_settings_new_desc()}
 				</Dialog.Description>
 			</Dialog.Header>
 
 			<form class="grid gap-4" onsubmit={saveSetting}>
 				<Field.Group>
 					<Field.Field>
-						<Field.Label for="setting-key">Key</Field.Label>
+						<Field.Label for="setting-key">{m.admin_super_settings_col_key()}</Field.Label>
 						<Input
 							id="setting-key"
 							bind:value={formKey}
-							placeholder="e.g. store.name"
+							placeholder={m.admin_super_settings_key_placeholder()}
 							disabled={editingKey !== null}
 							required
 						/>
 					</Field.Field>
 
 					<Field.Field>
-						<Field.Label for="setting-value">Value (JSON)</Field.Label>
+						<Field.Label for="setting-value">{m.admin_super_settings_value_label()}</Field.Label>
 						<Textarea
 							id="setting-value"
 							bind:value={formValue}
@@ -350,7 +501,7 @@
 							required
 						/>
 						<Field.Description>
-							Must be valid JSON such as a string, number, object or array.
+							{m.admin_super_settings_value_hint()}
 						</Field.Description>
 					</Field.Field>
 				</Field.Group>
@@ -366,10 +517,10 @@
 						onclick={() => (dialogOpen = false)}
 						disabled={saving}
 					>
-						Cancel
+						{m.common_cancel()}
 					</Button>
 					<Button type="submit" disabled={saving}>
-						{saving ? 'Saving…' : 'Save setting'}
+						{saving ? m.common_saving() : m.admin_super_settings_save()}
 					</Button>
 				</Dialog.Footer>
 			</form>
@@ -380,15 +531,16 @@
 <AlertDialog.Root bind:open={deleteOpen}>
 	<AlertDialog.Content>
 		<AlertDialog.Header>
-			<AlertDialog.Title>Delete setting</AlertDialog.Title>
+			<AlertDialog.Title>{m.admin_super_settings_delete_title()}</AlertDialog.Title>
 			<AlertDialog.Description>
-				Type the key <code class="font-medium">{deletingKey ?? ''}</code> to confirm. This action cannot
-				be undone.
+				{m.admin_super_settings_delete_before()}
+				<code class="font-medium">{deletingKey ?? ''}</code>
+				{m.admin_super_settings_delete_after()}
 			</AlertDialog.Description>
 		</AlertDialog.Header>
 
 		<div class="grid gap-2">
-			<Field.Label for="delete-setting-confirm">Confirmation</Field.Label>
+			<Field.Label for="delete-setting-confirm">{m.common_confirm()}</Field.Label>
 			<Input
 				id="delete-setting-confirm"
 				bind:value={deleteConfirm}
@@ -401,14 +553,14 @@
 		{/if}
 
 		<AlertDialog.Footer>
-			<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
+			<AlertDialog.Cancel>{m.common_cancel()}</AlertDialog.Cancel>
 			<Button
 				type="button"
 				class="bg-destructive text-white hover:bg-destructive/90"
 				disabled={!canDelete || deleting}
 				onclick={deleteSetting}
 			>
-				{deleting ? 'Deleting…' : 'Delete'}
+				{deleting ? m.common_deleting() : m.common_delete()}
 			</Button>
 		</AlertDialog.Footer>
 	</AlertDialog.Content>

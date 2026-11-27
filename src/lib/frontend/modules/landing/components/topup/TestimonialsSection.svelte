@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
 	import { Button } from '#lib/frontend/components/ui/button/index.ts';
 	import * as Carousel from '#lib/frontend/components/ui/carousel/index.ts';
 	import ImagePlaceholder from '#lib/frontend/components/ui/ImagePlaceholder.svelte';
@@ -10,12 +11,13 @@
 
 	const instagram = $derived(site.social.instagram);
 
+	const testimonials = $derived(home.testimonials);
 	const controlClass =
 		'static size-10 translate-y-0 bg-background hover:bg-accent disabled:opacity-40';
 </script>
 
 {#snippet tile(testimonial: Testimonial)}
-	{@const label = testimonial.caption ?? 'Foto pelanggan'}
+	{@const label = testimonial.caption ?? m.components_landing_testimonials_photo()}
 	<svelte:element
 		this={testimonial.link ? 'a' : 'div'}
 		href={testimonial.link ?? undefined}
@@ -43,37 +45,41 @@
 	</svelte:element>
 {/snippet}
 
-<div
-	class="relative flex w-full shrink-0 flex-col items-center justify-center gap-[32px] py-[64px]"
-	data-name="Testimonials"
->
-	<Carousel.Root
-		opts={{ align: 'start', slidesToScroll: 'auto' }}
-		class="flex w-full flex-col px-8"
+{#if testimonials.length > 0}
+	<div
+		class="relative flex w-full shrink-0 flex-col items-center justify-center gap-[32px] py-[64px]"
+		data-name="Testimonials"
 	>
-		<div class="flex w-full items-center gap-[16px]">
-			<p class="min-w-px flex-1 font-['Geist:Bold'] text-xl font-bold">Ulasan Pelanggan</p>
+		<Carousel.Root
+			opts={{ align: 'start', slidesToScroll: 'auto' }}
+			class="flex w-full flex-col px-8"
+		>
+			<div class="flex w-full items-center gap-[16px]">
+				<p class="min-w-px flex-1 font-['Geist:Bold'] text-xl font-bold">
+					{m.components_landing_testimonials_title()}
+				</p>
+				{#if home.testimonials.length}
+					<div class="flex items-center gap-[8px]">
+						<Carousel.Previous variant="outline" size="icon" class={controlClass} />
+						<Carousel.Next variant="outline" size="icon" class={controlClass} />
+					</div>
+				{/if}
+			</div>
 			{#if home.testimonials.length}
-				<div class="flex items-center gap-[8px]">
-					<Carousel.Previous variant="outline" size="icon" class={controlClass} />
-					<Carousel.Next variant="outline" size="icon" class={controlClass} />
-				</div>
+				<Carousel.Content class="-ms-[16px]">
+					{#each home.testimonials as testimonial (testimonial.id)}
+						<Carousel.Item class="basis-1/2 ps-[16px] sm:basis-1/3 lg:basis-1/5">
+							{@render tile(testimonial)}
+						</Carousel.Item>
+					{/each}
+				</Carousel.Content>
 			{/if}
-		</div>
-		{#if home.testimonials.length}
-			<Carousel.Content class="-ms-[16px]">
-				{#each home.testimonials as testimonial (testimonial.id)}
-					<Carousel.Item class="basis-1/2 ps-[16px] sm:basis-1/3 lg:basis-1/5">
-						{@render tile(testimonial)}
-					</Carousel.Item>
-				{/each}
-			</Carousel.Content>
+		</Carousel.Root>
+		{#if instagram}
+			<Button variant="outline" href={instagram} target="_blank" rel="noreferrer" class="h-9 px-4">
+				<img loading="lazy" decoding="async" alt="" class="size-4" src={imgLeftIcon5} />
+				{m.components_landing_testimonials_instagram()}
+			</Button>
 		{/if}
-	</Carousel.Root>
-	{#if instagram}
-		<Button variant="outline" href={instagram} target="_blank" rel="noreferrer" class="h-9 px-4">
-			<img loading="lazy" decoding="async" alt="" class="size-4" src={imgLeftIcon5} />
-			Ikuti kami di Instagram
-		</Button>
-	{/if}
-</div>
+	</div>
+{/if}

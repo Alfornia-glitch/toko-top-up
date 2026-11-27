@@ -1,5 +1,8 @@
 <script lang="ts">
-	import { formatMoney } from '#lib/frontend/modules/commerce/format.ts';
+	import { formatDateTime, formatMoney } from '#lib/frontend/modules/commerce/format.ts';
+	import { m } from '#lib/paraglide/messages.js';
+	import { errorMessage } from '#lib/frontend/i18n/index.ts';
+	import { statusLabel } from '#lib/frontend/i18n/labels.ts';
 	import { onDestroy, onMount } from 'svelte';
 	import { Archive, Package, Pencil, Plus } from '@lucide/svelte';
 	import DataTable from '#lib/frontend/components/admin/DataTable.svelte';
@@ -34,15 +37,20 @@
 		parentName?: string | null;
 	};
 
-	const columns = [
-		{ key: 'name', label: 'Product', sortable: true },
-		{ key: 'sku', label: 'SKU', sortable: true },
-		{ key: 'status', label: 'Status' },
-		{ key: 'price', label: 'Price', sortable: true, class: 'text-right' },
-		{ key: 'stock', label: 'Stock', class: 'text-right' },
-		{ key: 'updatedAt', label: 'Updated', sortable: true },
+	const columns = $derived([
+		{ key: 'name', label: m.admin_catalog_products_col_product(), sortable: true },
+		{ key: 'sku', label: m.admin_catalog_products_col_sku(), sortable: true },
+		{ key: 'status', label: m.common_status() },
+		{
+			key: 'price',
+			label: m.admin_catalog_products_col_price(),
+			sortable: true,
+			class: 'text-right'
+		},
+		{ key: 'stock', label: m.admin_catalog_products_col_stock(), class: 'text-right' },
+		{ key: 'updatedAt', label: m.admin_catalog_products_col_updated(), sortable: true },
 		{ key: 'actions', label: '', class: 'text-right' }
-	];
+	]);
 
 	const pageSize = 25;
 
@@ -95,12 +103,13 @@
 			const response = await fetch(`/api/admin/products?${params.toString()}`);
 			const payload = await response.json().catch(() => ({}));
 
-			if (!response.ok) throw new Error(payload.error ?? 'Could not load products');
+			if (!response.ok)
+				throw new Error(errorMessage(payload, 'admin_catalog_products_load_failed'));
 
 			products = payload.data ?? [];
 			total = Number(payload.total ?? 0);
 		} catch (err) {
-			error = err instanceof Error ? err.message : 'Could not load products';
+			error = errorMessage(err, 'admin_catalog_products_load_failed');
 		} finally {
 			loading = false;
 		}
@@ -111,11 +120,12 @@
 			const response = await fetch('/api/admin/categories');
 			const payload = await response.json().catch(() => ({}));
 
-			if (!response.ok) throw new Error(payload.error ?? 'Could not load categories');
+			if (!response.ok)
+				throw new Error(errorMessage(payload, 'admin_catalog_products_load_categories_failed'));
 
 			categories = payload.data ?? [];
 		} catch (err) {
-			filterError = err instanceof Error ? err.message : 'Could not load categories';
+			filterError = errorMessage(err, 'admin_catalog_products_load_categories_failed');
 		}
 	}
 
@@ -124,11 +134,12 @@
 			const response = await fetch('/api/admin/brands');
 			const payload = await response.json().catch(() => ({}));
 
-			if (!response.ok) throw new Error(payload.error ?? 'Could not load brands');
+			if (!response.ok)
+				throw new Error(errorMessage(payload, 'admin_catalog_products_load_brands_failed'));
 
 			brands = payload.data ?? [];
 		} catch (err) {
-			filterError = err instanceof Error ? err.message : 'Could not load brands';
+			filterError = errorMessage(err, 'admin_catalog_products_load_brands_failed');
 		}
 	}
 
@@ -197,39 +208,31 @@
 			});
 			const payload = await response.json().catch(() => ({}));
 
-			if (!response.ok) throw new Error(payload.error ?? 'Could not archive product');
+			if (!response.ok)
+				throw new Error(errorMessage(payload, 'admin_catalog_products_archive_failed'));
 
 			await loadProducts();
 		} catch (err) {
-			error = err instanceof Error ? err.message : 'Could not archive product';
+			error = errorMessage(err, 'admin_catalog_products_archive_failed');
 		} finally {
 			archiveTarget = null;
 		}
 	}
 
-	function formatDate(value: string) {
-		const date = new Date(value);
-		if (Number.isNaN(date.getTime())) return '—';
-
-		return new Intl.DateTimeFormat('en-US', {
-			month: 'short',
-			day: 'numeric',
-			year: 'numeric',
-			hour: '2-digit',
-			minute: '2-digit'
-		}).format(date);
+	function formatUpdated(value: string) {
+		return formatDateTime(value) || m.common_dash();
 	}
 </script>
 
 <div class="space-y-6">
 	<div class="flex flex-wrap items-start justify-between gap-3">
 		<div>
-			<h1 class="text-2xl font-semibold tracking-tight">Products</h1>
-			<p class="text-sm text-muted-foreground">Manage the catalog, pricing and stock.</p>
+			<h1 class="text-2xl font-semibold tracking-tight">{m.admin_catalog_products_title()}</h1>
+			<p class="text-sm text-muted-foreground">{m.admin_catalog_products_subtitle()}</p>
 		</div>
 		<Button href="/admin/products/new">
 			<Plus class="size-4" />
-			New product
+			{m.admin_catalog_products_new()}
 		</Button>
 	</div>
 
@@ -254,38 +257,44 @@
 	<Card.Root>
 		<Card.Content class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
 			<div class="space-y-1.5">
-				<Label for="product-search">Search</Label>
+				<Label for="product-search">{m.common_search()}</Label>
 				<Input
 					id="product-search"
 					bind:value={q}
 					oninput={handleSearch}
-					placeholder="Search name, SKU or slug"
+					placeholder={m.admin_catalog_products_search_placeholder()}
 				/>
 			</div>
 
 			<div class="space-y-1.5">
-				<Label for="product-status-filter">Status</Label>
+				<Label for="product-status-filter">{m.common_status()}</Label>
 				<Select.Root type="single" value={statusFilter} onValueChange={handleStatusChange}>
 					<Select.Trigger id="product-status-filter" class="w-full">
-						<Select.Value placeholder="All statuses" />
+						<Select.Value placeholder={m.common_all_statuses()} />
 					</Select.Trigger>
 					<Select.Content>
-						<Select.Item value="all" label="All statuses">All statuses</Select.Item>
-						<Select.Item value="draft" label="Draft">Draft</Select.Item>
-						<Select.Item value="active" label="Active">Active</Select.Item>
-						<Select.Item value="archived" label="Archived">Archived</Select.Item>
+						<Select.Item value="all" label={m.common_all_statuses()}>
+							{m.common_all_statuses()}
+						</Select.Item>
+						{#each ['draft', 'active', 'archived'] as value (value)}
+							<Select.Item {value} label={statusLabel('product', value)}>
+								{statusLabel('product', value)}
+							</Select.Item>
+						{/each}
 					</Select.Content>
 				</Select.Root>
 			</div>
 
 			<div class="space-y-1.5">
-				<Label for="product-category-filter">Category</Label>
+				<Label for="product-category-filter">{m.common_category()}</Label>
 				<Select.Root type="single" value={categoryFilter} onValueChange={handleCategoryChange}>
 					<Select.Trigger id="product-category-filter" class="w-full">
-						<Select.Value placeholder="All categories" />
+						<Select.Value placeholder={m.admin_catalog_products_all_categories()} />
 					</Select.Trigger>
 					<Select.Content>
-						<Select.Item value="all" label="All categories">All categories</Select.Item>
+						<Select.Item value="all" label={m.admin_catalog_products_all_categories()}>
+							{m.admin_catalog_products_all_categories()}
+						</Select.Item>
 						{#each categories as category (category.id)}
 							<Select.Item value={category.id} label={category.name}>
 								{category.parentName ? `${category.parentName} / ${category.name}` : category.name}
@@ -296,13 +305,15 @@
 			</div>
 
 			<div class="space-y-1.5">
-				<Label for="product-brand-filter">Brand</Label>
+				<Label for="product-brand-filter">{m.common_brand()}</Label>
 				<Select.Root type="single" value={brandFilter} onValueChange={handleBrandChange}>
 					<Select.Trigger id="product-brand-filter" class="w-full">
-						<Select.Value placeholder="All brands" />
+						<Select.Value placeholder={m.admin_catalog_products_all_brands()} />
 					</Select.Trigger>
 					<Select.Content>
-						<Select.Item value="all" label="All brands">All brands</Select.Item>
+						<Select.Item value="all" label={m.admin_catalog_products_all_brands()}>
+							{m.admin_catalog_products_all_brands()}
+						</Select.Item>
 						{#each brands as brand (brand.id)}
 							<Select.Item value={brand.id} label={brand.name}>{brand.name}</Select.Item>
 						{/each}
@@ -316,7 +327,7 @@
 		{columns}
 		rows={products as unknown as Record<string, unknown>[]}
 		{loading}
-		emptyMessage="No products match the current filters."
+		emptyMessage={m.admin_catalog_products_empty()}
 		{page}
 		{pageSize}
 		{total}
@@ -331,7 +342,9 @@
 					{#if row.imageUrl}
 						<img
 							src={String(row.imageUrl)}
-							alt={`${String(row.name ?? 'Product')} thumbnail`}
+							alt={m.admin_catalog_products_thumbnail_alt({
+								name: String(row.name ?? m.common_product())
+							})}
 							class="size-10 rounded-md border bg-muted object-cover"
 							loading="lazy"
 						/>
@@ -357,13 +370,13 @@
 			{:else if column.key === 'stock'}
 				{Number(row.stock ?? 0)}
 			{:else if column.key === 'updatedAt'}
-				<span class="text-muted-foreground">{formatDate(String(row.updatedAt ?? ''))}</span>
+				<span class="text-muted-foreground">{formatUpdated(String(row.updatedAt ?? ''))}</span>
 			{:else if column.key === 'actions'}
 				<div class="flex items-center justify-end gap-1">
 					<Button
 						variant="ghost"
 						size="icon-sm"
-						aria-label="Edit product"
+						aria-label={m.admin_catalog_products_edit_aria()}
 						href={`/admin/products/${String(row.id)}`}
 					>
 						<Pencil class="size-4" />
@@ -373,7 +386,7 @@
 							variant="ghost"
 							size="icon-sm"
 							class="text-destructive hover:bg-destructive/10"
-							aria-label="Archive product"
+							aria-label={m.admin_catalog_products_archive_aria()}
 							onclick={() => openArchive(row)}
 						>
 							<Archive class="size-4" />
@@ -389,9 +402,12 @@
 
 <ConfirmDialog
 	bind:open={archiveOpen}
-	title="Archive product"
-	description={`Archive “${archiveTarget?.name ?? 'this product'}”? It will be hidden from the storefront.`}
-	confirmLabel="Archive"
+	title={m.admin_catalog_products_archive_title()}
+	description={m.admin_catalog_products_archive_description({
+		name: archiveTarget?.name ?? m.admin_catalog_products_archive_this()
+	})}
+	confirmLabel={m.admin_catalog_products_archive_confirm()}
+	cancelLabel={m.common_cancel()}
 	destructive
 	onConfirm={archiveProduct}
 />

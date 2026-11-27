@@ -6,6 +6,9 @@
 	import ConfirmDialog from '#lib/frontend/components/admin/ConfirmDialog.svelte';
 	import CategoryDialog from '#lib/frontend/components/admin/catalog/CategoryDialog.svelte';
 	import { Button } from '#lib/frontend/components/ui/button/index.ts';
+	import { m } from '#lib/paraglide/messages.js';
+	import { errorMessage } from '#lib/frontend/i18n/index.ts';
+	import { formatDateTime } from '#lib/frontend/modules/commerce/format.ts';
 
 	type CategoryRow = {
 		id: string;
@@ -21,16 +24,26 @@
 		productCount: number;
 	};
 
-	const columns = [
-		{ key: 'name', label: 'Name', sortable: true },
-		{ key: 'slug', label: 'Slug', sortable: true },
-		{ key: 'parentName', label: 'Parent' },
-		{ key: 'productCount', label: 'Products', sortable: true, class: 'text-right' },
-		{ key: 'position', label: 'Position', sortable: true, class: 'text-right' },
-		{ key: 'status', label: 'Status' },
-		{ key: 'updatedAt', label: 'Updated', sortable: true },
+	const columns = $derived([
+		{ key: 'name', label: m.common_name(), sortable: true },
+		{ key: 'slug', label: m.admin_catalog_categories_col_slug(), sortable: true },
+		{ key: 'parentName', label: m.admin_catalog_categories_col_parent() },
+		{
+			key: 'productCount',
+			label: m.admin_catalog_categories_col_products(),
+			sortable: true,
+			class: 'text-right'
+		},
+		{
+			key: 'position',
+			label: m.admin_catalog_categories_col_position(),
+			sortable: true,
+			class: 'text-right'
+		},
+		{ key: 'status', label: m.common_status() },
+		{ key: 'updatedAt', label: m.admin_catalog_categories_col_updated(), sortable: true },
 		{ key: 'actions', label: '', class: 'text-right' }
-	];
+	]);
 
 	let categories = $state<CategoryRow[]>([]);
 	let loading = $state(true);
@@ -83,11 +96,12 @@
 			const response = await fetch('/api/admin/categories');
 			const payload = await response.json().catch(() => ({}));
 
-			if (!response.ok) throw new Error(payload.error ?? 'Could not load categories');
+			if (!response.ok)
+				throw new Error(errorMessage(payload, 'admin_catalog_categories_load_failed'));
 
 			categories = payload.data ?? [];
 		} catch (err) {
-			error = err instanceof Error ? err.message : 'Could not load categories';
+			error = errorMessage(err, 'admin_catalog_categories_load_failed');
 		} finally {
 			loading = false;
 		}
@@ -131,39 +145,31 @@
 			const response = await fetch(`/api/admin/categories/${deleting.id}`, { method: 'DELETE' });
 			const payload = await response.json().catch(() => ({}));
 
-			if (!response.ok) throw new Error(payload.error ?? 'Could not delete category');
+			if (!response.ok)
+				throw new Error(errorMessage(payload, 'admin_catalog_categories_delete_failed'));
 
 			await loadCategories();
 		} catch (err) {
-			error = err instanceof Error ? err.message : 'Could not delete category';
+			error = errorMessage(err, 'admin_catalog_categories_delete_failed');
 		} finally {
 			deleting = null;
 		}
 	}
 
 	function formatDate(value: string) {
-		const date = new Date(value);
-		if (Number.isNaN(date.getTime())) return '—';
-
-		return new Intl.DateTimeFormat('en-US', {
-			month: 'short',
-			day: 'numeric',
-			year: 'numeric',
-			hour: '2-digit',
-			minute: '2-digit'
-		}).format(date);
+		return formatDateTime(value) || m.common_dash();
 	}
 </script>
 
 <div class="space-y-6">
 	<div class="flex flex-wrap items-start justify-between gap-3">
 		<div>
-			<h1 class="text-2xl font-semibold tracking-tight">Categories</h1>
-			<p class="text-sm text-muted-foreground">Organise products into a browsable hierarchy.</p>
+			<h1 class="text-2xl font-semibold tracking-tight">{m.admin_catalog_categories_title()}</h1>
+			<p class="text-sm text-muted-foreground">{m.admin_catalog_categories_subtitle()}</p>
 		</div>
 		<Button onclick={openCreate}>
 			<Plus class="size-4" />
-			New category
+			{m.admin_catalog_categories_new()}
 		</Button>
 	</div>
 
@@ -179,7 +185,7 @@
 		{columns}
 		rows={sortedCategories as unknown as Record<string, unknown>[]}
 		{loading}
-		emptyMessage="No categories yet."
+		emptyMessage={m.admin_catalog_categories_empty()}
 		page={1}
 		pageSize={Math.max(1, sortedCategories.length)}
 		total={sortedCategories.length}
@@ -223,7 +229,7 @@
 					<Button
 						variant="ghost"
 						size="icon-sm"
-						aria-label="Edit category"
+						aria-label={m.admin_catalog_categories_edit_aria()}
 						onclick={() => openEdit(row)}
 					>
 						<Pencil class="size-4" />
@@ -232,7 +238,7 @@
 						variant="ghost"
 						size="icon-sm"
 						class="text-destructive hover:bg-destructive/10"
-						aria-label="Delete category"
+						aria-label={m.admin_catalog_categories_delete_aria()}
 						onclick={() => openDelete(row)}
 					>
 						<Trash2 class="size-4" />
@@ -256,9 +262,12 @@
 
 <ConfirmDialog
 	bind:open={deleteOpen}
-	title="Delete category"
-	description={`Delete “${deleting?.name ?? 'this category'}”? Categories with products or child categories cannot be deleted.`}
-	confirmLabel="Delete"
+	title={m.admin_catalog_categories_delete_title()}
+	description={m.admin_catalog_categories_delete_description({
+		name: deleting?.name ?? m.admin_catalog_categories_delete_this()
+	})}
+	confirmLabel={m.common_delete()}
+	cancelLabel={m.common_cancel()}
 	destructive
 	onConfirm={deleteCategory}
 />

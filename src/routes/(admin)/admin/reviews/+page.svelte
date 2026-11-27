@@ -9,6 +9,10 @@
 	import { Input } from '#lib/frontend/components/ui/input/index.ts';
 	import { Label } from '#lib/frontend/components/ui/label/index.ts';
 	import * as Select from '#lib/frontend/components/ui/select/index.ts';
+	import { m } from '#lib/paraglide/messages.js';
+	import { errorMessage } from '#lib/frontend/i18n/index.ts';
+	import { formatDate } from '#lib/frontend/modules/commerce/format.ts';
+	import { statusLabel } from '#lib/frontend/i18n/labels.ts';
 
 	type ReviewRow = {
 		id: string;
@@ -25,15 +29,15 @@
 		createdAt: string;
 	};
 
-	const columns = [
-		{ key: 'productName', label: 'Product' },
-		{ key: 'customer', label: 'Customer' },
-		{ key: 'rating', label: 'Rating' },
-		{ key: 'review', label: 'Review' },
-		{ key: 'status', label: 'Status' },
-		{ key: 'createdAt', label: 'Created' },
+	const columns = $derived([
+		{ key: 'productName', label: m.admin_catalog_reviews_col_product() },
+		{ key: 'customer', label: m.admin_catalog_reviews_col_customer() },
+		{ key: 'rating', label: m.admin_catalog_reviews_rating() },
+		{ key: 'review', label: m.admin_catalog_reviews_col_review() },
+		{ key: 'status', label: m.common_status() },
+		{ key: 'createdAt', label: m.admin_catalog_reviews_col_created() },
 		{ key: 'actions', label: '', class: 'text-right' }
-	];
+	]);
 
 	const pageSize = 25;
 
@@ -72,12 +76,12 @@
 			const response = await fetch(`/api/admin/reviews?${params.toString()}`);
 			const payload = await response.json().catch(() => ({}));
 
-			if (!response.ok) throw new Error(payload.error ?? 'Could not load reviews');
+			if (!response.ok) throw new Error(errorMessage(payload, 'admin_catalog_reviews_load_failed'));
 
 			reviews = payload.data ?? [];
 			total = Number(payload.total ?? 0);
 		} catch (err) {
-			error = err instanceof Error ? err.message : 'Could not load reviews';
+			error = errorMessage(err, 'admin_catalog_reviews_load_failed');
 		} finally {
 			loading = false;
 		}
@@ -118,11 +122,12 @@
 			});
 			const payload = await response.json().catch(() => ({}));
 
-			if (!response.ok) throw new Error(payload.error ?? 'Could not update review');
+			if (!response.ok)
+				throw new Error(errorMessage(payload, 'admin_catalog_reviews_update_failed'));
 
 			await loadReviews();
 		} catch (err) {
-			error = err instanceof Error ? err.message : 'Could not update review';
+			error = errorMessage(err, 'admin_catalog_reviews_update_failed');
 		} finally {
 			mutatingId = '';
 		}
@@ -144,19 +149,6 @@
 		rejectTarget = null;
 	}
 
-	const dateFormatter = new Intl.DateTimeFormat('en-US', {
-		month: 'short',
-		day: 'numeric',
-		year: 'numeric'
-	});
-
-	function formatDate(value: string) {
-		const date = new Date(value);
-		if (Number.isNaN(date.getTime())) return '—';
-
-		return dateFormatter.format(date);
-	}
-
 	function reviewPreview(value: string) {
 		const text = value.trim();
 		if (!text) return '—';
@@ -169,12 +161,12 @@
 <div class="space-y-6">
 	<div class="flex flex-wrap items-start justify-between gap-3">
 		<div>
-			<h1 class="text-2xl font-semibold tracking-tight">Reviews</h1>
-			<p class="text-sm text-muted-foreground">Moderate customer reviews before they go live.</p>
+			<h1 class="text-2xl font-semibold tracking-tight">{m.admin_catalog_reviews_title()}</h1>
+			<p class="text-sm text-muted-foreground">{m.admin_catalog_reviews_subtitle()}</p>
 		</div>
 		<Button variant="outline" onclick={() => void loadReviews()} disabled={loading}>
 			<RefreshCw class="size-4" />
-			Refresh
+			{m.common_refresh()}
 		</Button>
 	</div>
 
@@ -191,7 +183,7 @@
 		<Card.Content class="py-4">
 			<form class="flex flex-wrap items-end gap-3" onsubmit={handleSearch}>
 				<div class="min-w-56 flex-1 space-y-1.5">
-					<Label for="review-search">Search</Label>
+					<Label for="review-search">{m.common_search()}</Label>
 					<div class="relative">
 						<Search
 							class="absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground"
@@ -199,47 +191,56 @@
 						<Input
 							id="review-search"
 							bind:value={search}
-							placeholder="Search title or body"
+							placeholder={m.admin_catalog_reviews_search_placeholder()}
 							class="pl-8"
 						/>
 					</div>
 				</div>
 
 				<div class="w-44 space-y-1.5">
-					<Label for="review-status-filter">Status</Label>
+					<Label for="review-status-filter">{m.common_status()}</Label>
 					<Select.Root type="single" value={statusFilter} onValueChange={handleStatusChange}>
 						<Select.Trigger id="review-status-filter" class="w-full">
-							<Select.Value placeholder="All statuses" />
+							<Select.Value placeholder={m.common_all_statuses()} />
 						</Select.Trigger>
 						<Select.Content>
-							<Select.Item value="all" label="All statuses">All statuses</Select.Item>
-							<Select.Item value="pending" label="Pending">Pending</Select.Item>
-							<Select.Item value="approved" label="Approved">Approved</Select.Item>
-							<Select.Item value="rejected" label="Rejected">Rejected</Select.Item>
+							<Select.Item value="all" label={m.common_all_statuses()}>
+								{m.common_all_statuses()}
+							</Select.Item>
+							{#each ['pending', 'approved', 'rejected'] as value (value)}
+								<Select.Item {value} label={statusLabel('review', value)}>
+									{statusLabel('review', value)}
+								</Select.Item>
+							{/each}
 						</Select.Content>
 					</Select.Root>
 				</div>
 
 				<div class="w-40 space-y-1.5">
-					<Label for="review-rating-filter">Rating</Label>
+					<Label for="review-rating-filter">{m.admin_catalog_reviews_rating()}</Label>
 					<Select.Root type="single" value={ratingFilter} onValueChange={handleRatingChange}>
 						<Select.Trigger id="review-rating-filter" class="w-full">
-							<Select.Value placeholder="All ratings" />
+							<Select.Value placeholder={m.admin_catalog_reviews_all_ratings()} />
 						</Select.Trigger>
 						<Select.Content>
-							<Select.Item value="all" label="All ratings">All ratings</Select.Item>
-							<Select.Item value="5" label="5 stars">5 stars</Select.Item>
-							<Select.Item value="4" label="4 stars">4 stars</Select.Item>
-							<Select.Item value="3" label="3 stars">3 stars</Select.Item>
-							<Select.Item value="2" label="2 stars">2 stars</Select.Item>
-							<Select.Item value="1" label="1 star">1 star</Select.Item>
+							<Select.Item value="all" label={m.admin_catalog_reviews_all_ratings()}>
+								{m.admin_catalog_reviews_all_ratings()}
+							</Select.Item>
+							{#each [5, 4, 3, 2, 1] as stars (stars)}
+								<Select.Item
+									value={String(stars)}
+									label={m.admin_catalog_reviews_stars({ count: stars })}
+								>
+									{m.admin_catalog_reviews_stars({ count: stars })}
+								</Select.Item>
+							{/each}
 						</Select.Content>
 					</Select.Root>
 				</div>
 
 				<Button type="submit" variant="outline">
 					<Search class="size-4" />
-					Search
+					{m.common_search()}
 				</Button>
 			</form>
 		</Card.Content>
@@ -249,7 +250,7 @@
 		{columns}
 		rows={reviews as unknown as Record<string, unknown>[]}
 		{loading}
-		emptyMessage="No reviews match the current filters."
+		emptyMessage={m.admin_catalog_reviews_empty()}
 		{page}
 		{pageSize}
 		{total}
@@ -265,18 +266,18 @@
 				</a>
 			{:else if column.key === 'customer'}
 				<div class="min-w-40">
-					<p class="font-medium">{String(row.customerName ?? 'Guest')}</p>
+					<p class="font-medium">{String(row.customerName ?? m.admin_catalog_reviews_guest())}</p>
 					<p class="text-xs text-muted-foreground">{String(row.customerEmail ?? '—')}</p>
 				</div>
 			{:else if column.key === 'rating'}
 				<div
 					class="flex items-center gap-1"
-					aria-label={`${Number(row.rating ?? 0)} out of 5 stars`}
+					aria-label={m.admin_catalog_reviews_rating_aria({ rating: Number(row.rating ?? 0) })}
 				>
 					{#each Array(5) as _, index (index)}
 						<Star
 							class={index < Number(row.rating ?? 0)
-								? 'size-3.5 fill-amber-400 text-amber-400'
+								? 'size-3.5 fill-rating text-rating'
 								: 'size-3.5 text-muted-foreground'}
 						/>
 					{/each}
@@ -291,15 +292,17 @@
 			{:else if column.key === 'status'}
 				<StatusBadge status={String(row.status ?? '')} />
 			{:else if column.key === 'createdAt'}
-				<span class="text-muted-foreground">{formatDate(String(row.createdAt ?? ''))}</span>
+				<span class="text-muted-foreground">
+					{formatDate(String(row.createdAt ?? '')) || m.common_dash()}
+				</span>
 			{:else if column.key === 'actions'}
 				<div class="flex items-center justify-end gap-1">
 					{#if row.status !== 'approved'}
 						<Button
 							variant="ghost"
 							size="icon-sm"
-							class="text-emerald-600 hover:bg-emerald-500/10"
-							aria-label="Approve review"
+							class="text-success hover:bg-success/10"
+							aria-label={m.admin_catalog_reviews_approve_aria()}
 							disabled={mutatingId === String(row.id)}
 							onclick={() => approveReview(row as unknown as ReviewRow)}
 						>
@@ -311,7 +314,7 @@
 							variant="ghost"
 							size="icon-sm"
 							class="text-destructive hover:bg-destructive/10"
-							aria-label="Reject review"
+							aria-label={m.admin_catalog_reviews_reject_aria()}
 							disabled={mutatingId === String(row.id)}
 							onclick={() => openReject(row as unknown as ReviewRow)}
 						>
@@ -328,9 +331,12 @@
 
 <ConfirmDialog
 	bind:open={rejectOpen}
-	title="Reject review"
-	description={`Reject “${rejectTarget?.title ?? 'this review'}”? It will be hidden from the storefront.`}
-	confirmLabel="Reject"
+	title={m.admin_catalog_reviews_reject_title()}
+	description={m.admin_catalog_reviews_reject_description({
+		title: rejectTarget?.title ?? m.admin_catalog_reviews_reject_this()
+	})}
+	confirmLabel={m.admin_catalog_reviews_reject_confirm()}
+	cancelLabel={m.common_cancel()}
 	destructive
 	onConfirm={rejectReview}
 />

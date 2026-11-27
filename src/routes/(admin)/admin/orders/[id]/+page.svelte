@@ -1,6 +1,14 @@
 <script lang="ts">
-	import { formatMoney } from '#lib/frontend/modules/commerce/format.ts';
+	import { readAccountDetails } from '#lib/frontend/modules/commerce/account-form.ts';
+	import {
+		formatDate as formatDateOnlyRaw,
+		formatDateTime,
+		formatMoney
+	} from '#lib/frontend/modules/commerce/format.ts';
+	import { m } from '#lib/paraglide/messages.js';
+	import { enumLabel, errorMessage, statusLabel } from '#lib/frontend/i18n/index.ts';
 	import { onMount } from 'svelte';
+	import { timelineMessage } from '#lib/frontend/i18n/events.ts';
 	import { page } from '$app/state';
 	import { ArrowLeft, LoaderCircle, Package, Save, Truck } from '@lucide/svelte';
 	import StatusBadge from '#lib/frontend/components/admin/StatusBadge.svelte';
@@ -145,7 +153,7 @@
 
 	async function load(id: string | undefined) {
 		if (!id) {
-			error = 'Order not found.';
+			error = m.admin_ops_order_not_found_short();
 			loading = false;
 			return;
 		}
@@ -157,12 +165,12 @@
 			const response = await fetch(`/api/admin/orders/${id}`);
 			const payload = await response.json().catch(() => ({}));
 
-			if (!response.ok) throw new Error(payload.error ?? 'Could not load order');
+			if (!response.ok) throw new Error(errorMessage(payload, 'admin_ops_order_load_failed'));
 
 			order = payload.data as OrderDetail;
 			syncForm(order);
 		} catch (err) {
-			error = err instanceof Error ? err.message : 'Could not load order';
+			error = errorMessage(err, 'admin_ops_order_load_failed');
 		} finally {
 			loading = false;
 		}
@@ -225,7 +233,10 @@
 		actionError = '';
 
 		if (!isTransitionAllowed(order.status, status)) {
-			actionError = `Cannot move an order from "${order.status}" to "${status}".`;
+			actionError = m.admin_ops_order_invalid_transition({
+				from: statusLabel('order', order.status),
+				to: statusLabel('order', status)
+			});
 			return;
 		}
 
@@ -244,11 +255,11 @@
 			});
 			const payload = await response.json().catch(() => ({}));
 
-			if (!response.ok) throw new Error(payload.error ?? 'Could not update order');
+			if (!response.ok) throw new Error(errorMessage(payload, 'admin_ops_order_update_failed'));
 
 			await load(order.id);
 		} catch (err) {
-			actionError = err instanceof Error ? err.message : 'Could not update order';
+			actionError = errorMessage(err, 'admin_ops_order_update_failed');
 		} finally {
 			savingFulfillment = false;
 		}
@@ -269,12 +280,12 @@
 			});
 			const payload = await response.json().catch(() => ({}));
 
-			if (!response.ok) throw new Error(payload.error ?? 'Could not add note');
+			if (!response.ok) throw new Error(errorMessage(payload, 'admin_ops_order_note_failed'));
 
 			note = '';
 			await load(order.id);
 		} catch (err) {
-			actionError = err instanceof Error ? err.message : 'Could not add note';
+			actionError = errorMessage(err, 'admin_ops_order_note_failed');
 		} finally {
 			savingNote = false;
 		}
@@ -298,7 +309,7 @@
 		const nextTracking = shipTracking.trim();
 
 		if (!nextCarrier || !nextTracking) {
-			shipError = 'Carrier and tracking number are required.';
+			shipError = m.admin_ops_order_ship_required();
 			return;
 		}
 
@@ -312,41 +323,23 @@
 			});
 			const payload = await response.json().catch(() => ({}));
 
-			if (!response.ok) throw new Error(payload.error ?? 'Could not create shipment');
+			if (!response.ok) throw new Error(errorMessage(payload, 'admin_ops_order_ship_failed'));
 
 			shipOpen = false;
 			await load(order.id);
 		} catch (err) {
-			shipError = err instanceof Error ? err.message : 'Could not create shipment';
+			shipError = errorMessage(err, 'admin_ops_order_ship_failed');
 		} finally {
 			shipping = false;
 		}
 	}
 
 	function formatDate(value: string | null) {
-		if (!value) return '—';
-		const date = new Date(value);
-		if (Number.isNaN(date.getTime())) return '—';
-
-		return new Intl.DateTimeFormat('en-US', {
-			month: 'short',
-			day: 'numeric',
-			year: 'numeric',
-			hour: '2-digit',
-			minute: '2-digit'
-		}).format(date);
+		return formatDateTime(value) || '—';
 	}
 
 	function formatDateOnly(value: string | null) {
-		if (!value) return '—';
-		const date = new Date(value);
-		if (Number.isNaN(date.getTime())) return '—';
-
-		return new Intl.DateTimeFormat('en-US', {
-			month: 'short',
-			day: 'numeric',
-			year: 'numeric'
-		}).format(date);
+		return formatDateOnlyRaw(value) || '—';
 	}
 </script>
 
@@ -361,9 +354,9 @@
 			<div class="flex justify-center gap-2">
 				<Button variant="outline" href="/admin/orders">
 					<ArrowLeft class="size-4" />
-					Back to orders
+					{m.admin_ops_order_back()}
 				</Button>
-				<Button onclick={() => void load(page.params.id)}>Try again</Button>
+				<Button onclick={() => void load(page.params.id)}>{m.common_retry()}</Button>
 			</div>
 		</Card.Content>
 	</Card.Root>
@@ -373,27 +366,31 @@
 			<div class="space-y-2">
 				<Button variant="ghost" size="sm" href="/admin/orders">
 					<ArrowLeft class="size-4" />
-					Back to orders
+					{m.admin_ops_order_back()}
 				</Button>
 				<div class="flex flex-wrap items-center gap-2">
-					<h1 class="text-2xl font-semibold tracking-tight">Order {order.orderNumber}</h1>
-					<StatusBadge status={order.status} />
-					<StatusBadge status={order.paymentStatus} />
-					<StatusBadge status={order.fulfillmentStatus} />
+					<h1 class="text-2xl font-semibold tracking-tight">
+						{m.admin_ops_order_heading({ number: order.orderNumber })}
+					</h1>
+					<StatusBadge kind="order" status={order.status} />
+					<StatusBadge kind="payment" status={order.paymentStatus} />
+					<StatusBadge kind="fulfillment" status={order.fulfillmentStatus} />
 				</div>
-				<p class="text-sm text-muted-foreground">Placed {formatDate(order.placedAt)}</p>
+				<p class="text-sm text-muted-foreground">
+					{m.admin_ops_order_placed({ date: formatDate(order.placedAt) })}
+				</p>
 			</div>
 			<div class="flex flex-wrap items-center gap-2">
 				<Button variant="outline" onclick={openShip} disabled={shipmentDisabled}>
 					<Truck class="size-4" />
-					Ship order
+					{m.admin_ops_order_ship()}
 				</Button>
 			</div>
 		</div>
 
 		{#if shipmentDisabled}
 			<div class="rounded-lg border bg-muted/40 p-3 text-sm text-muted-foreground">
-				Shipments cannot be created while the order is {order.status}.
+				{m.admin_ops_order_ship_blocked({ status: statusLabel('order', order.status) })}
 			</div>
 		{/if}
 
@@ -409,85 +406,110 @@
 		<div class="grid gap-4 lg:grid-cols-3">
 			<Card.Root>
 				<Card.Header>
-					<Card.Title>Customer</Card.Title>
-					<Card.Description>Account that placed the order.</Card.Description>
+					<Card.Title>{m.common_customer()}</Card.Title>
+					<Card.Description>{m.admin_ops_order_customer_desc()}</Card.Description>
 				</Card.Header>
 				<Card.Content class="space-y-1 text-sm">
 					{#if order.customer}
-						<p class="font-medium">{order.customer.name ?? 'Unnamed customer'}</p>
-						<p class="text-muted-foreground">{order.customer.email ?? 'No email'}</p>
-						<p class="text-xs text-muted-foreground">ID: {order.customer.id}</p>
+						<p class="font-medium">{order.customer.name ?? m.admin_ops_return_unnamed()}</p>
+						<p class="text-muted-foreground">
+							{order.customer.email ?? m.admin_ops_return_no_email()}
+						</p>
+						<p class="text-xs text-muted-foreground">
+							{m.admin_ops_return_user_id({ id: order.customer.id })}
+						</p>
 					{:else}
-						<p class="text-muted-foreground">Guest order</p>
+						<p class="text-muted-foreground">{m.admin_ops_order_guest()}</p>
 						{#if order.userId}
-							<p class="text-xs text-muted-foreground">ID: {order.userId}</p>
+							<p class="text-xs text-muted-foreground">
+								{m.admin_ops_return_user_id({ id: order.userId })}
+							</p>
 						{/if}
 					{/if}
 				</Card.Content>
 			</Card.Root>
 
-			<Card.Root>
-				<Card.Header>
-					<Card.Title>Shipping address</Card.Title>
-				</Card.Header>
-				<Card.Content>
-					{#if parseAddress(order.shippingAddressJson)}
-						{@const address = parseAddress(order.shippingAddressJson) as AddressShape}
-						<address class="space-y-0.5 text-sm text-muted-foreground not-italic">
-							{#if address.recipientName}
-								<p class="font-medium text-foreground">{address.recipientName}</p>
-							{/if}
-							{#if address.line1}<p>{address.line1}</p>{/if}
-							{#if address.line2}<p>{address.line2}</p>{/if}
-							{#if addressLine(address)}<p>{addressLine(address)}</p>{/if}
-							{#if address.country}<p>{address.country}</p>{/if}
-							{#if address.phone}<p>{address.phone}</p>{/if}
-						</address>
-					{:else}
-						<p class="text-sm text-muted-foreground">No shipping address on file.</p>
-					{/if}
-				</Card.Content>
-			</Card.Root>
+			{#if readAccountDetails(order.shippingAddressJson)}
+				{@const details = readAccountDetails(order.shippingAddressJson) ?? []}
+				<Card.Root>
+					<Card.Header>
+						<Card.Title>{m.admin_ops_order_account_details()}</Card.Title>
+					</Card.Header>
+					<Card.Content>
+						<dl class="grid gap-x-4 gap-y-0.5 text-sm sm:grid-cols-[auto_1fr]">
+							{#each details as detail (detail.id)}
+								<dt class="text-muted-foreground">{detail.label}</dt>
+								<dd class="font-medium break-words text-foreground">{detail.value}</dd>
+							{/each}
+						</dl>
+					</Card.Content>
+				</Card.Root>
+			{:else}
+				<Card.Root>
+					<Card.Header>
+						<Card.Title>{m.admin_ops_order_shipping_address()}</Card.Title>
+					</Card.Header>
+					<Card.Content>
+						{#if parseAddress(order.shippingAddressJson)}
+							{@const address = parseAddress(order.shippingAddressJson) as AddressShape}
+							<address class="space-y-0.5 text-sm text-muted-foreground not-italic">
+								{#if address.recipientName}
+									<p class="font-medium text-foreground">{address.recipientName}</p>
+								{/if}
+								{#if address.line1}<p>{address.line1}</p>{/if}
+								{#if address.line2}<p>{address.line2}</p>{/if}
+								{#if addressLine(address)}<p>{addressLine(address)}</p>{/if}
+								{#if address.country}<p>{address.country}</p>{/if}
+								{#if address.phone}<p>{address.phone}</p>{/if}
+							</address>
+						{:else}
+							<p class="text-sm text-muted-foreground">{m.admin_ops_order_no_shipping_address()}</p>
+						{/if}
+					</Card.Content>
+				</Card.Root>
 
-			<Card.Root>
-				<Card.Header>
-					<Card.Title>Billing address</Card.Title>
-				</Card.Header>
-				<Card.Content>
-					{#if parseAddress(order.billingAddressJson)}
-						{@const address = parseAddress(order.billingAddressJson) as AddressShape}
-						<address class="space-y-0.5 text-sm text-muted-foreground not-italic">
-							{#if address.recipientName}
-								<p class="font-medium text-foreground">{address.recipientName}</p>
-							{/if}
-							{#if address.line1}<p>{address.line1}</p>{/if}
-							{#if address.line2}<p>{address.line2}</p>{/if}
-							{#if addressLine(address)}<p>{addressLine(address)}</p>{/if}
-							{#if address.country}<p>{address.country}</p>{/if}
-							{#if address.phone}<p>{address.phone}</p>{/if}
-						</address>
-					{:else}
-						<p class="text-sm text-muted-foreground">No billing address on file.</p>
-					{/if}
-				</Card.Content>
-			</Card.Root>
+				<Card.Root>
+					<Card.Header>
+						<Card.Title>{m.admin_ops_order_billing_address()}</Card.Title>
+					</Card.Header>
+					<Card.Content>
+						{#if parseAddress(order.billingAddressJson)}
+							{@const address = parseAddress(order.billingAddressJson) as AddressShape}
+							<address class="space-y-0.5 text-sm text-muted-foreground not-italic">
+								{#if address.recipientName}
+									<p class="font-medium text-foreground">{address.recipientName}</p>
+								{/if}
+								{#if address.line1}<p>{address.line1}</p>{/if}
+								{#if address.line2}<p>{address.line2}</p>{/if}
+								{#if addressLine(address)}<p>{addressLine(address)}</p>{/if}
+								{#if address.country}<p>{address.country}</p>{/if}
+								{#if address.phone}<p>{address.phone}</p>{/if}
+							</address>
+						{:else}
+							<p class="text-sm text-muted-foreground">{m.admin_ops_order_no_billing_address()}</p>
+						{/if}
+					</Card.Content>
+				</Card.Root>
+			{/if}
 		</div>
 
 		<Card.Root>
 			<Card.Header>
-				<Card.Title>Items</Card.Title>
-				<Card.Description>{order.items.length} line items in this order.</Card.Description>
+				<Card.Title>{m.admin_ops_order_items()}</Card.Title>
+				<Card.Description>
+					{m.admin_ops_order_items_desc({ count: order.items.length })}
+				</Card.Description>
 			</Card.Header>
 			<Card.Content>
 				<Table.Root>
 					<Table.Header>
 						<Table.Row>
-							<Table.Head>Product</Table.Head>
+							<Table.Head>{m.common_product()}</Table.Head>
 							<Table.Head>SKU</Table.Head>
-							<Table.Head class="text-right">Qty</Table.Head>
-							<Table.Head class="text-right">Unit price</Table.Head>
-							<Table.Head class="text-right">Total</Table.Head>
-							<Table.Head>Status</Table.Head>
+							<Table.Head class="text-right">{m.admin_ops_order_col_qty()}</Table.Head>
+							<Table.Head class="text-right">{m.admin_ops_order_col_unit_price()}</Table.Head>
+							<Table.Head class="text-right">{m.common_total()}</Table.Head>
+							<Table.Head>{m.common_status()}</Table.Head>
 						</Table.Row>
 					</Table.Header>
 					<Table.Body>
@@ -533,31 +555,31 @@
 		<div class="grid gap-4 lg:grid-cols-2">
 			<Card.Root>
 				<Card.Header>
-					<Card.Title>Totals</Card.Title>
+					<Card.Title>{m.admin_ops_order_totals()}</Card.Title>
 					<Card.Description>{order.currency}</Card.Description>
 				</Card.Header>
 				<Card.Content class="space-y-2 text-sm">
 					<div class="flex items-center justify-between">
-						<span class="text-muted-foreground">Subtotal</span>
+						<span class="text-muted-foreground">{m.common_subtotal()}</span>
 						<span>{formatMoney(order.subtotal, order.currency)}</span>
 					</div>
 					{#if order.discount !== 0}
 						<div class="flex items-center justify-between">
-							<span class="text-muted-foreground">Discount</span>
+							<span class="text-muted-foreground">{m.common_discount()}</span>
 							<span>-{formatMoney(order.discount, order.currency)}</span>
 						</div>
 					{/if}
 					<div class="flex items-center justify-between">
-						<span class="text-muted-foreground">Shipping</span>
+						<span class="text-muted-foreground">{m.common_shipping()}</span>
 						<span>{formatMoney(order.shipping, order.currency)}</span>
 					</div>
 					<div class="flex items-center justify-between">
-						<span class="text-muted-foreground">Tax</span>
+						<span class="text-muted-foreground">{m.common_tax()}</span>
 						<span>{formatMoney(order.tax, order.currency)}</span>
 					</div>
 					<Separator />
 					<div class="flex items-center justify-between text-base font-semibold">
-						<span>Grand total</span>
+						<span>{m.admin_ops_order_grand_total()}</span>
 						<span>{formatMoney(order.grandTotal, order.currency)}</span>
 					</div>
 				</Card.Content>
@@ -565,68 +587,77 @@
 
 			<Card.Root>
 				<Card.Header>
-					<Card.Title>Fulfillment</Card.Title>
-					<Card.Description>Update status, carrier and delivery estimate.</Card.Description>
+					<Card.Title>{m.admin_ops_order_fulfillment()}</Card.Title>
+					<Card.Description>{m.admin_ops_order_fulfillment_desc()}</Card.Description>
 				</Card.Header>
 				<Card.Content>
 					<form class="grid gap-4" onsubmit={saveFulfillment}>
 						<Field.Group>
 							<Field.Field>
-								<Field.Label for="order-status">Order status</Field.Label>
+								<Field.Label for="order-status">{m.admin_ops_order_status_label()}</Field.Label>
 								<Select.Root type="single" bind:value={status}>
 									<Select.Trigger id="order-status" class="w-full">
-										<Select.Value placeholder="Select status" />
+										<Select.Value placeholder={m.admin_ops_order_select_status()} />
 									</Select.Trigger>
 									<Select.Content>
 										{#each orderStatuses as option (option)}
 											<Select.Item
 												value={option}
-												label={option}
+												label={statusLabel('order', option)}
 												disabled={!isTransitionAllowed(order.status, option)}
 											>
-												{option}
+												{statusLabel('order', option)}
 											</Select.Item>
 										{/each}
 									</Select.Content>
 								</Select.Root>
 								{#if statusInvalid}
 									<Field.Error>
-										Cannot move an order from “{order.status}” to “{status}”.
+										{m.admin_ops_order_invalid_transition({
+											from: statusLabel('order', order.status),
+											to: statusLabel('order', status)
+										})}
 									</Field.Error>
 								{:else}
 									<Field.Description>
-										Current status: {order.status}. Only valid transitions can be saved.
+										{m.admin_ops_order_current_status({
+											status: statusLabel('order', order.status)
+										})}
 									</Field.Description>
 								{/if}
 							</Field.Field>
 
 							<div class="grid gap-4 sm:grid-cols-2">
 								<Field.Field>
-									<Field.Label for="order-carrier">Carrier</Field.Label>
-									<Input id="order-carrier" bind:value={carrier} placeholder="e.g. UPS" />
+									<Field.Label for="order-carrier">{m.admin_ops_order_carrier()}</Field.Label>
+									<Input
+										id="order-carrier"
+										bind:value={carrier}
+										placeholder={m.admin_ops_order_carrier_placeholder_main()}
+									/>
 								</Field.Field>
 
 								<Field.Field>
-									<Field.Label for="order-tracking">Tracking number</Field.Label>
+									<Field.Label for="order-tracking">{m.admin_ops_order_tracking()}</Field.Label>
 									<Input
 										id="order-tracking"
 										bind:value={trackingNumber}
-										placeholder="Tracking number"
+										placeholder={m.admin_ops_order_tracking()}
 									/>
 								</Field.Field>
 							</div>
 
 							<Field.Field>
-								<Field.Label for="order-eta">Estimated delivery</Field.Label>
+								<Field.Label for="order-eta">{m.admin_ops_order_eta()}</Field.Label>
 								<Input id="order-eta" type="datetime-local" bind:value={estimatedDelivery} />
-								<Field.Description>Leave empty to clear the estimate.</Field.Description>
+								<Field.Description>{m.admin_ops_order_eta_hint()}</Field.Description>
 							</Field.Field>
 						</Field.Group>
 
 						<div class="flex justify-end">
 							<Button type="submit" disabled={savingFulfillment || statusInvalid}>
 								<Save class="size-4" />
-								{savingFulfillment ? 'Saving…' : 'Save fulfillment'}
+								{savingFulfillment ? m.common_saving() : m.admin_ops_order_save_fulfillment()}
 							</Button>
 						</div>
 					</form>
@@ -637,12 +668,12 @@
 		<div class="grid gap-4 lg:grid-cols-2">
 			<Card.Root>
 				<Card.Header>
-					<Card.Title>Timeline</Card.Title>
-					<Card.Description>Events, newest first.</Card.Description>
+					<Card.Title>{m.admin_ops_order_timeline()}</Card.Title>
+					<Card.Description>{m.admin_ops_order_timeline_desc()}</Card.Description>
 				</Card.Header>
 				<Card.Content>
 					{#if sortedEvents.length === 0}
-						<p class="text-sm text-muted-foreground">No events recorded yet.</p>
+						<p class="text-sm text-muted-foreground">{m.admin_ops_order_no_events()}</p>
 					{:else}
 						<ol class="space-y-4">
 							{#each sortedEvents as event (event.id)}
@@ -655,7 +686,7 @@
 												{formatDate(event.createdAt)}
 											</span>
 										</div>
-										<p class="text-sm">{event.message}</p>
+										<p class="text-sm">{timelineMessage(event)}</p>
 									</div>
 								</li>
 							{/each}
@@ -666,15 +697,20 @@
 
 			<Card.Root>
 				<Card.Header>
-					<Card.Title>Add note</Card.Title>
-					<Card.Description>Internal note attached to the order timeline.</Card.Description>
+					<Card.Title>{m.admin_ops_order_add_note()}</Card.Title>
+					<Card.Description>{m.admin_ops_order_add_note_desc()}</Card.Description>
 				</Card.Header>
 				<Card.Content>
 					<form class="space-y-3" onsubmit={addNote}>
-						<Textarea bind:value={note} placeholder="Write an internal note" rows={3} required />
+						<Textarea
+							bind:value={note}
+							placeholder={m.admin_ops_order_note_placeholder()}
+							rows={3}
+							required
+						/>
 						<div class="flex justify-end">
 							<Button type="submit" disabled={savingNote || !note.trim()}>
-								{savingNote ? 'Adding…' : 'Add note'}
+								{savingNote ? m.admin_ops_order_adding() : m.admin_ops_order_add_note()}
 							</Button>
 						</div>
 					</form>
@@ -685,12 +721,12 @@
 		<div class="grid gap-4 lg:grid-cols-2">
 			<Card.Root>
 				<Card.Header>
-					<Card.Title>Shipments</Card.Title>
-					<Card.Description>Carrier handoffs for this order.</Card.Description>
+					<Card.Title>{m.admin_ops_order_shipments()}</Card.Title>
+					<Card.Description>{m.admin_ops_order_shipments_desc()}</Card.Description>
 				</Card.Header>
 				<Card.Content>
 					{#if order.shipments.length === 0}
-						<p class="text-sm text-muted-foreground">No shipments yet.</p>
+						<p class="text-sm text-muted-foreground">{m.admin_ops_order_no_shipments()}</p>
 					{:else}
 						<ul class="divide-y">
 							{#each order.shipments as shipment (shipment.id)}
@@ -702,12 +738,13 @@
 												{shipment.trackingNumber}
 											</p>
 										</div>
-										<StatusBadge status={shipment.status} />
+										<StatusBadge kind="fulfillment" status={shipment.status} />
 									</div>
 									<p class="text-xs text-muted-foreground">
-										Shipped {formatDate(shipment.shippedAt)} · Delivered {formatDate(
-											shipment.deliveredAt
-										)}
+										{m.admin_ops_order_shipment_dates({
+											shipped: formatDate(shipment.shippedAt),
+											delivered: formatDate(shipment.deliveredAt)
+										})}
 									</p>
 								</li>
 							{/each}
@@ -718,19 +755,21 @@
 
 			<Card.Root>
 				<Card.Header>
-					<Card.Title>Payments</Card.Title>
-					<Card.Description>Payment attempts and refunds.</Card.Description>
+					<Card.Title>{m.admin_ops_order_payments()}</Card.Title>
+					<Card.Description>{m.admin_ops_order_payments_desc()}</Card.Description>
 				</Card.Header>
 				<Card.Content>
 					{#if order.payments.length === 0}
-						<p class="text-sm text-muted-foreground">No payments recorded yet.</p>
+						<p class="text-sm text-muted-foreground">{m.admin_ops_order_no_payments()}</p>
 					{:else}
 						<ul class="divide-y">
 							{#each order.payments as payment (payment.id)}
 								<li class="space-y-1 py-3 first:pt-0 last:pb-0">
 									<div class="flex flex-wrap items-center justify-between gap-2">
 										<div>
-											<p class="text-sm font-medium capitalize">{payment.provider}</p>
+											<p class="text-sm font-medium">
+												{enumLabel('payment_type', payment.provider)}
+											</p>
 											{#if payment.providerRef}
 												<p class="text-xs text-muted-foreground">{payment.providerRef}</p>
 											{/if}
@@ -739,11 +778,11 @@
 											<span class="text-sm font-medium">
 												{formatMoney(payment.amount, order.currency)}
 											</span>
-											<StatusBadge status={payment.status} />
+											<StatusBadge kind="payment" status={payment.status} />
 										</div>
 									</div>
 									<p class="text-xs text-muted-foreground">
-										Paid {formatDateOnly(payment.paidAt)}
+										{m.admin_ops_order_paid_on({ date: formatDateOnly(payment.paidAt) })}
 									</p>
 									{#if payment.failureReason}
 										<p class="text-xs text-destructive">{payment.failureReason}</p>
@@ -759,7 +798,7 @@
 		{#if order.notes}
 			<Card.Root>
 				<Card.Header>
-					<Card.Title>Order notes</Card.Title>
+					<Card.Title>{m.admin_ops_order_notes()}</Card.Title>
 				</Card.Header>
 				<Card.Content>
 					<p class="text-sm whitespace-pre-line text-muted-foreground">{order.notes}</p>
@@ -771,22 +810,27 @@
 	<Dialog.Root bind:open={shipOpen}>
 		<Dialog.Content class="sm:max-w-md">
 			<Dialog.Header>
-				<Dialog.Title>Ship order</Dialog.Title>
-				<Dialog.Description>Create a shipment and mark this order as fulfilled.</Dialog.Description>
+				<Dialog.Title>{m.admin_ops_order_ship()}</Dialog.Title>
+				<Dialog.Description>{m.admin_ops_order_ship_dialog_desc()}</Dialog.Description>
 			</Dialog.Header>
 
 			<form class="grid gap-4" onsubmit={shipOrder}>
 				<Field.Field>
-					<Field.Label for="ship-carrier">Carrier</Field.Label>
-					<Input id="ship-carrier" bind:value={shipCarrier} placeholder="e.g. FedEx" required />
+					<Field.Label for="ship-carrier">{m.admin_ops_order_carrier()}</Field.Label>
+					<Input
+						id="ship-carrier"
+						bind:value={shipCarrier}
+						placeholder={m.admin_ops_order_carrier_placeholder_ship()}
+						required
+					/>
 				</Field.Field>
 
 				<Field.Field>
-					<Field.Label for="ship-tracking">Tracking number</Field.Label>
+					<Field.Label for="ship-tracking">{m.admin_ops_order_tracking()}</Field.Label>
 					<Input
 						id="ship-tracking"
 						bind:value={shipTracking}
-						placeholder="Tracking number"
+						placeholder={m.admin_ops_order_tracking()}
 						required
 					/>
 				</Field.Field>
@@ -802,11 +846,11 @@
 						onclick={() => (shipOpen = false)}
 						disabled={shipping}
 					>
-						Cancel
+						{m.common_cancel()}
 					</Button>
 					<Button type="submit" disabled={shipping}>
 						<Truck class="size-4" />
-						{shipping ? 'Creating…' : 'Create shipment'}
+						{shipping ? m.admin_ops_order_creating() : m.admin_ops_order_create_shipment()}
 					</Button>
 				</Dialog.Footer>
 			</form>
@@ -815,8 +859,8 @@
 {:else}
 	<Card.Root>
 		<Card.Content class="space-y-4 py-10 text-center">
-			<p class="text-sm text-muted-foreground">This order could not be found.</p>
-			<Button href="/admin/orders">Back to orders</Button>
+			<p class="text-sm text-muted-foreground">{m.admin_ops_order_not_found()}</p>
+			<Button href="/admin/orders">{m.admin_ops_order_back()}</Button>
 		</Card.Content>
 	</Card.Root>
 {/if}

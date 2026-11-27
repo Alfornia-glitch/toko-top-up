@@ -1,5 +1,7 @@
 <script lang="ts">
-	import { formatMoney } from '#lib/frontend/modules/commerce/format.ts';
+	import { m } from '#lib/paraglide/messages.js';
+	import { formatMoney, formatNumber } from '#lib/frontend/modules/commerce/format.ts';
+	import { errorMessage } from '#lib/frontend/i18n/index.ts';
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
 	import { LoaderCircle, Minus, Plus, RotateCcw, Star, Truck } from '@lucide/svelte';
@@ -7,6 +9,7 @@
 	import SiteFooter from '#lib/frontend/components/SiteFooter.svelte';
 	import Seo from '#lib/frontend/components/Seo.svelte';
 	import { productMeta } from '#lib/frontend/modules/seo/index.ts';
+	import { site } from '#lib/frontend/modules/commerce/site.svelte.ts';
 	import WishlistButton from '#lib/frontend/components/shared/WishlistButton.svelte';
 	import ImagePlaceholder from '#lib/frontend/components/ui/ImagePlaceholder.svelte';
 	import { cart } from '#lib/frontend/modules/commerce/cart.svelte.ts';
@@ -105,7 +108,10 @@
 
 			const payload = await response.json().catch(() => ({}));
 
-			if (!response.ok) throw new Error(payload.error ?? 'Could not load product');
+			if (!response.ok) {
+				error = errorMessage(payload, 'storefront_product_load_failed');
+				return;
+			}
 
 			const data = payload.data as ProductDetail;
 			product = data;
@@ -113,7 +119,7 @@
 			quantity = 1;
 			selectedOptions = initialOptions(data);
 		} catch (err) {
-			error = err instanceof Error ? err.message : 'Could not load product';
+			error = errorMessage(err, 'storefront_product_load_failed');
 		} finally {
 			loading = false;
 		}
@@ -166,11 +172,11 @@
 </script>
 
 <div
-	class="relative flex min-h-screen w-full flex-col items-center bg-white"
+	class="relative flex min-h-screen w-full flex-col items-center bg-background"
 	data-name="Shopix - Product Detail"
 >
 	{#if product}
-		<Seo meta={productMeta(product)} />
+		<Seo meta={productMeta(product, site.storeName)} />
 	{/if}
 	<SiteHeader />
 	<main class="mx-auto w-full max-w-[1280px] px-4 py-10 lg:px-8">
@@ -190,11 +196,11 @@
 		{:else if notFound}
 			<Card.Root class="mx-auto max-w-lg">
 				<Card.Content class="flex flex-col items-center gap-4 py-12 text-center">
-					<p class="text-lg font-semibold text-[#0a0a0a]">Product not found</p>
-					<p class="text-sm text-[#737373]">
-						The product you are looking for is unavailable or no longer listed.
+					<p class="text-lg font-semibold text-foreground">{m.storefront_product_not_found()}</p>
+					<p class="text-sm text-muted-foreground">
+						{m.storefront_product_not_found_desc()}
 					</p>
-					<Button href="/products">Browse products</Button>
+					<Button href="/products">{m.common_browse_products()}</Button>
 				</Card.Content>
 			</Card.Root>
 		{:else if error}
@@ -202,8 +208,8 @@
 				<Card.Content class="flex flex-col items-center gap-4 py-12 text-center">
 					<p class="text-sm text-destructive">{error}</p>
 					<div class="flex flex-wrap justify-center gap-2">
-						<Button variant="outline" href="/products">Back to products</Button>
-						<Button onclick={() => void load(slug)}>Try again</Button>
+						<Button variant="outline" href="/products">{m.storefront_product_back()}</Button>
+						<Button onclick={() => void load(slug)}>{m.common_retry()}</Button>
 					</div>
 				</Card.Content>
 			</Card.Root>
@@ -211,7 +217,7 @@
 			<div class="grid gap-10 lg:grid-cols-2">
 				<div class="flex flex-col gap-4">
 					<div
-						class="relative aspect-square overflow-hidden rounded-[14px] border border-[#e5e5e5] bg-[#f5f5f5]"
+						class="relative aspect-square overflow-hidden rounded-[14px] border border-border bg-muted"
 					>
 						{#if images[activeImage]}
 							<img
@@ -229,11 +235,11 @@
 								<button
 									type="button"
 									onclick={() => (activeImage = index)}
-									aria-label={`View ${image.alt ?? product.name}`}
-									class={`relative size-20 shrink-0 overflow-hidden rounded-[10px] border bg-[#f5f5f5] transition ${
+									aria-label={m.storefront_product_view_image({ name: image.alt ?? product.name })}
+									class={`relative size-20 shrink-0 overflow-hidden rounded-[10px] border bg-muted transition ${
 										index === activeImage
-											? 'border-[#0a0a0a] ring-2 ring-[#0a0a0a]/10'
-											: 'border-[#e5e5e5] hover:border-[#a3a3a3]'
+											? 'border-foreground ring-2 ring-foreground/10'
+											: 'border-border hover:border-ring'
 									}`}
 								>
 									<img src={image.url} alt="" class="size-full object-cover" loading="lazy" />
@@ -245,17 +251,17 @@
 
 				<div class="flex flex-col gap-6">
 					<div class="flex flex-col gap-3">
-						<div class="flex flex-wrap items-center gap-2 text-xs text-[#737373]">
+						<div class="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
 							{#if product.categoryName}
 								<span>{product.categoryName}</span>
 								<span aria-hidden="true">/</span>
 							{/if}
 							{#if product.brandName}
-								<span class="font-medium text-[#0a0a0a]">{product.brandName}</span>
+								<span class="font-medium text-foreground">{product.brandName}</span>
 							{/if}
 						</div>
 						<h1
-							class="text-3xl leading-tight font-bold text-[#0a0a0a] max-[480px]:text-2xl max-[480px]:leading-8"
+							class="text-3xl leading-tight font-bold text-foreground max-[480px]:text-2xl max-[480px]:leading-8"
 						>
 							{product.name}
 						</h1>
@@ -265,31 +271,38 @@
 									<Star
 										class={`size-4 ${
 											index < Math.round(rating)
-												? 'fill-[#d97706] text-[#d97706]'
-												: 'text-[#d4d4d4]'
+												? 'fill-rating text-rating'
+												: 'text-muted-foreground/40'
 										}`}
 									/>
 								{/each}
 							</div>
-							<span class="text-sm text-[#737373]">
-								{rating.toFixed(1)} ({product.ratingCount}) · {product.soldCount} sold
+							<span class="text-sm text-muted-foreground">
+								{m.storefront_product_rating_sold({
+									rating: formatNumber(rating, {
+										minimumFractionDigits: 1,
+										maximumFractionDigits: 1
+									}),
+									count: formatNumber(product.ratingCount),
+									sold: formatNumber(product.soldCount)
+								})}
 							</span>
 						</div>
 					</div>
 
 					<div class="flex flex-wrap items-baseline gap-3">
-						<span class="text-3xl font-bold text-[#0a0a0a]">
+						<span class="text-3xl font-bold text-foreground">
 							{formatMoney(displayPrice, product.currency)}
 						</span>
 						{#if compareAt}
-							<span class="text-lg text-[#737373] line-through">
+							<span class="text-lg text-muted-foreground line-through">
 								{formatMoney(compareAt, product.currency)}
 							</span>
 						{/if}
 					</div>
 
 					{#if product.shortDescription}
-						<p class="text-sm leading-6 text-[#525252]">{product.shortDescription}</p>
+						<p class="text-sm leading-6 text-muted-foreground">{product.shortDescription}</p>
 					{/if}
 
 					<Separator />
@@ -298,10 +311,12 @@
 						<div class="flex flex-col gap-4">
 							{#each product.options as option (option.id)}
 								<div class="flex flex-col gap-2">
-									<span class="text-sm font-medium text-[#0a0a0a]">{option.name}</span>
+									<span class="text-sm font-medium text-foreground">{option.name}</span>
 									<Select.Root type="single" bind:value={selectedOptions[option.name]}>
 										<Select.Trigger class="w-full justify-between">
-											<Select.Value placeholder={`Select ${option.name}`} />
+											<Select.Value
+												placeholder={m.storefront_product_select_option({ name: option.name })}
+											/>
 										</Select.Trigger>
 										<Select.Content>
 											{#each option.values as value (value.value)}
@@ -318,16 +333,22 @@
 
 					<div class="flex flex-wrap items-center gap-3">
 						{#if displayStock > 10}
-							<Badge class="bg-[#16a34a]/10 text-[#16a34a]">In stock</Badge>
+							<Badge class="bg-success/10 text-success">{m.storefront_product_in_stock()}</Badge>
 						{:else if displayStock > 0}
-							<Badge class="bg-[#d97706]/10 text-[#b45309]">Only {displayStock} left</Badge>
+							<Badge class="bg-warning/10 text-warning"
+								>{m.storefront_product_low_stock({ count: displayStock })}</Badge
+							>
 						{:else}
-							<Badge variant="destructive">Out of stock</Badge>
+							<Badge variant="destructive">{m.storefront_product_out_of_stock()}</Badge>
 						{/if}
 						{#if selectedVariant}
-							<span class="text-xs text-[#737373]">SKU: {selectedVariant.sku}</span>
+							<span class="text-xs text-muted-foreground"
+								>{m.storefront_product_sku({ sku: selectedVariant.sku })}</span
+							>
 						{:else}
-							<span class="text-xs text-[#737373]">SKU: {product.sku}</span>
+							<span class="text-xs text-muted-foreground"
+								>{m.storefront_product_sku({ sku: product.sku })}</span
+							>
 						{/if}
 					</div>
 
@@ -336,7 +357,7 @@
 							<Button
 								variant="outline"
 								size="icon"
-								aria-label="Decrease quantity"
+								aria-label={m.storefront_product_decrease_qty()}
 								disabled={quantity <= 1}
 								onclick={() => (quantity = Math.max(1, quantity - 1))}
 							>
@@ -352,7 +373,7 @@
 							<Button
 								variant="outline"
 								size="icon"
-								aria-label="Increase quantity"
+								aria-label={m.storefront_product_increase_qty()}
 								disabled={displayStock <= 0 || quantity >= displayStock}
 								onclick={() => (quantity = Math.min(Math.max(1, displayStock), quantity + 1))}
 							>
@@ -365,38 +386,44 @@
 							disabled={displayStock <= 0}
 							onclick={addToCart}
 						>
-							Add to cart
+							{m.storefront_product_add_to_cart()}
 						</Button>
 						<WishlistButton productId={product.id} label />
 					</div>
 
 					<div
-						class="grid gap-3 rounded-[14px] border border-[#e5e5e5] bg-[#fafafa] p-4 text-sm text-[#525252]"
+						class="grid gap-3 rounded-[14px] border border-border bg-primary-foreground p-4 text-sm text-muted-foreground"
 					>
 						<div class="flex items-start gap-2">
-							<Truck class="mt-0.5 size-4 shrink-0 text-[#0a0a0a]" />
-							<span>{product.shippingInfo ?? 'Ships in 2–4 business days.'}</span>
+							<Truck class="mt-0.5 size-4 shrink-0 text-foreground" />
+							<span>{product.shippingInfo ?? m.storefront_product_default_shipping()}</span>
 						</div>
 						<div class="flex items-start gap-2">
-							<RotateCcw class="mt-0.5 size-4 shrink-0 text-[#0a0a0a]" />
-							<span>{product.returnPolicy ?? '30-day returns.'}</span>
+							<RotateCcw class="mt-0.5 size-4 shrink-0 text-foreground" />
+							<span>{product.returnPolicy ?? m.storefront_product_default_returns()}</span>
 						</div>
 					</div>
 
 					<Tabs.Root value="description" class="w-full">
 						<Tabs.List variant="line" class="w-full justify-start gap-6">
-							<Tabs.Trigger value="description" class="flex-none">Description</Tabs.Trigger>
-							<Tabs.Trigger value="shipping" class="flex-none">Shipping</Tabs.Trigger>
-							<Tabs.Trigger value="returns" class="flex-none">Returns</Tabs.Trigger>
+							<Tabs.Trigger value="description" class="flex-none"
+								>{m.storefront_product_tab_description()}</Tabs.Trigger
+							>
+							<Tabs.Trigger value="shipping" class="flex-none"
+								>{m.storefront_product_tab_shipping()}</Tabs.Trigger
+							>
+							<Tabs.Trigger value="returns" class="flex-none"
+								>{m.storefront_product_tab_returns()}</Tabs.Trigger
+							>
 						</Tabs.List>
-						<Tabs.Content value="description" class="pt-4 text-sm leading-6 text-[#525252]">
-							{product.description ?? 'No description available for this product yet.'}
+						<Tabs.Content value="description" class="pt-4 text-sm leading-6 text-muted-foreground">
+							{product.description ?? m.storefront_product_no_description()}
 						</Tabs.Content>
-						<Tabs.Content value="shipping" class="pt-4 text-sm leading-6 text-[#525252]">
-							{product.shippingInfo ?? 'Ships in 2–4 business days.'}
+						<Tabs.Content value="shipping" class="pt-4 text-sm leading-6 text-muted-foreground">
+							{product.shippingInfo ?? m.storefront_product_default_shipping()}
 						</Tabs.Content>
-						<Tabs.Content value="returns" class="pt-4 text-sm leading-6 text-[#525252]">
-							{product.returnPolicy ?? '30-day returns.'}
+						<Tabs.Content value="returns" class="pt-4 text-sm leading-6 text-muted-foreground">
+							{product.returnPolicy ?? m.storefront_product_default_returns()}
 						</Tabs.Content>
 					</Tabs.Root>
 				</div>

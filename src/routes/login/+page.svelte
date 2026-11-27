@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import AuthShell from '#lib/frontend/components/auth/AuthShell.svelte';
@@ -10,6 +11,7 @@
 	import { Button } from '#lib/frontend/components/ui/button/index.ts';
 	import { Spinner } from '#lib/frontend/components/ui/spinner/index.ts';
 	import { authClient, authErrorMessage, safeRedirect } from '#frontend/modules/auth/index.ts';
+	import { site } from '#lib/frontend/modules/commerce/site.svelte.ts';
 
 	const session = authClient.useSession();
 	const redirectTo = safeRedirect(page.url.searchParams.get('redirectTo'));
@@ -52,16 +54,16 @@
 	}
 </script>
 
-<AuthShell title="Welcome back" description="Please enter your details to sign in">
+<AuthShell title={m.auth_login_title()} description={m.auth_login_description()}>
 	<div class="grid gap-6">
 		<form class="grid gap-4" onsubmit={handleSubmit}>
 			<Field.Group>
 				<Field.Field>
-					<Field.Label for="email">Email</Field.Label>
+					<Field.Label for="email">{m.common_email()}</Field.Label>
 					<Input
 						id="email"
 						type="email"
-						placeholder="john@example.com"
+						placeholder={m.auth_email_placeholder()}
 						autocomplete="email"
 						bind:value={email}
 						required
@@ -69,9 +71,9 @@
 				</Field.Field>
 				<PasswordField
 					id="password"
-					label="Password"
+					label={m.common_password()}
 					bind:value={password}
-					placeholder="Enter your password"
+					placeholder={m.auth_password_placeholder()}
 					autocomplete="current-password"
 				/>
 			</Field.Group>
@@ -82,19 +84,19 @@
 				<div class="flex items-center gap-2">
 					<Checkbox id="remember" bind:checked={remember} />
 					<Field.Label for="remember" class="font-normal text-muted-foreground">
-						Remember me
+						{m.auth_login_remember_me()}
 					</Field.Label>
 				</div>
 				<a href="/forgot-password" class="text-sm font-medium underline-offset-4 hover:underline">
-					Forgot password?
+					{m.auth_forgot_title()}
 				</a>
 			</div>
 			<Button type="submit" class="w-full" disabled={loading}>
 				{#if loading}
 					<Spinner />
-					Signing in…
+					{m.auth_login_submitting()}
 				{:else}
-					Sign in to Shopix
+					{m.auth_login_submit({ store: site.storeName })}
 				{/if}
 			</Button>
 		</form>
@@ -103,9 +105,9 @@
 
 	{#snippet footer()}
 		<p class="text-sm text-muted-foreground">
-			New on our platform?
+			{m.auth_login_new_here()}
 			<a href="/signup" class="font-medium text-foreground underline-offset-4 hover:underline">
-				Create an account
+				{m.auth_login_create_account()}
 			</a>
 		</p>
 	{/snippet}

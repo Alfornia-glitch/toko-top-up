@@ -20,10 +20,17 @@ export const PATCH: RequestHandler = async (event) => {
 	try {
 		body = await event.request.json();
 	} catch {
-		return Response.json({ error: 'Expected a JSON body' }, { status: 400 });
+		return Response.json(
+			{ error: 'Expected a JSON body', code: 'invalid_json_body' },
+			{ status: 400 }
+		);
 	}
 	const parsed = giftCardUpdateSchema.safeParse(body);
-	if (!parsed.success) return Response.json({ error: 'Invalid gift card update' }, { status: 422 });
+	if (!parsed.success)
+		return Response.json(
+			{ error: 'Invalid gift card update', code: 'VALIDATION_ERROR' },
+			{ status: 422 }
+		);
 	const card = unwrap(
 		await event.locals.services.marketing.marketing.updateGiftCard(
 			event.params.id,

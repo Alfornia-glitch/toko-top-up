@@ -10,7 +10,7 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 	const parsed = paginationQuerySchema.safeParse(Object.fromEntries(url.searchParams));
 	if (!parsed.success) {
 		return Response.json(
-			{ error: 'Invalid query parameters', details: parsed.error.flatten() },
+			{ error: 'Invalid query parameters', code: 'invalid_query', details: parsed.error.flatten() },
 			{ status: 422 }
 		);
 	}

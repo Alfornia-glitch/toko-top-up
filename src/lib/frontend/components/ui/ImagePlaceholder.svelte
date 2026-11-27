@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
 	let {
 		class: className = '',
 		variant = 'light',
@@ -7,7 +8,7 @@
 
 	const tones = {
 		light: { box: 'bg-black/5', icon: 'text-black/25' },
-		dark: { box: 'bg-neutral-800', icon: 'text-white/40' },
+		dark: { box: 'bg-primary/90', icon: 'text-white/40' },
 		ghost: { box: '', icon: 'text-black/25' }
 	};
 </script>
@@ -16,7 +17,7 @@
 	class="flex flex-col items-center justify-center gap-[8px] {tones[variant].box} {className}"
 	data-name="Image Placeholder"
 	role="img"
-	aria-label={label || 'Image placeholder'}
+	aria-label={label || m.ui_image_placeholder()}
 >
 	<svg
 		class="size-[28px] shrink-0 {tones[variant].icon}"

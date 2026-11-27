@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
 	import { cn } from '#lib/frontend/utils.ts';
 
 	let {
@@ -15,7 +16,7 @@
 		labelClass?: string;
 	} = $props();
 
-	const displayName = $derived(name?.trim() || email?.trim() || 'Account');
+	const displayName = $derived(name?.trim() || email?.trim() || m.common_account());
 	const initials = $derived(
 		displayName
 			.split(/\s+/)
@@ -28,7 +29,7 @@
 
 <div
 	class={cn(
-		'relative shrink-0 overflow-clip rounded-[10px] border border-solid border-[#e5e5e5]',
+		'relative shrink-0 overflow-clip rounded-[10px] border border-solid border-border',
 		className
 	)}
 	data-name="Avatar"
@@ -44,7 +45,7 @@
 			{:else}
 				<div
 					class={cn(
-						"absolute inset-0 flex items-center justify-center bg-[#f5f5f5] font-['Geist:SemiBold'] font-semibold text-[#737373]",
+						"absolute inset-0 flex items-center justify-center bg-muted font-['Geist:SemiBold'] font-semibold text-muted-foreground",
 						labelClass
 					)}
 					aria-hidden="true"

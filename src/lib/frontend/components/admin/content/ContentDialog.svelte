@@ -3,6 +3,8 @@
 </script>
 
 <script lang="ts">
+	import { errorMessage } from '#lib/frontend/i18n/index.ts';
+	import { m } from '#lib/paraglide/messages.js';
 	import { Image as ImageIcon } from '@lucide/svelte';
 	import * as Dialog from '#lib/frontend/components/ui/dialog/index.ts';
 	import * as Field from '#lib/frontend/components/ui/field/index.ts';
@@ -90,15 +92,15 @@
 	const title = $derived(
 		item
 			? kind === 'banners'
-				? 'Edit banner'
+				? m.components_content_dialog_edit_banner()
 				: kind === 'announcements'
-					? 'Edit announcement'
-					: 'Edit testimonial'
+					? m.components_content_dialog_edit_announcement()
+					: m.components_content_dialog_edit_testimonial()
 			: kind === 'banners'
-				? 'New banner'
+				? m.components_content_dialog_new_banner()
 				: kind === 'announcements'
-					? 'New announcement'
-					: 'New testimonial'
+					? m.components_content_dialog_new_announcement()
+					: m.components_content_dialog_new_testimonial()
 	);
 
 	function chooseMedia(target: 'primary' | 'mobile') {
@@ -121,7 +123,7 @@
 
 		const numericPosition = Number(form.position);
 		if (!Number.isInteger(numericPosition) || numericPosition < 0) {
-			error = 'Position must be a whole number of zero or more.';
+			error = m.components_content_dialog_position_invalid();
 			return;
 		}
 
@@ -129,7 +131,7 @@
 
 		if (kind === 'banners') {
 			if (!form.title.trim() || !form.imageUrl.trim()) {
-				error = 'Title and image are required.';
+				error = m.components_content_dialog_title_image_required();
 				return;
 			}
 
@@ -148,7 +150,7 @@
 			};
 		} else if (kind === 'announcements') {
 			if (!form.text.trim()) {
-				error = 'Announcement text is required.';
+				error = m.components_content_dialog_text_required();
 				return;
 			}
 
@@ -162,7 +164,7 @@
 			};
 		} else {
 			if (!form.imageUrl.trim()) {
-				error = 'Image is required.';
+				error = m.components_content_dialog_image_required();
 				return;
 			}
 
@@ -188,12 +190,12 @@
 			});
 			const result = await response.json().catch(() => ({}));
 
-			if (!response.ok) throw new Error(result.error ?? 'Could not save content');
+			if (!response.ok) throw result;
 
 			open = false;
 			await onsaved?.();
 		} catch (err) {
-			error = err instanceof Error ? err.message : 'Could not save content';
+			error = errorMessage(err, 'components_content_dialog_save_failed');
 		} finally {
 			saving = false;
 		}
@@ -206,10 +208,10 @@
 			<Dialog.Title>{title}</Dialog.Title>
 			<Dialog.Description>
 				{kind === 'banners'
-					? 'Storefront banner with an image, call to action and schedule.'
+					? m.components_content_dialog_banner_description()
 					: kind === 'announcements'
-						? 'Short announcement shown in the storefront bar.'
-						: 'Customer testimonial image with an optional caption.'}
+						? m.components_content_dialog_announcement_description()
+						: m.components_content_dialog_testimonial_description()}
 			</Dialog.Description>
 		</Dialog.Header>
 
@@ -218,38 +220,52 @@
 				{#if kind === 'banners'}
 					<div class="grid gap-4 sm:grid-cols-2">
 						<Field.Field>
-							<Field.Label for="content-banner-key">Placement</Field.Label>
+							<Field.Label for="content-banner-key"
+								>{m.components_content_dialog_placement()}</Field.Label
+							>
 							<Select.Root type="single" bind:value={form.key}>
 								<Select.Trigger id="content-banner-key" class="w-full">
-									<Select.Value placeholder="Select placement" />
+									<Select.Value placeholder={m.components_content_dialog_select_placement()} />
 								</Select.Trigger>
 								<Select.Content>
-									<Select.Item value="hero" label="Hero">Hero</Select.Item>
-									<Select.Item value="promo" label="Promo">Promo</Select.Item>
-									<Select.Item value="cta" label="Call to action">Call to action</Select.Item>
-									<Select.Item value="category" label="Category">Category</Select.Item>
+									<Select.Item value="hero" label={m.components_content_dialog_placement_hero()}
+										>{m.components_content_dialog_placement_hero()}</Select.Item
+									>
+									<Select.Item value="promo" label={m.components_content_dialog_placement_promo()}
+										>{m.components_content_dialog_placement_promo()}</Select.Item
+									>
+									<Select.Item value="cta" label={m.components_content_dialog_placement_cta()}
+										>{m.components_content_dialog_placement_cta()}</Select.Item
+									>
+									<Select.Item value="category" label={m.common_category()}
+										>{m.common_category()}</Select.Item
+									>
 								</Select.Content>
 							</Select.Root>
 						</Field.Field>
 
 						<Field.Field>
-							<Field.Label for="content-banner-title">Title</Field.Label>
+							<Field.Label for="content-banner-title"
+								>{m.components_content_dialog_title()}</Field.Label
+							>
 							<Input id="content-banner-title" bind:value={form.title} required />
 						</Field.Field>
 					</div>
 
 					<Field.Field>
-						<Field.Label for="content-banner-subtitle">Subtitle</Field.Label>
+						<Field.Label for="content-banner-subtitle"
+							>{m.components_content_dialog_subtitle()}</Field.Label
+						>
 						<Textarea id="content-banner-subtitle" bind:value={form.subtitle} rows={2} />
 					</Field.Field>
 
 					<Field.Field>
-						<Field.Label>Image</Field.Label>
+						<Field.Label>{m.components_form_image()}</Field.Label>
 						<div class="flex items-center gap-3">
 							{#if form.imageUrl}
 								<img
 									src={form.imageUrl}
-									alt="Banner preview"
+									alt={m.components_content_dialog_banner_preview()}
 									class="h-16 w-24 rounded-lg border bg-muted object-cover"
 								/>
 							{:else}
@@ -266,7 +282,7 @@
 									size="sm"
 									onclick={() => chooseMedia('primary')}
 								>
-									Choose image
+									{m.components_form_choose_image()}
 								</Button>
 								{#if form.imageUrl}
 									<Button
@@ -275,21 +291,21 @@
 										size="sm"
 										onclick={() => (form.imageUrl = '')}
 									>
-										Remove
+										{m.common_remove()}
 									</Button>
 								{/if}
 							</div>
 						</div>
-						<Field.Description>Pick an image from the banners folder.</Field.Description>
+						<Field.Description>{m.components_content_dialog_banner_hint()}</Field.Description>
 					</Field.Field>
 
 					<Field.Field>
-						<Field.Label>Mobile image</Field.Label>
+						<Field.Label>{m.components_content_dialog_mobile_image()}</Field.Label>
 						<div class="flex items-center gap-3">
 							{#if form.mobileImageUrl}
 								<img
 									src={form.mobileImageUrl}
-									alt="Mobile banner preview"
+									alt={m.components_content_dialog_mobile_preview()}
 									class="h-16 w-16 rounded-lg border bg-muted object-cover"
 								/>
 							{:else}
@@ -306,7 +322,7 @@
 									size="sm"
 									onclick={() => chooseMedia('mobile')}
 								>
-									Choose image
+									{m.components_form_choose_image()}
 								</Button>
 								{#if form.mobileImageUrl}
 									<Button
@@ -315,33 +331,39 @@
 										size="sm"
 										onclick={() => (form.mobileImageUrl = '')}
 									>
-										Remove
+										{m.common_remove()}
 									</Button>
 								{/if}
 							</div>
 						</div>
-						<Field.Description>Optional image used on small screens.</Field.Description>
+						<Field.Description>{m.components_content_dialog_mobile_hint()}</Field.Description>
 					</Field.Field>
 
 					<div class="grid gap-4 sm:grid-cols-2">
 						<Field.Field>
-							<Field.Label for="content-banner-cta-label">CTA label</Field.Label>
+							<Field.Label for="content-banner-cta-label"
+								>{m.components_content_dialog_cta_label()}</Field.Label
+							>
 							<Input
 								id="content-banner-cta-label"
 								bind:value={form.ctaLabel}
-								placeholder="Shop now"
+								placeholder={m.components_content_dialog_cta_placeholder()}
 							/>
 						</Field.Field>
 
 						<Field.Field>
-							<Field.Label for="content-banner-cta-url">CTA URL</Field.Label>
+							<Field.Label for="content-banner-cta-url"
+								>{m.components_content_dialog_cta_url()}</Field.Label
+							>
 							<Input id="content-banner-cta-url" bind:value={form.ctaUrl} placeholder="/products" />
 						</Field.Field>
 					</div>
 
 					<div class="grid gap-4 sm:grid-cols-2">
 						<Field.Field>
-							<Field.Label for="content-banner-starts-at">Starts at</Field.Label>
+							<Field.Label for="content-banner-starts-at"
+								>{m.components_form_starts_at()}</Field.Label
+							>
 							<Input
 								id="content-banner-starts-at"
 								type="datetime-local"
@@ -350,24 +372,30 @@
 						</Field.Field>
 
 						<Field.Field>
-							<Field.Label for="content-banner-ends-at">Ends at</Field.Label>
+							<Field.Label for="content-banner-ends-at">{m.components_form_ends_at()}</Field.Label>
 							<Input id="content-banner-ends-at" type="datetime-local" bind:value={form.endsAt} />
 						</Field.Field>
 					</div>
 				{:else if kind === 'announcements'}
 					<Field.Field>
-						<Field.Label for="content-announcement-text">Text</Field.Label>
+						<Field.Label for="content-announcement-text"
+							>{m.components_content_dialog_text()}</Field.Label
+						>
 						<Textarea id="content-announcement-text" bind:value={form.text} rows={3} required />
 					</Field.Field>
 
 					<Field.Field>
-						<Field.Label for="content-announcement-link">Link</Field.Label>
+						<Field.Label for="content-announcement-link"
+							>{m.components_content_dialog_link()}</Field.Label
+						>
 						<Input id="content-announcement-link" bind:value={form.link} placeholder="/products" />
 					</Field.Field>
 
 					<div class="grid gap-4 sm:grid-cols-2">
 						<Field.Field>
-							<Field.Label for="content-announcement-starts-at">Starts at</Field.Label>
+							<Field.Label for="content-announcement-starts-at"
+								>{m.components_form_starts_at()}</Field.Label
+							>
 							<Input
 								id="content-announcement-starts-at"
 								type="datetime-local"
@@ -376,7 +404,9 @@
 						</Field.Field>
 
 						<Field.Field>
-							<Field.Label for="content-announcement-ends-at">Ends at</Field.Label>
+							<Field.Label for="content-announcement-ends-at"
+								>{m.components_form_ends_at()}</Field.Label
+							>
 							<Input
 								id="content-announcement-ends-at"
 								type="datetime-local"
@@ -386,12 +416,12 @@
 					</div>
 				{:else}
 					<Field.Field>
-						<Field.Label>Image</Field.Label>
+						<Field.Label>{m.components_form_image()}</Field.Label>
 						<div class="flex items-center gap-3">
 							{#if form.imageUrl}
 								<img
 									src={form.imageUrl}
-									alt="Testimonial preview"
+									alt={m.components_content_dialog_testimonial_preview()}
 									class="h-16 w-16 rounded-lg border bg-muted object-cover"
 								/>
 							{:else}
@@ -408,7 +438,7 @@
 									size="sm"
 									onclick={() => chooseMedia('primary')}
 								>
-									Choose image
+									{m.components_form_choose_image()}
 								</Button>
 								{#if form.imageUrl}
 									<Button
@@ -417,28 +447,32 @@
 										size="sm"
 										onclick={() => (form.imageUrl = '')}
 									>
-										Remove
+										{m.common_remove()}
 									</Button>
 								{/if}
 							</div>
 						</div>
-						<Field.Description>Pick an image from the testimonials folder.</Field.Description>
+						<Field.Description>{m.components_content_dialog_testimonial_hint()}</Field.Description>
 					</Field.Field>
 
 					<Field.Field>
-						<Field.Label for="content-testimonial-caption">Caption</Field.Label>
+						<Field.Label for="content-testimonial-caption"
+							>{m.components_content_dialog_caption()}</Field.Label
+						>
 						<Textarea id="content-testimonial-caption" bind:value={form.caption} rows={2} />
 					</Field.Field>
 
 					<Field.Field>
-						<Field.Label for="content-testimonial-link">Link</Field.Label>
+						<Field.Label for="content-testimonial-link"
+							>{m.components_content_dialog_link()}</Field.Label
+						>
 						<Input id="content-testimonial-link" bind:value={form.link} placeholder="/products" />
 					</Field.Field>
 				{/if}
 
 				<div class="grid gap-4 sm:grid-cols-2">
 					<Field.Field>
-						<Field.Label for="content-position">Position</Field.Label>
+						<Field.Label for="content-position">{m.components_form_position()}</Field.Label>
 						<Input
 							id="content-position"
 							type="number"
@@ -446,15 +480,17 @@
 							step="1"
 							bind:value={form.position}
 						/>
-						<Field.Description>Lower values appear first.</Field.Description>
+						<Field.Description>{m.components_content_dialog_position_hint()}</Field.Description>
 					</Field.Field>
 
 					<div class="flex items-center justify-between gap-3 rounded-lg border p-3">
 						<div>
-							<p class="text-sm font-medium">Active</p>
-							<p class="text-xs text-muted-foreground">Show this item on the storefront.</p>
+							<p class="text-sm font-medium">{m.common_active()}</p>
+							<p class="text-xs text-muted-foreground">
+								{m.components_content_dialog_active_hint()}
+							</p>
 						</div>
-						<Switch bind:checked={form.active} aria-label="Active" />
+						<Switch bind:checked={form.active} aria-label={m.common_active()} />
 					</div>
 				</div>
 			</Field.Group>
@@ -465,10 +501,10 @@
 
 			<Dialog.Footer>
 				<Button type="button" variant="outline" onclick={() => (open = false)} disabled={saving}>
-					Cancel
+					{m.common_cancel()}
 				</Button>
 				<Button type="submit" disabled={saving}>
-					{saving ? 'Saving…' : item ? 'Save changes' : 'Create'}
+					{saving ? m.common_saving() : item ? m.common_save_changes() : m.common_create()}
 				</Button>
 			</Dialog.Footer>
 		</form>

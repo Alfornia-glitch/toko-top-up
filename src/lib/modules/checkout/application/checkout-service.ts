@@ -18,11 +18,13 @@ import type { Address } from '#modules/customers/index.ts';
 import type { CustomersServices } from '#modules/customers/server.ts';
 import type { MarketingServices } from '#modules/marketing/server.ts';
 import type { OrdersServices } from '#modules/orders/server.ts';
-import type {
-	CheckoutInput,
-	CheckoutSettings,
-	OrderLine,
-	PlacedOrder
+import {
+	validateAccountDetails,
+	type AccountDetail,
+	type CheckoutInput,
+	type CheckoutSettings,
+	type OrderLine,
+	type PlacedOrder
 } from '../domain/checkout.ts';
 
 export interface CheckoutDependencies {
@@ -38,7 +40,8 @@ export interface CheckoutService {
 	/**
 	 * Turns the cart into a paid order:
 	 *
-	 * 1. validate the cart, address and shipping method;
+	 * 1. validate the cart and either the address and shipping method or, for
+	 *    a top-up store, the account details form;
 	 * 2. reserve stock (guarded, so it cannot oversell);
 	 * 3. create the order, its items and payment;
 	 * 4. redeem the coupon, when one applies;
@@ -70,9 +73,15 @@ function resolveLines(cart: Cart, snapshots: Map<string, Snapshot>) {
 
 	for (const item of cart.items) {
 		const variant = snapshots.get(item.variantId);
-		if (!variant) throw new ConflictError('A product in your cart is no longer available');
+		if (!variant)
+			throw new ConflictError('A product in your cart is no longer available', {
+				messageKey: 'cart_item_unavailable'
+			});
 		if (variant.stock < item.quantity) {
-			throw new ConflictError(`Insufficient stock for ${variant.productName}`);
+			throw new ConflictError(`Insufficient stock for ${variant.productName}`, {
+				messageKey: 'insufficient_stock_product',
+				params: { product: variant.productName }
+			});
 		}
 
 		const total = variant.price * item.quantity;
@@ -90,6 +99,11 @@ function resolveLines(cart: Cart, snapshots: Map<string, Snapshot>) {
 	}
 
 	return { lines, subtotal };
+}
+
+/** Top-up orders store the account details where a delivery address would go. */
+function accountSnapshot(details: AccountDetail[]): Record<string, unknown> {
+	return { type: 'account', accountDetails: details };
 }
 
 function addressSnapshot(address: Address): Record<string, unknown> {
@@ -115,12 +129,34 @@ export function createCheckoutService(dependencies: CheckoutDependencies): Check
 			try {
 				const buyer = assertActor(actor);
 				const current = unwrap(await cart.cart.getCart(cartId));
-				if (current.items.length === 0) throw new ConflictError('Your cart is empty');
+				if (current.items.length === 0)
+					throw new ConflictError('Your cart is empty', { messageKey: 'cart_empty' });
 
-				const address = unwrap(await customers.customers.getAddress(input.addressId, buyer));
+				let destination: Record<string, unknown>;
+				let shipping: number;
+				const accountForm = await settings.getAccountForm();
 
-				const method = await settings.getShippingMethod(input.shippingId);
-				if (!method) throw new UnprocessableError('Unknown shipping method');
+				if (accountForm) {
+					destination = accountSnapshot(validateAccountDetails(accountForm, input.accountDetails));
+					shipping = 0;
+				} else {
+					if (!input.addressId)
+						throw new UnprocessableError('A delivery address is required', {
+							messageKey: 'address_required'
+						});
+					const address = unwrap(await customers.customers.getAddress(input.addressId, buyer));
+
+					const method = input.shippingId
+						? await settings.getShippingMethod(input.shippingId)
+						: null;
+					if (!method)
+						throw new UnprocessableError('Unknown shipping method', {
+							messageKey: 'shipping_method_unknown'
+						});
+
+					destination = addressSnapshot(address);
+					shipping = method.price;
+				}
 
 				const variantIds = [...new Set(current.items.map((item) => item.variantId))];
 				const rows = unwrap(await catalog.products.getVariantSnapshots(variantIds));
@@ -141,7 +177,6 @@ export function createCheckoutService(dependencies: CheckoutDependencies): Check
 				const { lines, subtotal } = resolveLines(current, snapshots);
 
 				const discount = Math.max(0, Math.min(current.discount, subtotal));
-				const shipping = method.price;
 				const grandTotal = subtotal - discount + shipping;
 
 				let couponId: string | null = null;
@@ -185,8 +220,8 @@ export function createCheckoutService(dependencies: CheckoutDependencies): Check
 							grandTotal,
 							currency: current.currency ?? (await settings.getCurrency()),
 							couponId,
-							shippingAddress: addressSnapshot(address),
-							billingAddress: addressSnapshot(address),
+							shippingAddress: destination,
+							billingAddress: destination,
 							notes: input.note ?? null,
 							items: lines,
 							payment: manual

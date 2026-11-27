@@ -1,3 +1,4 @@
+import { errorMessage } from '#lib/frontend/i18n/index.ts';
 import { api, unwrap } from '../shared/http.ts';
 import type { WishlistItem } from '../commerce/models.ts';
 
@@ -37,7 +38,7 @@ class WishlistStore {
 			const payload = await api.get<{ data: WishlistItem[] }>('/api/wishlist');
 			this.items = unwrap(payload);
 		} catch (cause) {
-			this.error = cause instanceof Error ? cause.message : 'Could not load your wishlist';
+			this.error = errorMessage(cause, 'components_wishlist_store_load_failed');
 			throw cause;
 		} finally {
 			this.loading = false;

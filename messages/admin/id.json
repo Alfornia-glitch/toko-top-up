@@ -1,0 +1,12 @@
+{
+	"$schema": "https://inlang.com/schema/inlang-message-format",
+	"admin_header_search_placeholder": "Cari…",
+	"admin_header_search_label": "Cari di admin",
+	"admin_header_fallback_name": "Admin",
+	"admin_header_sign_out": "Keluar",
+	"admin_header_crumb_admin": "Admin",
+	"admin_header_crumb_super": "Superadmin",
+	"admin_header_crumb_gift_cards": "Kartu hadiah",
+	"admin_header_crumb_audit_logs": "Log audit",
+	"admin_header_crumb_new": "Baru"
+}

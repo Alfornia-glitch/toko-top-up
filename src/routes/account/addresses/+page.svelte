@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
+	import { errorMessage } from '#lib/frontend/i18n/index.ts';
 	import {
 		listAddresses,
 		createAddress,
@@ -7,8 +9,7 @@
 		type AddressInput,
 		AddressForm,
 		EmptyState,
-		isUnauthorized,
-		messageFrom
+		isUnauthorized
 	} from '#lib/frontend/modules/account/index.ts';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
@@ -43,7 +44,7 @@
 			return '';
 		}
 
-		return messageFrom(cause, 'Something went wrong');
+		return errorMessage(cause, 'common_something_went_wrong');
 	}
 
 	async function loadAddresses(): Promise<void> {
@@ -92,7 +93,7 @@
 				return;
 			}
 
-			throw cause instanceof Error ? cause : new Error('Could not save the address');
+			throw new Error(errorMessage(cause, 'account_addresses_save_failed'));
 		} finally {
 			saving = false;
 		}
@@ -145,11 +146,14 @@
 	});
 </script>
 
-<AccountPageShell title="My addresses" description="Manage delivery and billing addresses.">
+<AccountPageShell
+	title={m.account_addresses_title()}
+	description={m.account_addresses_description()}
+>
 	{#snippet actions()}
 		<Button onclick={startAdd}>
 			<Plus class="size-4" />
-			Add address
+			{m.account_addresses_add()}
 		</Button>
 	{/snippet}
 
@@ -167,14 +171,14 @@
 		</div>
 	{:else if addresses.length === 0}
 		<EmptyState
-			title="No saved addresses"
-			description="Add a delivery or billing address to make checkout faster."
+			title={m.account_addresses_empty_title()}
+			description={m.account_addresses_empty_description()}
 		>
 			{#snippet icon()}
 				<MapPin class="size-6" />
 			{/snippet}
 			{#snippet action()}
-				<Button onclick={startAdd}>Add your first address</Button>
+				<Button onclick={startAdd}>{m.account_addresses_add_first()}</Button>
 			{/snippet}
 		</EmptyState>
 	{:else}
@@ -214,24 +218,28 @@
 						{#if address.isDefaultShipping || address.isDefaultBilling}
 							<div class="flex flex-wrap items-center gap-2">
 								{#if address.isDefaultShipping}
-									<Badge variant="secondary">Default shipping</Badge>
+									<Badge variant="secondary">{m.account_addresses_default_shipping()}</Badge>
 								{/if}
 								{#if address.isDefaultBilling}
-									<Badge variant="secondary">Default billing</Badge>
+									<Badge variant="secondary">{m.account_addresses_default_billing()}</Badge>
 								{/if}
 							</div>
 						{/if}
 					</Card.Content>
 					<Card.Footer class="flex flex-wrap items-center gap-2">
-						<Button variant="outline" size="sm" onclick={() => startEdit(address)}>Edit</Button>
-						<Button variant="ghost" size="sm" onclick={() => requestDelete(address)}>Delete</Button>
+						<Button variant="outline" size="sm" onclick={() => startEdit(address)}
+							>{m.common_edit()}</Button
+						>
+						<Button variant="ghost" size="sm" onclick={() => requestDelete(address)}
+							>{m.common_delete()}</Button
+						>
 						<Button
 							variant="secondary"
 							size="sm"
 							disabled={address.isDefaultShipping}
 							onclick={() => makeDefault(address)}
 						>
-							Make default
+							{m.account_addresses_make_default()}
 						</Button>
 					</Card.Footer>
 				</Card.Root>
@@ -243,18 +251,18 @@
 <Dialog.Root bind:open={formOpen}>
 	<Dialog.Content class="sm:max-w-2xl">
 		<Dialog.Header>
-			<Dialog.Title>{editing ? 'Edit address' : 'Add address'}</Dialog.Title>
+			<Dialog.Title
+				>{editing ? m.account_addresses_edit_title() : m.account_addresses_add()}</Dialog.Title
+			>
 			<Dialog.Description>
-				{editing
-					? 'Update the details for this saved address.'
-					: 'Add a delivery or billing address to your account.'}
+				{editing ? m.account_addresses_edit_description() : m.account_addresses_add_description()}
 			</Dialog.Description>
 		</Dialog.Header>
 		{#key editing?.id ?? 'new'}
 			<AddressForm
 				initial={editing ?? {}}
 				submitting={saving}
-				submitLabel={editing ? 'Save changes' : 'Add address'}
+				submitLabel={editing ? m.common_save_changes() : m.account_addresses_add()}
 				oncancel={closeForm}
 				onsubmit={submitForm}
 			/>
@@ -270,18 +278,18 @@
 >
 	<AlertDialog.Content>
 		<AlertDialog.Header>
-			<AlertDialog.Title>Delete address</AlertDialog.Title>
+			<AlertDialog.Title>{m.account_addresses_delete_title()}</AlertDialog.Title>
 			<AlertDialog.Description>
-				This will permanently delete this saved address. This action cannot be undone.
+				{m.account_addresses_delete_description()}
 			</AlertDialog.Description>
 		</AlertDialog.Header>
 		<AlertDialog.Footer>
-			<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
+			<AlertDialog.Cancel>{m.common_cancel()}</AlertDialog.Cancel>
 			<AlertDialog.Action
 				class="bg-destructive text-white hover:bg-destructive/90"
 				onclick={confirmDelete}
 			>
-				Delete
+				{m.common_delete()}
 			</AlertDialog.Action>
 		</AlertDialog.Footer>
 	</AlertDialog.Content>

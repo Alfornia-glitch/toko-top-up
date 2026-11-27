@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { errorMessage } from '#lib/frontend/i18n/index.ts';
+	import { m } from '#lib/paraglide/messages.js';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { Heart } from '@lucide/svelte';
@@ -30,7 +32,7 @@
 
 		void wishlist.ensure().catch((cause) => {
 			if (!(cause instanceof ApiError && cause.status === 401)) {
-				error = cause instanceof Error ? cause.message : 'Could not load your wishlist.';
+				error = errorMessage(cause, 'components_wishlist_load_failed');
 			}
 		});
 	});
@@ -61,7 +63,7 @@
 			if (cause instanceof ApiError && cause.status === 401) {
 				redirectToLogin();
 			} else {
-				error = cause instanceof Error ? cause.message : 'Could not update your wishlist.';
+				error = errorMessage(cause, 'components_wishlist_update_failed');
 			}
 		} finally {
 			busy = false;
@@ -74,7 +76,7 @@
 	size={label ? 'sm' : 'icon'}
 	class={className}
 	aria-pressed={active}
-	aria-label={active ? 'Remove from wishlist' : 'Add to wishlist'}
+	aria-label={active ? m.components_wishlist_remove() : m.components_wishlist_add()}
 	title={error || undefined}
 	disabled={busy}
 	onclick={handleClick}
@@ -85,6 +87,6 @@
 		<Heart class={active ? 'fill-current' : undefined} />
 	{/if}
 	{#if label}
-		<span>{active ? 'Wishlisted' : 'Wishlist'}</span>
+		<span>{active ? m.components_wishlist_added() : m.common_wishlist()}</span>
 	{/if}
 </Button>

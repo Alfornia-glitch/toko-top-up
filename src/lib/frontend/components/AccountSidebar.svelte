@@ -1,11 +1,12 @@
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
 	import UserAvatar from '#lib/frontend/components/UserAvatar.svelte';
+	import { Separator } from '#lib/frontend/components/ui/separator/index.ts';
 	import { authClient, signOutUser } from '#frontend/modules/auth/index.ts';
 
 	const session = authClient.useSession();
 	const user = $derived($session.data?.user);
 
-	const imgSeparator = '/assets/42c25.svg';
 	const imgIcon = '/assets/f0c09.svg';
 	const imgIcon1 = '/assets/95ca5.svg';
 	const imgIcon2 = '/assets/9bb2e.svg';
@@ -29,7 +30,7 @@
 	data-name="User Profile Sidebar"
 >
 	<div
-		class="relative flex h-auto w-full shrink-0 flex-col content-stretch items-start gap-[12px] overflow-clip rounded-[14px] bg-white py-[16px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)] lg:h-[922px]"
+		class="relative flex h-auto w-full shrink-0 flex-col content-stretch items-start gap-[12px] overflow-clip rounded-[14px] bg-card py-[16px] shadow-[0px_0px_0px_1px_color-mix(in_oklab,var(--foreground)_10%,transparent)] lg:h-[922px]"
 		data-name="Card"
 	>
 		<div
@@ -53,12 +54,12 @@
 						data-name="Flex Vertical"
 					>
 						<p
-							class="relative shrink-0 font-['Geist:SemiBold'] text-[16px] leading-[24px] font-semibold text-[#0a0a0a] lg:text-[18px] lg:leading-[28px]"
+							class="relative shrink-0 font-['Geist:SemiBold'] text-[16px] leading-[24px] font-semibold text-foreground lg:text-[18px] lg:leading-[28px]"
 						>
 							{user?.name ?? ''}
 						</p>
 						<p
-							class="relative shrink-0 font-['Geist:Light'] text-[14px] leading-[20px] font-light whitespace-nowrap text-[#737373] lg:text-[16px] lg:leading-[24px]"
+							class="relative shrink-0 font-['Geist:Light'] text-[14px] leading-[20px] font-light whitespace-nowrap text-muted-foreground lg:text-[16px] lg:leading-[24px]"
 						>
 							{user?.email ?? ''}
 						</p>
@@ -67,15 +68,15 @@
 
 				<button
 					onclick={() => (mobileExpanded = !mobileExpanded)}
-					class="rounded-lg bg-gray-100 px-3 py-1.5 text-xs font-semibold text-gray-800 lg:hidden"
+					class="rounded-lg bg-muted px-3 py-1.5 text-xs font-semibold text-foreground lg:hidden"
 				>
-					{mobileExpanded ? 'Hide Menu ▲' : 'Account Menu ▼'}
+					{mobileExpanded
+						? m.components_account_sidebar_hide_menu()
+						: m.components_account_sidebar_show_menu()}
 				</button>
 			</div>
 
-			<div class="relative hidden h-[8px] w-full shrink-0 lg:block" data-name="separator">
-				<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgSeparator} />
-			</div>
+			<Separator class="hidden lg:block" />
 
 			<div
 				class={`${mobileExpanded ? 'flex' : 'hidden lg:flex'} relative w-full shrink-0 flex-col content-stretch items-center`}
@@ -87,177 +88,221 @@
 				>
 					<a
 						href="/account"
-						class="relative flex w-full shrink-0 content-stretch items-center gap-[8px] rounded-[6px] bg-[#f5f5f5] px-[12px] py-[10px] hover:bg-gray-100"
+						class="relative flex w-full shrink-0 content-stretch items-center gap-[8px] rounded-[6px] bg-muted px-[12px] py-[10px] hover:bg-muted"
 						data-name="Flex Horizontal"
 					>
 						<div class="relative size-[20px] shrink-0" data-name="Icon">
-							<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgIcon} />
+							<span
+								aria-hidden="true"
+								class="absolute inset-0 block size-full max-w-none bg-foreground mask-no-repeat"
+								style="mask-image: url('{imgIcon}')"
+							></span>
 						</div>
 						<p
-							class="relative h-full min-w-px flex-[1_0_0] font-['Geist:Medium'] text-[16px] leading-[24px] font-medium [word-break:break-word] text-[#0a0a0a]"
+							class="relative h-full min-w-px flex-[1_0_0] font-['Geist:Medium'] text-[16px] leading-[24px] font-medium [word-break:break-word] text-foreground"
 						>
-							My account
+							{m.components_site_header_my_account()}
 						</p>
 					</a>
 					<a
 						href="/account/wishlist"
-						class="relative flex w-full shrink-0 content-stretch items-center gap-[8px] rounded-[6px] px-[12px] py-[10px] hover:bg-gray-50"
+						class="relative flex w-full shrink-0 content-stretch items-center gap-[8px] rounded-[6px] px-[12px] py-[10px] hover:bg-muted"
 						data-name="Flex Horizontal"
 					>
 						<div class="relative size-[20px] shrink-0" data-name="Icon">
-							<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgIcon1} />
+							<span
+								aria-hidden="true"
+								class="absolute inset-0 block size-full max-w-none bg-foreground mask-no-repeat"
+								style="mask-image: url('{imgIcon1}')"
+							></span>
 						</div>
 						<p
-							class="relative h-full min-w-px flex-[1_0_0] font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-[#0a0a0a]"
+							class="relative h-full min-w-px flex-[1_0_0] font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-foreground"
 						>
-							My Wishlist
+							{m.components_account_sidebar_wishlist()}
 						</p>
 					</a>
 					<a
 						href="/account/orders"
-						class="relative flex w-full shrink-0 content-stretch items-center gap-[8px] rounded-[6px] px-[12px] py-[10px] hover:bg-gray-50"
+						class="relative flex w-full shrink-0 content-stretch items-center gap-[8px] rounded-[6px] px-[12px] py-[10px] hover:bg-muted"
 						data-name="Flex Horizontal"
 					>
 						<div class="relative size-[20px] shrink-0" data-name="Icon">
-							<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgIcon2} />
+							<span
+								aria-hidden="true"
+								class="absolute inset-0 block size-full max-w-none bg-foreground mask-no-repeat"
+								style="mask-image: url('{imgIcon2}')"
+							></span>
 						</div>
 						<p
-							class="relative h-full min-w-px flex-[1_0_0] font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-[#0a0a0a]"
+							class="relative h-full min-w-px flex-[1_0_0] font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-foreground"
 						>
-							My Orders
+							{m.components_site_header_my_orders()}
 						</p>
 					</a>
 					<a
 						href="/account/orders/latest"
-						class="relative flex w-full shrink-0 content-stretch items-center gap-[8px] rounded-[6px] px-[12px] py-[10px] hover:bg-gray-50"
+						class="relative flex w-full shrink-0 content-stretch items-center gap-[8px] rounded-[6px] px-[12px] py-[10px] hover:bg-muted"
 						data-name="Flex Horizontal"
 					>
 						<div class="relative size-[20px] shrink-0" data-name="Icon">
-							<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgIcon3} />
+							<span
+								aria-hidden="true"
+								class="absolute inset-0 block size-full max-w-none bg-foreground mask-no-repeat"
+								style="mask-image: url('{imgIcon3}')"
+							></span>
 						</div>
 						<p
-							class="relative h-full min-w-px flex-[1_0_0] font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-[#0a0a0a]"
+							class="relative h-full min-w-px flex-[1_0_0] font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-foreground"
 						>
-							Order Details
+							{m.components_account_sidebar_order_details()}
 						</p>
 					</a>
 					<a
 						href="/account/addresses"
-						class="relative flex w-full shrink-0 content-stretch items-center gap-[8px] rounded-[6px] px-[12px] py-[10px] hover:bg-gray-50"
+						class="relative flex w-full shrink-0 content-stretch items-center gap-[8px] rounded-[6px] px-[12px] py-[10px] hover:bg-muted"
 						data-name="Flex Horizontal"
 					>
 						<div class="relative size-[20px] shrink-0" data-name="Icon">
-							<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgIcon4} />
+							<span
+								aria-hidden="true"
+								class="absolute inset-0 block size-full max-w-none bg-foreground mask-no-repeat"
+								style="mask-image: url('{imgIcon4}')"
+							></span>
 						</div>
 						<p
-							class="relative min-w-px flex-[1_0_0] font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-[#0a0a0a]"
+							class="relative min-w-px flex-[1_0_0] font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-foreground"
 						>
-							My Addresses
+							{m.components_account_sidebar_addresses()}
 						</p>
 					</a>
 					<a
 						href="/account/payment"
-						class="relative flex w-full shrink-0 content-stretch items-center gap-[8px] rounded-[6px] px-[12px] py-[10px] hover:bg-gray-50"
+						class="relative flex w-full shrink-0 content-stretch items-center gap-[8px] rounded-[6px] px-[12px] py-[10px] hover:bg-muted"
 						data-name="Flex Horizontal"
 					>
 						<div class="relative size-[20px] shrink-0" data-name="Icon">
-							<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgIcon5} />
+							<span
+								aria-hidden="true"
+								class="absolute inset-0 block size-full max-w-none bg-foreground mask-no-repeat"
+								style="mask-image: url('{imgIcon5}')"
+							></span>
 						</div>
 						<p
-							class="relative h-full min-w-px flex-[1_0_0] font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-[#0a0a0a]"
+							class="relative h-full min-w-px flex-[1_0_0] font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-foreground"
 						>
-							My Wallet
+							{m.components_account_sidebar_wallet()}
 						</p>
 					</a>
-					<div class="relative h-[8px] w-full shrink-0" data-name="separator">
-						<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgSeparator} />
-					</div>
+					<Separator />
 					<a
 						href="/account/payment"
-						class="relative flex w-full shrink-0 content-stretch items-center gap-[8px] rounded-[6px] px-[12px] py-[10px] hover:bg-gray-50"
+						class="relative flex w-full shrink-0 content-stretch items-center gap-[8px] rounded-[6px] px-[12px] py-[10px] hover:bg-muted"
 						data-name="Flex Horizontal"
 					>
 						<div class="relative size-[20px] shrink-0" data-name="Icon">
-							<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgIcon6} />
+							<span
+								aria-hidden="true"
+								class="absolute inset-0 block size-full max-w-none bg-foreground mask-no-repeat"
+								style="mask-image: url('{imgIcon6}')"
+							></span>
 						</div>
 						<p
-							class="relative h-full min-w-px flex-[1_0_0] font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-[#0a0a0a]"
+							class="relative h-full min-w-px flex-[1_0_0] font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-foreground"
 						>
-							Payment
+							{m.common_payment()}
 						</p>
 					</a>
 					<a
 						href="/account/gift-cards"
-						class="relative flex w-full shrink-0 content-stretch items-center gap-[8px] rounded-[6px] px-[12px] py-[10px] hover:bg-gray-50"
+						class="relative flex w-full shrink-0 content-stretch items-center gap-[8px] rounded-[6px] px-[12px] py-[10px] hover:bg-muted"
 						data-name="Flex Horizontal"
 					>
 						<div class="relative size-[20px] shrink-0" data-name="Icon">
-							<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgIcon7} />
+							<span
+								aria-hidden="true"
+								class="absolute inset-0 block size-full max-w-none bg-foreground mask-no-repeat"
+								style="mask-image: url('{imgIcon7}')"
+							></span>
 						</div>
 						<p
-							class="relative h-full min-w-px flex-[1_0_0] font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-[#0a0a0a]"
+							class="relative h-full min-w-px flex-[1_0_0] font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-foreground"
 						>
-							Gift Cards
+							{m.components_account_sidebar_gift_cards()}
 						</p>
 					</a>
 					<a
 						href="/account/returns-refunds"
-						class="relative flex w-full shrink-0 content-stretch items-center gap-[8px] rounded-[6px] px-[12px] py-[10px] hover:bg-gray-50"
+						class="relative flex w-full shrink-0 content-stretch items-center gap-[8px] rounded-[6px] px-[12px] py-[10px] hover:bg-muted"
 						data-name="Flex Horizontal"
 					>
 						<div class="relative size-[20px] shrink-0" data-name="Icon">
-							<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgIcon8} />
+							<span
+								aria-hidden="true"
+								class="absolute inset-0 block size-full max-w-none bg-foreground mask-no-repeat"
+								style="mask-image: url('{imgIcon8}')"
+							></span>
 						</div>
 						<p
-							class="relative h-full min-w-px flex-[1_0_0] font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-[#0a0a0a]"
+							class="relative h-full min-w-px flex-[1_0_0] font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-foreground"
 						>
-							{`Return & Refunds`}
+							{m.components_account_sidebar_returns()}
 						</p>
 					</a>
 					<a
 						href="/account/newsletter"
-						class="relative flex w-full shrink-0 content-stretch items-center gap-[8px] rounded-[6px] px-[12px] py-[10px] hover:bg-gray-50"
+						class="relative flex w-full shrink-0 content-stretch items-center gap-[8px] rounded-[6px] px-[12px] py-[10px] hover:bg-muted"
 						data-name="Flex Horizontal"
 					>
 						<div class="relative size-[20px] shrink-0" data-name="Icon">
-							<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgIcon9} />
+							<span
+								aria-hidden="true"
+								class="absolute inset-0 block size-full max-w-none bg-foreground mask-no-repeat"
+								style="mask-image: url('{imgIcon9}')"
+							></span>
 						</div>
 						<p
-							class="relative h-full min-w-px flex-[1_0_0] font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-[#0a0a0a]"
+							class="relative h-full min-w-px flex-[1_0_0] font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-foreground"
 						>
-							Email Newsletter
+							{m.components_account_sidebar_newsletter()}
 						</p>
 					</a>
 					<a
 						href="/account/support-tickets"
-						class="relative flex w-full shrink-0 content-stretch items-center gap-[8px] rounded-[6px] px-[12px] py-[10px] hover:bg-gray-50"
+						class="relative flex w-full shrink-0 content-stretch items-center gap-[8px] rounded-[6px] px-[12px] py-[10px] hover:bg-muted"
 						data-name="Flex Horizontal"
 					>
 						<div class="relative size-[20px] shrink-0" data-name="Icon">
-							<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgIcon10} />
+							<span
+								aria-hidden="true"
+								class="absolute inset-0 block size-full max-w-none bg-foreground mask-no-repeat"
+								style="mask-image: url('{imgIcon10}')"
+							></span>
 						</div>
 						<p
-							class="relative h-full min-w-px flex-[1_0_0] font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-[#0a0a0a]"
+							class="relative h-full min-w-px flex-[1_0_0] font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word] text-foreground"
 						>
-							Support Tickets
+							{m.components_account_sidebar_support_tickets()}
 						</p>
 					</a>
-					<div class="relative h-[8px] w-full shrink-0" data-name="separator">
-						<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgSeparator} />
-					</div>
+					<Separator />
 					<button
 						type="button"
-						class="relative flex w-full shrink-0 cursor-pointer content-stretch items-center gap-[8px] rounded-[6px] px-[12px] py-[10px] text-left text-red-600 hover:bg-gray-50"
+						class="relative flex w-full shrink-0 cursor-pointer content-stretch items-center gap-[8px] rounded-[6px] px-[12px] py-[10px] text-left text-destructive hover:bg-muted"
 						data-name="Flex Horizontal"
 						onclick={() => signOutUser()}
 					>
 						<div class="relative size-[20px] shrink-0" data-name="Icon">
-							<img alt="" class="absolute inset-0 block size-full max-w-none" src={imgIcon11} />
+							<span
+								aria-hidden="true"
+								class="absolute inset-0 block size-full max-w-none bg-foreground mask-no-repeat"
+								style="mask-image: url('{imgIcon11}')"
+							></span>
 						</div>
 						<p
 							class="relative h-full shrink-0 font-['Geist:Regular'] text-[16px] leading-[24px] font-normal [word-break:break-word]"
 						>
-							Logout
+							{m.common_logout()}
 						</p>
 					</button>
 				</div>

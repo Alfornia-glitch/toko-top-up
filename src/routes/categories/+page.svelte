@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
 	import { onMount } from 'svelte';
 	import { ArrowRight } from '@lucide/svelte';
 	import SiteHeader from '#lib/frontend/components/SiteHeader.svelte';
@@ -10,7 +11,6 @@
 	import { discountPercent, formatMoney } from '#lib/frontend/modules/commerce/format.ts';
 
 	const categoryBanners = $derived(home.banners.filter((banner) => banner.key === 'category'));
-	const heroBanner = $derived(home.banner('category') ?? home.banner('hero'));
 	const rootCategories = $derived(home.categories.filter((category) => category.parentId === null));
 	const firstDeal = $derived(home.deals[0]);
 	const remainingDeals = $derived(home.deals.slice(1));
@@ -21,7 +21,7 @@
 </script>
 
 <div
-	class="relative flex size-full flex-col content-stretch items-center bg-white"
+	class="relative flex size-full flex-col content-stretch items-center bg-card"
 	data-name="Category"
 >
 	<SiteHeader />
@@ -37,7 +37,7 @@
 				{#each categoryBanners as banner (banner.id)}
 					<a
 						href={banner.ctaUrl ?? '/products'}
-						class="group relative flex min-h-[240px] flex-col justify-end overflow-clip rounded-[8px] bg-[#171717] p-[24px] text-white"
+						class="group relative flex min-h-[240px] flex-col justify-end overflow-clip rounded-[8px] bg-primary p-[24px] text-primary-foreground"
 						data-name="Card"
 					>
 						{#if banner.imageUrl}
@@ -62,7 +62,7 @@
 							{/if}
 							{#if banner.ctaLabel}
 								<span
-									class="mt-[8px] inline-flex w-fit items-center gap-[6px] rounded-[10px] bg-[#f5f5f5] px-[16px] py-[8px] font-['Geist:Medium'] text-[14px] leading-[20px] font-medium text-[#171717]"
+									class="mt-[8px] inline-flex w-fit items-center gap-[6px] rounded-[10px] bg-muted px-[16px] py-[8px] font-['Geist:Medium'] text-[14px] leading-[20px] font-medium text-primary"
 								>
 									{banner.ctaLabel}
 									<ArrowRight class="size-[16px]" />
@@ -71,56 +71,6 @@
 						</div>
 					</a>
 				{/each}
-			</div>
-		</section>
-	{:else if heroBanner}
-		<section
-			class="relative flex w-full max-w-[1440px] shrink-0 content-stretch items-center justify-center overflow-clip py-[56px] max-[480px]:py-9"
-			data-name="Hero"
-		>
-			<div
-				class="relative flex min-h-[336px] w-full items-center overflow-clip rounded-[8px] bg-[#171717]"
-			>
-				{#if heroBanner.imageUrl}
-					<img
-						loading="lazy"
-						decoding="async"
-						src={heroBanner.imageUrl}
-						alt={heroBanner.title}
-						class="pointer-events-none absolute inset-0 size-full object-cover"
-					/>
-					<div class="pointer-events-none absolute inset-0 bg-black/40"></div>
-				{:else}
-					<ImagePlaceholder variant="dark" class="pointer-events-none absolute inset-0" />
-				{/if}
-				<div
-					class="relative flex w-full max-w-[600px] flex-col items-start gap-[16px] px-[40px] py-[40px] text-white"
-				>
-					<h1
-						class="font-['Geist:Bold'] text-[36px] leading-[40px] font-bold max-[480px]:text-2xl max-[480px]:leading-8"
-					>
-						{heroBanner.title}
-					</h1>
-					{#if heroBanner.subtitle}
-						<p class="font-['Geist:Regular'] text-[18px] leading-[28px]">
-							{heroBanner.subtitle}
-						</p>
-					{/if}
-					{#if heroBanner.ctaLabel}
-						<a
-							href={heroBanner.ctaUrl ?? '/products'}
-							class="flex items-center justify-center gap-[6px] overflow-clip rounded-[10px] border border-solid border-[#f5f5f5] bg-[#f5f5f5] px-[16px] py-[8px] text-[#171717]"
-							data-name="Solid button"
-						>
-							<span
-								class="font-['Geist:Medium'] text-[14px] leading-[20px] font-medium whitespace-nowrap"
-							>
-								{heroBanner.ctaLabel}
-							</span>
-							<ArrowRight class="size-[16px]" />
-						</a>
-					{/if}
-				</div>
 			</div>
 		</section>
 	{/if}
@@ -141,15 +91,15 @@
 					data-name="Flex Horizontal"
 				>
 					<h2
-						class="relative min-w-px flex-[1_0_0] font-['Geist:Bold'] text-[30px] leading-[36px] font-bold [word-break:break-word] text-[#0a0a0a] max-[480px]:text-2xl max-[480px]:leading-8"
+						class="relative min-w-px flex-[1_0_0] font-['Geist:Bold'] text-[30px] leading-[36px] font-bold [word-break:break-word] text-foreground max-[480px]:text-2xl max-[480px]:leading-8"
 					>
 						{root.name}
 					</h2>
 					<a
 						href={`/products?categoryId=${root.id}`}
-						class="shrink-0 font-['Geist:Medium'] text-[18px] leading-[28px] font-medium text-[#0a0a0a] transition hover:text-[#525252]"
+						class="shrink-0 font-['Geist:Medium'] text-[18px] leading-[28px] font-medium text-foreground transition hover:text-muted-foreground"
 					>
-						View All
+						{m.common_view_all()}
 					</a>
 				</div>
 				<div
@@ -159,11 +109,11 @@
 					{#each cards as category (category.id)}
 						<a
 							href={`/products?categoryId=${category.id}`}
-							class="group flex flex-col overflow-hidden rounded-[14px] bg-white pb-[16px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)] transition hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(10,10,10,0.12)]"
+							class="group flex flex-col overflow-hidden rounded-[14px] bg-card pb-[16px] shadow-[0px_0px_0px_1px_color-mix(in_oklab,var(--foreground)_10%,transparent)] transition hover:-translate-y-0.5 hover:shadow-[0_12px_30px_color-mix(in_oklab,var(--foreground)_12%,transparent)]"
 							data-name="Categories Card"
 						>
 							<div
-								class="relative aspect-square w-full overflow-hidden bg-[#f5f5f5]"
+								class="relative aspect-square w-full overflow-hidden bg-muted"
 								data-name="card-header"
 							>
 								{#if category.imageUrl}
@@ -179,12 +129,12 @@
 							</div>
 							<div class="flex w-full flex-col gap-[4px] px-[16px] pt-[16px]" data-name="card-body">
 								<p
-									class="font-['Geist:SemiBold'] text-[18px] leading-[28px] font-semibold [word-break:break-word] text-[#0a0a0a]"
+									class="font-['Geist:SemiBold'] text-[18px] leading-[28px] font-semibold [word-break:break-word] text-foreground"
 								>
 									{category.name}
 								</p>
-								<p class="text-[14px] leading-[20px] text-[#737373]">
-									{category.productCount} products
+								<p class="text-[14px] leading-[20px] text-muted-foreground">
+									{m.storefront_categories_products_count({ count: category.productCount })}
 								</p>
 							</div>
 						</a>
@@ -208,9 +158,9 @@
 					data-name="Flex Horizontal"
 				>
 					<h2
-						class="relative min-w-px flex-[1_0_0] font-['Geist:Bold'] text-[30px] leading-[36px] font-bold [word-break:break-word] text-[#0a0a0a] max-[480px]:text-2xl max-[480px]:leading-8"
+						class="relative min-w-px flex-[1_0_0] font-['Geist:Bold'] text-[30px] leading-[36px] font-bold [word-break:break-word] text-foreground max-[480px]:text-2xl max-[480px]:leading-8"
 					>
-						Grand Global Brands
+						{m.storefront_categories_brands_title()}
 					</h2>
 				</div>
 				<div
@@ -220,7 +170,7 @@
 					{#each home.brands as brand (brand.id)}
 						<a
 							href={`/products?brandId=${brand.id}`}
-							class="group flex flex-col items-center gap-[12px] rounded-[14px] bg-white px-[16px] py-[24px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)] transition hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(10,10,10,0.12)]"
+							class="group flex flex-col items-center gap-[12px] rounded-[14px] bg-card px-[16px] py-[24px] shadow-[0px_0px_0px_1px_color-mix(in_oklab,var(--foreground)_10%,transparent)] transition hover:-translate-y-0.5 hover:shadow-[0_12px_30px_color-mix(in_oklab,var(--foreground)_12%,transparent)]"
 							data-name="Categories Card"
 						>
 							<div class="flex h-[64px] w-full items-center justify-center" data-name="card-header">
@@ -233,7 +183,7 @@
 									/>
 								{:else}
 									<span
-										class="font-['Geist:SemiBold'] text-[18px] leading-[28px] font-semibold text-[#0a0a0a]"
+										class="font-['Geist:SemiBold'] text-[18px] leading-[28px] font-semibold text-foreground"
 									>
 										{brand.name}
 									</span>
@@ -241,7 +191,7 @@
 							</div>
 							<div class="flex w-full flex-col items-center" data-name="card-body">
 								<p
-									class="text-center font-['Geist:Medium'] text-[14px] leading-[20px] text-[#0a0a0a]"
+									class="text-center font-['Geist:Medium'] text-[14px] leading-[20px] text-foreground"
 								>
 									{brand.name}
 								</p>
@@ -268,19 +218,19 @@
 					data-name="Flex Horizontal"
 				>
 					<h2
-						class="relative min-w-px flex-[1_0_0] font-['Geist:Bold'] text-[30px] leading-[36px] font-bold [word-break:break-word] text-[#0a0a0a] max-[480px]:text-2xl max-[480px]:leading-8"
+						class="relative min-w-px flex-[1_0_0] font-['Geist:Bold'] text-[30px] leading-[36px] font-bold [word-break:break-word] text-foreground max-[480px]:text-2xl max-[480px]:leading-8"
 					>
-						Deals of the Day
+						{m.storefront_categories_deals_title()}
 					</h2>
 					<a
 						href="/products?deal=true"
-						class="shrink-0 font-['Geist:Medium'] text-[18px] leading-[28px] font-medium text-[#0a0a0a] transition hover:text-[#525252]"
+						class="shrink-0 font-['Geist:Medium'] text-[18px] leading-[28px] font-medium text-foreground transition hover:text-muted-foreground"
 					>
-						View All
+						{m.common_view_all()}
 					</a>
 				</div>
 				<div
-					class="relative flex w-full shrink-0 overflow-clip rounded-[14px] bg-[#171717]"
+					class="relative flex w-full shrink-0 overflow-clip rounded-[14px] bg-primary"
 					data-name="Card"
 				>
 					{#if firstDeal.imageUrl}
@@ -324,7 +274,7 @@
 									{formatMoney(firstDeal.compareAtPrice, firstDeal.currency)}
 								</span>
 								<span
-									class="rounded-full bg-[#dc2626] px-[10px] py-[2px] text-[14px] leading-[20px] font-medium"
+									class="rounded-full bg-destructive px-[10px] py-[2px] text-[14px] leading-[20px] font-medium"
 								>
 									-{discount}%
 								</span>
@@ -332,19 +282,19 @@
 						</div>
 						<div class="flex w-full max-w-[420px] flex-col gap-[8px]" data-name="Flex Vertical">
 							<p class="font-['Geist:SemiBold'] text-[16px] leading-[24px] font-semibold">
-								Offer expires in:
+								{m.storefront_categories_offer_expires()}
 							</p>
 							<DealCountdown endsAt={firstDeal.dealEndsAt} />
 						</div>
 						<a
 							href={`/products/${firstDeal.slug}`}
-							class="flex w-fit items-center justify-center gap-[6px] overflow-clip rounded-[10px] bg-[#dc2626] px-[16px] py-[8px] text-white"
+							class="flex w-fit items-center justify-center gap-[6px] overflow-clip rounded-[10px] bg-destructive px-[16px] py-[8px] text-white"
 							data-name="Solid Button"
 						>
 							<span
 								class="font-['Geist:Medium'] text-[14px] leading-[20px] font-medium whitespace-nowrap"
 							>
-								Shop now
+								{m.storefront_categories_shop_now()}
 							</span>
 							<ArrowRight class="size-[16px]" />
 						</a>
@@ -356,21 +306,21 @@
 
 	{#if remainingDeals.length > 0}
 		<ProductCarousel
-			title="Deals of the Day"
+			title={m.storefront_categories_deals_title()}
 			products={remainingDeals}
 			viewAllHref="/products?deal=true"
 		/>
 	{/if}
 
 	<ProductCarousel
-		title="New Arrival Products"
+		title={m.storefront_categories_new_arrivals()}
 		products={home.newArrivals}
 		viewAllHref="/products?newArrival=true"
 	/>
 
 	{#if home.popular.length > 0}
 		<ProductCarousel
-			title="Popular Products"
+			title={m.storefront_categories_popular()}
 			products={home.popular}
 			viewAllHref="/products?sort=popular"
 		/>

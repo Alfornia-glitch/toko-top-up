@@ -15,7 +15,7 @@
 		data-name="Flex Horizontal"
 	>
 		<div
-			class="relative flex min-w-px flex-auto flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-[#f5f5f5] py-[24px] lg:h-full lg:flex-[1_0_0]"
+			class="relative flex min-w-px flex-auto flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-muted py-[24px] lg:h-full lg:flex-[1_0_0]"
 			data-name="Card"
 		>
 			<div
@@ -27,7 +27,7 @@
 					data-name="Flex Vertical"
 				>
 					<div
-						class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[8px] [word-break:break-word] text-[#0a0a0a]"
+						class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[8px] [word-break:break-word] text-foreground"
 						data-name="Flex Vertical"
 					>
 						<p
@@ -46,11 +46,11 @@
 					{#if mainBanner.ctaLabel}
 						<a
 							href={mainBanner.ctaUrl ?? '/products'}
-							class="relative flex shrink-0 content-stretch items-center justify-center gap-[6px] rounded-[10px] border border-solid border-[#e5e5e5] bg-white px-[16px] py-[8px]"
+							class="relative flex shrink-0 content-stretch items-center justify-center gap-[6px] rounded-[10px] border border-solid border-border bg-card px-[16px] py-[8px]"
 							data-name="Solid button"
 						>
 							<div
-								class="relative flex shrink-0 flex-col justify-center font-['Geist:Medium'] text-[14px] leading-[0] font-medium [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
+								class="relative flex shrink-0 flex-col justify-center font-['Geist:Medium'] text-[14px] leading-[0] font-medium [word-break:break-word] whitespace-nowrap text-foreground"
 							>
 								<p class="leading-[20px]">{mainBanner.ctaLabel}</p>
 							</div>
@@ -87,7 +87,7 @@
 			>
 				{#each sideBanners as banner (banner.id)}
 					<div
-						class="relative flex min-h-px w-full flex-auto flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-[rgba(2,132,199,0.1)] py-[24px] lg:flex-[1_0_0]"
+						class="relative flex min-h-px w-full flex-auto flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-primary/10 py-[24px] lg:flex-[1_0_0]"
 						data-name="Card"
 					>
 						<div
@@ -99,7 +99,7 @@
 								data-name="Flex Vertical"
 							>
 								<div
-									class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[8px] [word-break:break-word] text-[#0a0a0a]"
+									class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[8px] [word-break:break-word] text-foreground"
 									data-name="Flex Vertical"
 								>
 									<p
@@ -118,11 +118,11 @@
 								{#if banner.ctaLabel}
 									<a
 										href={banner.ctaUrl ?? '/products'}
-										class="relative flex shrink-0 content-stretch items-center justify-center gap-[6px] rounded-[10px] border border-solid border-[#e5e5e5] bg-white px-[12px] py-[6px]"
+										class="relative flex shrink-0 content-stretch items-center justify-center gap-[6px] rounded-[10px] border border-solid border-border bg-card px-[12px] py-[6px]"
 										data-name="Solid button"
 									>
 										<div
-											class="relative flex shrink-0 flex-col justify-center font-['Geist:Medium'] text-[14px] leading-[0] font-medium [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
+											class="relative flex shrink-0 flex-col justify-center font-['Geist:Medium'] text-[14px] leading-[0] font-medium [word-break:break-word] whitespace-nowrap text-foreground"
 										>
 											<p class="leading-[20px]">{banner.ctaLabel}</p>
 										</div>

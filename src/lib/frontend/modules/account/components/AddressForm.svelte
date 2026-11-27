@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { errorMessage } from '#lib/frontend/i18n/index.ts';
+	import { m } from '#lib/paraglide/messages.js';
 	import { untrack } from 'svelte';
 	import { Button } from '#lib/frontend/components/ui/button/index.ts';
 	import { Checkbox } from '#lib/frontend/components/ui/checkbox/index.ts';
@@ -37,7 +39,7 @@
 	let {
 		initial = {},
 		submitting = false,
-		submitLabel = 'Save address',
+		submitLabel = m.components_address_form_submit(),
 		oncancel,
 		onsubmit
 	}: {
@@ -81,19 +83,19 @@
 		const country = form.country.trim();
 
 		if (!recipientName) {
-			error = 'Recipient name is required.';
+			error = m.components_address_form_recipient_required();
 			return;
 		}
 		if (!line1) {
-			error = 'Address line 1 is required.';
+			error = m.components_address_form_line1_required();
 			return;
 		}
 		if (!city) {
-			error = 'City is required.';
+			error = m.components_address_form_city_required();
 			return;
 		}
 		if (!country) {
-			error = 'Country is required.';
+			error = m.components_address_form_country_required();
 			return;
 		}
 
@@ -114,7 +116,7 @@
 				isDefaultBilling: form.isDefaultBilling
 			});
 		} catch (cause) {
-			error = cause instanceof Error ? cause.message : 'Could not save this address.';
+			error = errorMessage(cause, 'components_address_form_save_failed');
 		}
 	}
 </script>
@@ -122,16 +124,18 @@
 <form class="flex flex-col gap-4" onsubmit={handleSubmit} oninput={() => (error = '')} novalidate>
 	<div class="grid gap-4 sm:grid-cols-2">
 		<Field.Field>
-			<Field.Label for="address-account-label">Label</Field.Label>
+			<Field.Label for="address-account-label">{m.components_address_form_label()}</Field.Label>
 			<Input
 				id="address-account-label"
 				bind:value={form.label}
 				autocomplete="organization"
-				placeholder="Home, Office…"
+				placeholder={m.components_address_form_label_placeholder()}
 			/>
 		</Field.Field>
 		<Field.Field>
-			<Field.Label for="address-account-recipient">Recipient name</Field.Label>
+			<Field.Label for="address-account-recipient"
+				>{m.components_address_form_recipient()}</Field.Label
+			>
 			<Input
 				id="address-account-recipient"
 				bind:value={form.recipientName}
@@ -140,11 +144,11 @@
 			/>
 		</Field.Field>
 		<Field.Field>
-			<Field.Label for="address-account-phone">Phone</Field.Label>
+			<Field.Label for="address-account-phone">{m.common_phone()}</Field.Label>
 			<Input id="address-account-phone" bind:value={form.phone} autocomplete="tel" />
 		</Field.Field>
 		<Field.Field>
-			<Field.Label for="address-account-country">Country</Field.Label>
+			<Field.Label for="address-account-country">{m.components_address_form_country()}</Field.Label>
 			<Input
 				id="address-account-country"
 				bind:value={form.country}
@@ -153,7 +157,7 @@
 			/>
 		</Field.Field>
 		<Field.Field class="sm:col-span-2">
-			<Field.Label for="address-account-line1">Address line 1</Field.Label>
+			<Field.Label for="address-account-line1">{m.components_address_form_line1()}</Field.Label>
 			<Input
 				id="address-account-line1"
 				bind:value={form.line1}
@@ -162,11 +166,11 @@
 			/>
 		</Field.Field>
 		<Field.Field class="sm:col-span-2">
-			<Field.Label for="address-account-line2">Address line 2</Field.Label>
+			<Field.Label for="address-account-line2">{m.components_address_form_line2()}</Field.Label>
 			<Input id="address-account-line2" bind:value={form.line2} autocomplete="address-line2" />
 		</Field.Field>
 		<Field.Field>
-			<Field.Label for="address-account-city">City</Field.Label>
+			<Field.Label for="address-account-city">{m.components_address_form_city()}</Field.Label>
 			<Input
 				id="address-account-city"
 				bind:value={form.city}
@@ -175,11 +179,11 @@
 			/>
 		</Field.Field>
 		<Field.Field>
-			<Field.Label for="address-account-region">Region</Field.Label>
+			<Field.Label for="address-account-region">{m.components_address_form_region()}</Field.Label>
 			<Input id="address-account-region" bind:value={form.region} autocomplete="address-level1" />
 		</Field.Field>
 		<Field.Field>
-			<Field.Label for="address-account-postal">Postal code</Field.Label>
+			<Field.Label for="address-account-postal">{m.components_address_form_postal()}</Field.Label>
 			<Input id="address-account-postal" bind:value={form.postalCode} autocomplete="postal-code" />
 		</Field.Field>
 	</div>
@@ -188,13 +192,13 @@
 		<div class="flex items-center gap-2">
 			<Checkbox id="address-account-default-shipping" bind:checked={form.isDefaultShipping} />
 			<Field.Label for="address-account-default-shipping" class="font-normal">
-				Set as default shipping address
+				{m.components_address_form_default_shipping()}
 			</Field.Label>
 		</div>
 		<div class="flex items-center gap-2">
 			<Checkbox id="address-account-default-billing" bind:checked={form.isDefaultBilling} />
 			<Field.Label for="address-account-default-billing" class="font-normal">
-				Set as default billing address
+				{m.components_address_form_default_billing()}
 			</Field.Label>
 		</div>
 	</div>
@@ -208,10 +212,10 @@
 			{#if submitting}
 				<Spinner />
 			{/if}
-			{submitting ? 'Saving…' : submitLabel}
+			{submitting ? m.common_saving() : submitLabel}
 		</Button>
 		{#if oncancel}
-			<Button type="button" variant="outline" onclick={oncancel}>Cancel</Button>
+			<Button type="button" variant="outline" onclick={oncancel}>{m.common_cancel()}</Button>
 		{/if}
 	</div>
 </form>

@@ -17,7 +17,11 @@ export const GET: RequestHandler = async ({ locals, params }) => {
 	const denied = requireAdmin(locals.user);
 	if (denied) return denied;
 	const kind = kindOf(params.kind);
-	if (!kind) return Response.json({ error: 'Unknown content type' }, { status: 404 });
+	if (!kind)
+		return Response.json(
+			{ error: 'Unknown content type', code: 'content_kind_unknown' },
+			{ status: 404 }
+		);
 	return Response.json({
 		data: unwrap(await locals.services.content.content.listItems(kind, locals.actor))
 	});
@@ -27,12 +31,19 @@ export const POST: RequestHandler = async (event) => {
 	const denied = requireAdmin(event.locals.user);
 	if (denied) return denied;
 	const kind = kindOf(event.params.kind);
-	if (!kind) return Response.json({ error: 'Unknown content type' }, { status: 404 });
+	if (!kind)
+		return Response.json(
+			{ error: 'Unknown content type', code: 'content_kind_unknown' },
+			{ status: 404 }
+		);
 	let body: unknown;
 	try {
 		body = await event.request.json();
 	} catch {
-		return Response.json({ error: 'Expected a JSON body' }, { status: 400 });
+		return Response.json(
+			{ error: 'Expected a JSON body', code: 'invalid_json_body' },
+			{ status: 400 }
+		);
 	}
 	const schema =
 		kind === 'banners'
@@ -43,7 +54,7 @@ export const POST: RequestHandler = async (event) => {
 	const parsed = schema.safeParse(body);
 	if (!parsed.success)
 		return Response.json(
-			{ error: 'Invalid content data', details: parsed.error.flatten() },
+			{ error: 'Invalid content data', code: 'VALIDATION_ERROR', details: parsed.error.flatten() },
 			{ status: 422 }
 		);
 	const id = unwrap(

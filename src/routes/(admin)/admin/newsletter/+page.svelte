@@ -8,6 +8,10 @@
 	import { Input } from '#lib/frontend/components/ui/input/index.ts';
 	import { Label } from '#lib/frontend/components/ui/label/index.ts';
 	import * as Select from '#lib/frontend/components/ui/select/index.ts';
+	import { m } from '#lib/paraglide/messages.js';
+	import { errorMessage } from '#lib/frontend/i18n/index.ts';
+	import { statusLabel } from '#lib/frontend/i18n/labels.ts';
+	import { formatDateTime } from '#lib/frontend/modules/commerce/format.ts';
 
 	type NewsletterRow = {
 		id: string;
@@ -20,13 +24,13 @@
 		updatedAt: string;
 	};
 
-	const columns = [
-		{ key: 'email', label: 'Email' },
-		{ key: 'status', label: 'Status' },
-		{ key: 'source', label: 'Source' },
-		{ key: 'createdAt', label: 'Subscribed' },
+	const columns = $derived([
+		{ key: 'email', label: m.common_email() },
+		{ key: 'status', label: m.common_status() },
+		{ key: 'source', label: m.admin_catalog_newsletter_col_source() },
+		{ key: 'createdAt', label: m.admin_catalog_newsletter_col_subscribed() },
 		{ key: 'actions', label: '', class: 'text-right' }
-	];
+	]);
 
 	const pageSize = 25;
 
@@ -65,12 +69,13 @@
 			const response = await fetch(`/api/admin/newsletter?${params.toString()}`);
 			const payload = await response.json().catch(() => ({}));
 
-			if (!response.ok) throw new Error(payload.error ?? 'Could not load subscriptions');
+			if (!response.ok)
+				throw new Error(errorMessage(payload, 'admin_catalog_newsletter_load_failed'));
 
 			subscriptions = payload.data ?? [];
 			total = Number(payload.total ?? 0);
 		} catch (err) {
-			error = err instanceof Error ? err.message : 'Could not load subscriptions';
+			error = errorMessage(err, 'admin_catalog_newsletter_load_failed');
 		} finally {
 			loading = false;
 		}
@@ -112,11 +117,12 @@
 			});
 			const payload = await response.json().catch(() => ({}));
 
-			if (!response.ok) throw new Error(payload.error ?? 'Could not update subscription');
+			if (!response.ok)
+				throw new Error(errorMessage(payload, 'admin_catalog_newsletter_update_failed'));
 
 			await loadNewsletter();
 		} catch (err) {
-			error = err instanceof Error ? err.message : 'Could not update subscription';
+			error = errorMessage(err, 'admin_catalog_newsletter_update_failed');
 		} finally {
 			busyId = '';
 		}
@@ -141,11 +147,17 @@
 			const response = await fetch(`/api/admin/newsletter?${params.toString()}`);
 			const payload = await response.json().catch(() => ({}));
 
-			if (!response.ok) throw new Error(payload.error ?? 'Could not export subscriptions');
+			if (!response.ok)
+				throw new Error(errorMessage(payload, 'admin_catalog_newsletter_export_failed'));
 
 			const rows = (payload.data ?? []) as NewsletterRow[];
 			const lines = [
-				['Email', 'Status', 'Source', 'Created at'],
+				[
+					m.common_email(),
+					m.common_status(),
+					m.admin_catalog_newsletter_col_source(),
+					m.admin_catalog_newsletter_csv_created_at()
+				],
 				...rows.map((row) => [row.email, row.status, row.source ?? '', row.createdAt])
 			].map((cells) => cells.map(csvCell).join(','));
 
@@ -159,39 +171,35 @@
 			link.click();
 			URL.revokeObjectURL(url);
 		} catch (err) {
-			error = err instanceof Error ? err.message : 'Could not export subscriptions';
+			error = errorMessage(err, 'admin_catalog_newsletter_export_failed');
 		} finally {
 			exporting = false;
 		}
 	}
 
 	function formatDate(value: string) {
-		const date = new Date(value);
-		if (Number.isNaN(date.getTime())) return '—';
+		return formatDateTime(value) || m.common_dash();
+	}
 
-		return new Intl.DateTimeFormat('en-US', {
-			month: 'short',
-			day: 'numeric',
-			year: 'numeric',
-			hour: '2-digit',
-			minute: '2-digit'
-		}).format(date);
+	function sourceLabel(value: unknown) {
+		if (!value) return '—';
+		return value === 'footer' ? m.admin_catalog_newsletter_source_footer() : String(value);
 	}
 </script>
 
 <div class="space-y-6">
 	<div class="flex flex-wrap items-start justify-between gap-3">
 		<div>
-			<h1 class="text-2xl font-semibold tracking-tight">Newsletter</h1>
-			<p class="text-sm text-muted-foreground">Manage email subscriptions and export the list.</p>
+			<h1 class="text-2xl font-semibold tracking-tight">{m.admin_catalog_newsletter_title()}</h1>
+			<p class="text-sm text-muted-foreground">{m.admin_catalog_newsletter_subtitle()}</p>
 		</div>
 		<Button variant="outline" onclick={exportCsv} disabled={exporting}>
 			{#if exporting}
 				<LoaderCircle class="size-4 animate-spin" />
-				Exporting…
+				{m.admin_catalog_newsletter_exporting()}
 			{:else}
 				<Download class="size-4" />
-				Export CSV
+				{m.admin_catalog_newsletter_export_csv()}
 			{/if}
 		</Button>
 	</div>
@@ -208,25 +216,30 @@
 	<Card.Root>
 		<Card.Content class="grid gap-3 sm:grid-cols-2">
 			<div class="space-y-1.5">
-				<Label for="newsletter-search">Search</Label>
+				<Label for="newsletter-search">{m.common_search()}</Label>
 				<Input
 					id="newsletter-search"
 					bind:value={q}
 					oninput={handleSearch}
-					placeholder="Search by email"
+					placeholder={m.admin_catalog_newsletter_search_placeholder()}
 				/>
 			</div>
 
 			<div class="space-y-1.5">
-				<Label for="newsletter-status-filter">Status</Label>
+				<Label for="newsletter-status-filter">{m.common_status()}</Label>
 				<Select.Root type="single" value={statusFilter} onValueChange={handleStatusChange}>
 					<Select.Trigger id="newsletter-status-filter" class="w-full">
-						<Select.Value placeholder="All statuses" />
+						<Select.Value placeholder={m.common_all_statuses()} />
 					</Select.Trigger>
 					<Select.Content>
-						<Select.Item value="all" label="All statuses">All statuses</Select.Item>
-						<Select.Item value="subscribed" label="Subscribed">Subscribed</Select.Item>
-						<Select.Item value="unsubscribed" label="Unsubscribed">Unsubscribed</Select.Item>
+						<Select.Item value="all" label={m.common_all_statuses()}>
+							{m.common_all_statuses()}
+						</Select.Item>
+						{#each ['subscribed', 'unsubscribed'] as value (value)}
+							<Select.Item {value} label={statusLabel('newsletter', value)}>
+								{statusLabel('newsletter', value)}
+							</Select.Item>
+						{/each}
 					</Select.Content>
 				</Select.Root>
 			</div>
@@ -237,7 +250,7 @@
 		{columns}
 		rows={subscriptions as unknown as Record<string, unknown>[]}
 		{loading}
-		emptyMessage="No subscriptions match the current filters."
+		emptyMessage={m.admin_catalog_newsletter_empty()}
 		{page}
 		{pageSize}
 		{total}
@@ -249,7 +262,7 @@
 			{:else if column.key === 'status'}
 				<StatusBadge status={String(row.status ?? '')} />
 			{:else if column.key === 'source'}
-				<span class="text-muted-foreground capitalize">{String(row.source ?? '—')}</span>
+				<span class="text-muted-foreground">{sourceLabel(row.source)}</span>
 			{:else if column.key === 'createdAt'}
 				<span class="text-muted-foreground">{formatDate(String(row.createdAt ?? ''))}</span>
 			{:else if column.key === 'actions'}
@@ -260,7 +273,9 @@
 						disabled={busyId === String(row.id)}
 						onclick={() => toggleStatus(row)}
 					>
-						{row.status === 'subscribed' ? 'Unsubscribe' : 'Subscribe'}
+						{row.status === 'subscribed'
+							? m.admin_catalog_newsletter_unsubscribe()
+							: m.admin_catalog_newsletter_subscribe()}
 					</Button>
 				</div>
 			{:else}

@@ -1,12 +1,13 @@
 <script lang="ts">
+	import { m } from '#lib/paraglide/messages.js';
+	import { errorMessage } from '#lib/frontend/i18n/index.ts';
 	import {
 		listPaymentMethods,
 		createPaymentMethod,
 		updatePaymentMethod,
 		deletePaymentMethod,
 		type PaymentForm,
-		isUnauthorized,
-		messageFrom
+		isUnauthorized
 	} from '#lib/frontend/modules/account/index.ts';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
@@ -43,7 +44,7 @@
 	let editingId = $state<string | null>(null);
 	let form = $state<PaymentForm>(emptyForm());
 
-	const formTitle = $derived(editingId ? 'Edit payment method' : 'Add payment method');
+	const formTitle = $derived(editingId ? m.account_payment_edit() : m.account_payment_add());
 
 	function redirectToLogin(): void {
 		const target = `${page.url.pathname}${page.url.search}`;
@@ -56,7 +57,7 @@
 			return '';
 		}
 
-		return messageFrom(cause, 'Something went wrong');
+		return errorMessage(cause, 'common_something_went_wrong');
 	}
 
 	function expiry(method: PaymentMethod): string {
@@ -104,17 +105,17 @@
 	}
 
 	function validate(source: PaymentForm): string {
-		if (!source.brand.trim()) return 'Enter the card brand.';
-		if (!/^\d{4}$/.test(source.last4.trim())) return 'Enter the last 4 digits of the card.';
+		if (!source.brand.trim()) return m.account_payment_brand_required();
+		if (!/^\d{4}$/.test(source.last4.trim())) return m.account_payment_last4_invalid();
 
 		const month = Number(source.expMonth);
 		if (!Number.isInteger(month) || month < 1 || month > 12) {
-			return 'Expiry month must be between 1 and 12.';
+			return m.account_payment_month_invalid();
 		}
 
 		const year = Number(source.expYear);
 		if (!Number.isInteger(year) || year < 2000 || year > 2100) {
-			return 'Enter a valid four-digit expiry year.';
+			return m.account_payment_year_invalid();
 		}
 
 		return '';
@@ -172,7 +173,8 @@
 	}
 
 	async function removeMethod(method: PaymentMethod): Promise<void> {
-		if (!confirm(`Remove ${method.brand} ending in ${method.last4}?`)) return;
+		if (!confirm(m.account_payment_remove_confirm({ brand: method.brand, last4: method.last4 })))
+			return;
 
 		busyId = method.id;
 		loadError = '';
@@ -193,12 +195,12 @@
 </script>
 
 <div
-	class="relative flex size-full flex-col content-stretch items-center bg-white"
+	class="relative flex size-full flex-col content-stretch items-center bg-card"
 	data-name="Shopix - Payment"
 >
 	<SiteHeader />
 	<div
-		class="relative flex w-full max-w-[1440px] shrink-0 flex-col content-stretch items-center justify-center bg-white py-[56px] max-[480px]:py-9"
+		class="relative flex w-full max-w-[1440px] shrink-0 flex-col content-stretch items-center justify-center bg-card py-[56px] max-[480px]:py-9"
 		data-name="Payment"
 	>
 		<div
@@ -211,29 +213,29 @@
 				data-name="Flex Vertical"
 			>
 				<p
-					class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] text-[#0a0a0a]"
+					class="relative w-full shrink-0 font-['Geist:SemiBold'] text-[20px] leading-[28px] font-semibold [word-break:break-word] text-foreground"
 				>
-					Payment
+					{m.common_payment()}
 				</p>
 
 				{#if loadError}
-					<p class="w-full text-[14px] leading-[20px] text-[#dc2626]">{loadError}</p>
+					<p class="w-full text-[14px] leading-[20px] text-destructive">{loadError}</p>
 				{/if}
 
 				{#if formOpen}
 					<form
-						class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[16px] rounded-[14px] bg-white p-[16px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)]"
+						class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[16px] rounded-[14px] bg-card p-[16px] shadow-[0px_0px_0px_1px_color-mix(in_oklab,var(--foreground)_10%,transparent)]"
 						data-name="Card"
 						onsubmit={submitForm}
 					>
 						<p
-							class="font-['Geist:SemiBold'] text-[18px] leading-[28px] font-semibold text-[#0a0a0a]"
+							class="font-['Geist:SemiBold'] text-[18px] leading-[28px] font-semibold text-foreground"
 						>
 							{formTitle}
 						</p>
 						<div class="grid w-full gap-[16px] sm:grid-cols-2">
 							<div class="grid gap-[6px]">
-								<Label for="payment-brand">Card brand</Label>
+								<Label for="payment-brand">{m.account_payment_brand()}</Label>
 								<Input
 									id="payment-brand"
 									bind:value={form.brand}
@@ -243,7 +245,7 @@
 								/>
 							</div>
 							<div class="grid gap-[6px]">
-								<Label for="payment-last4">Last 4 digits</Label>
+								<Label for="payment-last4">{m.account_payment_last4()}</Label>
 								<Input
 									id="payment-last4"
 									bind:value={form.last4}
@@ -256,7 +258,7 @@
 								/>
 							</div>
 							<div class="grid gap-[6px]">
-								<Label for="payment-exp-month">Expiry month</Label>
+								<Label for="payment-exp-month">{m.account_payment_exp_month()}</Label>
 								<Input
 									id="payment-exp-month"
 									type="number"
@@ -268,7 +270,7 @@
 								/>
 							</div>
 							<div class="grid gap-[6px]">
-								<Label for="payment-exp-year">Expiry year</Label>
+								<Label for="payment-exp-year">{m.account_payment_exp_year()}</Label>
 								<Input
 									id="payment-exp-year"
 									type="number"
@@ -282,22 +284,24 @@
 						</div>
 						<div class="flex items-center gap-[8px]">
 							<Checkbox id="payment-default" bind:checked={form.isDefault} />
-							<Label for="payment-default" class="font-normal">Set as default</Label>
+							<Label for="payment-default" class="font-normal"
+								>{m.account_payment_set_default_label()}</Label
+							>
 						</div>
 						{#if formError}
-							<p class="text-[14px] leading-[20px] text-[#dc2626]">{formError}</p>
+							<p class="text-[14px] leading-[20px] text-destructive">{formError}</p>
 						{/if}
 						<div class="flex items-center gap-[8px]">
 							<Button type="submit" disabled={saving}>
 								{#if saving}
 									<Spinner />
-									Saving…
+									{m.common_saving()}
 								{:else}
-									{editingId ? 'Save changes' : 'Add payment method'}
+									{editingId ? m.common_save_changes() : m.account_payment_add()}
 								{/if}
 							</Button>
 							<Button type="button" variant="outline" onclick={closeForm} disabled={saving}>
-								Cancel
+								{m.common_cancel()}
 							</Button>
 						</div>
 					</form>
@@ -305,7 +309,7 @@
 
 				{#if loading}
 					<div class="flex w-full items-center justify-center py-[24px]">
-						<Spinner class="size-6" aria-label="Loading payment methods" />
+						<Spinner class="size-6" aria-label={m.account_payment_loading()} />
 					</div>
 				{:else}
 					<div
@@ -314,12 +318,14 @@
 					>
 						{#if methods.length === 0}
 							<div
-								class="relative flex min-w-[300px] flex-[1_0_0] flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-white py-[16px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)]"
+								class="relative flex min-w-[300px] flex-[1_0_0] flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-card py-[16px] shadow-[0px_0px_0px_1px_color-mix(in_oklab,var(--foreground)_10%,transparent)]"
 								data-name="Card"
 							>
 								<div class="px-[16px]" data-name="card-body">
-									<p class="font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
-										You have no saved payment methods yet.
+									<p
+										class="font-['Geist:Regular'] text-[16px] leading-[24px] text-muted-foreground"
+									>
+										{m.account_payment_empty()}
 									</p>
 								</div>
 							</div>
@@ -327,7 +333,7 @@
 
 						{#each methods as method (method.id)}
 							<div
-								class="relative flex min-w-[300px] flex-[1_0_0] flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-white py-[16px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)]"
+								class="relative flex min-w-[300px] flex-[1_0_0] flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-card py-[16px] shadow-[0px_0px_0px_1px_color-mix(in_oklab,var(--foreground)_10%,transparent)]"
 								data-name="Card"
 							>
 								<div
@@ -342,33 +348,33 @@
 											class="relative flex min-w-[300px] flex-[1_0_0] flex-col content-stretch items-start gap-[4px] font-['Geist:Medium'] text-[16px] leading-[24px] font-medium [word-break:break-word]"
 											data-name="Flex Vertical"
 										>
-											<p class="relative w-full shrink-0 text-[#0a0a0a]">
+											<p class="relative w-full shrink-0 text-foreground">
 												{method.brand} •••• {method.last4}
 											</p>
-											<p class="relative w-full shrink-0 text-[#737373]">
-												Exp. date {expiry(method)}
+											<p class="relative w-full shrink-0 text-muted-foreground">
+												{m.account_payment_expires({ date: expiry(method) })}
 											</p>
 										</div>
 										{#if method.status === 'expired'}
 											<div
-												class="relative flex shrink-0 content-stretch items-center justify-center gap-[2px] rounded-[9999px] border border-solid border-[#dc2626] px-[6px] py-[2px]"
+												class="relative flex shrink-0 content-stretch items-center justify-center gap-[2px] rounded-[9999px] border border-solid border-destructive px-[6px] py-[2px]"
 												data-name="Outline Badge"
 											>
 												<p
-													class="relative flex shrink-0 flex-col justify-center text-center font-['Geist:Medium'] text-[12px] leading-[16px] font-medium whitespace-nowrap text-[#dc2626]"
+													class="relative flex shrink-0 flex-col justify-center text-center font-['Geist:Medium'] text-[12px] leading-[16px] font-medium whitespace-nowrap text-destructive"
 												>
-													Expired
+													{m.account_payment_expired()}
 												</p>
 											</div>
 										{:else if method.isDefault}
 											<div
-												class="relative flex shrink-0 content-stretch items-center justify-center gap-[2px] rounded-[9999px] border border-solid border-[#e5e5e5] px-[6px] py-[2px]"
+												class="relative flex shrink-0 content-stretch items-center justify-center gap-[2px] rounded-[9999px] border border-solid border-border px-[6px] py-[2px]"
 												data-name="Outline Badge"
 											>
 												<p
-													class="relative flex shrink-0 flex-col justify-center text-center font-['Geist:Medium'] text-[12px] leading-[16px] font-medium whitespace-nowrap text-[#0a0a0a]"
+													class="relative flex shrink-0 flex-col justify-center text-center font-['Geist:Medium'] text-[12px] leading-[16px] font-medium whitespace-nowrap text-foreground"
 												>
-													Default
+													{m.account_payment_default()}
 												</p>
 											</div>
 										{/if}
@@ -380,29 +386,29 @@
 										<Button
 											type="button"
 											variant="link"
-											class="h-auto p-0 text-[#0a0a0a]"
+											class="h-auto p-0 text-foreground"
 											onclick={() => startEdit(method)}
 										>
-											Edit
+											{m.common_edit()}
 										</Button>
 										<Button
 											type="button"
 											variant="link"
-											class="h-auto p-0 text-[#0a0a0a]"
+											class="h-auto p-0 text-foreground"
 											disabled={busyId === method.id}
 											onclick={() => removeMethod(method)}
 										>
-											Remove
+											{m.common_remove()}
 										</Button>
 										{#if !method.isDefault && method.status !== 'expired'}
 											<Button
 												type="button"
 												variant="link"
-												class="h-auto p-0 text-[#737373]"
+												class="h-auto p-0 text-muted-foreground"
 												disabled={busyId === method.id}
 												onclick={() => setDefault(method)}
 											>
-												Set as Default
+												{m.account_payment_set_default()}
 											</Button>
 										{/if}
 									</div>
@@ -412,7 +418,7 @@
 
 						<button
 							type="button"
-							class="relative flex h-[172px] min-w-[300px] flex-[1_0_0] cursor-pointer flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-white py-[16px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)]"
+							class="relative flex h-[172px] min-w-[300px] flex-[1_0_0] cursor-pointer flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-card py-[16px] shadow-[0px_0px_0px_1px_color-mix(in_oklab,var(--foreground)_10%,transparent)]"
 							data-name="Card"
 							onclick={startAdd}
 						>
@@ -425,7 +431,7 @@
 									data-name="Flex Horizontal"
 								>
 									<div
-										class="relative flex shrink-0 content-stretch items-center rounded-[9999px] border border-solid border-[#e5e5e5] p-[8px]"
+										class="relative flex shrink-0 content-stretch items-center rounded-[9999px] border border-solid border-border p-[8px]"
 										data-name="icon"
 									>
 										<div class="relative size-[20px] shrink-0" data-name="Left-icon">
@@ -439,9 +445,9 @@
 										</div>
 									</div>
 									<p
-										class="relative shrink-0 text-center font-['Geist:Medium'] text-[18px] leading-[28px] font-medium [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
+										class="relative shrink-0 text-center font-['Geist:Medium'] text-[18px] leading-[28px] font-medium [word-break:break-word] whitespace-nowrap text-foreground"
 									>
-										Add Payment
+										{m.account_payment_add_card()}
 									</p>
 								</div>
 							</div>

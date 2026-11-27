@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { Separator } from '#lib/frontend/components/ui/separator/index.ts';
+	import { m } from '#lib/paraglide/messages.js';
 	import { onMount, untrack } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { page as appPage } from '$app/state';
@@ -10,6 +12,7 @@
 	import type { ProductQuery } from '#lib/frontend/modules/commerce/products.ts';
 	import type { ProductListResult } from '#lib/frontend/modules/commerce/models.ts';
 	import { formatMoney } from '#lib/frontend/modules/commerce/format.ts';
+	import { errorMessage } from '#lib/frontend/i18n/index.ts';
 	import { home } from '#lib/frontend/modules/commerce/home.svelte.ts';
 
 	let { query = {} }: { query?: ProductQuery } = $props();
@@ -51,7 +54,7 @@
 	const selectedCategory = $derived(
 		result?.facets.categories.find((category) => category.id === filters.categoryId)?.name ??
 			home.categories.find((category) => category.id === filters.categoryId)?.name ??
-			'Products'
+			m.common_products()
 	);
 	const selectedBrand = $derived(
 		result?.facets.brands.find((brand) => brand.id === filters.brandId)?.name ??
@@ -188,7 +191,7 @@
 		} catch (cause) {
 			if (request !== requestId) return;
 			result = null;
-			error = cause instanceof Error ? cause.message : 'Could not load products';
+			error = errorMessage(cause, 'storefront_listing_load_failed');
 		} finally {
 			if (request === requestId) loading = false;
 		}
@@ -207,16 +210,15 @@
 	const imgCheck = '/assets/82e9f.svg';
 	const imgLeftIcon = '/assets/ca51b.svg';
 	const imgLeftIcon1 = '/assets/6b5ef.svg';
-	const imgSeparator = '/assets/402db.svg';
 </script>
 
 <div
-	class="relative flex size-full flex-col content-stretch items-center bg-white"
+	class="relative flex size-full flex-col content-stretch items-center bg-card"
 	data-name="Shopix - Product Listing List View With Sidebar"
 >
 	<SiteHeader />
 	<div
-		class="relative flex w-full max-w-[1440px] shrink-0 flex-col content-stretch items-center justify-center gap-[14px] bg-white py-[56px] max-[480px]:py-9"
+		class="relative flex w-full max-w-[1440px] shrink-0 flex-col content-stretch items-center justify-center gap-[14px] bg-card py-[56px] max-[480px]:py-9"
 		data-name="Category filter"
 	>
 		<div
@@ -233,9 +235,9 @@
 					data-name="Breadcrumb item"
 				>
 					<p
-						class="relative shrink-0 font-['Geist:Regular'] text-[14px] leading-[20px] font-normal [word-break:break-word] whitespace-nowrap text-[#737373]"
+						class="relative shrink-0 font-['Geist:Regular'] text-[14px] leading-[20px] font-normal [word-break:break-word] whitespace-nowrap text-muted-foreground"
 					>
-						Home
+						{m.common_home()}
 					</p>
 				</a>
 				<div class="relative size-[14px] shrink-0" data-name="Breadcrumb icon placeholder">
@@ -253,7 +255,7 @@
 				>
 					<p
 						class={`relative shrink-0 font-['Geist:Regular'] text-[14px] leading-[20px] font-normal [word-break:break-word] whitespace-nowrap ${
-							selectedBrand ? 'text-[#737373]' : 'text-[#0a0a0a]'
+							selectedBrand ? 'text-muted-foreground' : 'text-foreground'
 						}`}
 					>
 						{selectedCategory}
@@ -274,7 +276,7 @@
 						data-name="Breadcrumb item"
 					>
 						<p
-							class="relative shrink-0 font-['Geist:Regular'] text-[14px] leading-[20px] font-normal [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
+							class="relative shrink-0 font-['Geist:Regular'] text-[14px] leading-[20px] font-normal [word-break:break-word] whitespace-nowrap text-foreground"
 						>
 							{selectedBrand}
 						</p>
@@ -287,7 +289,7 @@
 			data-name="Flex Horizontal"
 		>
 			<div
-				class="relative flex max-w-[323px] min-w-[299px] flex-[1_0_0] flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-white py-[16px] shadow-[0px_0px_0px_1px_rgba(10,10,10,0.1)] max-md:max-w-full"
+				class="relative flex max-w-[323px] min-w-[299px] flex-[1_0_0] flex-col content-stretch items-start gap-[16px] overflow-clip rounded-[14px] bg-card py-[16px] shadow-[0px_0px_0px_1px_color-mix(in_oklab,var(--foreground)_10%,transparent)] max-md:max-w-full"
 				data-name="Card"
 			>
 				<div
@@ -299,16 +301,16 @@
 						data-name="Flex Horizontal"
 					>
 						<p
-							class="relative min-w-px flex-[1_0_0] font-['Geist:SemiBold'] text-[24px] leading-[32px] font-semibold text-[#0a0a0a]"
+							class="relative min-w-px flex-[1_0_0] font-['Geist:SemiBold'] text-[24px] leading-[32px] font-semibold text-foreground"
 						>
-							Filter
+							{m.common_filter()}
 						</p>
 						<button
 							type="button"
-							class="relative min-w-px flex-[1_0_0] cursor-pointer text-right font-['Geist:Regular'] text-[16px] leading-[24px] font-normal text-[#dc2626]"
+							class="relative min-w-px flex-[1_0_0] cursor-pointer text-right font-['Geist:Regular'] text-[16px] leading-[24px] font-normal text-destructive"
 							onclick={clearAll}
 						>
-							Clear All
+							{m.common_clear()}
 						</button>
 					</div>
 				</div>
@@ -316,17 +318,7 @@
 					class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[24px] px-[16px]"
 					data-name="card-body"
 				>
-					<div class="relative h-0 w-full shrink-0" data-name="Separator">
-						<div class="absolute inset-[-1px_0_0_0]">
-							<img
-								loading="lazy"
-								decoding="async"
-								alt=""
-								class="block size-full max-w-none"
-								src={imgSeparator}
-							/>
-						</div>
-					</div>
+					<Separator />
 					<div
 						class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[16px]"
 						data-name="Flex Vertical"
@@ -336,9 +328,9 @@
 							data-name="Flex Horizontal"
 						>
 							<p
-								class="relative shrink-0 font-['Geist:Medium'] text-[20px] leading-[28px] font-medium [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
+								class="relative shrink-0 font-['Geist:Medium'] text-[20px] leading-[28px] font-medium [word-break:break-word] whitespace-nowrap text-foreground"
 							>
-								Brand
+								{m.common_brand()}
 							</p>
 						</div>
 						{#each result?.facets.brands ?? [] as brand (brand.id)}
@@ -351,8 +343,8 @@
 								<div
 									class={`relative flex size-[20px] shrink-0 content-stretch items-center justify-center rounded-[4px] border border-solid ${
 										filters.brandId === brand.id
-											? 'border-[#171717] bg-[#171717]'
-											: 'border-[#e5e5e5] bg-white'
+											? 'border-primary bg-primary'
+											: 'border-border bg-card'
 									}`}
 									data-name="Checkbox"
 								>
@@ -373,7 +365,7 @@
 									data-name="Text"
 								>
 									<p
-										class="font-['Geist:Regular'] text-[14px] leading-[20px] font-normal text-[#0a0a0a]"
+										class="font-['Geist:Regular'] text-[14px] leading-[20px] font-normal text-foreground"
 									>
 										{brand.name}
 									</p>
@@ -381,25 +373,15 @@
 							</button>
 						{/each}
 					</div>
-					<div class="relative h-0 w-full shrink-0" data-name="Separator">
-						<div class="absolute inset-[-1px_0_0_0]">
-							<img
-								loading="lazy"
-								decoding="async"
-								alt=""
-								class="block size-full max-w-none"
-								src={imgSeparator}
-							/>
-						</div>
-					</div>
+					<Separator />
 					<div
 						class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[16px]"
 						data-name="Advance slider"
 					>
 						<p
-							class="relative w-[min-content] min-w-full shrink-0 font-['Geist:Medium'] text-[20px] leading-[28px] font-medium [word-break:break-word] text-[#0a0a0a]"
+							class="relative w-[min-content] min-w-full shrink-0 font-['Geist:Medium'] text-[20px] leading-[28px] font-medium [word-break:break-word] text-foreground"
 						>
-							Price
+							{m.common_price()}
 						</p>
 						<div
 							class="relative flex w-full shrink-0 content-stretch items-center gap-[8px]"
@@ -408,41 +390,31 @@
 							<input
 								type="number"
 								min="0"
-								placeholder="Min"
+								placeholder={m.storefront_listing_min()}
 								value={minInput}
 								onchange={applyPrice}
-								class="min-w-0 flex-1 rounded-[10px] border border-solid border-[#e5e5e5] bg-white px-[10px] py-[6px] font-['Geist:Regular'] text-[14px] text-[#0a0a0a] outline-none"
+								class="min-w-0 flex-1 rounded-[10px] border border-solid border-border bg-card px-[10px] py-[6px] font-['Geist:Regular'] text-[14px] text-foreground outline-none"
 							/>
 							<input
 								type="number"
 								min="0"
-								placeholder="Max"
+								placeholder={m.storefront_listing_max()}
 								value={maxInput}
 								onchange={applyPrice}
-								class="min-w-0 flex-1 rounded-[10px] border border-solid border-[#e5e5e5] bg-white px-[10px] py-[6px] font-['Geist:Regular'] text-[14px] text-[#0a0a0a] outline-none"
+								class="min-w-0 flex-1 rounded-[10px] border border-solid border-border bg-card px-[10px] py-[6px] font-['Geist:Regular'] text-[14px] text-foreground outline-none"
 							/>
 						</div>
 						{#each priceRanges as range, index (index)}
 							<button
 								type="button"
-								class="w-full cursor-pointer text-left font-['Geist:Regular'] text-[14px] leading-[20px] font-normal text-[#737373] hover:text-[#0a0a0a]"
+								class="w-full cursor-pointer text-left font-['Geist:Regular'] text-[14px] leading-[20px] font-normal text-muted-foreground hover:text-foreground"
 								onclick={() => applyRange(range.min, range.max)}
 							>
 								{formatMoney(range.min)} – {formatMoney(range.max)}
 							</button>
 						{/each}
 					</div>
-					<div class="relative h-0 w-full shrink-0" data-name="Separator">
-						<div class="absolute inset-[-1px_0_0_0]">
-							<img
-								loading="lazy"
-								decoding="async"
-								alt=""
-								class="block size-full max-w-none"
-								src={imgSeparator}
-							/>
-						</div>
-					</div>
+					<Separator />
 					<div
 						class="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[16px]"
 						data-name="Flex Vertical"
@@ -452,9 +424,9 @@
 							data-name="Flex Horizontal"
 						>
 							<p
-								class="relative shrink-0 font-['Geist:Medium'] text-[20px] leading-[28px] font-medium [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
+								class="relative shrink-0 font-['Geist:Medium'] text-[20px] leading-[28px] font-medium [word-break:break-word] whitespace-nowrap text-foreground"
 							>
-								Color
+								{m.storefront_listing_color()}
 							</p>
 						</div>
 						<div
@@ -466,8 +438,8 @@
 									type="button"
 									class={`relative flex size-[30px] shrink-0 cursor-pointer items-center justify-center rounded-full border border-solid text-[10px] ${
 										filters.color === color
-											? 'border-[#171717] bg-[#171717] text-white'
-											: 'border-[#e5e5e5] bg-white text-[#0a0a0a]'
+											? 'border-primary bg-primary text-primary-foreground'
+											: 'border-border bg-card text-foreground'
 									}`}
 									data-name="Color"
 									title={color}
@@ -506,8 +478,8 @@
 									<p
 										class={`relative shrink-0 font-['Geist:Medium'] text-[16px] leading-[24px] font-medium [word-break:break-word] whitespace-nowrap ${
 											filters.categoryId === category.id
-												? 'text-[#171717]'
-												: 'text-[#0a0a0a] opacity-60'
+												? 'text-primary'
+												: 'text-foreground opacity-60'
 										}`}
 									>
 										{category.name}
@@ -533,7 +505,7 @@
 								data-name="Flex Horizontal"
 							>
 								<div
-									class="relative isolate flex shrink-0 flex-wrap content-center items-center overflow-clip rounded-[10px] bg-[#f5f5f5] p-[3px]"
+									class="relative isolate flex shrink-0 flex-wrap content-center items-center overflow-clip rounded-[10px] bg-muted p-[3px]"
 									data-name="Advance Tabs"
 								>
 									<div
@@ -555,14 +527,14 @@
 												/>
 											</div>
 											<p
-												class="relative shrink-0 font-['Geist:Medium'] text-[14px] leading-[20px] font-medium [word-break:break-word] whitespace-nowrap text-[#0a0a0a] opacity-60"
+												class="relative shrink-0 font-['Geist:Medium'] text-[14px] leading-[20px] font-medium [word-break:break-word] whitespace-nowrap text-foreground opacity-60"
 											>
-												Grid
+												{m.storefront_listing_view_grid()}
 											</p>
 										</a>
 										<a
 											href={viewHref(true)}
-											class="relative flex shrink-0 content-stretch items-center justify-center gap-[4px] overflow-clip rounded-[10px] border border-solid border-[#e5e5e5] bg-white px-[8px] py-[4px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.1),0px_1px_2px_-1px_rgba(0,0,0,0.1)]"
+											class="relative flex shrink-0 content-stretch items-center justify-center gap-[4px] overflow-clip rounded-[10px] border border-solid border-border bg-card px-[8px] py-[4px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.1),0px_1px_2px_-1px_rgba(0,0,0,0.1)]"
 											data-name="Tab 02"
 										>
 											<div class="relative size-[16px] shrink-0" data-name="left-icon">
@@ -575,9 +547,9 @@
 												/>
 											</div>
 											<p
-												class="relative shrink-0 font-['Geist:Medium'] text-[14px] leading-[20px] font-medium [word-break:break-word] whitespace-nowrap text-[#0a0a0a]"
+												class="relative shrink-0 font-['Geist:Medium'] text-[14px] leading-[20px] font-medium [word-break:break-word] whitespace-nowrap text-foreground"
 											>
-												List
+												{m.storefront_listing_view_list()}
 											</p>
 										</a>
 									</div>
@@ -589,19 +561,19 @@
 									data-name="Default Select"
 								>
 									<div
-										class="relative flex min-h-px w-full flex-[1_0_0] content-stretch items-center gap-[6px] rounded-[10px] border border-solid border-[#e5e5e5] bg-white px-[10px] py-[6px]"
+										class="relative flex min-h-px w-full flex-[1_0_0] content-stretch items-center gap-[6px] rounded-[10px] border border-solid border-border bg-card px-[10px] py-[6px]"
 										data-name="SelectValue"
 									>
 										<select
-											class="w-full cursor-pointer appearance-none bg-transparent font-['Geist:Regular'] text-[12px] leading-[16px] font-normal text-[#737373] outline-none"
+											class="w-full cursor-pointer appearance-none bg-transparent font-['Geist:Regular'] text-[12px] leading-[16px] font-normal text-muted-foreground outline-none"
 											value={filters.sort ?? 'recommended'}
 											onchange={(event) => changeSort(event.currentTarget.value as SortValue)}
 										>
-											<option value="recommended">Sort : Recommended</option>
-											<option value="popular">Sort : Popular</option>
-											<option value="price_asc">Sort : Price: Low to High</option>
-											<option value="price_desc">Sort : Price: High to Low</option>
-											<option value="newest">Sort : Newest</option>
+											<option value="recommended">{m.storefront_listing_sort_recommended()}</option>
+											<option value="popular">{m.storefront_listing_sort_popular()}</option>
+											<option value="price_asc">{m.storefront_listing_sort_price_asc()}</option>
+											<option value="price_desc">{m.storefront_listing_sort_price_desc()}</option>
+											<option value="newest">{m.storefront_listing_sort_newest()}</option>
 										</select>
 										<div class="relative size-[16px] shrink-0" data-name="chevron-down">
 											<img
@@ -625,12 +597,12 @@
 							<button
 								type="button"
 								class="relative flex h-[26px] shrink-0 cursor-pointer content-stretch items-center justify-center gap-[4px] rounded-[9999px] px-[12px] py-[4px]"
-								style="background-image: linear-gradient(90deg, rgba(23, 23, 23, 0.1) 0%, rgba(23, 23, 23, 0.1) 100%), linear-gradient(90deg, rgb(255, 255, 255) 0%, rgb(255, 255, 255) 100%)"
+								style="background-image: linear-gradient(90deg, color-mix(in oklab, var(--foreground) 10%, transparent) 0%, color-mix(in oklab, var(--foreground) 10%, transparent) 100%), linear-gradient(90deg, var(--background) 0%, var(--background) 100%)"
 								data-name="Soft Badge"
 								onclick={() => selectCategory(filters.categoryId ?? '')}
 							>
 								<p
-									class="font-['Geist:Medium'] text-[12px] leading-[16px] font-medium text-[#171717]"
+									class="font-['Geist:Medium'] text-[12px] leading-[16px] font-medium text-primary"
 								>
 									{selectedCategory}
 								</p>
@@ -649,12 +621,12 @@
 							<button
 								type="button"
 								class="relative flex h-[26px] shrink-0 cursor-pointer content-stretch items-center justify-center gap-[4px] rounded-[9999px] px-[12px] py-[4px]"
-								style="background-image: linear-gradient(90deg, rgba(23, 23, 23, 0.1) 0%, rgba(23, 23, 23, 0.1) 100%), linear-gradient(90deg, rgb(255, 255, 255) 0%, rgb(255, 255, 255) 100%)"
+								style="background-image: linear-gradient(90deg, color-mix(in oklab, var(--foreground) 10%, transparent) 0%, color-mix(in oklab, var(--foreground) 10%, transparent) 100%), linear-gradient(90deg, var(--background) 0%, var(--background) 100%)"
 								data-name="Soft Badge"
 								onclick={() => selectBrand(filters.brandId ?? '')}
 							>
 								<p
-									class="font-['Geist:Medium'] text-[12px] leading-[16px] font-medium text-[#171717]"
+									class="font-['Geist:Medium'] text-[12px] leading-[16px] font-medium text-primary"
 								>
 									{selectedBrand}
 								</p>
@@ -673,7 +645,7 @@
 							<button
 								type="button"
 								class="relative flex h-[26px] shrink-0 cursor-pointer content-stretch items-center justify-center gap-[4px] rounded-[9999px] px-[12px] py-[4px]"
-								style="background-image: linear-gradient(90deg, rgba(23, 23, 23, 0.1) 0%, rgba(23, 23, 23, 0.1) 100%), linear-gradient(90deg, rgb(255, 255, 255) 0%, rgb(255, 255, 255) 100%)"
+								style="background-image: linear-gradient(90deg, color-mix(in oklab, var(--foreground) 10%, transparent) 0%, color-mix(in oklab, var(--foreground) 10%, transparent) 100%), linear-gradient(90deg, var(--background) 0%, var(--background) 100%)"
 								data-name="Soft Badge"
 								onclick={() => {
 									minInput = '';
@@ -685,13 +657,15 @@
 								}}
 							>
 								<p
-									class="font-['Geist:Medium'] text-[12px] leading-[16px] font-medium text-[#171717]"
+									class="font-['Geist:Medium'] text-[12px] leading-[16px] font-medium text-primary"
 								>
 									{filters.minPrice != null && filters.maxPrice != null
 										? `${formatMoney(filters.minPrice)} – ${formatMoney(filters.maxPrice)}`
 										: filters.minPrice != null
-											? `From ${formatMoney(filters.minPrice)}`
-											: `Up to ${formatMoney(filters.maxPrice ?? 0)}`}
+											? m.storefront_listing_price_from({ price: formatMoney(filters.minPrice) })
+											: m.storefront_listing_price_up_to({
+													price: formatMoney(filters.maxPrice ?? 0)
+												})}
 								</p>
 								<div class="relative size-[12px] shrink-0" data-name="x">
 									<img
@@ -708,12 +682,12 @@
 							<button
 								type="button"
 								class="relative flex h-[26px] shrink-0 cursor-pointer content-stretch items-center justify-center gap-[4px] rounded-[9999px] px-[12px] py-[4px]"
-								style="background-image: linear-gradient(90deg, rgba(23, 23, 23, 0.1) 0%, rgba(23, 23, 23, 0.1) 100%), linear-gradient(90deg, rgb(255, 255, 255) 0%, rgb(255, 255, 255) 100%)"
+								style="background-image: linear-gradient(90deg, color-mix(in oklab, var(--foreground) 10%, transparent) 0%, color-mix(in oklab, var(--foreground) 10%, transparent) 100%), linear-gradient(90deg, var(--background) 0%, var(--background) 100%)"
 								data-name="Soft Badge"
 								onclick={() => selectColor(filters.color ?? '')}
 							>
 								<p
-									class="font-['Geist:Medium'] text-[12px] leading-[16px] font-medium text-[#171717]"
+									class="font-['Geist:Medium'] text-[12px] leading-[16px] font-medium text-primary"
 								>
 									{filters.color}
 								</p>
@@ -731,8 +705,10 @@
 					</div>
 				</div>
 				<div class="flex w-full items-center justify-between" data-name="Flex Horizontal">
-					<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-[#737373]">
-						{loading ? 'Loading products…' : `${result?.total ?? 0} products`}
+					<p class="font-['Geist:Regular'] text-[14px] leading-[20px] text-muted-foreground">
+						{loading
+							? m.storefront_listing_loading()
+							: m.storefront_listing_total({ count: result?.total ?? 0 })}
 					</p>
 				</div>
 				{#if loading}
@@ -746,19 +722,19 @@
 								data-name="lisitng Product Card"
 							>
 								<div
-									class="h-[220px] w-full shrink-0 animate-pulse rounded-[14px] bg-[#f5f5f5]"
+									class="h-[220px] w-full shrink-0 animate-pulse rounded-[14px] bg-muted"
 									data-name="Card"
 								></div>
 							</div>
 						{/each}
 					</div>
 				{:else if error}
-					<p class="w-full font-['Geist:Regular'] text-[16px] leading-[24px] text-[#dc2626]">
+					<p class="w-full font-['Geist:Regular'] text-[16px] leading-[24px] text-destructive">
 						{error}
 					</p>
 				{:else if result && result.data.length === 0}
-					<p class="w-full font-['Geist:Regular'] text-[16px] leading-[24px] text-[#737373]">
-						No products found for the selected filters.
+					<p class="w-full font-['Geist:Regular'] text-[16px] leading-[24px] text-muted-foreground">
+						{m.storefront_listing_empty()}
 					</p>
 				{:else if result}
 					<div
@@ -792,9 +768,9 @@
 								/>
 							</div>
 							<p
-								class="font-['Geist:Medium'] text-[14px] leading-[20px] font-medium text-[#0a0a0a]"
+								class="font-['Geist:Medium'] text-[14px] leading-[20px] font-medium text-foreground"
 							>
-								Previous
+								{m.common_previous()}
 							</p>
 						</button>
 						{#each pageNumbers as number (number)}
@@ -802,12 +778,12 @@
 								type="button"
 								onclick={() => selectPage(number)}
 								class={`relative flex size-[32px] shrink-0 cursor-pointer content-stretch items-center justify-center rounded-[10px] ${
-									number === page ? 'border border-solid border-[#e5e5e5] bg-white' : ''
+									number === page ? 'border border-solid border-border bg-card' : ''
 								}`}
 								data-name={number === page ? 'Outline Button' : 'Ghost Button'}
 							>
 								<p
-									class="font-['Geist:Medium'] text-[14px] leading-[20px] font-medium text-[#0a0a0a]"
+									class="font-['Geist:Medium'] text-[14px] leading-[20px] font-medium text-foreground"
 								>
 									{number}
 								</p>
@@ -821,9 +797,9 @@
 							data-name="Ghost Button"
 						>
 							<p
-								class="font-['Geist:Medium'] text-[14px] leading-[20px] font-medium text-[#0a0a0a]"
+								class="font-['Geist:Medium'] text-[14px] leading-[20px] font-medium text-foreground"
 							>
-								Next
+								{m.common_next()}
 							</p>
 							<div class="relative size-[16px] shrink-0" data-name="Left icon">
 								<img

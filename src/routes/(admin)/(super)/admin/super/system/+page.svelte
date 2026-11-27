@@ -5,6 +5,13 @@
 	import * as Table from '#lib/frontend/components/ui/table/index.ts';
 	import { Skeleton } from '#lib/frontend/components/ui/skeleton/index.ts';
 	import StatCard from '#lib/frontend/components/admin/StatCard.svelte';
+	import { m } from '#lib/paraglide/messages.js';
+	import { errorMessage } from '#lib/frontend/i18n/index.ts';
+	import {
+		formatBytes,
+		formatDuration,
+		formatNumber
+	} from '#lib/frontend/modules/commerce/format.ts';
 
 	type SystemInfo = {
 		runtimeVersion: string;
@@ -21,27 +28,6 @@
 	let loading = $state(true);
 	let error = $state('');
 
-	function formatBytes(bytes: number) {
-		if (!Number.isFinite(bytes) || bytes <= 0) return '0 B';
-
-		const units = ['B', 'KiB', 'MiB', 'GiB', 'TiB'];
-		const exponent = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
-		const value = bytes / 1024 ** exponent;
-
-		return `${value.toFixed(value >= 10 || exponent === 0 ? 0 : 1)} ${units[exponent]}`;
-	}
-
-	function formatUptime(seconds: number) {
-		const days = Math.floor(seconds / 86400);
-		const hours = Math.floor((seconds % 86400) / 3600);
-		const minutes = Math.floor((seconds % 3600) / 60);
-
-		if (days > 0) return `${days}d ${hours}h ${minutes}m`;
-		if (hours > 0) return `${hours}h ${minutes}m`;
-
-		return `${minutes}m`;
-	}
-
 	onMount(() => {
 		void load();
 	});
@@ -54,11 +40,11 @@
 			const response = await fetch('/api/admin/super/system');
 			const payload = await response.json().catch(() => ({}));
 
-			if (!response.ok) throw new Error(payload.error ?? 'Could not load system info');
+			if (!response.ok) throw payload;
 
 			system = payload.data;
 		} catch (err) {
-			error = err instanceof Error ? err.message : 'Could not load system info';
+			error = errorMessage(err, 'admin_super_system_load_failed');
 		} finally {
 			loading = false;
 		}
@@ -67,8 +53,8 @@
 
 <div class="space-y-6">
 	<div>
-		<h1 class="text-2xl font-semibold tracking-tight">System</h1>
-		<p class="text-sm text-muted-foreground">Runtime environment, providers and record counts.</p>
+		<h1 class="text-2xl font-semibold tracking-tight">{m.admin_super_system_title()}</h1>
+		<p class="text-sm text-muted-foreground">{m.admin_super_system_subtitle()}</p>
 	</div>
 
 	{#if error}
@@ -86,23 +72,28 @@
 		<Skeleton class="h-64 w-full rounded-xl" />
 	{:else if system}
 		<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-			<StatCard title="Node version" value={system.runtimeVersion} hint="Runtime" icon={Cpu} />
 			<StatCard
-				title="Uptime"
-				value={formatUptime(system.uptimeSeconds)}
-				hint="Current process"
+				title={m.admin_super_system_node_version()}
+				value={system.runtimeVersion}
+				hint={m.admin_super_system_runtime_hint()}
+				icon={Cpu}
+			/>
+			<StatCard
+				title={m.admin_super_system_uptime()}
+				value={formatDuration(system.uptimeSeconds * 1000)}
+				hint={m.admin_super_system_uptime_hint()}
 				icon={Clock}
 			/>
 			<StatCard
-				title="Media stored"
+				title={m.admin_super_system_media_stored()}
 				value={formatBytes(system.mediaBytes)}
-				hint="Total bytes"
+				hint={m.admin_super_system_media_hint()}
 				icon={HardDrive}
 			/>
 			<StatCard
-				title="Memory"
+				title={m.admin_super_system_memory()}
 				value={formatBytes(system.memoryBytes)}
-				hint="Resident set size"
+				hint={m.admin_super_system_memory_hint()}
 				icon={MemoryStick}
 			/>
 		</div>
@@ -110,21 +101,21 @@
 		<div class="grid gap-4 lg:grid-cols-2">
 			<Card.Root>
 				<Card.Header>
-					<Card.Title>Runtime</Card.Title>
-					<Card.Description>Environment and provider configuration.</Card.Description>
+					<Card.Title>{m.admin_super_system_runtime_title()}</Card.Title>
+					<Card.Description>{m.admin_super_system_runtime_desc()}</Card.Description>
 				</Card.Header>
 				<Card.Content>
 					<dl class="grid gap-3 text-sm">
 						<div class="flex items-center justify-between gap-3 border-b pb-2">
-							<dt class="text-muted-foreground">Environment</dt>
+							<dt class="text-muted-foreground">{m.admin_super_system_environment()}</dt>
 							<dd class="font-medium">{system.nodeEnv}</dd>
 						</div>
 						<div class="flex items-center justify-between gap-3 border-b pb-2">
-							<dt class="text-muted-foreground">Database provider</dt>
+							<dt class="text-muted-foreground">{m.admin_super_system_db_provider()}</dt>
 							<dd><code class="text-sm font-medium">{system.dbProvider}</code></dd>
 						</div>
 						<div class="flex items-center justify-between gap-3">
-							<dt class="text-muted-foreground">Storage provider</dt>
+							<dt class="text-muted-foreground">{m.admin_super_system_storage_provider()}</dt>
 							<dd><code class="text-sm font-medium">{system.storageProvider}</code></dd>
 						</div>
 					</dl>
@@ -133,37 +124,37 @@
 
 			<Card.Root>
 				<Card.Header>
-					<Card.Title>Records</Card.Title>
-					<Card.Description>Row counts across core tables.</Card.Description>
+					<Card.Title>{m.admin_super_system_records_title()}</Card.Title>
+					<Card.Description>{m.admin_super_system_records_desc()}</Card.Description>
 				</Card.Header>
 				<Card.Content>
 					<Table.Root>
 						<Table.Header>
 							<Table.Row>
-								<Table.Head>Table</Table.Head>
-								<Table.Head class="text-right">Rows</Table.Head>
+								<Table.Head>{m.admin_super_system_col_table()}</Table.Head>
+								<Table.Head class="text-right">{m.admin_super_system_col_rows()}</Table.Head>
 							</Table.Row>
 						</Table.Header>
 						<Table.Body>
 							<Table.Row>
-								<Table.Cell>Users</Table.Cell>
-								<Table.Cell class="text-right">{system.counts.users}</Table.Cell>
+								<Table.Cell>{m.admin_super_stat_users()}</Table.Cell>
+								<Table.Cell class="text-right">{formatNumber(system.counts.users)}</Table.Cell>
 							</Table.Row>
 							<Table.Row>
-								<Table.Cell>Products</Table.Cell>
-								<Table.Cell class="text-right">{system.counts.products}</Table.Cell>
+								<Table.Cell>{m.common_products()}</Table.Cell>
+								<Table.Cell class="text-right">{formatNumber(system.counts.products)}</Table.Cell>
 							</Table.Row>
 							<Table.Row>
-								<Table.Cell>Orders</Table.Cell>
-								<Table.Cell class="text-right">{system.counts.orders}</Table.Cell>
+								<Table.Cell>{m.common_orders()}</Table.Cell>
+								<Table.Cell class="text-right">{formatNumber(system.counts.orders)}</Table.Cell>
 							</Table.Row>
 							<Table.Row>
-								<Table.Cell>Media</Table.Cell>
-								<Table.Cell class="text-right">{system.counts.media}</Table.Cell>
+								<Table.Cell>{m.admin_super_system_media()}</Table.Cell>
+								<Table.Cell class="text-right">{formatNumber(system.counts.media)}</Table.Cell>
 							</Table.Row>
 							<Table.Row>
-								<Table.Cell>Audit entries</Table.Cell>
-								<Table.Cell class="text-right">{system.counts.audit}</Table.Cell>
+								<Table.Cell>{m.admin_super_stat_audit_entries()}</Table.Cell>
+								<Table.Cell class="text-right">{formatNumber(system.counts.audit)}</Table.Cell>
 							</Table.Row>
 						</Table.Body>
 					</Table.Root>

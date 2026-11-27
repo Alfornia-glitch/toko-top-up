@@ -18,6 +18,7 @@
 	import CalendarPrevButton from './calendar-prev-button.svelte';
 	import type { ButtonVariant } from '../button/button.svelte';
 	import type { Snippet } from 'svelte';
+	import { intlLocale } from '#lib/frontend/i18n/locale.ts';
 
 	let {
 		ref = $bindable(null),
@@ -27,7 +28,7 @@
 		weekdayFormat = 'short',
 		buttonVariant = 'ghost',
 		captionLayout = 'label',
-		locale = 'en-US',
+		locale = intlLocale(),
 		months: monthsProp,
 		years,
 		monthFormat: monthFormatProp,
@@ -97,7 +98,7 @@ get along, so we shut typescript up by casting `value` to `never`.
 							<CalendarGridRow class="select-none">
 								{#each weekdays as weekday, i (i)}
 									<CalendarHeadCell>
-										{weekday.slice(0, 2)}
+										{weekday}
 									</CalendarHeadCell>
 								{/each}
 							</CalendarGridRow>
